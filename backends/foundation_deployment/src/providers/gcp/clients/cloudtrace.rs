@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,16 @@ use serde::Serialize;
 
 pub fn cloudtrace_projects_traces_batch_write_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &BatchWriteSpansRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://cloudtrace.googleapis.com/v2/projects/{}/traces:batchWrite",
-        name,
-    );
+    let endpoint_url =
+        format!("https://cloudtrace.googleapis.com/v2/projects/{}/traces:batchWrite",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +70,12 @@ pub fn cloudtrace_projects_traces_batch_write_builder(
 pub fn cloudtrace_projects_traces_batch_write_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,164 +177,7 @@ pub fn cloudtrace_projects_traces_batch_write(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudtrace_projects_traces_batch_write_builder(client, &args.name, &args.body)?;
-    cloudtrace_projects_traces_batch_write_execute(builder)
-}
-
-/// GET v2/projects/{projectsId}/traces/{tracesId}/spans/{spansId}
-/// Creates a new span. If a span ID already exists, an additional copy of the span will be stored.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `cloudtrace_projects_traces_spans_create_span_execute()` to send, or `cloudtrace_projects_traces_spans_create_span` for simplest API.
-
-pub fn cloudtrace_projects_traces_spans_create_span_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &Span,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://cloudtrace.googleapis.com/v2/projects/{}/traces/{}/spans/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/projects/{projectsId}/traces/{tracesId}/spans/{spansId}
-/// Creates a new span. If a span ID already exists, an additional copy of the span will be stored.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `cloudtrace_projects_traces_spans_create_span_execute()` or `cloudtrace_projects_traces_spans_create_span`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtrace_projects_traces_spans_create_span_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudtrace_projects_traces_spans_create_span_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Span>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Span = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/projects/{projectsId}/traces/{tracesId}/spans/{spansId}
-/// Creates a new span. If a span ID already exists, an additional copy of the span will be stored.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `cloudtrace_projects_traces_spans_create_span_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `cloudtrace_projects_traces_spans_create_span_task()`.
-/// For the simplest API, use `cloudtrace_projects_traces_spans_create_span()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudtrace_projects_traces_spans_create_span_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn cloudtrace_projects_traces_spans_create_span_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Span>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = cloudtrace_projects_traces_spans_create_span_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`cloudtrace_projects_traces_spans_create_span`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudtraceProjectsTracesSpansCreateSpanArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: Span,
-}
-
-/// GET v2/projects/{projectsId}/traces/{tracesId}/spans/{spansId}
-/// Creates a new span. If a span ID already exists, an additional copy of the span will be stored.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `cloudtrace_projects_traces_spans_create_span_builder()` + `cloudtrace_projects_traces_spans_create_span_execute()`.
-/// For task-level control, use `cloudtrace_projects_traces_spans_create_span_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudtrace_projects_traces_spans_create_span(
-    client: &SimpleHttpClient,
-    args: &CloudtraceProjectsTracesSpansCreateSpanArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Span>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        cloudtrace_projects_traces_spans_create_span_builder(client, &args.name, &args.body)?;
-    cloudtrace_projects_traces_spans_create_span_execute(builder)
+        cloudtrace_projects_traces_batch_write_builder(client, args.name.clone(), &args.body)?;
+    cloudtrace_projects_traces_batch_write_execute(builder)
 }

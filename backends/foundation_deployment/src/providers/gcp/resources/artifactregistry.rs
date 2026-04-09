@@ -32,7 +32,9 @@ pub struct BatchDeleteVersionsRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Artifact policy configuration for repository cleanup policies.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -53,11 +55,15 @@ pub struct CleanupPolicy {
 
 /// The response to download a file.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DownloadFileResponse {}
+pub struct DownloadFileResponse {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The LRO metadata for exporting an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -125,7 +131,9 @@ pub struct GoModule {
 
 /// The operation metadata for importing artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportAptArtifactsMetadata {}
+pub struct ImportAptArtifactsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to import new apt artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -148,7 +156,9 @@ pub struct ImportAptArtifactsResponse {
 
 /// The operation metadata for importing artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportGoogetArtifactsMetadata {}
+pub struct ImportGoogetArtifactsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to import new googet artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -171,7 +181,9 @@ pub struct ImportGoogetArtifactsResponse {
 
 /// The operation metadata for importing artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportYumArtifactsMetadata {}
+pub struct ImportYumArtifactsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to import new yum artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -337,7 +349,9 @@ pub struct ListVersionsResponse {
 
 /// Metadata type for longrunning-operations, currently empty.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationMetadata {}
+pub struct OperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The Artifact Registry logging configurations that apply to a Project.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -398,11 +412,15 @@ pub struct UploadAptArtifactMediaResponse {
 
 /// The operation metadata for uploading artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadAptArtifactMetadata {}
+pub struct UploadAptArtifactMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadAptArtifactRequest {}
+pub struct UploadAptArtifactRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -438,7 +456,9 @@ pub struct UploadGenericArtifactMediaResponse {
 
 /// The operation metadata for uploading generic artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadGenericArtifactMetadata {}
+pub struct UploadGenericArtifactMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload a generic artifact. The created GenericArtifact will have the resource name {parent}/genericArtifacts/package_id:version_id. The created file will have the resource name {parent}/files/package_id:version_id:filename.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -464,11 +484,15 @@ pub struct UploadGoModuleMediaResponse {
 
 /// The operation metadata for uploading go modules.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadGoModuleMetadata {}
+pub struct UploadGoModuleMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload a Go module.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadGoModuleRequest {}
+pub struct UploadGoModuleRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -480,11 +504,15 @@ pub struct UploadGoogetArtifactMediaResponse {
 
 /// The operation metadata for uploading artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadGoogetArtifactMetadata {}
+pub struct UploadGoogetArtifactMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadGoogetArtifactRequest {}
+pub struct UploadGoogetArtifactRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -504,7 +532,9 @@ pub struct UploadKfpArtifactMediaResponse {
 
 /// The operation metadata for uploading KFP artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadKfpArtifactMetadata {}
+pub struct UploadKfpArtifactMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -527,11 +557,15 @@ pub struct UploadYumArtifactMediaResponse {
 
 /// The operation metadata for uploading artifacts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadYumArtifactMetadata {}
+pub struct UploadYumArtifactMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request to upload an artifact.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadYumArtifactRequest {}
+pub struct UploadYumArtifactRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

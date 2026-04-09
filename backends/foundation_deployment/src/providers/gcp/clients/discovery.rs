@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,19 @@ use serde::Serialize;
 
 pub fn discovery_apis_get_rest_builder(
     client: &SimpleHttpClient,
-    api: &str,
-    version: &str,
+    api: String,
+    version: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/discovery/v1/apis/{}/{}/rest",
-        api, version,
+        api.as_str(),
+        version.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -69,8 +71,11 @@ pub fn discovery_apis_get_rest_builder(
 pub fn discovery_apis_get_rest_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RestDescription>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RestDescription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -177,7 +182,7 @@ pub fn discovery_apis_get_rest(
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_get_rest_builder(client, &args.api, &args.version)?;
+    let builder = discovery_apis_get_rest_builder(client, args.api.clone(), args.version.clone())?;
     discovery_apis_get_rest_execute(builder)
 }
 
@@ -189,11 +194,11 @@ pub fn discovery_apis_get_rest(
 
 pub fn discovery_apis_list_builder(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    name: Option<String>,
     preferred: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/discovery/v1/apis",);
+    let endpoint_url = format!("https://www.googleapis.com/discovery/v1/apis",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -205,9 +210,9 @@ pub fn discovery_apis_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -241,7 +246,12 @@ pub fn discovery_apis_list_builder(
 pub fn discovery_apis_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DirectoryList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DirectoryList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -347,6 +357,6 @@ pub fn discovery_apis_list(
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_list_builder(client, args.name.as_deref(), args.preferred)?;
+    let builder = discovery_apis_list_builder(client, args.name.clone(), args.preferred.clone())?;
     discovery_apis_list_execute(builder)
 }

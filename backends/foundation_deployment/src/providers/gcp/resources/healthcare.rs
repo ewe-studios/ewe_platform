@@ -125,11 +125,15 @@ pub struct ApplyConsentsResponse {
 
 /// Archives the specified User data mapping.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveUserDataMappingRequest {}
+pub struct ArchiveUserDataMappingRequest {
+    pub value: serde_json::Value,
+}
 
 /// Archives the specified User data mapping.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveUserDataMappingResponse {}
+pub struct ArchiveUserDataMappingResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to bulk delete FHIR resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -150,7 +154,9 @@ pub struct BulkDeleteResourcesRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -249,7 +255,9 @@ pub struct DeidentifyFhirStoreRequest {
 
 /// Contains a summary of the Deidentify operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeidentifySummary {}
+pub struct DeidentifySummary {
+    pub value: serde_json::Value,
+}
 
 /// DicomStoreMetrics contains metrics describing a DICOM store.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -276,7 +284,9 @@ pub struct DicomStoreMetrics {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Evaluate a user''s Consents for all matching User data mappings. Note: User data mappings are indexed asynchronously, causing slight delays between the time mappings are created or updated and when they are included in EvaluateUserConsents results.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -340,7 +350,9 @@ pub struct ExportDicomDataRequest {
 
 /// Returns additional information in regards to a completed DICOM store export.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportDicomDataResponse {}
+pub struct ExportDicomDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to schedule an export.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -364,7 +376,9 @@ pub struct ExportMessagesRequest {
 
 /// Final response for the export operation. This structure is included in the response to describe the detailed outcome.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportMessagesResponse {}
+pub struct ExportMessagesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to export resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -386,7 +400,9 @@ pub struct ExportResourcesRequest {
 
 /// Response when all resources export successfully. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportResourcesResponse {}
+pub struct ExportResourcesResponse {
+    pub value: serde_json::Value,
+}
 
 /// List of metrics for a given FHIR store.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -401,11 +417,15 @@ pub struct FhirStoreMetrics {
 
 /// Contains a summary of the DeidentifyDicomStore operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyDicomStoreSummary {}
+pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyDicomStoreSummary {
+    pub value: serde_json::Value,
+}
 
 /// Contains a summary of the DeidentifyFhirStore operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyFhirStoreSummary {}
+pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyFhirStoreSummary {
+    pub value: serde_json::Value,
+}
 
 /// List of metrics for a given HL7v2 store.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -445,7 +465,9 @@ pub struct ImportDicomDataRequest {
 
 /// Returns additional information in regards to a completed DICOM store import.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportDicomDataResponse {}
+pub struct ImportDicomDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to import messages.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -457,7 +479,9 @@ pub struct ImportMessagesRequest {
 
 /// Final response of importing messages. This structure is included in the response to describe the detailed outcome. It is only included when the operation finishes successfully.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportMessagesResponse {}
+pub struct ImportMessagesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to import resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -472,7 +496,9 @@ pub struct ImportResourcesRequest {
 
 /// Final response of importing resources. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportResourcesResponse {}
+pub struct ImportResourcesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Ingests a message into the specified HL7v2 store.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -683,10 +709,6 @@ pub struct QueryAccessibleDataResponse {
     pub gcs_uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Define how to redact sensitive values. Default behaviour is erase. For example, "My name is Jane." becomes "My name is ."
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RedactConfig {}
-
 /// Rejects the latest revision of the specified Consent by committing a new revision with state updated to REJECTED. If the latest revision of the given Consent is in the REJECTED state, no new revision is committed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectConsentRequest {
@@ -694,10 +716,6 @@ pub struct RejectConsentRequest {
     #[serde(default, rename = "consentArtifact")]
     pub consent_artifact: ::core::option::Option<String>,
 }
-
-/// When using the INSPECT_AND_TRANSFORM action, each match is replaced with the name of the info_type. For example, "My name is Jane" becomes "My name is [PERSON_NAME]." The TRANSFORM action is equivalent to redacting.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplaceWithInfoTypeConfig {}
 
 /// Revokes the latest revision of the specified Consent by committing a new revision with state updated to REVOKED. If the latest revision of the given Consent is in the REVOKED state, no new revision is committed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -778,14 +796,6 @@ pub struct RollbackHl7v2MessagesResponse {
     pub hl7v2_store: ::core::option::Option<String>,
 }
 
-/// Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag''s textual representation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaFlattened {}
-
-/// Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * StudyInstanceUID (Type: STRING): DICOM Tag 0020000D. * SeriesInstanceUID (Type: STRING): DICOM Tag 0020000E. * SOPInstanceUID (Type: STRING): DICOM Tag 00080018. * SourceDicomStore (Type: STRING): The name of the source DICOM store. This field is only included if the include_source_store option is set to true. * Metadata (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * StructuredStorageSize (Type: INTEGER): Size of the structured storage in bytes. * DroppedTags (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * StorageClass (Type: STRING): The storage class of the instance. * LastUpdated (Type: TIMESTAMP): Timestamp of the last update to the instance. * BlobStorageSize (Type: INTEGER): Size of the blob storage in bytes. * Type (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SchemaJSON {}
-
 /// SeriesMetrics contains metrics describing a DICOM series.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeriesMetrics {
@@ -816,7 +826,9 @@ pub struct SetBlobStorageSettingsRequest {
 
 /// Returns additional info in regards to a completed set blob storage settings API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetBlobStorageSettingsResponse {}
+pub struct SetBlobStorageSettingsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1880,10 +1892,10 @@ pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
     pub include_source_store: ::core::option::Option<bool>,
     /// Optional. Setting this field will use flattened DICOM instances schema for the BigQuery table. The flattened schema will have one column for each DICOM tag.
     #[serde(default, rename = "schemaFlattened")]
-    pub schema_flattened: ::core::option::Option<serde_json::Value>,
+    pub schema_flattened: ::core::option::Option<SchemaFlattened>,
     /// Optional. Setting this field will store all the DICOM tags as a JSON type in a single column.
     #[serde(default, rename = "schemaJson")]
-    pub schema_json: ::core::option::Option<serde_json::Value>,
+    pub schema_json: ::core::option::Option<SchemaJSON>,
     /// Optional. BigQuery URI to a table, up to 2000 characters long, in the format bq://projectId.bqDatasetId.tableId
     #[serde(default, rename = "tableUri")]
     pub table_uri: ::core::option::Option<String>,
@@ -1996,6 +2008,18 @@ pub struct Expr {
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+/// Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag''s textual representation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaFlattened {
+    pub value: serde_json::Value,
+}
+
+/// Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * StudyInstanceUID (Type: STRING): DICOM Tag 0020000D. * SeriesInstanceUID (Type: STRING): DICOM Tag 0020000E. * SOPInstanceUID (Type: STRING): DICOM Tag 00080018. * SourceDicomStore (Type: STRING): The name of the source DICOM store. This field is only included if the include_source_store option is set to true. * Metadata (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * StructuredStorageSize (Type: INTEGER): Size of the structured storage in bytes. * DroppedTags (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * StorageClass (Type: STRING): The storage class of the instance. * LastUpdated (Type: TIMESTAMP): Timestamp of the last update to the instance. * BlobStorageSize (Type: INTEGER): Size of the blob storage in bytes. * Type (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaJSON {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for the FHIR BigQuery schema. Determines how the server generates the schema.
@@ -2176,10 +2200,10 @@ pub struct InfoTypeTransformation {
     pub info_types: ::core::option::Option<::std::vec::Vec<String>>,
     /// Config for text redaction.
     #[serde(default, rename = "redactConfig")]
-    pub redact_config: ::core::option::Option<serde_json::Value>,
+    pub redact_config: ::core::option::Option<RedactConfig>,
     /// Config for replace with InfoType.
     #[serde(default, rename = "replaceWithInfoTypeConfig")]
-    pub replace_with_info_type_config: ::core::option::Option<serde_json::Value>,
+    pub replace_with_info_type_config: ::core::option::Option<ReplaceWithInfoTypeConfig>,
 }
 
 /// A (sub) field of a type.
@@ -2230,6 +2254,18 @@ pub struct DateShiftConfig {
     /// KMS wrapped key. If kms_wrapped is not set, then crypto_key is used to calculate the date shift. If neither is set, a default key is generated for each de-identify operation. Must not be set if crypto_key is set.
     #[serde(default, rename = "kmsWrapped")]
     pub kms_wrapped: ::core::option::Option<KmsWrappedCryptoKey>,
+}
+
+/// Define how to redact sensitive values. Default behaviour is erase. For example, "My name is Jane." becomes "My name is ."
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RedactConfig {
+    pub value: serde_json::Value,
+}
+
+/// When using the INSPECT_AND_TRANSFORM action, each match is replaced with the name of the info_type. For example, "My name is Jane" becomes "My name is [PERSON_NAME]." The TRANSFORM action is equivalent to redacting.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplaceWithInfoTypeConfig {
+    pub value: serde_json::Value,
 }
 
 /// Include to use an existing data crypto key wrapped by KMS. The wrapped key must be a 128-, 192-, or 256-bit key. The key must grant the Cloud IAM permission cloudkms.cryptoKeyVersions.useToDecrypt to the project''s Cloud Healthcare Service Agent service account. For more information, see [Creating a wrapped key] (https://cloud.google.com/dlp/docs/create-wrapped-key).

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,16 +29,14 @@ use serde::Serialize;
 
 pub fn container_projects_aggregated_usable_subnetworks_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/aggregated/usableSubnetworks",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://container.googleapis.com/v1/projects/{}/aggregated/usableSubnetworks",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -52,9 +51,9 @@ pub fn container_projects_aggregated_usable_subnetworks_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -89,8 +88,9 @@ pub fn container_projects_aggregated_usable_subnetworks_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListUsableSubnetworksResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListUsableSubnetworksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -208,6020 +208,12 @@ pub fn container_projects_aggregated_usable_subnetworks_list(
 > {
     let builder = container_projects_aggregated_usable_subnetworks_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     container_projects_aggregated_usable_subnetworks_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/serverConfig
-/// Returns configuration info about the Google Kubernetes Engine service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_get_server_config_execute()` to send, or `container_projects_locations_get_server_config` for simplest API.
-
-pub fn container_projects_locations_get_server_config_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/serverConfig",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/serverConfig
-/// Returns configuration info about the Google Kubernetes Engine service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_get_server_config_execute()` or `container_projects_locations_get_server_config`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_get_server_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_get_server_config_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ServerConfig>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ServerConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/serverConfig
-/// Returns configuration info about the Google Kubernetes Engine service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_get_server_config_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_get_server_config_task()`.
-/// For the simplest API, use `container_projects_locations_get_server_config()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_get_server_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_get_server_config_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServerConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_get_server_config_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_get_server_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsGetServerConfigArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/serverConfig
-/// Returns configuration info about the Google Kubernetes Engine service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_get_server_config_builder()` + `container_projects_locations_get_server_config_execute()`.
-/// For task-level control, use `container_projects_locations_get_server_config_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_get_server_config(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsGetServerConfigArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServerConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_get_server_config_builder(
-        client,
-        &args.name,
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_get_server_config_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:checkAutopilotCompatibility
-/// Checks the cluster compatibility with Autopilot mode, and returns a list of compatibility issues.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_check_autopilot_compatibility_execute()` to send, or `container_projects_locations_clusters_check_autopilot_compatibility` for simplest API.
-
-pub fn container_projects_locations_clusters_check_autopilot_compatibility_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:checkAutopilotCompatibility",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:checkAutopilotCompatibility
-/// Checks the cluster compatibility with Autopilot mode, and returns a list of compatibility issues.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_check_autopilot_compatibility_execute()` or `container_projects_locations_clusters_check_autopilot_compatibility`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_check_autopilot_compatibility_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_check_autopilot_compatibility_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<CheckAutopilotCompatibilityResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CheckAutopilotCompatibilityResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:checkAutopilotCompatibility
-/// Checks the cluster compatibility with Autopilot mode, and returns a list of compatibility issues.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_check_autopilot_compatibility_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_check_autopilot_compatibility_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_check_autopilot_compatibility()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_check_autopilot_compatibility_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_check_autopilot_compatibility_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CheckAutopilotCompatibilityResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_check_autopilot_compatibility_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_check_autopilot_compatibility`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersCheckAutopilotCompatibilityArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:checkAutopilotCompatibility
-/// Checks the cluster compatibility with Autopilot mode, and returns a list of compatibility issues.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_check_autopilot_compatibility_builder()` + `container_projects_locations_clusters_check_autopilot_compatibility_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_check_autopilot_compatibility_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_check_autopilot_compatibility(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersCheckAutopilotCompatibilityArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CheckAutopilotCompatibilityResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_check_autopilot_compatibility_builder(
-        client, &args.name,
-    )?;
-    container_projects_locations_clusters_check_autopilot_compatibility_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:completeIpRotation
-/// Completes master IP rotation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_complete_ip_rotation_execute()` to send, or `container_projects_locations_clusters_complete_ip_rotation` for simplest API.
-
-pub fn container_projects_locations_clusters_complete_ip_rotation_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CompleteIPRotationRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:completeIpRotation",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:completeIpRotation
-/// Completes master IP rotation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_complete_ip_rotation_execute()` or `container_projects_locations_clusters_complete_ip_rotation`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_complete_ip_rotation_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_complete_ip_rotation_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:completeIpRotation
-/// Completes master IP rotation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_complete_ip_rotation_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_complete_ip_rotation_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_complete_ip_rotation()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_complete_ip_rotation_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_complete_ip_rotation_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_complete_ip_rotation_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_complete_ip_rotation`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersCompleteIpRotationArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CompleteIPRotationRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:completeIpRotation
-/// Completes master IP rotation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_complete_ip_rotation_builder()` + `container_projects_locations_clusters_complete_ip_rotation_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_complete_ip_rotation_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_complete_ip_rotation(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersCompleteIpRotationArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_complete_ip_rotation_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_complete_ip_rotation_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_create_execute()` to send, or `container_projects_locations_clusters_create` for simplest API.
-
-pub fn container_projects_locations_clusters_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateClusterRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_create_execute()` or `container_projects_locations_clusters_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_create_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: CreateClusterRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Creates a cluster, consisting of the specified number and type of Google Compute Engine instances. By default, the cluster is created in the project's [default network](<https://cloud.google.`com/compute/docs/networks-and-firewalls`#networks>). One firewall is added for the cluster. After cluster creation, the kubelet creates routes for each node to allow the containers on that node to communicate with all other instances in the cluster. Finally, an entry is added to the project's global metadata indicating which CIDR range the cluster is using.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_create_builder()` + `container_projects_locations_clusters_create_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_create(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_create_builder(client, &args.parent, &args.body)?;
-    container_projects_locations_clusters_create_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_delete_execute()` to send, or `container_projects_locations_clusters_delete` for simplest API.
-
-pub fn container_projects_locations_clusters_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    clusterId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = clusterId {
-        query_parts.push(format!("clusterId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_delete_execute()` or `container_projects_locations_clusters_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_delete_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: clusterId
-    pub clusterId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Deletes the cluster, including the Kubernetes endpoint and all worker nodes. Firewalls and routes that were configured during cluster creation are also deleted. Other Google Compute Engine resources that might be in use by the cluster, such as load balancer resources, are not deleted if they weren't present when the cluster was initially created.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_delete_builder()` + `container_projects_locations_clusters_delete_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_delete(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_delete_builder(
-        client,
-        &args.name,
-        args.clusterId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_fetch_cluster_upgrade_info_execute()` to send, or `container_projects_locations_clusters_fetch_cluster_upgrade_info` for simplest API.
-
-pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    version: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:fetchClusterUpgradeInfo",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = version {
-        query_parts.push(format!("version={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_fetch_cluster_upgrade_info_execute()` or `container_projects_locations_clusters_fetch_cluster_upgrade_info`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_fetch_cluster_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ClusterUpgradeInfo = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_fetch_cluster_upgrade_info_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_fetch_cluster_upgrade_info_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_fetch_cluster_upgrade_info()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_fetch_cluster_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_fetch_cluster_upgrade_info_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_fetch_cluster_upgrade_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersFetchClusterUpgradeInfoArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: version
-    pub version: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_fetch_cluster_upgrade_info_builder()` + `container_projects_locations_clusters_fetch_cluster_upgrade_info_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_fetch_cluster_upgrade_info_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersFetchClusterUpgradeInfoArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_fetch_cluster_upgrade_info_builder(
-        client,
-        &args.name,
-        args.version.as_deref(),
-    )?;
-    container_projects_locations_clusters_fetch_cluster_upgrade_info_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Gets the details of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_get_execute()` to send, or `container_projects_locations_clusters_get` for simplest API.
-
-pub fn container_projects_locations_clusters_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    clusterId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = clusterId {
-        query_parts.push(format!("clusterId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Gets the details of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_get_execute()` or `container_projects_locations_clusters_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Cluster = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Gets the details of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_get_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: clusterId
-    pub clusterId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Gets the details of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_get_builder()` + `container_projects_locations_clusters_get_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_get(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_get_builder(
-        client,
-        &args.name,
-        args.clusterId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/jwks
-/// Gets the public component of the cluster signing keys in JSON Web Key format.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_get_jwks_execute()` to send, or `container_projects_locations_clusters_get_jwks` for simplest API.
-
-pub fn container_projects_locations_clusters_get_jwks_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/jwks",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/jwks
-/// Gets the public component of the cluster signing keys in JSON Web Key format.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_get_jwks_execute()` or `container_projects_locations_clusters_get_jwks`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_get_jwks_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_get_jwks_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetJSONWebKeysResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GetJSONWebKeysResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/jwks
-/// Gets the public component of the cluster signing keys in JSON Web Key format.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_get_jwks_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_get_jwks_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_get_jwks()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_get_jwks_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_get_jwks_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetJSONWebKeysResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_get_jwks_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_get_jwks`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersGetJwksArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/jwks
-/// Gets the public component of the cluster signing keys in JSON Web Key format.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_get_jwks_builder()` + `container_projects_locations_clusters_get_jwks_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_get_jwks_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_get_jwks(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersGetJwksArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetJSONWebKeysResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_get_jwks_builder(client, &args.parent)?;
-    container_projects_locations_clusters_get_jwks_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_list_execute()` to send, or `container_projects_locations_clusters_list` for simplest API.
-
-pub fn container_projects_locations_clusters_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_list_execute()` or `container_projects_locations_clusters_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListClustersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_list_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_list_builder()` + `container_projects_locations_clusters_list_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_list(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_list_builder(
-        client,
-        &args.parent,
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setAddons
-/// Sets the addons for a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_addons_execute()` to send, or `container_projects_locations_clusters_set_addons` for simplest API.
-
-pub fn container_projects_locations_clusters_set_addons_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetAddonsConfigRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setAddons",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setAddons
-/// Sets the addons for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_addons_execute()` or `container_projects_locations_clusters_set_addons`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_addons_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_addons_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setAddons
-/// Sets the addons for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_addons_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_addons_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_addons()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_addons_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_addons_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_addons_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_addons`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetAddonsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetAddonsConfigRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setAddons
-/// Sets the addons for a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_addons_builder()` + `container_projects_locations_clusters_set_addons_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_addons_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_addons(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetAddonsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_set_addons_builder(client, &args.name, &args.body)?;
-    container_projects_locations_clusters_set_addons_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLegacyAbac
-/// Enables or disables the ABAC authorization mechanism on a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_legacy_abac_execute()` to send, or `container_projects_locations_clusters_set_legacy_abac` for simplest API.
-
-pub fn container_projects_locations_clusters_set_legacy_abac_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetLegacyAbacRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setLegacyAbac",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLegacyAbac
-/// Enables or disables the ABAC authorization mechanism on a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_legacy_abac_execute()` or `container_projects_locations_clusters_set_legacy_abac`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_legacy_abac_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_legacy_abac_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLegacyAbac
-/// Enables or disables the ABAC authorization mechanism on a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_legacy_abac_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_legacy_abac_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_legacy_abac()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_legacy_abac_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_legacy_abac_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_legacy_abac_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_legacy_abac`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetLegacyAbacArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetLegacyAbacRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLegacyAbac
-/// Enables or disables the ABAC authorization mechanism on a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_legacy_abac_builder()` + `container_projects_locations_clusters_set_legacy_abac_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_legacy_abac_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_legacy_abac(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetLegacyAbacArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_legacy_abac_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_legacy_abac_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLocations
-/// Sets the locations for a specific cluster. Deprecated. Use [projects.locations.clusters.update](<https://cloud.google.`com/kubernetes-engine/docs/reference/rest/v1/projects`.locations.`clusters/update`>) instead.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_locations_execute()` to send, or `container_projects_locations_clusters_set_locations` for simplest API.
-
-pub fn container_projects_locations_clusters_set_locations_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetLocationsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setLocations",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLocations
-/// Sets the locations for a specific cluster. Deprecated. Use [projects.locations.clusters.update](<https://cloud.google.`com/kubernetes-engine/docs/reference/rest/v1/projects`.locations.`clusters/update`>) instead.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_locations_execute()` or `container_projects_locations_clusters_set_locations`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_locations_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_locations_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLocations
-/// Sets the locations for a specific cluster. Deprecated. Use [projects.locations.clusters.update](<https://cloud.google.`com/kubernetes-engine/docs/reference/rest/v1/projects`.locations.`clusters/update`>) instead.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_locations_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_locations_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_locations()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_locations_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_locations_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_locations_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_locations`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetLocationsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetLocationsRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLocations
-/// Sets the locations for a specific cluster. Deprecated. Use [projects.locations.clusters.update](<https://cloud.google.`com/kubernetes-engine/docs/reference/rest/v1/projects`.locations.`clusters/update`>) instead.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_locations_builder()` + `container_projects_locations_clusters_set_locations_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_locations_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_locations(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetLocationsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_locations_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_locations_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLogging
-/// Sets the logging service for a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_logging_execute()` to send, or `container_projects_locations_clusters_set_logging` for simplest API.
-
-pub fn container_projects_locations_clusters_set_logging_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetLoggingServiceRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setLogging",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLogging
-/// Sets the logging service for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_logging_execute()` or `container_projects_locations_clusters_set_logging`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_logging_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_logging_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLogging
-/// Sets the logging service for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_logging_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_logging_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_logging()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_logging_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_logging_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_logging_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_logging`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetLoggingArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetLoggingServiceRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setLogging
-/// Sets the logging service for a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_logging_builder()` + `container_projects_locations_clusters_set_logging_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_logging_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_logging(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetLoggingArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_set_logging_builder(client, &args.name, &args.body)?;
-    container_projects_locations_clusters_set_logging_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMaintenancePolicy
-/// Sets the maintenance policy for a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_maintenance_policy_execute()` to send, or `container_projects_locations_clusters_set_maintenance_policy` for simplest API.
-
-pub fn container_projects_locations_clusters_set_maintenance_policy_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMaintenancePolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setMaintenancePolicy",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMaintenancePolicy
-/// Sets the maintenance policy for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_maintenance_policy_execute()` or `container_projects_locations_clusters_set_maintenance_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_maintenance_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_maintenance_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMaintenancePolicy
-/// Sets the maintenance policy for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_maintenance_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_maintenance_policy_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_maintenance_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_maintenance_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_maintenance_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_maintenance_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_maintenance_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetMaintenancePolicyArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetMaintenancePolicyRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMaintenancePolicy
-/// Sets the maintenance policy for a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_maintenance_policy_builder()` + `container_projects_locations_clusters_set_maintenance_policy_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_maintenance_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_maintenance_policy(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetMaintenancePolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_maintenance_policy_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_maintenance_policy_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMasterAuth
-/// Sets master auth materials. Currently supports changing the admin password or a specific cluster, either via password generation or explicitly setting the password.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_master_auth_execute()` to send, or `container_projects_locations_clusters_set_master_auth` for simplest API.
-
-pub fn container_projects_locations_clusters_set_master_auth_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMasterAuthRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setMasterAuth",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMasterAuth
-/// Sets master auth materials. Currently supports changing the admin password or a specific cluster, either via password generation or explicitly setting the password.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_master_auth_execute()` or `container_projects_locations_clusters_set_master_auth`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_master_auth_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_master_auth_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMasterAuth
-/// Sets master auth materials. Currently supports changing the admin password or a specific cluster, either via password generation or explicitly setting the password.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_master_auth_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_master_auth_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_master_auth()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_master_auth_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_master_auth_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_master_auth_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_master_auth`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetMasterAuthArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetMasterAuthRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMasterAuth
-/// Sets master auth materials. Currently supports changing the admin password or a specific cluster, either via password generation or explicitly setting the password.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_master_auth_builder()` + `container_projects_locations_clusters_set_master_auth_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_master_auth_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_master_auth(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetMasterAuthArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_master_auth_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_master_auth_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMonitoring
-/// Sets the monitoring service for a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_monitoring_execute()` to send, or `container_projects_locations_clusters_set_monitoring` for simplest API.
-
-pub fn container_projects_locations_clusters_set_monitoring_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMonitoringServiceRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setMonitoring",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMonitoring
-/// Sets the monitoring service for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_monitoring_execute()` or `container_projects_locations_clusters_set_monitoring`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_monitoring_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_monitoring_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMonitoring
-/// Sets the monitoring service for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_monitoring_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_monitoring_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_monitoring()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_monitoring_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_monitoring_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_monitoring_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_monitoring`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetMonitoringArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetMonitoringServiceRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setMonitoring
-/// Sets the monitoring service for a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_monitoring_builder()` + `container_projects_locations_clusters_set_monitoring_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_monitoring_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_monitoring(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetMonitoringArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_monitoring_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_monitoring_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setNetworkPolicy
-/// Enables or disables Network Policy for a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_network_policy_execute()` to send, or `container_projects_locations_clusters_set_network_policy` for simplest API.
-
-pub fn container_projects_locations_clusters_set_network_policy_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetNetworkPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setNetworkPolicy",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setNetworkPolicy
-/// Enables or disables Network Policy for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_network_policy_execute()` or `container_projects_locations_clusters_set_network_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_network_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_network_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setNetworkPolicy
-/// Enables or disables Network Policy for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_network_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_network_policy_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_network_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_network_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_network_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_network_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_network_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetNetworkPolicyArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetNetworkPolicyRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setNetworkPolicy
-/// Enables or disables Network Policy for a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_network_policy_builder()` + `container_projects_locations_clusters_set_network_policy_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_network_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_network_policy(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetNetworkPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_network_policy_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_network_policy_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setResourceLabels
-/// Sets labels on a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_set_resource_labels_execute()` to send, or `container_projects_locations_clusters_set_resource_labels` for simplest API.
-
-pub fn container_projects_locations_clusters_set_resource_labels_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetLabelsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:setResourceLabels",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setResourceLabels
-/// Sets labels on a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_set_resource_labels_execute()` or `container_projects_locations_clusters_set_resource_labels`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_resource_labels_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_resource_labels_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setResourceLabels
-/// Sets labels on a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_set_resource_labels_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_set_resource_labels_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_set_resource_labels()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_set_resource_labels_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_set_resource_labels_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_set_resource_labels_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_set_resource_labels`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersSetResourceLabelsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetLabelsRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:setResourceLabels
-/// Sets labels on a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_set_resource_labels_builder()` + `container_projects_locations_clusters_set_resource_labels_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_set_resource_labels_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_set_resource_labels(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersSetResourceLabelsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_set_resource_labels_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_set_resource_labels_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:startIpRotation
-/// Starts master IP rotation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_start_ip_rotation_execute()` to send, or `container_projects_locations_clusters_start_ip_rotation` for simplest API.
-
-pub fn container_projects_locations_clusters_start_ip_rotation_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &StartIPRotationRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:startIpRotation",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:startIpRotation
-/// Starts master IP rotation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_start_ip_rotation_execute()` or `container_projects_locations_clusters_start_ip_rotation`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_start_ip_rotation_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_start_ip_rotation_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:startIpRotation
-/// Starts master IP rotation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_start_ip_rotation_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_start_ip_rotation_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_start_ip_rotation()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_start_ip_rotation_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_start_ip_rotation_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_start_ip_rotation_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_start_ip_rotation`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersStartIpRotationArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: StartIPRotationRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:startIpRotation
-/// Starts master IP rotation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_start_ip_rotation_builder()` + `container_projects_locations_clusters_start_ip_rotation_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_start_ip_rotation_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_start_ip_rotation(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersStartIpRotationArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_start_ip_rotation_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_start_ip_rotation_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Updates the settings of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_update_execute()` to send, or `container_projects_locations_clusters_update` for simplest API.
-
-pub fn container_projects_locations_clusters_update_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateClusterRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Updates the settings of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_update_execute()` or `container_projects_locations_clusters_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Updates the settings of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_update_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersUpdateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UpdateClusterRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
-/// Updates the settings of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_update_builder()` + `container_projects_locations_clusters_update_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_update(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_update_builder(client, &args.name, &args.body)?;
-    container_projects_locations_clusters_update_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:updateMaster
-/// Updates the master for a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_update_master_execute()` to send, or `container_projects_locations_clusters_update_master` for simplest API.
-
-pub fn container_projects_locations_clusters_update_master_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateMasterRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}:updateMaster",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:updateMaster
-/// Updates the master for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_update_master_execute()` or `container_projects_locations_clusters_update_master`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_update_master_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_update_master_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:updateMaster
-/// Updates the master for a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_update_master_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_update_master_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_update_master()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_update_master_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_update_master_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_update_master_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_update_master`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersUpdateMasterArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UpdateMasterRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:updateMaster
-/// Updates the master for a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_update_master_builder()` + `container_projects_locations_clusters_update_master_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_update_master_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_update_master(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersUpdateMasterArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_update_master_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_update_master_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:completeUpgrade
-/// CompleteNodePoolUpgrade will signal an on-going node pool upgrade to complete.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_complete_upgrade_execute()` to send, or `container_projects_locations_clusters_node_pools_complete_upgrade` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_complete_upgrade_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CompleteNodePoolUpgradeRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:completeUpgrade",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:completeUpgrade
-/// CompleteNodePoolUpgrade will signal an on-going node pool upgrade to complete.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_complete_upgrade_execute()` or `container_projects_locations_clusters_node_pools_complete_upgrade`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_complete_upgrade_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_complete_upgrade_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:completeUpgrade
-/// CompleteNodePoolUpgrade will signal an on-going node pool upgrade to complete.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_complete_upgrade_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_complete_upgrade_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_complete_upgrade()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_complete_upgrade_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_complete_upgrade_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_complete_upgrade_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_complete_upgrade`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsCompleteUpgradeArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CompleteNodePoolUpgradeRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:completeUpgrade
-/// CompleteNodePoolUpgrade will signal an on-going node pool upgrade to complete.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_complete_upgrade_builder()` + `container_projects_locations_clusters_node_pools_complete_upgrade_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_complete_upgrade_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_complete_upgrade(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsCompleteUpgradeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_complete_upgrade_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_complete_upgrade_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Creates a node pool for a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_create_execute()` to send, or `container_projects_locations_clusters_node_pools_create` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateNodePoolRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Creates a node pool for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_create_execute()` or `container_projects_locations_clusters_node_pools_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Creates a node pool for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_create_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: CreateNodePoolRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Creates a node pool for a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_create_builder()` + `container_projects_locations_clusters_node_pools_create_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_create(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_create_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Deletes a node pool from a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_delete_execute()` to send, or `container_projects_locations_clusters_node_pools_delete` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    clusterId: Option<&str>,
-    nodePoolId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = clusterId {
-        query_parts.push(format!("clusterId={}", val));
-    }
-    if let Some(val) = nodePoolId {
-        query_parts.push(format!("nodePoolId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Deletes a node pool from a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_delete_execute()` or `container_projects_locations_clusters_node_pools_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Deletes a node pool from a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_delete_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: clusterId
-    pub clusterId: Option<String>,
-    /// Query parameter: nodePoolId
-    pub nodePoolId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Deletes a node pool from a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_delete_builder()` + `container_projects_locations_clusters_node_pools_delete_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_delete(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_delete_builder(
-        client,
-        &args.name,
-        args.clusterId.as_deref(),
-        args.nodePoolId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_node_pools_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` to send, or `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    version: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:fetchNodePoolUpgradeInfo",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = version {
-        query_parts.push(format!("version={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` or `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NodePoolUpgradeInfo = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_task(
-        builder,
-    )?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsFetchNodePoolUpgradeInfoArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: version
-    pub version: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder()` + `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsFetchNodePoolUpgradeInfoArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-            client,
-            &args.name,
-            args.version.as_deref(),
-        )?;
-    container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Retrieves the requested node pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_get_execute()` to send, or `container_projects_locations_clusters_node_pools_get` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    clusterId: Option<&str>,
-    nodePoolId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = clusterId {
-        query_parts.push(format!("clusterId={}", val));
-    }
-    if let Some(val) = nodePoolId {
-        query_parts.push(format!("nodePoolId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Retrieves the requested node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_get_execute()` or `container_projects_locations_clusters_node_pools_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NodePool = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Retrieves the requested node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_get_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: clusterId
-    pub clusterId: Option<String>,
-    /// Query parameter: nodePoolId
-    pub nodePoolId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Retrieves the requested node pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_get_builder()` + `container_projects_locations_clusters_node_pools_get_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_get(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_get_builder(
-        client,
-        &args.name,
-        args.clusterId.as_deref(),
-        args.nodePoolId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_node_pools_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_list_execute()` to send, or `container_projects_locations_clusters_node_pools_list` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = clusterId {
-        query_parts.push(format!("clusterId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_list_execute()` or `container_projects_locations_clusters_node_pools_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNodePoolsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_list_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: clusterId
-    pub clusterId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_list_builder()` + `container_projects_locations_clusters_node_pools_list_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_list(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_list_builder(
-        client,
-        &args.parent,
-        args.clusterId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_clusters_node_pools_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:rollback
-/// Rolls back a previously Aborted or Failed NodePool upgrade. This makes no changes if the last upgrade successfully completed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_rollback_execute()` to send, or `container_projects_locations_clusters_node_pools_rollback` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_rollback_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackNodePoolUpgradeRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:rollback",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:rollback
-/// Rolls back a previously Aborted or Failed NodePool upgrade. This makes no changes if the last upgrade successfully completed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_rollback_execute()` or `container_projects_locations_clusters_node_pools_rollback`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_rollback_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_rollback_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:rollback
-/// Rolls back a previously Aborted or Failed NodePool upgrade. This makes no changes if the last upgrade successfully completed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_rollback_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_rollback_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_rollback()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_rollback_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_rollback_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_rollback_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_rollback`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsRollbackArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RollbackNodePoolUpgradeRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:rollback
-/// Rolls back a previously Aborted or Failed NodePool upgrade. This makes no changes if the last upgrade successfully completed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_rollback_builder()` + `container_projects_locations_clusters_node_pools_rollback_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_rollback_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_rollback(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsRollbackArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_rollback_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_rollback_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setAutoscaling
-/// Sets the autoscaling settings for the specified node pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_set_autoscaling_execute()` to send, or `container_projects_locations_clusters_node_pools_set_autoscaling` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_set_autoscaling_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetNodePoolAutoscalingRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:setAutoscaling",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setAutoscaling
-/// Sets the autoscaling settings for the specified node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_set_autoscaling_execute()` or `container_projects_locations_clusters_node_pools_set_autoscaling`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_autoscaling_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_autoscaling_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setAutoscaling
-/// Sets the autoscaling settings for the specified node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_set_autoscaling_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_autoscaling_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_set_autoscaling()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_autoscaling_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_set_autoscaling_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_set_autoscaling_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_set_autoscaling`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsSetAutoscalingArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetNodePoolAutoscalingRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setAutoscaling
-/// Sets the autoscaling settings for the specified node pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_set_autoscaling_builder()` + `container_projects_locations_clusters_node_pools_set_autoscaling_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_autoscaling_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_autoscaling(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsSetAutoscalingArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_set_autoscaling_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_set_autoscaling_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setManagement
-/// Sets the NodeManagement options for a node pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_set_management_execute()` to send, or `container_projects_locations_clusters_node_pools_set_management` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_set_management_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetNodePoolManagementRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:setManagement",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setManagement
-/// Sets the NodeManagement options for a node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_set_management_execute()` or `container_projects_locations_clusters_node_pools_set_management`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_management_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_management_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setManagement
-/// Sets the NodeManagement options for a node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_set_management_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_management_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_set_management()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_management_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_set_management_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_set_management_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_set_management`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsSetManagementArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetNodePoolManagementRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setManagement
-/// Sets the NodeManagement options for a node pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_set_management_builder()` + `container_projects_locations_clusters_node_pools_set_management_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_management_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_management(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsSetManagementArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_set_management_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_set_management_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setSize
-/// Sets the size for a specific node pool. The new size will be used for all replicas, including future replicas created by modifying NodePool.locations.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_set_size_execute()` to send, or `container_projects_locations_clusters_node_pools_set_size` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_set_size_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SetNodePoolSizeRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}:setSize",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setSize
-/// Sets the size for a specific node pool. The new size will be used for all replicas, including future replicas created by modifying NodePool.locations.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_set_size_execute()` or `container_projects_locations_clusters_node_pools_set_size`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_size_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_size_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setSize
-/// Sets the size for a specific node pool. The new size will be used for all replicas, including future replicas created by modifying NodePool.locations.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_set_size_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_size_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_set_size()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_set_size_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_set_size_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_set_size_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_set_size`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsSetSizeArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SetNodePoolSizeRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:setSize
-/// Sets the size for a specific node pool. The new size will be used for all replicas, including future replicas created by modifying NodePool.locations.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_set_size_builder()` + `container_projects_locations_clusters_node_pools_set_size_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_set_size_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_set_size(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsSetSizeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_set_size_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_set_size_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Updates the version `and/or` image type for the specified node pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_node_pools_update_execute()` to send, or `container_projects_locations_clusters_node_pools_update` for simplest API.
-
-pub fn container_projects_locations_clusters_node_pools_update_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateNodePoolRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/nodePools/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Updates the version `and/or` image type for the specified node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_node_pools_update_execute()` or `container_projects_locations_clusters_node_pools_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Updates the version `and/or` image type for the specified node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_node_pools_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_update_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_node_pools_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_node_pools_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_node_pools_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_clusters_node_pools_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_node_pools_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersNodePoolsUpdateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UpdateNodePoolRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
-/// Updates the version `and/or` image type for the specified node pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_node_pools_update_builder()` + `container_projects_locations_clusters_node_pools_update_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_node_pools_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_node_pools_update(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersNodePoolsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_clusters_node_pools_update_builder(
-        client, &args.name, &args.body,
-    )?;
-    container_projects_locations_clusters_node_pools_update_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration
-/// Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](<https://openid.`net/specs/openid-connect-discovery-1_0`.html>) for details.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_clusters_well_known_get_openid_configuration_execute()` to send, or `container_projects_locations_clusters_well_known_get_openid_configuration` for simplest API.
-
-pub fn container_projects_locations_clusters_well_known_get_openid_configuration_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/clusters/{}/.well-known/openid-configuration",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration
-/// Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](<https://openid.`net/specs/openid-connect-discovery-1_0`.html>) for details.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_clusters_well_known_get_openid_configuration_execute()` or `container_projects_locations_clusters_well_known_get_openid_configuration`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_well_known_get_openid_configuration_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_well_known_get_openid_configuration_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetOpenIDConfigResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GetOpenIDConfigResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration
-/// Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](<https://openid.`net/specs/openid-connect-discovery-1_0`.html>) for details.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_clusters_well_known_get_openid_configuration_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_clusters_well_known_get_openid_configuration_task()`.
-/// For the simplest API, use `container_projects_locations_clusters_well_known_get_openid_configuration()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_clusters_well_known_get_openid_configuration_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_clusters_well_known_get_openid_configuration_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetOpenIDConfigResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        container_projects_locations_clusters_well_known_get_openid_configuration_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_clusters_well_known_get_openid_configuration`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsClustersWellKnownGetOpenidConfigurationArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration
-/// Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](<https://openid.`net/specs/openid-connect-discovery-1_0`.html>) for details.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_clusters_well_known_get_openid_configuration_builder()` + `container_projects_locations_clusters_well_known_get_openid_configuration_execute()`.
-/// For task-level control, use `container_projects_locations_clusters_well_known_get_openid_configuration_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_clusters_well_known_get_openid_configuration(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsClustersWellKnownGetOpenidConfigurationArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetOpenIDConfigResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_clusters_well_known_get_openid_configuration_builder(
-            client,
-            &args.parent,
-        )?;
-    container_projects_locations_clusters_well_known_get_openid_configuration_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Cancels the specified operation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_operations_cancel_execute()` to send, or `container_projects_locations_operations_cancel` for simplest API.
-
-pub fn container_projects_locations_operations_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/operations/{}:cancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Cancels the specified operation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_operations_cancel_execute()` or `container_projects_locations_operations_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Cancels the specified operation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_operations_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_operations_cancel_task()`.
-/// For the simplest API, use `container_projects_locations_operations_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_operations_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_operations_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_operations_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsOperationsCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
-/// Cancels the specified operation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_operations_cancel_builder()` + `container_projects_locations_operations_cancel_execute()`.
-/// For task-level control, use `container_projects_locations_operations_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_cancel(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsOperationsCancelArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
-    container_projects_locations_operations_cancel_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Gets the specified operation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_operations_get_execute()` to send, or `container_projects_locations_operations_get` for simplest API.
-
-pub fn container_projects_locations_operations_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    operationId: Option<&str>,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/operations/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = operationId {
-        query_parts.push(format!("operationId={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Gets the specified operation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_operations_get_execute()` or `container_projects_locations_operations_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Gets the specified operation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_operations_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_operations_get_task()`.
-/// For the simplest API, use `container_projects_locations_operations_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_operations_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_operations_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_operations_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsOperationsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: operationId
-    pub operationId: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
-/// Gets the specified operation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_operations_get_builder()` + `container_projects_locations_operations_get_execute()`.
-/// For task-level control, use `container_projects_locations_operations_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_get(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsOperationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_operations_get_builder(
-        client,
-        &args.name,
-        args.operationId.as_deref(),
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_operations_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists all operations in a project in a specific zone or all zones.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_locations_operations_list_execute()` to send, or `container_projects_locations_operations_list` for simplest API.
-
-pub fn container_projects_locations_operations_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    projectId: Option<&str>,
-    zone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/locations/{}/operations",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = zone {
-        query_parts.push(format!("zone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists all operations in a project in a specific zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_locations_operations_list_execute()` or `container_projects_locations_operations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListOperationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists all operations in a project in a specific zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_locations_operations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_locations_operations_list_task()`.
-/// For the simplest API, use `container_projects_locations_operations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_locations_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_locations_operations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_locations_operations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_locations_operations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsLocationsOperationsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: zone
-    pub zone: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
-/// Lists all operations in a project in a specific zone or all zones.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_locations_operations_list_builder()` + `container_projects_locations_operations_list_execute()`.
-/// For task-level control, use `container_projects_locations_operations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_locations_operations_list(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsLocationsOperationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_locations_operations_list_builder(
-        client,
-        &args.parent,
-        args.projectId.as_deref(),
-        args.zone.as_deref(),
-    )?;
-    container_projects_locations_operations_list_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/serverconfig
@@ -6232,14 +224,15 @@ pub fn container_projects_locations_operations_list(
 
 pub fn container_projects_zones_get_serverconfig_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    name: Option<&str>,
+    projectId: String,
+    zone: String,
+    name: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/serverconfig",
-        projectId, zone,
+        projectId.as_str(),
+        zone.as_str(),
     );
 
     // Build request
@@ -6249,9 +242,9 @@ pub fn container_projects_zones_get_serverconfig_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6285,7 +278,12 @@ pub fn container_projects_zones_get_serverconfig_builder(
 pub fn container_projects_zones_get_serverconfig_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ServerConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ServerConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6395,9 +393,9 @@ pub fn container_projects_zones_get_serverconfig(
 > {
     let builder = container_projects_zones_get_serverconfig_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        args.name.as_deref(),
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.name.clone(),
     )?;
     container_projects_zones_get_serverconfig_execute(builder)
 }
@@ -6410,20 +408,22 @@ pub fn container_projects_zones_get_serverconfig(
 
 pub fn container_projects_zones_clusters_addons_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetAddonsConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/addons",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6455,7 +455,12 @@ pub fn container_projects_zones_clusters_addons_builder(
 pub fn container_projects_zones_clusters_addons_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6563,9 +568,9 @@ pub fn container_projects_zones_clusters_addons(
 > {
     let builder = container_projects_zones_clusters_addons_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_addons_execute(builder)
@@ -6579,20 +584,22 @@ pub fn container_projects_zones_clusters_addons(
 
 pub fn container_projects_zones_clusters_complete_ip_rotation_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &CompleteIPRotationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:completeIpRotation",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6624,7 +631,12 @@ pub fn container_projects_zones_clusters_complete_ip_rotation_builder(
 pub fn container_projects_zones_clusters_complete_ip_rotation_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6732,9 +744,9 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 > {
     let builder = container_projects_zones_clusters_complete_ip_rotation_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_complete_ip_rotation_execute(builder)
@@ -6748,19 +760,20 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 
 pub fn container_projects_zones_clusters_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
+    projectId: String,
+    zone: String,
     body: &CreateClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters",
-        projectId, zone,
+        projectId.as_str(),
+        zone.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6792,7 +805,12 @@ pub fn container_projects_zones_clusters_create_builder(
 pub fn container_projects_zones_clusters_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6898,8 +916,8 @@ pub fn container_projects_zones_clusters_create(
 > {
     let builder = container_projects_zones_clusters_create_builder(
         client,
-        &args.projectId,
-        &args.zone,
+        args.projectId.clone(),
+        args.zone.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_create_execute(builder)
@@ -6913,15 +931,17 @@ pub fn container_projects_zones_clusters_create(
 
 pub fn container_projects_zones_clusters_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    name: Option<&str>,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    name: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
@@ -6931,9 +951,9 @@ pub fn container_projects_zones_clusters_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6967,7 +987,12 @@ pub fn container_projects_zones_clusters_delete_builder(
 pub fn container_projects_zones_clusters_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7075,366 +1100,12 @@ pub fn container_projects_zones_clusters_delete(
 > {
     let builder = container_projects_zones_clusters_delete_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        args.name.as_deref(),
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.name.clone(),
     )?;
     container_projects_zones_clusters_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_fetch_cluster_upgrade_info_execute()` to send, or `container_projects_zones_clusters_fetch_cluster_upgrade_info` for simplest API.
-
-pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    version: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:fetchClusterUpgradeInfo",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = version {
-        query_parts.push(format!("version={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_fetch_cluster_upgrade_info_execute()` or `container_projects_zones_clusters_fetch_cluster_upgrade_info`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_fetch_cluster_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ClusterUpgradeInfo = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_fetch_cluster_upgrade_info_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_fetch_cluster_upgrade_info_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_fetch_cluster_upgrade_info()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_fetch_cluster_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_fetch_cluster_upgrade_info_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_fetch_cluster_upgrade_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersFetchClusterUpgradeInfoArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: version
-    pub version: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo
-/// Fetch upgrade information of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_fetch_cluster_upgrade_info_builder()` + `container_projects_zones_clusters_fetch_cluster_upgrade_info_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_fetch_cluster_upgrade_info_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersFetchClusterUpgradeInfoArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClusterUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_fetch_cluster_upgrade_info_builder(
-        client,
-        &args.name,
-        args.version.as_deref(),
-    )?;
-    container_projects_zones_clusters_fetch_cluster_upgrade_info_execute(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Gets the details of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_get_execute()` to send, or `container_projects_zones_clusters_get` for simplest API.
-
-pub fn container_projects_zones_clusters_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    name: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
-        projectId, zone, clusterId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Gets the details of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_get_execute()` or `container_projects_zones_clusters_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Cluster = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Gets the details of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_get_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: zone
-    pub zone: String,
-    /// Path parameter: clusterId
-    pub clusterId: String,
-    /// Query parameter: name
-    pub name: Option<String>,
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Gets the details of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_get_builder()` + `container_projects_zones_clusters_get_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_get(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_get_builder(
-        client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        args.name.as_deref(),
-    )?;
-    container_projects_zones_clusters_get_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/legacyAbac
@@ -7445,20 +1116,22 @@ pub fn container_projects_zones_clusters_get(
 
 pub fn container_projects_zones_clusters_legacy_abac_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetLegacyAbacRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/legacyAbac",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7490,7 +1163,12 @@ pub fn container_projects_zones_clusters_legacy_abac_builder(
 pub fn container_projects_zones_clusters_legacy_abac_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7598,192 +1276,12 @@ pub fn container_projects_zones_clusters_legacy_abac(
 > {
     let builder = container_projects_zones_clusters_legacy_abac_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_legacy_abac_execute(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_list_execute()` to send, or `container_projects_zones_clusters_list` for simplest API.
-
-pub fn container_projects_zones_clusters_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    parent: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters",
-        projectId, zone,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = parent {
-        query_parts.push(format!("parent={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_list_execute()` or `container_projects_zones_clusters_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListClustersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_list_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: zone
-    pub zone: String,
-    /// Query parameter: parent
-    pub parent: Option<String>,
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters
-/// Lists all clusters owned by a project in either the specified zone or all zones.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_list_builder()` + `container_projects_zones_clusters_list_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_list(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_list_builder(
-        client,
-        &args.projectId,
-        &args.zone,
-        args.parent.as_deref(),
-    )?;
-    container_projects_zones_clusters_list_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/locations
@@ -7794,20 +1292,22 @@ pub fn container_projects_zones_clusters_list(
 
 pub fn container_projects_zones_clusters_locations_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetLocationsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/locations",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7839,7 +1339,12 @@ pub fn container_projects_zones_clusters_locations_builder(
 pub fn container_projects_zones_clusters_locations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7947,9 +1452,9 @@ pub fn container_projects_zones_clusters_locations(
 > {
     let builder = container_projects_zones_clusters_locations_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_locations_execute(builder)
@@ -7963,20 +1468,22 @@ pub fn container_projects_zones_clusters_locations(
 
 pub fn container_projects_zones_clusters_logging_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetLoggingServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/logging",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8008,7 +1515,12 @@ pub fn container_projects_zones_clusters_logging_builder(
 pub fn container_projects_zones_clusters_logging_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8116,9 +1628,9 @@ pub fn container_projects_zones_clusters_logging(
 > {
     let builder = container_projects_zones_clusters_logging_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_logging_execute(builder)
@@ -8132,20 +1644,22 @@ pub fn container_projects_zones_clusters_logging(
 
 pub fn container_projects_zones_clusters_master_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &UpdateMasterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/master",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8177,7 +1691,12 @@ pub fn container_projects_zones_clusters_master_builder(
 pub fn container_projects_zones_clusters_master_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8285,9 +1804,9 @@ pub fn container_projects_zones_clusters_master(
 > {
     let builder = container_projects_zones_clusters_master_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_master_execute(builder)
@@ -8301,20 +1820,22 @@ pub fn container_projects_zones_clusters_master(
 
 pub fn container_projects_zones_clusters_monitoring_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetMonitoringServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/monitoring",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8346,7 +1867,12 @@ pub fn container_projects_zones_clusters_monitoring_builder(
 pub fn container_projects_zones_clusters_monitoring_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8454,9 +1980,9 @@ pub fn container_projects_zones_clusters_monitoring(
 > {
     let builder = container_projects_zones_clusters_monitoring_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_monitoring_execute(builder)
@@ -8470,20 +1996,22 @@ pub fn container_projects_zones_clusters_monitoring(
 
 pub fn container_projects_zones_clusters_resource_labels_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/resourceLabels",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8515,7 +2043,12 @@ pub fn container_projects_zones_clusters_resource_labels_builder(
 pub fn container_projects_zones_clusters_resource_labels_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8623,9 +2156,9 @@ pub fn container_projects_zones_clusters_resource_labels(
 > {
     let builder = container_projects_zones_clusters_resource_labels_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_resource_labels_execute(builder)
@@ -8639,20 +2172,22 @@ pub fn container_projects_zones_clusters_resource_labels(
 
 pub fn container_projects_zones_clusters_set_maintenance_policy_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetMaintenancePolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMaintenancePolicy",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8684,7 +2219,12 @@ pub fn container_projects_zones_clusters_set_maintenance_policy_builder(
 pub fn container_projects_zones_clusters_set_maintenance_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8792,9 +2332,9 @@ pub fn container_projects_zones_clusters_set_maintenance_policy(
 > {
     let builder = container_projects_zones_clusters_set_maintenance_policy_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_set_maintenance_policy_execute(builder)
@@ -8808,20 +2348,22 @@ pub fn container_projects_zones_clusters_set_maintenance_policy(
 
 pub fn container_projects_zones_clusters_set_master_auth_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetMasterAuthRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMasterAuth",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8853,7 +2395,12 @@ pub fn container_projects_zones_clusters_set_master_auth_builder(
 pub fn container_projects_zones_clusters_set_master_auth_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8961,9 +2508,9 @@ pub fn container_projects_zones_clusters_set_master_auth(
 > {
     let builder = container_projects_zones_clusters_set_master_auth_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_set_master_auth_execute(builder)
@@ -8977,20 +2524,22 @@ pub fn container_projects_zones_clusters_set_master_auth(
 
 pub fn container_projects_zones_clusters_set_network_policy_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &SetNetworkPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setNetworkPolicy",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9022,7 +2571,12 @@ pub fn container_projects_zones_clusters_set_network_policy_builder(
 pub fn container_projects_zones_clusters_set_network_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9130,9 +2684,9 @@ pub fn container_projects_zones_clusters_set_network_policy(
 > {
     let builder = container_projects_zones_clusters_set_network_policy_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_set_network_policy_execute(builder)
@@ -9146,20 +2700,22 @@ pub fn container_projects_zones_clusters_set_network_policy(
 
 pub fn container_projects_zones_clusters_start_ip_rotation_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &StartIPRotationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:startIpRotation",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9191,7 +2747,12 @@ pub fn container_projects_zones_clusters_start_ip_rotation_builder(
 pub fn container_projects_zones_clusters_start_ip_rotation_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9299,181 +2860,12 @@ pub fn container_projects_zones_clusters_start_ip_rotation(
 > {
     let builder = container_projects_zones_clusters_start_ip_rotation_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_start_ip_rotation_execute(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Updates the settings of a specific cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_update_execute()` to send, or `container_projects_zones_clusters_update` for simplest API.
-
-pub fn container_projects_zones_clusters_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    body: &UpdateClusterRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
-        projectId, zone, clusterId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Updates the settings of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_update_execute()` or `container_projects_zones_clusters_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Updates the settings of a specific cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_update_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: zone
-    pub zone: String,
-    /// Path parameter: clusterId
-    pub clusterId: String,
-    /// Request body.
-    pub body: UpdateClusterRequest,
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
-/// Updates the settings of a specific cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_update_builder()` + `container_projects_zones_clusters_update_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_update(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_update_builder(
-        client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.body,
-    )?;
-    container_projects_zones_clusters_update_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}/autoscaling
@@ -9484,24 +2876,24 @@ pub fn container_projects_zones_clusters_update(
 
 pub fn container_projects_zones_clusters_node_pools_autoscaling_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
     body: &SetNodePoolAutoscalingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/autoscaling",
-        projectId,
-        zone,
-        clusterId,
-        nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9533,7 +2925,12 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling_builder(
 pub fn container_projects_zones_clusters_node_pools_autoscaling_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9643,10 +3040,10 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling(
 > {
     let builder = container_projects_zones_clusters_node_pools_autoscaling_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_autoscaling_execute(builder)
@@ -9660,20 +3057,22 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling(
 
 pub fn container_projects_zones_clusters_node_pools_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
     body: &CreateNodePoolRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools",
-        projectId, zone, clusterId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9705,7 +3104,12 @@ pub fn container_projects_zones_clusters_node_pools_create_builder(
 pub fn container_projects_zones_clusters_node_pools_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9813,9 +3217,9 @@ pub fn container_projects_zones_clusters_node_pools_create(
 > {
     let builder = container_projects_zones_clusters_node_pools_create_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_create_execute(builder)
@@ -9829,16 +3233,19 @@ pub fn container_projects_zones_clusters_node_pools_create(
 
 pub fn container_projects_zones_clusters_node_pools_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
-    name: Option<&str>,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
+    name: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}",
-        projectId, zone, clusterId, nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
@@ -9848,9 +3255,9 @@ pub fn container_projects_zones_clusters_node_pools_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9884,7 +3291,12 @@ pub fn container_projects_zones_clusters_node_pools_delete_builder(
 pub fn container_projects_zones_clusters_node_pools_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9994,557 +3406,13 @@ pub fn container_projects_zones_clusters_node_pools_delete(
 > {
     let builder = container_projects_zones_clusters_node_pools_delete_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
-        args.name.as_deref(),
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
+        args.name.clone(),
     )?;
     container_projects_zones_clusters_node_pools_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` to send, or `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info` for simplest API.
-
-pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    version: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}:fetchNodePoolUpgradeInfo",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = version {
-        query_parts.push(format!("version={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute()` or `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NodePoolUpgradeInfo = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersNodePoolsFetchNodePoolUpgradeInfoArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: version
-    pub version: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
-/// Fetch upgrade information of a specific nodepool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder()` + `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersNodePoolsFetchNodePoolUpgradeInfoArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePoolUpgradeInfo>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder(
-            client,
-            &args.name,
-            args.version.as_deref(),
-        )?;
-    container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_execute(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
-/// Retrieves the requested node pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_node_pools_get_execute()` to send, or `container_projects_zones_clusters_node_pools_get` for simplest API.
-
-pub fn container_projects_zones_clusters_node_pools_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
-    name: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}",
-        projectId, zone, clusterId, nodePoolId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
-/// Retrieves the requested node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_node_pools_get_execute()` or `container_projects_zones_clusters_node_pools_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NodePool = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
-/// Retrieves the requested node pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_node_pools_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_get_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_node_pools_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_node_pools_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_node_pools_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_node_pools_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersNodePoolsGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: zone
-    pub zone: String,
-    /// Path parameter: clusterId
-    pub clusterId: String,
-    /// Path parameter: nodePoolId
-    pub nodePoolId: String,
-    /// Query parameter: name
-    pub name: Option<String>,
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
-/// Retrieves the requested node pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_node_pools_get_builder()` + `container_projects_zones_clusters_node_pools_get_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_get(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersNodePoolsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NodePool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_node_pools_get_builder(
-        client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
-        args.name.as_deref(),
-    )?;
-    container_projects_zones_clusters_node_pools_get_execute(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `container_projects_zones_clusters_node_pools_list_execute()` to send, or `container_projects_zones_clusters_node_pools_list` for simplest API.
-
-pub fn container_projects_zones_clusters_node_pools_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    parent: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools",
-        projectId, zone, clusterId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = parent {
-        query_parts.push(format!("parent={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `container_projects_zones_clusters_node_pools_list_execute()` or `container_projects_zones_clusters_node_pools_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNodePoolsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `container_projects_zones_clusters_node_pools_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_list_task()`.
-/// For the simplest API, use `container_projects_zones_clusters_node_pools_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `container_projects_zones_clusters_node_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn container_projects_zones_clusters_node_pools_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = container_projects_zones_clusters_node_pools_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`container_projects_zones_clusters_node_pools_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ContainerProjectsZonesClustersNodePoolsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: zone
-    pub zone: String,
-    /// Path parameter: clusterId
-    pub clusterId: String,
-    /// Query parameter: parent
-    pub parent: Option<String>,
-}
-
-/// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools
-/// Lists the node pools for a cluster.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `container_projects_zones_clusters_node_pools_list_builder()` + `container_projects_zones_clusters_node_pools_list_execute()`.
-/// For task-level control, use `container_projects_zones_clusters_node_pools_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn container_projects_zones_clusters_node_pools_list(
-    client: &SimpleHttpClient,
-    args: &ContainerProjectsZonesClustersNodePoolsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNodePoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = container_projects_zones_clusters_node_pools_list_builder(
-        client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        args.parent.as_deref(),
-    )?;
-    container_projects_zones_clusters_node_pools_list_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}:rollback
@@ -10555,24 +3423,24 @@ pub fn container_projects_zones_clusters_node_pools_list(
 
 pub fn container_projects_zones_clusters_node_pools_rollback_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
     body: &RollbackNodePoolUpgradeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}:rollback",
-        projectId,
-        zone,
-        clusterId,
-        nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10604,7 +3472,12 @@ pub fn container_projects_zones_clusters_node_pools_rollback_builder(
 pub fn container_projects_zones_clusters_node_pools_rollback_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10714,10 +3587,10 @@ pub fn container_projects_zones_clusters_node_pools_rollback(
 > {
     let builder = container_projects_zones_clusters_node_pools_rollback_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_rollback_execute(builder)
@@ -10731,24 +3604,24 @@ pub fn container_projects_zones_clusters_node_pools_rollback(
 
 pub fn container_projects_zones_clusters_node_pools_set_management_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
     body: &SetNodePoolManagementRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setManagement",
-        projectId,
-        zone,
-        clusterId,
-        nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10780,7 +3653,12 @@ pub fn container_projects_zones_clusters_node_pools_set_management_builder(
 pub fn container_projects_zones_clusters_node_pools_set_management_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10890,10 +3768,10 @@ pub fn container_projects_zones_clusters_node_pools_set_management(
 > {
     let builder = container_projects_zones_clusters_node_pools_set_management_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_set_management_execute(builder)
@@ -10907,21 +3785,24 @@ pub fn container_projects_zones_clusters_node_pools_set_management(
 
 pub fn container_projects_zones_clusters_node_pools_set_size_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
     body: &SetNodePoolSizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setSize",
-        projectId, zone, clusterId, nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10953,7 +3834,12 @@ pub fn container_projects_zones_clusters_node_pools_set_size_builder(
 pub fn container_projects_zones_clusters_node_pools_set_size_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11063,10 +3949,10 @@ pub fn container_projects_zones_clusters_node_pools_set_size(
 > {
     let builder = container_projects_zones_clusters_node_pools_set_size_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_set_size_execute(builder)
@@ -11080,21 +3966,24 @@ pub fn container_projects_zones_clusters_node_pools_set_size(
 
 pub fn container_projects_zones_clusters_node_pools_update_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    clusterId: &str,
-    nodePoolId: &str,
+    projectId: String,
+    zone: String,
+    clusterId: String,
+    nodePoolId: String,
     body: &UpdateNodePoolRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/update",
-        projectId, zone, clusterId, nodePoolId,
+        projectId.as_str(),
+        zone.as_str(),
+        clusterId.as_str(),
+        nodePoolId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11126,7 +4015,12 @@ pub fn container_projects_zones_clusters_node_pools_update_builder(
 pub fn container_projects_zones_clusters_node_pools_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11236,10 +4130,10 @@ pub fn container_projects_zones_clusters_node_pools_update(
 > {
     let builder = container_projects_zones_clusters_node_pools_update_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.clusterId,
-        &args.nodePoolId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.clusterId.clone(),
+        args.nodePoolId.clone(),
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_update_execute(builder)
@@ -11253,20 +4147,22 @@ pub fn container_projects_zones_clusters_node_pools_update(
 
 pub fn container_projects_zones_operations_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    operationId: &str,
+    projectId: String,
+    zone: String,
+    operationId: String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}:cancel",
-        projectId, zone, operationId,
+        projectId.as_str(),
+        zone.as_str(),
+        operationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11298,7 +4194,12 @@ pub fn container_projects_zones_operations_cancel_builder(
 pub fn container_projects_zones_operations_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11406,9 +4307,9 @@ pub fn container_projects_zones_operations_cancel(
 > {
     let builder = container_projects_zones_operations_cancel_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.operationId,
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.operationId.clone(),
         &args.body,
     )?;
     container_projects_zones_operations_cancel_execute(builder)
@@ -11422,15 +4323,17 @@ pub fn container_projects_zones_operations_cancel(
 
 pub fn container_projects_zones_operations_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    operationId: &str,
-    name: Option<&str>,
+    projectId: String,
+    zone: String,
+    operationId: String,
+    name: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}",
-        projectId, zone, operationId,
+        projectId.as_str(),
+        zone.as_str(),
+        operationId.as_str(),
     );
 
     // Build request
@@ -11440,9 +4343,9 @@ pub fn container_projects_zones_operations_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11476,7 +4379,12 @@ pub fn container_projects_zones_operations_get_builder(
 pub fn container_projects_zones_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11584,10 +4492,10 @@ pub fn container_projects_zones_operations_get(
 > {
     let builder = container_projects_zones_operations_get_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        &args.operationId,
-        args.name.as_deref(),
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.operationId.clone(),
+        args.name.clone(),
     )?;
     container_projects_zones_operations_get_execute(builder)
 }
@@ -11600,14 +4508,15 @@ pub fn container_projects_zones_operations_get(
 
 pub fn container_projects_zones_operations_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    zone: &str,
-    parent: Option<&str>,
+    projectId: String,
+    zone: String,
+    parent: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations",
-        projectId, zone,
+        projectId.as_str(),
+        zone.as_str(),
     );
 
     // Build request
@@ -11617,9 +4526,9 @@ pub fn container_projects_zones_operations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11653,8 +4562,11 @@ pub fn container_projects_zones_operations_list_builder(
 pub fn container_projects_zones_operations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11765,9 +4677,9 @@ pub fn container_projects_zones_operations_list(
 > {
     let builder = container_projects_zones_operations_list_builder(
         client,
-        &args.projectId,
-        &args.zone,
-        args.parent.as_deref(),
+        args.projectId.clone(),
+        args.zone.clone(),
+        args.parent.clone(),
     )?;
     container_projects_zones_operations_list_execute(builder)
 }

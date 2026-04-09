@@ -13,15 +13,21 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Message for fetching an OAuth access token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchAccessTokenRequest {}
+pub struct FetchAccessTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for responding to getting an OAuth access token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -72,7 +78,9 @@ pub struct FetchLinkableGitRepositoriesResponse {
 
 /// Message for fetching SCM read token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadTokenRequest {}
+pub struct FetchReadTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for responding to get read token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,7 +98,9 @@ pub struct FetchReadTokenResponse {
 
 /// Message for fetching SCM read/write token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadWriteTokenRequest {}
+pub struct FetchReadWriteTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for responding to get read/write token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

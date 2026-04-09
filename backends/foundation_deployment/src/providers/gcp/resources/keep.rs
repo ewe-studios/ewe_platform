@@ -37,11 +37,9 @@ pub struct BatchDeletePermissionsRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Describes a single Google Family.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Family {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response when listing a page of notes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -130,7 +128,7 @@ pub struct Permission {
     pub email: ::core::option::Option<String>,
     /// Output only. The Google Family to which this role applies.
     #[serde(default)]
-    pub family: ::core::option::Option<serde_json::Value>,
+    pub family: ::core::option::Option<Family>,
     /// Output only. The group to which this role applies.
     #[serde(default)]
     pub group: ::core::option::Option<Group>,
@@ -151,6 +149,12 @@ pub struct ListContent {
     /// The items in the list. The number of items must be less than 1,000.
     #[serde(default, rename = "listItems")]
     pub list_items: ::std::vec::Vec<::std::boxed::Box<ListItem>>,
+}
+
+/// Describes a single Google Family.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Family {
+    pub value: serde_json::Value,
 }
 
 /// Describes a single Group.

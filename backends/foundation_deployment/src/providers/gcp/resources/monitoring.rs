@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Future parameters for the availability SLI.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailabilityCriteria {}
-
 /// The CreateCollectdTimeSeries request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCollectdTimeSeriesRequest {
@@ -48,10 +44,6 @@ pub struct CreateTimeSeriesRequest {
     pub time_series: ::core::option::Option<::std::vec::Vec<TimeSeries>>,
 }
 
-/// Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Custom {}
-
 /// A set of (label, value) pairs that were removed from a Distribution time series during aggregation and then added as an attachment to a Distribution.Exemplar.The full label set for the exemplars is constructed by using the dropped pairs in combination with the label values that remain on the aggregated Distribution time series. The constructed full label set can be used to identify the specific entity, such as the instance or job, which might be contributing to a long-tail. However, with dropped labels, the storage requirements are reduced because only the aggregated distribution values for a large group of time series are stored.Note that there are no guarantees on ordering of the labels from exemplar-to-exemplar and from distribution-to-distribution in the same stream, and there may be duplicates. It is up to clients to resolve any ambiguities.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DroppedLabels {
@@ -62,7 +54,9 @@ pub struct DroppedLabels {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The GetNotificationChannelVerificationCode request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -308,7 +302,9 @@ pub struct QueryTimeSeriesResponse {
 
 /// The SendNotificationChannelVerificationCode request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendNotificationChannelVerificationCodeRequest {}
+pub struct SendNotificationChannelVerificationCodeRequest {
+    pub value: serde_json::Value,
+}
 
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation.It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -673,7 +669,7 @@ pub struct Service {
     pub cluster_istio: ::core::option::Option<ClusterIstio>,
     /// Custom service type.
     #[serde(default)]
-    pub custom: ::core::option::Option<serde_json::Value>,
+    pub custom: ::core::option::Option<Custom>,
     /// Name used for UI elements listing this Service.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
@@ -1106,6 +1102,12 @@ pub struct ClusterIstio {
     /// The namespace of the Istio service underlying this service. Corresponds to the destination_service_namespace metric label in Istio metrics.
     #[serde(default, rename = "serviceNamespace")]
     pub service_namespace: ::core::option::Option<String>,
+}
+
+/// Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Custom {
+    pub value: serde_json::Value,
 }
 
 /// GKE Namespace. The field names correspond to the resource metadata labels on monitored resources that fall under a namespace (for example, k8s_container or k8s_pod).
@@ -1882,7 +1884,7 @@ pub struct TimeOfDay {
 pub struct BasicSli {
     /// Good service is defined to be the count of requests made to this service that return successfully.
     #[serde(default)]
-    pub availability: ::core::option::Option<serde_json::Value>,
+    pub availability: ::core::option::Option<AvailabilityCriteria>,
     /// Good service is defined to be the count of requests made to this service that are fast enough with respect to latency.threshold.
     #[serde(default)]
     pub latency: ::core::option::Option<LatencyCriteria>,
@@ -1945,6 +1947,12 @@ pub struct Range {
     /// The minimum of the population values.
     #[serde(default)]
     pub min: ::core::option::Option<f64>,
+}
+
+/// Future parameters for the availability SLI.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvailabilityCriteria {
+    pub value: serde_json::Value,
 }
 
 /// Parameters for a latency threshold SLI.

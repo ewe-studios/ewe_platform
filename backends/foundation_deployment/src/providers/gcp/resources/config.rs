@@ -27,7 +27,9 @@ pub struct AutoMigrationConfig {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request to delete a state file passed to a ''DeleteStatefile'' call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,7 +63,9 @@ pub struct DeprovisionDeploymentGroupRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// A request to export a state file passed to a ''ExportDeploymentStatefile'' call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -73,7 +77,9 @@ pub struct ExportDeploymentStatefileRequest {
 
 /// A request to export preview results.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportPreviewResultRequest {}
+pub struct ExportPreviewResultRequest {
+    pub value: serde_json::Value,
+}
 
 /// A response to ExportPreviewResult call. Contains preview results.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -85,7 +91,9 @@ pub struct ExportPreviewResultResponse {
 
 /// A request to export a state file passed to a ''ExportRevisionStatefile'' call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportRevisionStatefileRequest {}
+pub struct ExportRevisionStatefileRequest {
+    pub value: serde_json::Value,
+}
 
 /// Configuration for a source of an external value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -257,7 +265,9 @@ pub struct ListTerraformVersionsResponse {
 
 /// A request to lock a deployment passed to a ''LockDeployment'' call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LockDeploymentRequest {}
+pub struct LockDeploymentRequest {
+    pub value: serde_json::Value,
+}
 
 /// Details about the lock which locked the deployment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

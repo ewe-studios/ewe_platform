@@ -244,7 +244,9 @@ pub struct JobList {
 
 /// Represents a single JSON object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct JsonObject {}
+pub struct JsonObject {
+    pub value: serde_json::Value,
+}
 
 /// Response format for a single page when listing BigQuery ML models.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

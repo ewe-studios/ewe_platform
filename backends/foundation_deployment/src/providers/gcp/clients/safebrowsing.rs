@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,30 +29,33 @@ use serde::Serialize;
 
 pub fn safebrowsing_hash_list_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     sizeConstraints_maxDatabaseEntries: Option<i32>,
     sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<&str>,
+    version: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://safebrowsing.googleapis.com/v5/hashList/{}", name,);
+    let endpoint_url = format!(
+        "https://safebrowsing.googleapis.com/v5/hashList/{}",
+        name.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = sizeConstraints_maxDatabaseEntries {
-        query_parts.push(format!("sizeConstraints_maxDatabaseEntries={}", val));
+        query_parts.push(format!("sizeConstraints.maxDatabaseEntries={}", val));
     }
     if let Some(val) = sizeConstraints_maxUpdateEntries {
-        query_parts.push(format!("sizeConstraints_maxUpdateEntries={}", val));
+        query_parts.push(format!("sizeConstraints.maxUpdateEntries={}", val));
     }
     if let Some(val) = version {
         query_parts.push(format!("version={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -86,8 +90,9 @@ pub fn safebrowsing_hash_list_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleSecuritySafebrowsingV5HashList>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleSecuritySafebrowsingV5HashList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -205,10 +210,10 @@ pub fn safebrowsing_hash_list_get(
 > {
     let builder = safebrowsing_hash_list_get_builder(
         client,
-        &args.name,
-        args.sizeConstraints_maxDatabaseEntries,
-        args.sizeConstraints_maxUpdateEntries,
-        args.version.as_deref(),
+        args.name.clone(),
+        args.sizeConstraints_maxDatabaseEntries.clone(),
+        args.sizeConstraints_maxUpdateEntries.clone(),
+        args.version.clone(),
     )?;
     safebrowsing_hash_list_get_execute(builder)
 }
@@ -221,13 +226,13 @@ pub fn safebrowsing_hash_list_get(
 
 pub fn safebrowsing_hash_lists_batch_get_builder(
     client: &SimpleHttpClient,
-    names: Option<&str>,
+    names: Option<String>,
     sizeConstraints_maxDatabaseEntries: Option<i32>,
     sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<&str>,
+    version: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://safebrowsing.googleapis.com/v5/hashLists:batchGet",);
+    let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -235,19 +240,19 @@ pub fn safebrowsing_hash_lists_batch_get_builder(
         query_parts.push(format!("names={}", val));
     }
     if let Some(val) = sizeConstraints_maxDatabaseEntries {
-        query_parts.push(format!("sizeConstraints_maxDatabaseEntries={}", val));
+        query_parts.push(format!("sizeConstraints.maxDatabaseEntries={}", val));
     }
     if let Some(val) = sizeConstraints_maxUpdateEntries {
-        query_parts.push(format!("sizeConstraints_maxUpdateEntries={}", val));
+        query_parts.push(format!("sizeConstraints.maxUpdateEntries={}", val));
     }
     if let Some(val) = version {
         query_parts.push(format!("version={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -282,11 +287,12 @@ pub fn safebrowsing_hash_lists_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleSecuritySafebrowsingV5BatchGetHashListsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -411,10 +417,10 @@ pub fn safebrowsing_hash_lists_batch_get(
 > {
     let builder = safebrowsing_hash_lists_batch_get_builder(
         client,
-        args.names.as_deref(),
-        args.sizeConstraints_maxDatabaseEntries,
-        args.sizeConstraints_maxUpdateEntries,
-        args.version.as_deref(),
+        args.names.clone(),
+        args.sizeConstraints_maxDatabaseEntries.clone(),
+        args.sizeConstraints_maxUpdateEntries.clone(),
+        args.version.clone(),
     )?;
     safebrowsing_hash_lists_batch_get_execute(builder)
 }
@@ -428,10 +434,10 @@ pub fn safebrowsing_hash_lists_batch_get(
 pub fn safebrowsing_hash_lists_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://safebrowsing.googleapis.com/v5/hashLists",);
+    let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -443,9 +449,9 @@ pub fn safebrowsing_hash_lists_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -480,8 +486,12 @@ pub fn safebrowsing_hash_lists_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleSecuritySafebrowsingV5ListHashListsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleSecuritySafebrowsingV5ListHashListsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -594,8 +604,11 @@ pub fn safebrowsing_hash_lists_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        safebrowsing_hash_lists_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+    let builder = safebrowsing_hash_lists_list_builder(
+        client,
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+    )?;
     safebrowsing_hash_lists_list_execute(builder)
 }
 
@@ -607,10 +620,10 @@ pub fn safebrowsing_hash_lists_list(
 
 pub fn safebrowsing_hashes_search_builder(
     client: &SimpleHttpClient,
-    hashPrefixes: Option<&str>,
+    hashPrefixes: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://safebrowsing.googleapis.com/v5/hashes:search",);
+    let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashes:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -619,9 +632,9 @@ pub fn safebrowsing_hashes_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -656,8 +669,9 @@ pub fn safebrowsing_hashes_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchHashesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchHashesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -768,7 +782,7 @@ pub fn safebrowsing_hashes_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_hashes_search_builder(client, args.hashPrefixes.as_deref())?;
+    let builder = safebrowsing_hashes_search_builder(client, args.hashPrefixes.clone())?;
     safebrowsing_hashes_search_execute(builder)
 }
 
@@ -780,10 +794,10 @@ pub fn safebrowsing_hashes_search(
 
 pub fn safebrowsing_urls_search_builder(
     client: &SimpleHttpClient,
-    urls: Option<&str>,
+    urls: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://safebrowsing.googleapis.com/v5/urls:search",);
+    let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/urls:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -792,9 +806,9 @@ pub fn safebrowsing_urls_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -829,8 +843,9 @@ pub fn safebrowsing_urls_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchUrlsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleSecuritySafebrowsingV5SearchUrlsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -941,6 +956,6 @@ pub fn safebrowsing_urls_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_urls_search_builder(client, args.urls.as_deref())?;
+    let builder = safebrowsing_urls_search_builder(client, args.urls.clone())?;
     safebrowsing_urls_search_execute(builder)
 }

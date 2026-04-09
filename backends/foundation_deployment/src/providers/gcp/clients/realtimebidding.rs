@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,14 @@ use serde::Serialize;
 
 pub fn realtimebidding_bidders_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}", name,);
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -65,7 +66,12 @@ pub fn realtimebidding_bidders_get_builder(
 pub fn realtimebidding_bidders_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bidder>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bidder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -165,7 +171,7 @@ pub fn realtimebidding_bidders_get(
     impl StreamIterator<D = Result<ApiResponse<Bidder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_get_builder(client, &args.name)?;
+    let builder = realtimebidding_bidders_get_builder(client, args.name.clone())?;
     realtimebidding_bidders_get_execute(builder)
 }
 
@@ -178,10 +184,10 @@ pub fn realtimebidding_bidders_get(
 pub fn realtimebidding_bidders_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://realtimebidding.googleapis.com/v1/bidders",);
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -193,9 +199,9 @@ pub fn realtimebidding_bidders_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -229,8 +235,11 @@ pub fn realtimebidding_bidders_list_builder(
 pub fn realtimebidding_bidders_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListBiddersResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBiddersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -337,8 +346,11 @@ pub fn realtimebidding_bidders_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+    let builder = realtimebidding_bidders_list_builder(
+        client,
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+    )?;
     realtimebidding_bidders_list_execute(builder)
 }
 
@@ -350,17 +362,14 @@ pub fn realtimebidding_bidders_list(
 
 pub fn realtimebidding_bidders_creatives_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/creatives",
-        parent,
-    );
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}/creatives",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -378,9 +387,9 @@ pub fn realtimebidding_bidders_creatives_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -414,8 +423,11 @@ pub fn realtimebidding_bidders_creatives_list_builder(
 pub fn realtimebidding_bidders_creatives_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCreativesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -530,11 +542,11 @@ pub fn realtimebidding_bidders_creatives_list(
 > {
     let builder = realtimebidding_bidders_creatives_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.view.clone(),
     )?;
     realtimebidding_bidders_creatives_list_execute(builder)
 }
@@ -547,18 +559,16 @@ pub fn realtimebidding_bidders_creatives_list(
 
 pub fn realtimebidding_bidders_creatives_watch_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &WatchCreativesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/creatives:watch",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://realtimebidding.googleapis.com/v1/bidders/{}/creatives:watch",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -590,8 +600,11 @@ pub fn realtimebidding_bidders_creatives_watch_builder(
 pub fn realtimebidding_bidders_creatives_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WatchCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WatchCreativesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -699,160 +712,8 @@ pub fn realtimebidding_bidders_creatives_watch(
     ApiError,
 > {
     let builder =
-        realtimebidding_bidders_creatives_watch_builder(client, &args.parent, &args.body)?;
+        realtimebidding_bidders_creatives_watch_builder(client, args.parent.clone(), &args.body)?;
     realtimebidding_bidders_creatives_watch_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Gets a bidder endpoint by its name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_endpoints_get_execute()` to send, or `realtimebidding_bidders_endpoints_get` for simplest API.
-
-pub fn realtimebidding_bidders_endpoints_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Gets a bidder endpoint by its name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_endpoints_get_execute()` or `realtimebidding_bidders_endpoints_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_endpoints_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_endpoints_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Endpoint = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Gets a bidder endpoint by its name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_endpoints_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_endpoints_get_task()`.
-/// For the simplest API, use `realtimebidding_bidders_endpoints_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_endpoints_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_endpoints_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_endpoints_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_endpoints_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersEndpointsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Gets a bidder endpoint by its name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_endpoints_get_builder()` + `realtimebidding_bidders_endpoints_get_execute()`.
-/// For task-level control, use `realtimebidding_bidders_endpoints_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_endpoints_get(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersEndpointsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_endpoints_get_builder(client, &args.name)?;
-    realtimebidding_bidders_endpoints_get_execute(builder)
 }
 
 /// GET v1/bidders/{biddersId}/endpoints
@@ -863,15 +724,12 @@ pub fn realtimebidding_bidders_endpoints_get(
 
 pub fn realtimebidding_bidders_endpoints_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints",
-        parent,
-    );
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -883,9 +741,9 @@ pub fn realtimebidding_bidders_endpoints_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -919,8 +777,11 @@ pub fn realtimebidding_bidders_endpoints_list_builder(
 pub fn realtimebidding_bidders_endpoints_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListEndpointsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEndpointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1031,853 +892,11 @@ pub fn realtimebidding_bidders_endpoints_list(
 > {
     let builder = realtimebidding_bidders_endpoints_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     realtimebidding_bidders_endpoints_list_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_endpoints_patch_execute()` to send, or `realtimebidding_bidders_endpoints_patch` for simplest API.
-
-pub fn realtimebidding_bidders_endpoints_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Endpoint,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_endpoints_patch_execute()` or `realtimebidding_bidders_endpoints_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_endpoints_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_endpoints_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Endpoint = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_endpoints_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_endpoints_patch_task()`.
-/// For the simplest API, use `realtimebidding_bidders_endpoints_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_endpoints_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_endpoints_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_endpoints_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_endpoints_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersEndpointsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Endpoint,
-}
-
-/// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
-/// Updates a bidder's endpoint.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_endpoints_patch_builder()` + `realtimebidding_bidders_endpoints_patch_execute()`.
-/// For task-level control, use `realtimebidding_bidders_endpoints_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_endpoints_patch(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersEndpointsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_endpoints_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    realtimebidding_bidders_endpoints_patch_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:activate
-/// Activates a pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_activate_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_activate` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_activate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivatePretargetingConfigRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:activate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:activate
-/// Activates a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_activate_execute()` or `realtimebidding_bidders_pretargeting_configs_activate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_activate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_activate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:activate
-/// Activates a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_activate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_activate_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_activate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_activate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_activate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_activate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_activate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsActivateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ActivatePretargetingConfigRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:activate
-/// Activates a pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_activate_builder()` + `realtimebidding_bidders_pretargeting_configs_activate_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_activate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_activate(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsActivateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_activate_builder(
-        client, &args.name, &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_activate_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps
-/// Adds targeted apps to the pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_apps` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedAppsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:addTargetedApps",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps
-/// Adds targeted apps to the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute()` or `realtimebidding_bidders_pretargeting_configs_add_targeted_apps`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps
-/// Adds targeted apps to the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_add_targeted_apps_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_apps`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedAppsArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: AddTargetedAppsRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps
-/// Adds targeted apps to the pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder()` + `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_apps_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedAppsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers
-/// Adds targeted publishers to the pretargeting config.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedPublishersRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:addTargetedPublishers",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers
-/// Adds targeted publishers to the pretargeting config.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute()` or `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers
-/// Adds targeted publishers to the pretargeting config.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_publishers`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedPublishersArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: AddTargetedPublishersRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers
-/// Adds targeted publishers to the pretargeting config.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder()` + `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedPublishersArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites
-/// Adds targeted sites to the pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_add_targeted_sites` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedSitesRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:addTargetedSites",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites
-/// Adds targeted sites to the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute()` or `realtimebidding_bidders_pretargeting_configs_add_targeted_sites`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites
-/// Adds targeted sites to the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_add_targeted_sites_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_sites`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedSitesArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: AddTargetedSitesRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites
-/// Adds targeted sites to the pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder()` + `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_add_targeted_sites_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedSitesArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute(builder)
 }
 
 /// GET v1/bidders/{biddersId}/pretargetingConfigs
@@ -1888,18 +907,16 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
 
 pub fn realtimebidding_bidders_pretargeting_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &PretargetingConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1931,8 +948,11 @@ pub fn realtimebidding_bidders_pretargeting_configs_create_builder(
 pub fn realtimebidding_bidders_pretargeting_configs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PretargetingConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2041,1358 +1061,10 @@ pub fn realtimebidding_bidders_pretargeting_configs_create(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_create_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_create_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Deletes a pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_delete_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_delete` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Deletes a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_delete_execute()` or `realtimebidding_bidders_pretargeting_configs_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Deletes a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_delete_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Deletes a pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_delete_builder()` + `realtimebidding_bidders_pretargeting_configs_delete_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_delete(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_delete_builder(client, &args.name)?;
-    realtimebidding_bidders_pretargeting_configs_delete_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Gets a pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_get_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_get` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Gets a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_get_execute()` or `realtimebidding_bidders_pretargeting_configs_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Gets a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_get_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Gets a pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_get_builder()` + `realtimebidding_bidders_pretargeting_configs_get_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_get(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_get_builder(client, &args.name)?;
-    realtimebidding_bidders_pretargeting_configs_get_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs
-/// Lists all pretargeting configurations for a single bidder.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_list_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_list` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs
-/// Lists all pretargeting configurations for a single bidder.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_list_execute()` or `realtimebidding_bidders_pretargeting_configs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListPretargetingConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListPretargetingConfigsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs
-/// Lists all pretargeting configurations for a single bidder.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_list_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPretargetingConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs
-/// Lists all pretargeting configurations for a single bidder.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_list_builder()` + `realtimebidding_bidders_pretargeting_configs_list_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_list(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPretargetingConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    realtimebidding_bidders_pretargeting_configs_list_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Updates a pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_patch_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_patch` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PretargetingConfig,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Updates a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_patch_execute()` or `realtimebidding_bidders_pretargeting_configs_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Updates a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_patch_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: PretargetingConfig,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
-/// Updates a pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_patch_builder()` + `realtimebidding_bidders_pretargeting_configs_patch_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_patch(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_patch_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps
-/// Removes targeted apps from the pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedAppsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:removeTargetedApps",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps
-/// Removes targeted apps from the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute()` or `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps
-/// Removes targeted apps from the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_apps`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedAppsArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: RemoveTargetedAppsRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps
-/// Removes targeted apps from the pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder()` + `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedAppsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers
-/// Removes targeted publishers from the pretargeting config.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedPublishersRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:removeTargetedPublishers",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers
-/// Removes targeted publishers from the pretargeting config.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute()` or `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers
-/// Removes targeted publishers from the pretargeting config.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedPublishersArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: RemoveTargetedPublishersRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers
-/// Removes targeted publishers from the pretargeting config.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder()` + `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedPublishersArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites
-/// Removes targeted sites from the pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder(
-    client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedSitesRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:removeTargetedSites",
-        pretargetingConfig,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites
-/// Removes targeted sites from the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute()` or `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites
-/// Removes targeted sites from the pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_sites`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedSitesArgs {
-    /// Path parameter: pretargetingConfig
-    pub pretargetingConfig: String,
-    /// Request body.
-    pub body: RemoveTargetedSitesRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites
-/// Removes targeted sites from the pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder()` + `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedSitesArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder(
-        client,
-        &args.pretargetingConfig,
-        &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:suspend
-/// Suspends a pretargeting configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_pretargeting_configs_suspend_execute()` to send, or `realtimebidding_bidders_pretargeting_configs_suspend` for simplest API.
-
-pub fn realtimebidding_bidders_pretargeting_configs_suspend_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SuspendPretargetingConfigRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/pretargetingConfigs/{}:suspend",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:suspend
-/// Suspends a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_pretargeting_configs_suspend_execute()` or `realtimebidding_bidders_pretargeting_configs_suspend`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_suspend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_suspend_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PretargetingConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:suspend
-/// Suspends a pretargeting configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_pretargeting_configs_suspend_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_suspend_task()`.
-/// For the simplest API, use `realtimebidding_bidders_pretargeting_configs_suspend()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_pretargeting_configs_suspend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_pretargeting_configs_suspend_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_pretargeting_configs_suspend_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_pretargeting_configs_suspend`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPretargetingConfigsSuspendArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SuspendPretargetingConfigRequest,
-}
-
-/// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:suspend
-/// Suspends a pretargeting configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_pretargeting_configs_suspend_builder()` + `realtimebidding_bidders_pretargeting_configs_suspend_execute()`.
-/// For task-level control, use `realtimebidding_bidders_pretargeting_configs_suspend_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_pretargeting_configs_suspend(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPretargetingConfigsSuspendArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_pretargeting_configs_suspend_builder(
-        client, &args.name, &args.body,
-    )?;
-    realtimebidding_bidders_pretargeting_configs_suspend_execute(builder)
 }
 
 /// GET v1/bidders/{biddersId}/publisherConnections:batchApprove
@@ -3403,18 +1075,17 @@ pub fn realtimebidding_bidders_pretargeting_configs_suspend(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_approve_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &BatchApprovePublisherConnectionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections:batchApprove",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3447,8 +1118,9 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchApprovePublisherConnectionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchApprovePublisherConnectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3562,7 +1234,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
 > {
     let builder = realtimebidding_bidders_publisher_connections_batch_approve_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     realtimebidding_bidders_publisher_connections_batch_approve_execute(builder)
@@ -3576,18 +1248,17 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_reject_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &BatchRejectPublisherConnectionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections:batchReject",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3620,8 +1291,9 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchRejectPublisherConnectionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchRejectPublisherConnectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3736,168 +1408,10 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject(
 > {
     let builder = realtimebidding_bidders_publisher_connections_batch_reject_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     realtimebidding_bidders_publisher_connections_batch_reject_execute(builder)
-}
-
-/// GET v1/bidders/{biddersId}/publisherConnections/{publisherConnectionsId}
-/// Gets a publisher connection.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_bidders_publisher_connections_get_execute()` to send, or `realtimebidding_bidders_publisher_connections_get` for simplest API.
-
-pub fn realtimebidding_bidders_publisher_connections_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/bidders/{biddersId}/publisherConnections/{publisherConnectionsId}
-/// Gets a publisher connection.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_bidders_publisher_connections_get_execute()` or `realtimebidding_bidders_publisher_connections_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_publisher_connections_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_publisher_connections_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PublisherConnection>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PublisherConnection = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/bidders/{biddersId}/publisherConnections/{publisherConnectionsId}
-/// Gets a publisher connection.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_bidders_publisher_connections_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_bidders_publisher_connections_get_task()`.
-/// For the simplest API, use `realtimebidding_bidders_publisher_connections_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_bidders_publisher_connections_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_bidders_publisher_connections_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PublisherConnection>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_bidders_publisher_connections_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_bidders_publisher_connections_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBiddersPublisherConnectionsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/bidders/{biddersId}/publisherConnections/{publisherConnectionsId}
-/// Gets a publisher connection.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_bidders_publisher_connections_get_builder()` + `realtimebidding_bidders_publisher_connections_get_execute()`.
-/// For task-level control, use `realtimebidding_bidders_publisher_connections_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_bidders_publisher_connections_get(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBiddersPublisherConnectionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PublisherConnection>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_bidders_publisher_connections_get_builder(client, &args.name)?;
-    realtimebidding_bidders_publisher_connections_get_execute(builder)
 }
 
 /// GET v1/bidders/{biddersId}/publisherConnections
@@ -3908,17 +1422,15 @@ pub fn realtimebidding_bidders_publisher_connections_get(
 
 pub fn realtimebidding_bidders_publisher_connections_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
+    parent: String,
+    filter: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://realtimebidding.googleapis.com/v1/bidders/{}/publisherConnections",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3936,9 +1448,9 @@ pub fn realtimebidding_bidders_publisher_connections_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3973,8 +1485,9 @@ pub fn realtimebidding_bidders_publisher_connections_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListPublisherConnectionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListPublisherConnectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4094,11 +1607,11 @@ pub fn realtimebidding_bidders_publisher_connections_list(
 > {
     let builder = realtimebidding_bidders_publisher_connections_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     realtimebidding_bidders_publisher_connections_list_execute(builder)
 }
@@ -4111,14 +1624,14 @@ pub fn realtimebidding_bidders_publisher_connections_list(
 
 pub fn realtimebidding_buyers_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}", name,);
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4148,7 +1661,12 @@ pub fn realtimebidding_buyers_get_builder(
 pub fn realtimebidding_buyers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Buyer>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Buyer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4248,7 +1766,7 @@ pub fn realtimebidding_buyers_get(
     impl StreamIterator<D = Result<ApiResponse<Buyer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_builder(client, &args.name)?;
+    let builder = realtimebidding_buyers_get_builder(client, args.name.clone())?;
     realtimebidding_buyers_get_execute(builder)
 }
 
@@ -4260,17 +1778,15 @@ pub fn realtimebidding_buyers_get(
 
 pub fn realtimebidding_buyers_get_remarketing_tag_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}:getRemarketingTag",
-        name,
-    );
+    let endpoint_url =
+        format!("https://realtimebidding.googleapis.com/v1/buyers/{}:getRemarketingTag",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4300,8 +1816,11 @@ pub fn realtimebidding_buyers_get_remarketing_tag_builder(
 pub fn realtimebidding_buyers_get_remarketing_tag_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4406,7 +1925,7 @@ pub fn realtimebidding_buyers_get_remarketing_tag(
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, &args.name)?;
+    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, args.name.clone())?;
     realtimebidding_buyers_get_remarketing_tag_execute(builder)
 }
 
@@ -4419,10 +1938,10 @@ pub fn realtimebidding_buyers_get_remarketing_tag(
 pub fn realtimebidding_buyers_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://realtimebidding.googleapis.com/v1/buyers",);
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4434,9 +1953,9 @@ pub fn realtimebidding_buyers_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4470,8 +1989,11 @@ pub fn realtimebidding_buyers_list_builder(
 pub fn realtimebidding_buyers_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListBuyersResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBuyersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4579,7 +2101,7 @@ pub fn realtimebidding_buyers_list(
     ApiError,
 > {
     let builder =
-        realtimebidding_buyers_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+        realtimebidding_buyers_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
     realtimebidding_buyers_list_execute(builder)
 }
 
@@ -4591,18 +2113,15 @@ pub fn realtimebidding_buyers_list(
 
 pub fn realtimebidding_buyers_creatives_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives",
-        parent,
-    );
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}/creatives",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4634,7 +2153,12 @@ pub fn realtimebidding_buyers_creatives_create_builder(
 pub fn realtimebidding_buyers_creatives_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4737,705 +2261,8 @@ pub fn realtimebidding_buyers_creatives_create(
     ApiError,
 > {
     let builder =
-        realtimebidding_buyers_creatives_create_builder(client, &args.parent, &args.body)?;
+        realtimebidding_buyers_creatives_create_builder(client, args.parent.clone(), &args.body)?;
     realtimebidding_buyers_creatives_create_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Gets a creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_creatives_get_execute()` to send, or `realtimebidding_buyers_creatives_get` for simplest API.
-
-pub fn realtimebidding_buyers_creatives_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Gets a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_creatives_get_execute()` or `realtimebidding_buyers_creatives_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Creative = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Gets a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_creatives_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_creatives_get_task()`.
-/// For the simplest API, use `realtimebidding_buyers_creatives_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_creatives_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_creatives_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_creatives_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersCreativesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Gets a creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_creatives_get_builder()` + `realtimebidding_buyers_creatives_get_execute()`.
-/// For task-level control, use `realtimebidding_buyers_creatives_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_get(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersCreativesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        realtimebidding_buyers_creatives_get_builder(client, &args.name, args.view.as_deref())?;
-    realtimebidding_buyers_creatives_get_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/creatives
-/// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_creatives_list_execute()` to send, or `realtimebidding_buyers_creatives_list` for simplest API.
-
-pub fn realtimebidding_buyers_creatives_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/buyers/{buyersId}/creatives
-/// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_creatives_list_execute()` or `realtimebidding_buyers_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/creatives
-/// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_creatives_list_task()`.
-/// For the simplest API, use `realtimebidding_buyers_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersCreativesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/buyers/{buyersId}/creatives
-/// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_creatives_list_builder()` + `realtimebidding_buyers_creatives_list_execute()`.
-/// For task-level control, use `realtimebidding_buyers_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_list(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersCreativesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_creatives_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    realtimebidding_buyers_creatives_list_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Updates a creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_creatives_patch_execute()` to send, or `realtimebidding_buyers_creatives_patch` for simplest API.
-
-pub fn realtimebidding_buyers_creatives_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Creative,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/creatives/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Updates a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_creatives_patch_execute()` or `realtimebidding_buyers_creatives_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Creative = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Updates a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_creatives_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_creatives_patch_task()`.
-/// For the simplest API, use `realtimebidding_buyers_creatives_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_creatives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_creatives_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_creatives_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_creatives_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersCreativesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Creative,
-}
-
-/// GET v1/buyers/{buyersId}/creatives/{creativesId}
-/// Updates a creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_creatives_patch_builder()` + `realtimebidding_buyers_creatives_patch_execute()`.
-/// For task-level control, use `realtimebidding_buyers_creatives_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_creatives_patch(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersCreativesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_creatives_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    realtimebidding_buyers_creatives_patch_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:close
-/// Changes the status of a user list to CLOSED. This prevents new users from being added to the user list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_close_execute()` to send, or `realtimebidding_buyers_user_lists_close` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_close_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CloseUserListRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{}:close",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:close
-/// Changes the status of a user list to CLOSED. This prevents new users from being added to the user list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_close_execute()` or `realtimebidding_buyers_user_lists_close`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_close_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_close_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:close
-/// Changes the status of a user list to CLOSED. This prevents new users from being added to the user list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_close_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_close_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_close()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_close_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_close_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_close_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_close`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsCloseArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CloseUserListRequest,
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:close
-/// Changes the status of a user list to CLOSED. This prevents new users from being added to the user list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_close_builder()` + `realtimebidding_buyers_user_lists_close_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_close_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_close(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsCloseArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_user_lists_close_builder(client, &args.name, &args.body)?;
-    realtimebidding_buyers_user_lists_close_execute(builder)
 }
 
 /// GET v1/buyers/{buyersId}/userLists
@@ -5446,18 +2273,15 @@ pub fn realtimebidding_buyers_user_lists_close(
 
 pub fn realtimebidding_buyers_user_lists_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &UserList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists",
-        parent,
-    );
+    let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}/userLists",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5489,7 +2313,12 @@ pub fn realtimebidding_buyers_user_lists_create_builder(
 pub fn realtimebidding_buyers_user_lists_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5592,814 +2421,6 @@ pub fn realtimebidding_buyers_user_lists_create(
     ApiError,
 > {
     let builder =
-        realtimebidding_buyers_user_lists_create_builder(client, &args.parent, &args.body)?;
+        realtimebidding_buyers_user_lists_create_builder(client, args.parent.clone(), &args.body)?;
     realtimebidding_buyers_user_lists_create_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Gets a user list by its name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_get_execute()` to send, or `realtimebidding_buyers_user_lists_get` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Gets a user list by its name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_get_execute()` or `realtimebidding_buyers_user_lists_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Gets a user list by its name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_get_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Gets a user list by its name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_get_builder()` + `realtimebidding_buyers_user_lists_get_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_get(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_user_lists_get_builder(client, &args.name)?;
-    realtimebidding_buyers_user_lists_get_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:getRemarketingTag
-/// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_get_remarketing_tag_execute()` to send, or `realtimebidding_buyers_user_lists_get_remarketing_tag` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{}:getRemarketingTag",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:getRemarketingTag
-/// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_get_remarketing_tag_execute()` or `realtimebidding_buyers_user_lists_get_remarketing_tag`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_get_remarketing_tag_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GetRemarketingTagResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:getRemarketingTag
-/// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_get_remarketing_tag_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_get_remarketing_tag_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_get_remarketing_tag()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_get_remarketing_tag_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_get_remarketing_tag_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_get_remarketing_tag`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsGetRemarketingTagArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:getRemarketingTag
-/// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_get_remarketing_tag_builder()` + `realtimebidding_buyers_user_lists_get_remarketing_tag_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_get_remarketing_tag_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_get_remarketing_tag(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsGetRemarketingTagArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        realtimebidding_buyers_user_lists_get_remarketing_tag_builder(client, &args.name)?;
-    realtimebidding_buyers_user_lists_get_remarketing_tag_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists
-/// Lists the user lists visible to the current user.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_list_execute()` to send, or `realtimebidding_buyers_user_lists_list` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists
-/// Lists the user lists visible to the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_list_execute()` or `realtimebidding_buyers_user_lists_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListUserListsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists
-/// Lists the user lists visible to the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_list_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/buyers/{buyersId}/userLists
-/// Lists the user lists visible to the current user.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_list_builder()` + `realtimebidding_buyers_user_lists_list_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_list(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_user_lists_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    realtimebidding_buyers_user_lists_list_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:open
-/// Changes the status of a user list to OPEN. This allows new users to be added to the user list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_open_execute()` to send, or `realtimebidding_buyers_user_lists_open` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_open_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &OpenUserListRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{}:open",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:open
-/// Changes the status of a user list to OPEN. This allows new users to be added to the user list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_open_execute()` or `realtimebidding_buyers_user_lists_open`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_open_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_open_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:open
-/// Changes the status of a user list to OPEN. This allows new users to be added to the user list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_open_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_open_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_open()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_open_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_open_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_open_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_open`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsOpenArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: OpenUserListRequest,
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}:open
-/// Changes the status of a user list to OPEN. This allows new users to be added to the user list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_open_builder()` + `realtimebidding_buyers_user_lists_open_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_open_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_open(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsOpenArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_user_lists_open_builder(client, &args.name, &args.body)?;
-    realtimebidding_buyers_user_lists_open_execute(builder)
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Updates the given user list. Only user lists with URLRestrictions can be updated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `realtimebidding_buyers_user_lists_update_execute()` to send, or `realtimebidding_buyers_user_lists_update` for simplest API.
-
-pub fn realtimebidding_buyers_user_lists_update_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UserList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://realtimebidding.googleapis.com/v1/buyers/{}/userLists/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Updates the given user list. Only user lists with URLRestrictions can be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `realtimebidding_buyers_user_lists_update_execute()` or `realtimebidding_buyers_user_lists_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Updates the given user list. Only user lists with URLRestrictions can be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `realtimebidding_buyers_user_lists_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `realtimebidding_buyers_user_lists_update_task()`.
-/// For the simplest API, use `realtimebidding_buyers_user_lists_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `realtimebidding_buyers_user_lists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn realtimebidding_buyers_user_lists_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = realtimebidding_buyers_user_lists_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`realtimebidding_buyers_user_lists_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RealtimebiddingBuyersUserListsUpdateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UserList,
-}
-
-/// GET v1/buyers/{buyersId}/userLists/{userListsId}
-/// Updates the given user list. Only user lists with URLRestrictions can be updated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `realtimebidding_buyers_user_lists_update_builder()` + `realtimebidding_buyers_user_lists_update_execute()`.
-/// For task-level control, use `realtimebidding_buyers_user_lists_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn realtimebidding_buyers_user_lists_update(
-    client: &SimpleHttpClient,
-    args: &RealtimebiddingBuyersUserListsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = realtimebidding_buyers_user_lists_update_builder(client, &args.name, &args.body)?;
-    realtimebidding_buyers_user_lists_update_execute(builder)
 }

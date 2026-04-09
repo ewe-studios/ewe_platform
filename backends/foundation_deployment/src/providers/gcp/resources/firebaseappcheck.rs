@@ -224,7 +224,9 @@ pub struct GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest {
 
 /// Request message for the GenerateAppAttestChallenge method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest {}
+pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the GenerateAppAttestChallenge method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -239,7 +241,9 @@ pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
 
 /// Request message for the GeneratePlayIntegrityChallenge method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeRequest {}
+pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the GeneratePlayIntegrityChallenge method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -296,7 +300,9 @@ pub struct GoogleFirebaseAppcheckV1PublicJwkSet {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// An app''s App Attest configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangeAppAttestAttestation and ExchangeAppAttestAssertion, such as its ttl. Note that the Team ID registered with your app is used as part of the validation process. Please register it via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.iosApps/patch).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -19,10 +19,10 @@ pub struct CheckConsistencyRequest {
     pub consistency_token: ::core::option::Option<String>,
     /// Checks that reads using an app profile with DataBoostIsolationReadOnly can see all writes committed before the token was created, but only if the read and write target the same cluster.
     #[serde(default, rename = "dataBoostReadLocalWrites")]
-    pub data_boost_read_local_writes: ::core::option::Option<serde_json::Value>,
+    pub data_boost_read_local_writes: ::core::option::Option<DataBoostReadLocalWrites>,
     /// Checks that reads using an app profile with StandardIsolation can see all writes committed before the token was created, even if the read and write target different clusters.
     #[serde(default, rename = "standardReadRemoteWrites")]
-    pub standard_read_remote_writes: ::core::option::Option<serde_json::Value>,
+    pub standard_read_remote_writes: ::core::option::Option<StandardReadRemoteWrites>,
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency
@@ -208,10 +208,6 @@ pub struct CreateTableRequest {
     pub table_id: ::core::option::Option<String>,
 }
 
-/// Checks that all writes before the consistency token was generated in the same cluster are readable by Databoost.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DataBoostReadLocalWrites {}
-
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.DropRowRange
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DropRowRangeRequest {
@@ -225,11 +221,15 @@ pub struct DropRowRangeRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateConsistencyTokenRequest {}
+pub struct GenerateConsistencyTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -266,46 +266,6 @@ pub struct GoogleBigtableAdminV2MaterializedViewClusterState {
     pub replication_state: ::core::option::Option<String>,
 }
 
-/// Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: Int64 (the unique count estimate)
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount {}
-
-/// Computes the max of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateMax {}
-
-/// Computes the min of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateMin {}
-
-/// Computes the sum of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeAggregateSum {}
-
-/// Defines rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeBoolEncoding {}
-
-/// Date Values of type Date are stored in Value.date_value.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeDate {}
-
-/// Float32 Values of type Float32 are stored in Value.float_value.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeFloat32 {}
-
-/// Float64 Values of type Float64 are stored in Value.float_value.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeFloat64 {}
-
-/// A geography type, representing a point or region on Earth. The value is stored in Value.bytes_value as Well-Known Binary (WKB) bytes.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeGeography {}
-
-/// Encodes the value in a variable length binary format of up to 10 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes {}
-
 /// String Values of type String are stored in Value.string_value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeString {
@@ -322,7 +282,7 @@ pub struct GoogleBigtableAdminV2TypeStringEncoding {
     pub utf8_bytes: ::core::option::Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes>,
     /// Deprecated: if set, converts to an empty utf8_bytes.
     #[serde(default, rename = "utf8Raw")]
-    pub utf8_raw: ::core::option::Option<serde_json::Value>,
+    pub utf8_raw: ::core::option::Option<GoogleBigtableAdminV2TypeStringEncodingUtf8Raw>,
 }
 
 /// UTF-8 encoding. Sorted mode: - All values are supported. - Code point order is preserved. Distinct mode: all values are supported. Compatible with: - BigQuery TEXT encoding - HBase Bytes.toBytes - Java String#getBytes(StandardCharsets.UTF_8)
@@ -335,15 +295,9 @@ pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
 
 /// Deprecated: prefer the equivalent Utf8Bytes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Raw {}
-
-/// Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is ASC or UNSPECIFIED, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes 0x00 with the fixed byte pair {0x00, 0xFF}. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair {0x00, 0x00}. - Append the fixed byte pair {0x00, 0x01} to each remaining field, except for the last remaining field if it is ASC. - Bitwise negate all DESC fields. - Concatenate the results, or emit the fixed byte pair {0x00, 0x00} if there are no remaining fields to concatenate. Examples:  - STRUCT() -&gt; "\00\00" - STRUCT("") -&gt; "\00\00" - STRUCT("", "") -&gt; "\00\00" - STRUCT("", "B") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "") -&gt; "A" - STRUCT("", "B", "") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "", "C") -&gt; "A" + "\00\01" + "\00\00" + "\00\01" + "C"  Examples for struct with DESC fields:  - STRUCT("" DESC) -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "", "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "A") -&gt; "\xFF\xFF" + "\xFF\xFE" + "A" - STRUCT("A", "" DESC, "") -&gt; "A" + "\00\01" + "\xFF\xFF" + "\xFF\xFE" - STRUCT("", "A" DESC) -&gt; "\x00\x00" + "\x00\x01" + "\xBE" + "\xFF\xFE"  Since null bytes are always escaped, this encoding can cause size blowup for encodings like Int64.BigEndianBytes that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or UNSPECIFIED order are treated as ASC. - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStructEncodingOrderedCodeBytes {}
-
-/// Uses the encoding of fields[0].type as-is. Only valid if fields.size == 1. This encoding does not support DESC field ordering.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleBigtableAdminV2TypeStructEncodingSingleton {}
+pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Raw {
+    pub value: serde_json::Value,
+}
 
 /// Response message for BigtableInstanceAdmin.ListAppProfiles.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -555,10 +509,6 @@ pub struct RestoreTableRequest {
     pub table_id: ::core::option::Option<String>,
 }
 
-/// If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RowAffinity {}
-
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
@@ -569,10 +519,6 @@ pub struct SetIamPolicyRequest {
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
 }
-
-/// Checks that all writes before the consistency token was generated are replicated in every cluster and readable.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StandardReadRemoteWrites {}
 
 /// Progress info for copying a table''s data to the new cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -626,11 +572,15 @@ pub struct UndeleteTableMetadata {
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteTableRequest {}
+pub struct UndeleteTableRequest {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for the Operation returned by UpdateAppProfile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateAppProfileMetadata {}
+pub struct UpdateAppProfileMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the google.longrunning.Operation returned by UpdateAuthorizedView.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -726,6 +676,18 @@ pub struct UpdateTableMetadata {
     /// The time at which this operation started. DEPRECATED: Use request_time instead.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
+}
+
+/// Checks that all writes before the consistency token was generated in the same cluster are readable by Databoost.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DataBoostReadLocalWrites {
+    pub value: serde_json::Value,
+}
+
+/// Checks that all writes before the consistency token was generated are replicated in every cluster and readable.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StandardReadRemoteWrites {
+    pub value: serde_json::Value,
 }
 
 /// The request for CreateAuthorizedView
@@ -1136,7 +1098,7 @@ pub struct MultiClusterRoutingUseAny {
     pub cluster_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// Row affinity sticky routing based on the row key of the request. Requests that span multiple rows are routed non-deterministically.
     #[serde(default, rename = "rowAffinity")]
-    pub row_affinity: ::core::option::Option<serde_json::Value>,
+    pub row_affinity: ::core::option::Option<RowAffinity>,
 }
 
 /// Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.
@@ -1372,6 +1334,12 @@ pub struct LogicalView {
     pub query: ::core::option::Option<String>,
 }
 
+/// If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RowAffinity {
+    pub value: serde_json::Value,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -1538,22 +1506,48 @@ pub struct GcRule {
 pub struct GoogleBigtableAdminV2TypeAggregate {
     /// HyperLogLogPlusPlusUniqueCount aggregator.
     #[serde(default, rename = "hllppUniqueCount")]
-    pub hllpp_unique_count: ::core::option::Option<serde_json::Value>,
+    pub hllpp_unique_count: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount>,
+    >,
     /// Type of the inputs that are accumulated by this Aggregate. Use AddInput mutations to accumulate new inputs.
     #[serde(default, rename = "inputType")]
     pub input_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Max aggregator.
     #[serde(default)]
-    pub max: ::core::option::Option<serde_json::Value>,
+    pub max: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeAggregateMax>>,
     /// Min aggregator.
     #[serde(default)]
-    pub min: ::core::option::Option<serde_json::Value>,
+    pub min: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeAggregateMin>>,
     /// Output only. Type that holds the internal accumulator state for the Aggregate. This is a function of the input_type and aggregator chosen.
     #[serde(default, rename = "stateType")]
     pub state_type: ::core::option::Option<::std::boxed::Box<Type>>,
     /// Sum aggregator.
     #[serde(default)]
-    pub sum: ::core::option::Option<serde_json::Value>,
+    pub sum: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeAggregateSum>>,
+}
+
+/// Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: Int64 (the unique count estimate)
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount {
+    pub value: serde_json::Value,
+}
+
+/// Computes the max of the input values. Allowed input: Int64 State: same as input
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregateMax {
+    pub value: serde_json::Value,
+}
+
+/// Computes the min of the input values. Allowed input: Int64 State: same as input
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregateMin {
+    pub value: serde_json::Value,
+}
+
+/// Computes the sum of the input values. Allowed input: Int64 State: same as input
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeAggregateSum {
+    pub value: serde_json::Value,
 }
 
 /// An ordered list of elements of a given type. Values of type Array are stored in Value.array_value.
@@ -1569,7 +1563,13 @@ pub struct GoogleBigtableAdminV2TypeArray {
 pub struct GoogleBigtableAdminV2TypeBool {
     /// Specifies the encoding to use when converting to or from lower level types.
     #[serde(default)]
-    pub encoding: ::core::option::Option<serde_json::Value>,
+    pub encoding: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBoolEncoding>>,
+}
+
+/// Defines rules used to convert to or from lower level types.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeBoolEncoding {
+    pub value: serde_json::Value,
 }
 
 /// Bytes Values of type Bytes are stored in Value.bytes_value.
@@ -1596,6 +1596,12 @@ pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
     pub escape_nulls: ::core::option::Option<bool>,
 }
 
+/// Date Values of type Date are stored in Value.date_value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeDate {
+    pub value: serde_json::Value,
+}
+
 /// A protobuf enum type. Values of type Enum are stored in Value.int_value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeEnum {
@@ -1605,6 +1611,24 @@ pub struct GoogleBigtableAdminV2TypeEnum {
     /// The ID of the schema bundle that this enum is defined in.
     #[serde(default, rename = "schemaBundleId")]
     pub schema_bundle_id: ::core::option::Option<String>,
+}
+
+/// Float32 Values of type Float32 are stored in Value.float_value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeFloat32 {
+    pub value: serde_json::Value,
+}
+
+/// Float64 Values of type Float64 are stored in Value.float_value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeFloat64 {
+    pub value: serde_json::Value,
+}
+
+/// A geography type, representing a point or region on Earth. The value is stored in Value.bytes_value as Well-Known Binary (WKB) bytes.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeGeography {
+    pub value: serde_json::Value,
 }
 
 /// Int64 Values of type Int64 are stored in Value.int_value.
@@ -1625,7 +1649,9 @@ pub struct GoogleBigtableAdminV2TypeInt64Encoding {
     >,
     /// Use OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
-    pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
+    pub ordered_code_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes>,
+    >,
 }
 
 /// Encodes the value as an 8-byte big-endian two''s complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery BINARY encoding - HBase Bytes.toBytes - Java ByteBuffer.putLong() with ByteOrder.BIG_ENDIAN
@@ -1634,6 +1660,12 @@ pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
     /// Deprecated: ignored if set.
     #[serde(default, rename = "bytesType")]
     pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
+}
+
+/// Encodes the value in a variable length binary format of up to 10 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes {
+    pub value: serde_json::Value,
 }
 
 /// A mapping of keys to values of a given type. Values of type Map are stored in a Value.array_value where each entry is another Value.array_value with two elements (the key and the value, in that order). Normally encoded Map values won''t have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.
@@ -1680,10 +1712,13 @@ pub struct GoogleBigtableAdminV2TypeStructEncoding {
     >,
     /// User OrderedCodeBytes encoding.
     #[serde(default, rename = "orderedCodeBytes")]
-    pub ordered_code_bytes: ::core::option::Option<serde_json::Value>,
+    pub ordered_code_bytes: ::core::option::Option<
+        ::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncodingOrderedCodeBytes>,
+    >,
     /// Use Singleton encoding.
     #[serde(default)]
-    pub singleton: ::core::option::Option<serde_json::Value>,
+    pub singleton:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeStructEncodingSingleton>>,
 }
 
 /// Fields are encoded independently and concatenated with a configurable delimiter in between. A struct with no fields defined is encoded as a single delimiter. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes &lt;= delimiter[0] - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. - This encoding does not support DESC field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain delimiter[0].
@@ -1692,6 +1727,18 @@ pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
     /// Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.
     #[serde(default)]
     pub delimiter: ::core::option::Option<String>,
+}
+
+/// Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is ASC or UNSPECIFIED, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes 0x00 with the fixed byte pair {0x00, 0xFF}. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair {0x00, 0x00}. - Append the fixed byte pair {0x00, 0x01} to each remaining field, except for the last remaining field if it is ASC. - Bitwise negate all DESC fields. - Concatenate the results, or emit the fixed byte pair {0x00, 0x00} if there are no remaining fields to concatenate. Examples:  - STRUCT() -&gt; "\00\00" - STRUCT("") -&gt; "\00\00" - STRUCT("", "") -&gt; "\00\00" - STRUCT("", "B") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "") -&gt; "A" - STRUCT("", "B", "") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "", "C") -&gt; "A" + "\00\01" + "\00\00" + "\00\01" + "C"  Examples for struct with DESC fields:  - STRUCT("" DESC) -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "", "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "A") -&gt; "\xFF\xFF" + "\xFF\xFE" + "A" - STRUCT("A", "" DESC, "") -&gt; "A" + "\00\01" + "\xFF\xFF" + "\xFF\xFE" - STRUCT("", "A" DESC) -&gt; "\x00\x00" + "\x00\x01" + "\xBE" + "\xFF\xFE"  Since null bytes are always escaped, this encoding can cause size blowup for encodings like Int64.BigEndianBytes that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or UNSPECIFIED order are treated as ASC. - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStructEncodingOrderedCodeBytes {
+    pub value: serde_json::Value,
+}
+
+/// Uses the encoding of fields[0].type as-is. Only valid if fields.size == 1. This encoding does not support DESC field ordering.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleBigtableAdminV2TypeStructEncodingSingleton {
+    pub value: serde_json::Value,
 }
 
 /// A struct field and its type.
@@ -1749,19 +1796,20 @@ pub struct Type {
     pub bytes_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeBytes>>,
     /// Date
     #[serde(default, rename = "dateType")]
-    pub date_type: ::core::option::Option<serde_json::Value>,
+    pub date_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeDate>>,
     /// Enum
     #[serde(default, rename = "enumType")]
     pub enum_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeEnum>>,
     /// Float32
     #[serde(default, rename = "float32Type")]
-    pub float32_type: ::core::option::Option<serde_json::Value>,
+    pub float32_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeFloat32>>,
     /// Float64
     #[serde(default, rename = "float64Type")]
-    pub float64_type: ::core::option::Option<serde_json::Value>,
+    pub float64_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeFloat64>>,
     /// Geography
     #[serde(default, rename = "geographyType")]
-    pub geography_type: ::core::option::Option<serde_json::Value>,
+    pub geography_type:
+        ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeGeography>>,
     /// Int64
     #[serde(default, rename = "int64Type")]
     pub int64_type: ::core::option::Option<::std::boxed::Box<GoogleBigtableAdminV2TypeInt64>>,

@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The message to appeal an assessment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1AppealAssessmentRequest {}
+pub struct GoogleCloudContactcenterinsightsV1AppealAssessmentRequest {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for a bulk analyze conversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -76,7 +78,9 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
 
 /// The response for a bulk delete conversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -92,7 +96,9 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -119,7 +125,9 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata 
 
 /// Response for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for bulk uploading feedback labels.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -277,11 +285,15 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
 
 /// The response to deploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request to deploy a QaScorecardRevision
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest {}
+pub struct GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest {
+    pub value: serde_json::Value,
+}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -337,7 +349,9 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
 
 /// Response for an export insights operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataResponse {}
+pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -355,11 +369,15 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
 
 /// Response from export issue model
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The message to finalize an assessment. Finalizing makes an assessment and its notes immutable.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest {}
+pub struct GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response from a GenerateConversationSignedAudio request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -427,10 +445,6 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
     >,
 }
 
-/// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1HoldData {}
-
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
@@ -481,7 +495,9 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
 
 /// The response to an IngestConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1IngestConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1IngestConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -503,7 +519,9 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
 
 /// The response to initialize a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecResponse {}
+pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecResponse {
+    pub value: serde_json::Value,
+}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -515,10 +533,6 @@ pub struct GoogleCloudContactcenterinsightsV1Intent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
-
-/// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1InterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -790,13 +804,11 @@ pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
     pub views: ::core::option::Option<::std::vec::Vec<GoogleCloudContactcenterinsightsV1View>>,
 }
 
-/// A note about the entire parent assessment.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1NoteAssessmentNote {}
-
 /// The message to publish an assessment. Draft and appealed assessments can be published. Publishing simply changes the state of the assessment to published, allowing the console and authorized views to filter on the state.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1PublishAssessmentRequest {}
+pub struct GoogleCloudContactcenterinsightsV1PublishAssessmentRequest {
+    pub value: serde_json::Value,
+}
 
 /// The metadata from querying metrics.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -846,7 +858,9 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
 
 /// The metadata for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewMetadata {}
+pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request for summarizing performance according to different metrics for conversations over a specified time window.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -877,10 +891,6 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
     pub summary_text: ::core::option::Option<String>,
 }
 
-/// Regex match configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1RegexMatchConfig {}
-
 /// The metadata for an SampleConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
@@ -906,7 +916,9 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
 
 /// The response to an SampleConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SampleConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1SampleConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The response from a ListAuthorizedViews request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -958,10 +970,6 @@ pub struct GoogleCloudContactcenterinsightsV1Settings {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
-
-/// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1SilenceData {}
 
 /// The request message for testing auto labeling rules.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1058,11 +1066,15 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
 
 /// The response to undeploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request to undeploy a QaScorecardRevision
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest {}
+pub struct GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1164,7 +1176,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetada
 
 /// The response for a bulk delete conversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1181,7 +1195,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetad
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for a create analysis operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1277,7 +1293,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
 
 /// The response to deploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1333,7 +1351,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
 
 /// Response for an export insights operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1352,7 +1372,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
 
 /// Response from export issue model
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for generative insights.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1378,10 +1400,6 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
         GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript,
     >,
 }
-
-/// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1HoldData {}
 
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1434,7 +1452,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadata {
 
 /// The response to an IngestConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1457,7 +1477,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetad
 
 /// The response to initialize a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecResponse {
+    pub value: serde_json::Value,
+}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1469,10 +1491,6 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
-
-/// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1InterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1544,7 +1562,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
 
 /// The metadata for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewMetadata {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1579,11 +1599,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadata {
 
 /// The response to an SampleConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsResponse {}
-
-/// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1SilenceData {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for testing correlation config.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1627,7 +1645,9 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
 
 /// The response to undeploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1729,7 +1749,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata
 
 /// The response for a bulk delete conversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1746,7 +1768,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadat
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1774,7 +1798,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
 
 /// Response for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for a create analysis operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1870,7 +1896,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
 
 /// The response to deploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1926,7 +1954,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
 
 /// Response for an export insights operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1945,7 +1975,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
 
 /// Response from export issue model
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for generative insights.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1971,10 +2003,6 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
         GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript,
     >,
 }
-
-/// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainHoldData {}
 
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2027,7 +2055,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadata {
 
 /// The response to an IngestConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2050,7 +2080,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadat
 
 /// The response to initialize a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecResponse {
+    pub value: serde_json::Value,
+}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2062,10 +2094,6 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
-
-/// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainInterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2137,7 +2165,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
 
 /// The metadata for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewMetadata {}
+pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2172,11 +2202,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadata {
 
 /// The response to an SampleConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsResponse {}
-
-/// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainSilenceData {}
+pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for testing correlation config.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2220,7 +2248,9 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
 
 /// The response to undeploy an issue model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelResponse {}
+pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2302,7 +2332,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// The request to analyze conversations in bulk.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2782,7 +2814,8 @@ pub struct GoogleCloudContactcenterinsightsV1Dashboard {
 pub struct GoogleCloudContactcenterinsightsV1Note {
     /// The note is associated to the entire parent assessment.
     #[serde(default, rename = "assessmentNote")]
-    pub assessment_note: ::core::option::Option<serde_json::Value>,
+    pub assessment_note:
+        ::core::option::Option<GoogleCloudContactcenterinsightsV1NoteAssessmentNote>,
     /// The note content.
     #[serde(default)]
     pub content: ::core::option::Option<String>,
@@ -4222,6 +4255,12 @@ pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
     /// The timezone to use for the groc expression. If not specified, defaults to UTC.
     #[serde(default, rename = "timeZone")]
     pub time_zone: ::core::option::Option<String>,
+}
+
+/// A note about the entire parent assessment.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1NoteAssessmentNote {
+    pub value: serde_json::Value,
 }
 
 /// A note about a conversation turn.
@@ -6808,7 +6847,8 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1ExactMatchConfig>,
     /// The configuration for the regex match rule.
     #[serde(default, rename = "regexMatchConfig")]
-    pub regex_match_config: ::core::option::Option<serde_json::Value>,
+    pub regex_match_config:
+        ::core::option::Option<GoogleCloudContactcenterinsightsV1RegexMatchConfig>,
 }
 
 /// The measure related to conversations.
@@ -8489,6 +8529,12 @@ pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
     pub case_sensitive: ::core::option::Option<bool>,
 }
 
+/// Regex match configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1RegexMatchConfig {
+    pub value: serde_json::Value,
+}
+
 /// Average QA normalized score for the tag.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore
@@ -8965,14 +9011,15 @@ pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1EntityMentionData>,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: ::core::option::Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1HoldData>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
     pub intent_match_data:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1IntentMatchData>,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: ::core::option::Option<serde_json::Value>,
+    pub interruption_data:
+        ::core::option::Option<GoogleCloudContactcenterinsightsV1InterruptionData>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
     pub issue_match_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1IssueMatchData>,
@@ -8985,7 +9032,7 @@ pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
     pub sentiment_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1SentimentData>,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: ::core::option::Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1SilenceData>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -9093,14 +9140,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1EntityMentionData>,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: ::core::option::Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1HoldData>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
     pub intent_match_data:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1IntentMatchData>,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: ::core::option::Option<serde_json::Value>,
+    pub interruption_data:
+        ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1InterruptionData>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
     pub issue_match_data:
@@ -9115,7 +9163,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1SentimentData>,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: ::core::option::Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1SilenceData>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -9225,14 +9273,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainEntityMentionData>,
     /// Data specifying a hold.
     #[serde(default, rename = "holdData")]
-    pub hold_data: ::core::option::Option<serde_json::Value>,
+    pub hold_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1mainHoldData>,
     /// Data specifying an intent match.
     #[serde(default, rename = "intentMatchData")]
     pub intent_match_data:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainIntentMatchData>,
     /// Data specifying an interruption.
     #[serde(default, rename = "interruptionData")]
-    pub interruption_data: ::core::option::Option<serde_json::Value>,
+    pub interruption_data:
+        ::core::option::Option<GoogleCloudContactcenterinsightsV1mainInterruptionData>,
     /// Data specifying an issue match.
     #[serde(default, rename = "issueMatchData")]
     pub issue_match_data:
@@ -9246,7 +9295,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
     pub sentiment_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1mainSentimentData>,
     /// Data specifying silence.
     #[serde(default, rename = "silenceData")]
-    pub silence_data: ::core::option::Option<serde_json::Value>,
+    pub silence_data: ::core::option::Option<GoogleCloudContactcenterinsightsV1mainSilenceData>,
 }
 
 /// Issue Modeling result on a conversation.
@@ -9360,12 +9409,24 @@ pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
     pub type_: ::core::option::Option<String>,
 }
 
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1HoldData {
+    pub value: serde_json::Value,
+}
+
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
     pub intent_unique_id: ::core::option::Option<String>,
+}
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1InterruptionData {
+    pub value: serde_json::Value,
 }
 
 /// The data for an issue match annotation.
@@ -9385,6 +9446,12 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
     pub phrase_matcher: ::core::option::Option<String>,
+}
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1SilenceData {
+    pub value: serde_json::Value,
 }
 
 /// An answer to a QaQuestion.
@@ -9459,12 +9526,24 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1EntityMentionData {
     pub type_: ::core::option::Option<String>,
 }
 
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1HoldData {
+    pub value: serde_json::Value,
+}
+
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
     pub intent_unique_id: ::core::option::Option<String>,
+}
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1InterruptionData {
+    pub value: serde_json::Value,
 }
 
 /// The data for an issue match annotation.
@@ -9485,6 +9564,12 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData {
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
     pub phrase_matcher: ::core::option::Option<String>,
+}
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1SilenceData {
+    pub value: serde_json::Value,
 }
 
 /// An answer to a QaQuestion.
@@ -9560,12 +9645,24 @@ pub struct GoogleCloudContactcenterinsightsV1mainEntityMentionData {
     pub type_: ::core::option::Option<String>,
 }
 
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1mainHoldData {
+    pub value: serde_json::Value,
+}
+
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
     pub intent_unique_id: ::core::option::Option<String>,
+}
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1mainInterruptionData {
+    pub value: serde_json::Value,
 }
 
 /// The data for an issue match annotation.
@@ -9586,6 +9683,12 @@ pub struct GoogleCloudContactcenterinsightsV1mainPhraseMatchData {
     /// The unique identifier (the resource name) of the phrase matcher.
     #[serde(default, rename = "phraseMatcher")]
     pub phrase_matcher: ::core::option::Option<String>,
+}
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContactcenterinsightsV1mainSilenceData {
+    pub value: serde_json::Value,
 }
 
 /// An answer to a QaQuestion.

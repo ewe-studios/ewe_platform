@@ -13,11 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// Request message for CancelSubmission.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubmissionRequest {}
+pub struct CancelSubmissionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for CancelSubmission.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubmissionResponse {}
+pub struct CancelSubmissionResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for FetchItemStatus.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -86,11 +90,15 @@ pub struct SetPublishedDeployPercentageRequest {
 
 /// Response message for SetPublishedDeployPercentage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetPublishedDeployPercentageResponse {}
+pub struct SetPublishedDeployPercentageResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for UploadItemPackage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadItemPackageRequest {}
+pub struct UploadItemPackageRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for UploadItemPackage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -131,7 +131,9 @@ pub struct ListFindingsResponse {
 
 /// Request message for MarkAlertAsBenign.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsBenignRequest {}
+pub struct MarkAlertAsBenignRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsDuplicate.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -143,31 +145,45 @@ pub struct MarkAlertAsDuplicateRequest {
 
 /// Request message for MarkAlertAsEscalated.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsEscalatedRequest {}
+pub struct MarkAlertAsEscalatedRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsFalsePositive.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsFalsePositiveRequest {}
+pub struct MarkAlertAsFalsePositiveRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsNotActionable.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsNotActionableRequest {}
+pub struct MarkAlertAsNotActionableRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsRead.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsReadRequest {}
+pub struct MarkAlertAsReadRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsResolved.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsResolvedRequest {}
+pub struct MarkAlertAsResolvedRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsTrackedExternally.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsTrackedExternallyRequest {}
+pub struct MarkAlertAsTrackedExternallyRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for MarkAlertAsTriaged.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MarkAlertAsTriagedRequest {}
+pub struct MarkAlertAsTriagedRequest {
+    pub value: serde_json::Value,
+}
 
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

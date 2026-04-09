@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,17 @@ use serde::Serialize;
 
 pub fn tasks_tasklists_delete_builder(
     client: &SimpleHttpClient,
-    tasklist: &str,
+    tasklist: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
-        tasklist,
+        tasklist.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,7 +69,12 @@ pub fn tasks_tasklists_delete_builder(
 pub fn tasks_tasklists_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -165,160 +171,8 @@ pub fn tasks_tasklists_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_delete_builder(client, &args.tasklist)?;
+    let builder = tasks_tasklists_delete_builder(client, args.tasklist.clone())?;
     tasks_tasklists_delete_execute(builder)
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasklists_get_execute()` to send, or `tasks_tasklists_get` for simplest API.
-
-pub fn tasks_tasklists_get_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
-        tasklist,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasklists_get_execute()` or `tasks_tasklists_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TaskList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasklists_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasklists_get_task()`.
-/// For the simplest API, use `tasks_tasklists_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasklists_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasklists_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasklists_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasklistsGetArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Returns the authenticated user's specified task list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasklists_get_builder()` + `tasks_tasklists_get_execute()`.
-/// For task-level control, use `tasks_tasklists_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_get(
-    client: &SimpleHttpClient,
-    args: &TasksTasklistsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasklists_get_builder(client, &args.tasklist)?;
-    tasks_tasklists_get_execute(builder)
 }
 
 /// GET tasks/v1/users/@me/lists
@@ -332,11 +186,11 @@ pub fn tasks_tasklists_insert_builder(
     body: &TaskList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
+    let endpoint_url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -368,7 +222,12 @@ pub fn tasks_tasklists_insert_builder(
 pub fn tasks_tasklists_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -472,486 +331,6 @@ pub fn tasks_tasklists_insert(
     tasks_tasklists_insert_execute(builder)
 }
 
-/// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasklists_list_execute()` to send, or `tasks_tasklists_list` for simplest API.
-
-pub fn tasks_tasklists_list_builder(
-    client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://tasks.googleapis.com/tasks/v1/users/@me/lists",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasklists_list_execute()` or `tasks_tasklists_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TaskLists>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TaskLists = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasklists_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasklists_list_task()`.
-/// For the simplest API, use `tasks_tasklists_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasklists_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskLists>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasklists_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasklists_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasklistsListArgs {
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET tasks/v1/users/@me/lists
-/// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasklists_list_builder()` + `tasks_tasklists_list_execute()`.
-/// For task-level control, use `tasks_tasklists_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_list(
-    client: &SimpleHttpClient,
-    args: &TasksTasklistsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskLists>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasklists_list_builder(client, args.maxResults, args.pageToken.as_deref())?;
-    tasks_tasklists_list_execute(builder)
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasklists_patch_execute()` to send, or `tasks_tasklists_patch` for simplest API.
-
-pub fn tasks_tasklists_patch_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    body: &TaskList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
-        tasklist,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasklists_patch_execute()` or `tasks_tasklists_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TaskList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasklists_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasklists_patch_task()`.
-/// For the simplest API, use `tasks_tasklists_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasklists_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasklists_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasklists_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasklistsPatchArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Request body.
-    pub body: TaskList,
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasklists_patch_builder()` + `tasks_tasklists_patch_execute()`.
-/// For task-level control, use `tasks_tasklists_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_patch(
-    client: &SimpleHttpClient,
-    args: &TasksTasklistsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasklists_patch_builder(client, &args.tasklist, &args.body)?;
-    tasks_tasklists_patch_execute(builder)
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasklists_update_execute()` to send, or `tasks_tasklists_update` for simplest API.
-
-pub fn tasks_tasklists_update_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    body: &TaskList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
-        tasklist,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasklists_update_execute()` or `tasks_tasklists_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TaskList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasklists_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasklists_update_task()`.
-/// For the simplest API, use `tasks_tasklists_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasklists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasklists_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasklists_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasklists_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasklistsUpdateArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Request body.
-    pub body: TaskList,
-}
-
-/// GET tasks/v1/users/@me/lists/{tasklist}
-/// Updates the authenticated user's specified task list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasklists_update_builder()` + `tasks_tasklists_update_execute()`.
-/// For task-level control, use `tasks_tasklists_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasklists_update(
-    client: &SimpleHttpClient,
-    args: &TasksTasklistsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasklists_update_builder(client, &args.tasklist, &args.body)?;
-    tasks_tasklists_update_execute(builder)
-}
-
 /// GET tasks/v1/lists/{tasklist}/clear
 /// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
 ///
@@ -960,17 +339,17 @@ pub fn tasks_tasklists_update(
 
 pub fn tasks_tasks_clear_builder(
     client: &SimpleHttpClient,
-    tasklist: &str,
+    tasklist: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/clear",
-        tasklist,
+        tasklist.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1000,7 +379,12 @@ pub fn tasks_tasks_clear_builder(
 pub fn tasks_tasks_clear_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1097,7 +481,7 @@ pub fn tasks_tasks_clear(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_clear_builder(client, &args.tasklist)?;
+    let builder = tasks_tasks_clear_builder(client, args.tasklist.clone())?;
     tasks_tasks_clear_execute(builder)
 }
 
@@ -1109,18 +493,19 @@ pub fn tasks_tasks_clear(
 
 pub fn tasks_tasks_delete_builder(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
+    tasklist: String,
+    task: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
-        tasklist, task,
+        tasklist.as_str(),
+        task.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1150,7 +535,12 @@ pub fn tasks_tasks_delete_builder(
 pub fn tasks_tasks_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1249,163 +639,8 @@ pub fn tasks_tasks_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_delete_builder(client, &args.tasklist, &args.task)?;
+    let builder = tasks_tasks_delete_builder(client, args.tasklist.clone(), args.task.clone())?;
     tasks_tasks_delete_execute(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Returns the specified task.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasks_get_execute()` to send, or `tasks_tasks_get` for simplest API.
-
-pub fn tasks_tasks_get_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
-        tasklist, task,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Returns the specified task.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasks_get_execute()` or `tasks_tasks_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Task = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Returns the specified task.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasks_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasks_get_task()`.
-/// For the simplest API, use `tasks_tasks_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasks_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasks_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasks_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasksGetArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Path parameter: task
-    pub task: String,
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Returns the specified task.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasks_get_builder()` + `tasks_tasks_get_execute()`.
-/// For task-level control, use `tasks_tasks_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_get(
-    client: &SimpleHttpClient,
-    args: &TasksTasksGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasks_get_builder(client, &args.tasklist, &args.task)?;
-    tasks_tasks_get_execute(builder)
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
@@ -1416,15 +651,15 @@ pub fn tasks_tasks_get(
 
 pub fn tasks_tasks_insert_builder(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    parent: Option<&str>,
-    previous: Option<&str>,
+    tasklist: String,
+    parent: Option<String>,
+    previous: Option<String>,
     body: &Task,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks",
-        tasklist,
+        tasklist.as_str(),
     );
 
     // Build request
@@ -1437,9 +672,9 @@ pub fn tasks_tasks_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1475,7 +710,12 @@ pub fn tasks_tasks_insert_builder(
 pub fn tasks_tasks_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1583,252 +823,12 @@ pub fn tasks_tasks_insert(
 > {
     let builder = tasks_tasks_insert_builder(
         client,
-        &args.tasklist,
-        args.parent.as_deref(),
-        args.previous.as_deref(),
+        args.tasklist.clone(),
+        args.parent.clone(),
+        args.previous.clone(),
         &args.body,
     )?;
     tasks_tasks_insert_execute(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasks_list_execute()` to send, or `tasks_tasks_list` for simplest API.
-
-pub fn tasks_tasks_list_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    completedMax: Option<&str>,
-    completedMin: Option<&str>,
-    dueMax: Option<&str>,
-    dueMin: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showAssigned: Option<bool>,
-    showCompleted: Option<bool>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    updatedMin: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks",
-        tasklist,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = completedMax {
-        query_parts.push(format!("completedMax={}", val));
-    }
-    if let Some(val) = completedMin {
-        query_parts.push(format!("completedMin={}", val));
-    }
-    if let Some(val) = dueMax {
-        query_parts.push(format!("dueMax={}", val));
-    }
-    if let Some(val) = dueMin {
-        query_parts.push(format!("dueMin={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showAssigned {
-        query_parts.push(format!("showAssigned={}", val));
-    }
-    if let Some(val) = showCompleted {
-        query_parts.push(format!("showCompleted={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = showHidden {
-        query_parts.push(format!("showHidden={}", val));
-    }
-    if let Some(val) = updatedMin {
-        query_parts.push(format!("updatedMin={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasks_list_execute()` or `tasks_tasks_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Tasks>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Tasks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasks_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasks_list_task()`.
-/// For the simplest API, use `tasks_tasks_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasks_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Tasks>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasks_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasks_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasksListArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Query parameter: completedMax
-    pub completedMax: Option<String>,
-    /// Query parameter: completedMin
-    pub completedMin: Option<String>,
-    /// Query parameter: dueMax
-    pub dueMax: Option<String>,
-    /// Query parameter: dueMin
-    pub dueMin: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showAssigned
-    pub showAssigned: Option<bool>,
-    /// Query parameter: showCompleted
-    pub showCompleted: Option<bool>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: showHidden
-    pub showHidden: Option<bool>,
-    /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks
-/// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasks_list_builder()` + `tasks_tasks_list_execute()`.
-/// For task-level control, use `tasks_tasks_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_list(
-    client: &SimpleHttpClient,
-    args: &TasksTasksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Tasks>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasks_list_builder(
-        client,
-        &args.tasklist,
-        args.completedMax.as_deref(),
-        args.completedMin.as_deref(),
-        args.dueMax.as_deref(),
-        args.dueMin.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.showAssigned,
-        args.showCompleted,
-        args.showDeleted,
-        args.showHidden,
-        args.updatedMin.as_deref(),
-    )?;
-    tasks_tasks_list_execute(builder)
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}/move
@@ -1839,16 +839,17 @@ pub fn tasks_tasks_list(
 
 pub fn tasks_tasks_move_builder(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    destinationTasklist: Option<&str>,
-    parent: Option<&str>,
-    previous: Option<&str>,
+    tasklist: String,
+    task: String,
+    destinationTasklist: Option<String>,
+    parent: Option<String>,
+    previous: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}/move",
-        tasklist, task,
+        tasklist.as_str(),
+        task.as_str(),
     );
 
     // Build request
@@ -1864,9 +865,9 @@ pub fn tasks_tasks_move_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1900,7 +901,12 @@ pub fn tasks_tasks_move_builder(
 pub fn tasks_tasks_move_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Task>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2010,331 +1016,11 @@ pub fn tasks_tasks_move(
 > {
     let builder = tasks_tasks_move_builder(
         client,
-        &args.tasklist,
-        &args.task,
-        args.destinationTasklist.as_deref(),
-        args.parent.as_deref(),
-        args.previous.as_deref(),
+        args.tasklist.clone(),
+        args.task.clone(),
+        args.destinationTasklist.clone(),
+        args.parent.clone(),
+        args.previous.clone(),
     )?;
     tasks_tasks_move_execute(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasks_patch_execute()` to send, or `tasks_tasks_patch` for simplest API.
-
-pub fn tasks_tasks_patch_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    body: &Task,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
-        tasklist, task,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasks_patch_execute()` or `tasks_tasks_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Task = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasks_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasks_patch_task()`.
-/// For the simplest API, use `tasks_tasks_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasks_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasks_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasks_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasksPatchArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Path parameter: task
-    pub task: String,
-    /// Request body.
-    pub body: Task,
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasks_patch_builder()` + `tasks_tasks_patch_execute()`.
-/// For task-level control, use `tasks_tasks_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_patch(
-    client: &SimpleHttpClient,
-    args: &TasksTasksPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasks_patch_builder(client, &args.tasklist, &args.task, &args.body)?;
-    tasks_tasks_patch_execute(builder)
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `tasks_tasks_update_execute()` to send, or `tasks_tasks_update` for simplest API.
-
-pub fn tasks_tasks_update_builder(
-    client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    body: &Task,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
-        tasklist, task,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `tasks_tasks_update_execute()` or `tasks_tasks_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Task = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `tasks_tasks_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `tasks_tasks_update_task()`.
-/// For the simplest API, use `tasks_tasks_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `tasks_tasks_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn tasks_tasks_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = tasks_tasks_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`tasks_tasks_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TasksTasksUpdateArgs {
-    /// Path parameter: tasklist
-    pub tasklist: String,
-    /// Path parameter: task
-    pub task: String,
-    /// Request body.
-    pub body: Task,
-}
-
-/// GET tasks/v1/lists/{tasklist}/tasks/{task}
-/// Updates the specified task.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `tasks_tasks_update_builder()` + `tasks_tasks_update_execute()`.
-/// For task-level control, use `tasks_tasks_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn tasks_tasks_update(
-    client: &SimpleHttpClient,
-    args: &TasksTasksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = tasks_tasks_update_builder(client, &args.tasklist, &args.task, &args.body)?;
-    tasks_tasks_update_execute(builder)
 }

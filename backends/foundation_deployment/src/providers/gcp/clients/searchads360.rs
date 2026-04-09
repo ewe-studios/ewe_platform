@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -30,11 +31,12 @@ pub fn searchads360_customers_list_accessible_customers_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://searchads360.googleapis.com/v0/customers:listAccessibleCustomers",);
+    let endpoint_url =
+        format!("https://searchads360.googleapis.com/v0/customers:listAccessibleCustomers",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -65,11 +67,12 @@ pub fn searchads360_customers_list_accessible_customers_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsSearchads360V0Services__ListAccessibleCustomersResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -182,171 +185,6 @@ pub fn searchads360_customers_list_accessible_customers(
     searchads360_customers_list_accessible_customers_execute(builder)
 }
 
-/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
-/// Returns the requested custom column in full detail.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `searchads360_customers_custom_columns_get_execute()` to send, or `searchads360_customers_custom_columns_get` for simplest API.
-
-pub fn searchads360_customers_custom_columns_get_builder(
-    client: &SimpleHttpClient,
-    resourceName: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://searchads360.googleapis.com/v0/customers/{}/customColumns/{}",
-        resourceName,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
-/// Returns the requested custom column in full detail.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `searchads360_customers_custom_columns_get_execute()` or `searchads360_customers_custom_columns_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `searchads360_customers_custom_columns_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn searchads360_customers_custom_columns_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__CustomColumn>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Resources__CustomColumn =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
-/// Returns the requested custom column in full detail.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `searchads360_customers_custom_columns_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `searchads360_customers_custom_columns_get_task()`.
-/// For the simplest API, use `searchads360_customers_custom_columns_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `searchads360_customers_custom_columns_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn searchads360_customers_custom_columns_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__CustomColumn>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = searchads360_customers_custom_columns_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`searchads360_customers_custom_columns_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Searchads360CustomersCustomColumnsGetArgs {
-    /// Path parameter: resourceName
-    pub resourceName: String,
-}
-
-/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
-/// Returns the requested custom column in full detail.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `searchads360_customers_custom_columns_get_builder()` + `searchads360_customers_custom_columns_get_execute()`.
-/// For task-level control, use `searchads360_customers_custom_columns_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn searchads360_customers_custom_columns_get(
-    client: &SimpleHttpClient,
-    args: &Searchads360CustomersCustomColumnsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__CustomColumn>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = searchads360_customers_custom_columns_get_builder(client, &args.resourceName)?;
-    searchads360_customers_custom_columns_get_execute(builder)
-}
-
 /// GET v0/customers/{customersId}/customColumns
 /// Returns all the custom columns associated with the customer in full detail.
 ///
@@ -355,17 +193,15 @@ pub fn searchads360_customers_custom_columns_get(
 
 pub fn searchads360_customers_custom_columns_list_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
+    customerId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://searchads360.googleapis.com/v0/customers/{}/customColumns",
-        customerId,
-    );
+    let endpoint_url =
+        format!("https://searchads360.googleapis.com/v0/customers/{}/customColumns",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -396,11 +232,12 @@ pub fn searchads360_customers_custom_columns_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsSearchads360V0Services__ListCustomColumnsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -517,7 +354,8 @@ pub fn searchads360_customers_custom_columns_list(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_customers_custom_columns_list_builder(client, &args.customerId)?;
+    let builder =
+        searchads360_customers_custom_columns_list_builder(client, args.customerId.clone())?;
     searchads360_customers_custom_columns_list_execute(builder)
 }
 
@@ -529,18 +367,16 @@ pub fn searchads360_customers_custom_columns_list(
 
 pub fn searchads360_customers_search_ads360_search_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
+    customerId: String,
     body: &GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://searchads360.googleapis.com/v0/customers/{}/searchAds360:search",
-        customerId,
-    );
+    let endpoint_url =
+        format!("https://searchads360.googleapis.com/v0/customers/{}/searchAds360:search",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -573,11 +409,12 @@ pub fn searchads360_customers_search_ads360_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360Response>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -696,8 +533,11 @@ pub fn searchads360_customers_search_ads360_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        searchads360_customers_search_ads360_search_builder(client, &args.customerId, &args.body)?;
+    let builder = searchads360_customers_search_ads360_search_builder(
+        client,
+        args.customerId.clone(),
+        &args.body,
+    )?;
     searchads360_customers_search_ads360_search_execute(builder)
 }
 
@@ -709,17 +549,14 @@ pub fn searchads360_customers_search_ads360_search(
 
 pub fn searchads360_search_ads360_fields_get_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://searchads360.googleapis.com/v0/searchAds360Fields/{}",
-        resourceName,
-    );
+    let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -750,8 +587,12 @@ pub fn searchads360_search_ads360_fields_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -862,7 +703,7 @@ pub fn searchads360_search_ads360_fields_get(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_search_ads360_fields_get_builder(client, &args.resourceName)?;
+    let builder = searchads360_search_ads360_fields_get_builder(client, args.resourceName.clone())?;
     searchads360_search_ads360_fields_get_execute(builder)
 }
 
@@ -877,11 +718,11 @@ pub fn searchads360_search_ads360_fields_search_builder(
     body: &GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields:search",);
+    let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields:search",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -914,11 +755,12 @@ pub fn searchads360_search_ads360_fields_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

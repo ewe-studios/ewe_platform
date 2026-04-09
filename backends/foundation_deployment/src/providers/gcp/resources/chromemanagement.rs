@@ -384,10 +384,6 @@ pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
         ::core::option::Option<::std::vec::Vec<GoogleChromeManagementV1TelemetryUser>>,
 }
 
-/// TelemetryAudioSevereUnderrunEvent is triggered when a audio devices run out of buffer data for more than 5 seconds. * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {}
-
 /// Request message for claiming a certificate provisioning process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest {
@@ -398,7 +394,9 @@ pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRe
 
 /// Response message for claiming a certificate provisioning process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse {}
+pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response to ListChromeBrowserProfileCommands method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -459,7 +457,9 @@ pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
 
 /// Response message for publishing a failure for a certificate provisioning process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1SetFailureResponse {}
+pub struct GoogleChromeManagementVersionsV1SetFailureResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the long-running operation returned by signData.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -499,11 +499,15 @@ pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
 
 /// Response message for publishing an issued certificate for a certificate provisioning process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleChromeManagementVersionsV1UploadCertificateResponse {}
+pub struct GoogleChromeManagementVersionsV1UploadCertificateResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -521,7 +525,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Android app information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -947,7 +953,8 @@ pub struct GoogleChromeManagementV1TelemetryEvent {
         ::core::option::Option<GoogleChromeManagementV1TelemetryAppUninstallEvent>,
     /// Output only. Payload for audio severe underrun event. Present only when the event_type field is AUDIO_SEVERE_UNDERRUN.
     #[serde(default, rename = "audioSevereUnderrunEvent")]
-    pub audio_severe_underrun_event: ::core::option::Option<serde_json::Value>,
+    pub audio_severe_underrun_event:
+        ::core::option::Option<GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent>,
     /// Output only. Information about the device associated with the event.
     #[serde(default)]
     pub device: ::core::option::Option<GoogleChromeManagementV1TelemetryDeviceInfo>,
@@ -1670,6 +1677,12 @@ pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
     /// App uninstall source. // TODO: enum values: ["APPLICATION_UNINSTALL_SOURCE_UNSPECIFIED", "APPLICATION_UNINSTALL_SOURCE_APP_LIST", "APPLICATION_UNINSTALL_SOURCE_APP_MANAGEMENT", "APPLICATION_UNINSTALL_SOURCE_SHELF", "APPLICATION_UNINSTALL_SOURCE_MIGRATION"]
     #[serde(default, rename = "appUninstallSource")]
     pub app_uninstall_source: ::core::option::Option<String>,
+}
+
+/// TelemetryAudioSevereUnderrunEvent is triggered when a audio devices run out of buffer data for more than 5 seconds. * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {
+    pub value: serde_json::Value,
 }
 
 /// Information about a device associated with telemetry data. * Granular Permission needed: TELEMETRY_API_DEVICE

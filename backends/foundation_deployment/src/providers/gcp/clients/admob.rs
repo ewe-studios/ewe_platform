@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,14 @@ use serde::Serialize;
 
 pub fn admob_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://admob.googleapis.com/v1/accounts/{}", name,);
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -65,8 +66,11 @@ pub fn admob_accounts_get_builder(
 pub fn admob_accounts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PublisherAccount>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PublisherAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -171,7 +175,7 @@ pub fn admob_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_get_builder(client, &args.name)?;
+    let builder = admob_accounts_get_builder(client, args.name.clone())?;
     admob_accounts_get_execute(builder)
 }
 
@@ -184,10 +188,10 @@ pub fn admob_accounts_get(
 pub fn admob_accounts_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://admob.googleapis.com/v1/accounts",);
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -199,9 +203,9 @@ pub fn admob_accounts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -236,8 +240,9 @@ pub fn admob_accounts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListPublisherAccountsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListPublisherAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -349,7 +354,8 @@ pub fn admob_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+    let builder =
+        admob_accounts_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
     admob_accounts_list_execute(builder)
 }
 
@@ -361,15 +367,12 @@ pub fn admob_accounts_list(
 
 pub fn admob_accounts_ad_units_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://admob.googleapis.com/v1/accounts/{}/adUnits",
-        parent,
-    );
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/adUnits",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -381,9 +384,9 @@ pub fn admob_accounts_ad_units_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -417,8 +420,11 @@ pub fn admob_accounts_ad_units_list_builder(
 pub fn admob_accounts_ad_units_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAdUnitsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdUnitsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -529,9 +535,9 @@ pub fn admob_accounts_ad_units_list(
 > {
     let builder = admob_accounts_ad_units_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     admob_accounts_ad_units_list_execute(builder)
 }
@@ -544,12 +550,12 @@ pub fn admob_accounts_ad_units_list(
 
 pub fn admob_accounts_apps_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://admob.googleapis.com/v1/accounts/{}/apps", parent,);
+    let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -561,9 +567,9 @@ pub fn admob_accounts_apps_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -597,8 +603,11 @@ pub fn admob_accounts_apps_list_builder(
 pub fn admob_accounts_apps_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -709,9 +718,9 @@ pub fn admob_accounts_apps_list(
 > {
     let builder = admob_accounts_apps_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     admob_accounts_apps_list_execute(builder)
 }
@@ -724,18 +733,16 @@ pub fn admob_accounts_apps_list(
 
 pub fn admob_accounts_mediation_report_generate_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GenerateMediationReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://admob.googleapis.com/v1/accounts/{}/mediationReport:generate",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://admob.googleapis.com/v1/accounts/{}/mediationReport:generate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -768,8 +775,9 @@ pub fn admob_accounts_mediation_report_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateMediationReportResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateMediationReportResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -882,7 +890,7 @@ pub fn admob_accounts_mediation_report_generate(
     ApiError,
 > {
     let builder =
-        admob_accounts_mediation_report_generate_builder(client, &args.parent, &args.body)?;
+        admob_accounts_mediation_report_generate_builder(client, args.parent.clone(), &args.body)?;
     admob_accounts_mediation_report_generate_execute(builder)
 }
 
@@ -894,18 +902,16 @@ pub fn admob_accounts_mediation_report_generate(
 
 pub fn admob_accounts_network_report_generate_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GenerateNetworkReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://admob.googleapis.com/v1/accounts/{}/networkReport:generate",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://admob.googleapis.com/v1/accounts/{}/networkReport:generate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -938,8 +944,9 @@ pub fn admob_accounts_network_report_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateNetworkReportResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateNetworkReportResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1051,6 +1058,7 @@ pub fn admob_accounts_network_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_network_report_generate_builder(client, &args.parent, &args.body)?;
+    let builder =
+        admob_accounts_network_report_generate_builder(client, args.parent.clone(), &args.body)?;
     admob_accounts_network_report_generate_execute(builder)
 }

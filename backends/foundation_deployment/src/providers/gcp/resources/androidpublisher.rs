@@ -21,7 +21,9 @@ pub struct AddTargetingRequest {
 
 /// Response message for AddTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddTargetingResponse {}
+pub struct AddTargetingResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to create a new externally hosted APK.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -80,15 +82,9 @@ pub struct AppEdit {
 
 /// Deprecated: subscription archiving is not supported.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ArchiveSubscriptionRequest {}
-
-/// Details of a base price pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BaseDetails {}
-
-/// Details about base price offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasePriceOfferPhase {}
+pub struct ArchiveSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for BatchDeleteOneTimeProductOffers.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -182,7 +178,7 @@ pub struct BatchMigrateBasePlanPricesRequest {
 pub struct BatchMigrateBasePlanPricesResponse {
     /// Contains one response per requested price migration, in the same order as the request.
     #[serde(default)]
-    pub responses: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub responses: ::core::option::Option<::std::vec::Vec<MigrateBasePlanPricesResponse>>,
 }
 
 /// Request message for BatchUpdateBasePlanStates.
@@ -326,11 +322,15 @@ pub struct BundlesListResponse {
 
 /// Request message for CancelAppRecovery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAppRecoveryRequest {}
+pub struct CancelAppRecoveryRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for CancelAppRecovery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAppRecoveryResponse {}
+pub struct CancelAppRecoveryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for the purchases.subscriptionsv2.cancel API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -342,7 +342,9 @@ pub struct CancelSubscriptionPurchaseRequest {
 
 /// Response for the purchases.subscriptionsv2.cancel API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelSubscriptionPurchaseResponse {}
+pub struct CancelSubscriptionPurchaseResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ConvertRegionPrices.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -410,10 +412,6 @@ pub struct DeferSubscriptionPurchaseResponse {
     pub item_expiry_time_details: ::core::option::Option<::std::vec::Vec<ItemExpiryTimeDetails>>,
 }
 
-/// Information related to deferred item replacement.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeferredItemRemoval {}
-
 /// Responses for the upload.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeobfuscationFilesUploadResponse {
@@ -424,15 +422,15 @@ pub struct DeobfuscationFilesUploadResponse {
 
 /// Request message for DeployAppRecovery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployAppRecoveryRequest {}
+pub struct DeployAppRecoveryRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for DeployAppRecovery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployAppRecoveryResponse {}
-
-/// Information specific to cancellations initiated by developers.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeveloperInitiatedCancellation {}
+pub struct DeployAppRecoveryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response for uploading an expansion file.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -477,7 +475,7 @@ pub struct ExternalTransaction {
     pub recurring_transaction: ::core::option::Option<RecurringExternalTransaction>,
     /// Output only. If set, this transaction was a test purchase. Google will not charge for a test transaction.
     #[serde(default, rename = "testPurchase")]
-    pub test_purchase: ::core::option::Option<serde_json::Value>,
+    pub test_purchase: ::core::option::Option<ExternalTransactionTestPurchase>,
     /// Optional. The transaction program code, used to help determine service fee for eligible apps participating in partner programs. Developers participating in the Play Media Experience Program (https://play.google.com/console/about/programs/mediaprogram/) must provide the program code when reporting alternative billing transactions. If you are an eligible developer, please contact your BDM for more information on how to set this field. Note: this field can not be used for external offers transactions.
     #[serde(default, rename = "transactionProgramCode")]
     pub transaction_program_code: ::core::option::Option<i32>,
@@ -491,22 +489,6 @@ pub struct ExternalTransaction {
     #[serde(default, rename = "userTaxAddress")]
     pub user_tax_address: ::core::option::Option<ExternalTransactionAddress>,
 }
-
-/// Represents a transaction performed using a test account. These transactions will not be charged by Google.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExternalTransactionTestPurchase {}
-
-/// Details of a free trial pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeTrialDetails {}
-
-/// Details about free trial offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FreeTrialOfferPhase {}
-
-/// A full refund of the remaining amount of a transaction.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FullRefund {}
 
 /// Response to list generated APKs.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -617,14 +599,6 @@ pub struct InternalAppSharingArtifact {
     pub sha256: ::core::option::Option<String>,
 }
 
-/// Details of an introductory price pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntroductoryPriceDetails {}
-
-/// Details about introductory price offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntroductoryPriceOfferPhase {}
-
 /// Response message for ListAppRecoveries. -- api-linter: core::0158::response-next-page-token-field=disabled
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppRecoveriesResponse {
@@ -717,38 +691,6 @@ pub struct ListingsListResponse {
     #[serde(default)]
     pub listings: ::core::option::Option<::std::vec::Vec<Listing>>,
 }
-
-/// Response message for MigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MigrateBasePlanPricesResponse {}
-
-/// A single use promotion code.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeCode {}
-
-/// Options for one-time product offers without a regional price override.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OneTimeProductOfferNoPriceOverrideOptions {}
-
-/// Details of a recurring external transaction product which doesn''t belong to any other more specific category.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRecurringProduct {}
-
-/// Represents the free price override configuration for any new locations Play may launch for a single offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {}
-
-/// Details of a paid app purchase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaidAppDetails {}
-
-/// This is an indicator of whether there is a pending cancellation on the virtual installment plan. The cancellation will happen only after the user finished all committed payments.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PendingCancellation {}
-
-/// Details of a pre-order purchase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreorderDetails {}
 
 /// A ProductPurchase resource indicates the status of a user''s inapp product purchase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -848,7 +790,7 @@ pub struct ProductPurchasesAcknowledgeRequest {
 pub struct RefundExternalTransactionRequest {
     /// A full-amount refund.
     #[serde(default, rename = "fullRefund")]
-    pub full_refund: ::core::option::Option<serde_json::Value>,
+    pub full_refund: ::core::option::Option<FullRefund>,
     /// A partial refund.
     #[serde(default, rename = "partialRefund")]
     pub partial_refund: ::core::option::Option<PartialRefund>,
@@ -856,10 +798,6 @@ pub struct RefundExternalTransactionRequest {
     #[serde(default, rename = "refundTime")]
     pub refund_time: ::core::option::Option<String>,
 }
-
-/// Represents the free price override configuration for a single phase of a subscription offer
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionalSubscriptionOfferPhaseFreePriceOverride {}
 
 /// Specified details about taxation in a given geographical region.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -874,18 +812,6 @@ pub struct RegionalTaxRateInfo {
     #[serde(default, rename = "taxTier")]
     pub tax_tier: ::core::option::Option<String>,
 }
-
-/// Offer details information related to a rental line item.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RentOfferDetails {}
-
-/// Details of a rental purchase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RentalDetails {}
-
-/// Information specific to cancellations caused by subscription replacement.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReplacementCancellation {}
 
 /// Response listing reviews.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -917,14 +843,6 @@ pub struct ReviewsReplyResponse {
     pub result: ::core::option::Option<ReviewReplyResult>,
 }
 
-/// Used to determine if the refund type in the RevocationContext is a full refund.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevocationContextFullRefund {}
-
-/// Used to determine if the refund type in the RevocationContext is a prorated refund.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevocationContextProratedRefund {}
-
 /// Request for the purchases.subscriptionsv2.revoke API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeSubscriptionPurchaseRequest {
@@ -935,7 +853,9 @@ pub struct RevokeSubscriptionPurchaseRequest {
 
 /// Response for the purchases.subscriptionsv2.revoke API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevokeSubscriptionPurchaseResponse {}
+pub struct RevokeSubscriptionPurchaseResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to update Safety Labels of an app.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -947,7 +867,9 @@ pub struct SafetyLabelsUpdateRequest {
 
 /// Response for SafetyLabelsUpdate rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SafetyLabelsUpdateResponse {}
+pub struct SafetyLabelsUpdateResponse {
+    pub value: serde_json::Value,
+}
 
 /// A SubscriptionPurchase resource indicates the status of a user''s subscription purchase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1088,7 +1010,7 @@ pub struct SubscriptionPurchaseV2 {
     pub subscription_state: ::core::option::Option<String>,
     /// Only present if this subscription purchase is a test purchase.
     #[serde(default, rename = "testPurchase")]
-    pub test_purchase: ::core::option::Option<serde_json::Value>,
+    pub test_purchase: ::core::option::Option<TestPurchase>,
 }
 
 /// Request for the purchases.subscriptions.acknowledge API.
@@ -1125,22 +1047,6 @@ pub struct SystemApksListResponse {
     #[serde(default)]
     pub variants: ::core::option::Option<::std::vec::Vec<Variant>>,
 }
-
-/// Information specific to cancellations initiated by Google system.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SystemInitiatedCancellation {}
-
-/// Represents the targeting rule scope corresponding to any subscription in the parent app.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingRuleScopeAnySubscriptionInApp {}
-
-/// Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TargetingRuleScopeThisSubscription {}
-
-/// Whether this subscription purchase is a test purchase.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestPurchase {}
 
 /// The testers of an app. The resource for TestersService. Note: while it is possible in the Play Console UI to add testers via email lists, email lists are not supported by this resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1436,6 +1342,12 @@ pub struct MigrateBasePlanPricesRequest {
     pub regions_version: ::core::option::Option<RegionsVersion>,
 }
 
+/// Response message for MigrateBasePlanPrices.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MigrateBasePlanPricesResponse {
+    pub value: serde_json::Value,
+}
+
 /// Request message to update the state of a subscription base plan.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateBasePlanStateRequest {
@@ -1695,7 +1607,13 @@ pub struct RecurringExternalTransaction {
     pub migrated_transaction_program: ::core::option::Option<String>,
     /// Details of a recurring external transaction product which doesn''t belong to any other specific category.
     #[serde(default, rename = "otherRecurringProduct")]
-    pub other_recurring_product: ::core::option::Option<serde_json::Value>,
+    pub other_recurring_product: ::core::option::Option<OtherRecurringProduct>,
+}
+
+/// Represents a transaction performed using a test account. These transactions will not be charged by Google.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalTransactionTestPurchase {
+    pub value: serde_json::Value,
 }
 
 /// User''s address for the external transaction.
@@ -1926,6 +1844,12 @@ pub struct TestPurchaseContext {
     pub fop_type: ::core::option::Option<String>,
 }
 
+/// A full refund of the remaining amount of a transaction.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FullRefund {
+    pub value: serde_json::Value,
+}
+
 /// A partial refund of a transaction.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialRefund {
@@ -1967,13 +1891,13 @@ pub struct ReviewReplyResult {
 pub struct RevocationContext {
     /// Optional. Used when users should be refunded the full amount of latest charge on each item in the subscription.
     #[serde(default, rename = "fullRefund")]
-    pub full_refund: ::core::option::Option<serde_json::Value>,
+    pub full_refund: ::core::option::Option<RevocationContextFullRefund>,
     /// Optional. Used when a specific item should be refunded in a subscription with add-on items.
     #[serde(default, rename = "itemBasedRefund")]
     pub item_based_refund: ::core::option::Option<RevocationContextItemBasedRefund>,
     /// Optional. Used when users should be refunded a prorated amount they paid for their subscription based on the amount of time remaining in a subscription.
     #[serde(default, rename = "proratedRefund")]
-    pub prorated_refund: ::core::option::Option<serde_json::Value>,
+    pub prorated_refund: ::core::option::Option<RevocationContextProratedRefund>,
 }
 
 /// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
@@ -2020,13 +1944,13 @@ pub struct SubscriptionPriceChange {
 pub struct CanceledStateContext {
     /// Subscription was canceled by the developer.
     #[serde(default, rename = "developerInitiatedCancellation")]
-    pub developer_initiated_cancellation: ::core::option::Option<serde_json::Value>,
+    pub developer_initiated_cancellation: ::core::option::Option<DeveloperInitiatedCancellation>,
     /// Subscription was replaced by a new subscription.
     #[serde(default, rename = "replacementCancellation")]
-    pub replacement_cancellation: ::core::option::Option<serde_json::Value>,
+    pub replacement_cancellation: ::core::option::Option<ReplacementCancellation>,
     /// Subscription was canceled by the system, for example because of a billing problem.
     #[serde(default, rename = "systemInitiatedCancellation")]
-    pub system_initiated_cancellation: ::core::option::Option<serde_json::Value>,
+    pub system_initiated_cancellation: ::core::option::Option<SystemInitiatedCancellation>,
     /// Subscription was canceled by user.
     #[serde(default, rename = "userInitiatedCancellation")]
     pub user_initiated_cancellation: ::core::option::Option<UserInitiatedCancellation>,
@@ -2040,7 +1964,7 @@ pub struct SubscriptionPurchaseLineItem {
     pub auto_renewing_plan: ::core::option::Option<AutoRenewingPlan>,
     /// Information for deferred item removal.
     #[serde(default, rename = "deferredItemRemoval")]
-    pub deferred_item_removal: ::core::option::Option<serde_json::Value>,
+    pub deferred_item_removal: ::core::option::Option<DeferredItemRemoval>,
     /// Information for deferred item replacement.
     #[serde(default, rename = "deferredItemReplacement")]
     pub deferred_item_replacement: ::core::option::Option<DeferredItemReplacement>,
@@ -2107,6 +2031,12 @@ pub struct SubscribeWithGoogleInfo {
     /// The profile name of the user when the subscription was purchased.
     #[serde(default, rename = "profileName")]
     pub profile_name: ::core::option::Option<String>,
+}
+
+/// Whether this subscription purchase is a test purchase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestPurchase {
+    pub value: serde_json::Value,
 }
 
 /// User account identifier in your app.
@@ -2264,7 +2194,7 @@ pub struct LineItem {
     pub one_time_purchase_details: ::core::option::Option<OneTimePurchaseDetails>,
     /// Details of a paid app purchase.
     #[serde(default, rename = "paidAppDetails")]
-    pub paid_app_details: ::core::option::Option<serde_json::Value>,
+    pub paid_app_details: ::core::option::Option<PaidAppDetails>,
     /// The purchased product ID or in-app SKU (for example, ''monthly001'' or ''com.some.thing.inapp1'').
     #[serde(default, rename = "productId")]
     pub product_id: ::core::option::Option<String>,
@@ -2641,6 +2571,12 @@ pub struct ExternalSubscription {
     pub subscription_type: ::core::option::Option<String>,
 }
 
+/// Details of a recurring external transaction product which doesn''t belong to any other more specific category.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OtherRecurringProduct {
+    pub value: serde_json::Value,
+}
+
 /// Download metadata for an asset pack slice.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedAssetPackSlice {
@@ -2881,7 +2817,7 @@ pub struct ProductOfferDetails {
     pub refundable_quantity: ::core::option::Option<i32>,
     /// Offer details about rent offers. This will only be set for rental line items.
     #[serde(default, rename = "rentOfferDetails")]
-    pub rent_offer_details: ::core::option::Option<serde_json::Value>,
+    pub rent_offer_details: ::core::option::Option<RentOfferDetails>,
 }
 
 /// An entry of conversation between user and developer.
@@ -2895,12 +2831,42 @@ pub struct Comment {
     pub user_comment: ::core::option::Option<UserComment>,
 }
 
+/// Used to determine if the refund type in the RevocationContext is a full refund.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RevocationContextFullRefund {
+    pub value: serde_json::Value,
+}
+
 /// Used to determine what specific item to revoke in a subscription with multiple items.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationContextItemBasedRefund {
     /// Required. If the subscription is a subscription with add-ons, the product id of the subscription item to revoke.
     #[serde(default, rename = "productId")]
     pub product_id: ::core::option::Option<String>,
+}
+
+/// Used to determine if the refund type in the RevocationContext is a prorated refund.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RevocationContextProratedRefund {
+    pub value: serde_json::Value,
+}
+
+/// Information specific to cancellations initiated by developers.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeveloperInitiatedCancellation {
+    pub value: serde_json::Value,
+}
+
+/// Information specific to cancellations caused by subscription replacement.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReplacementCancellation {
+    pub value: serde_json::Value,
+}
+
+/// Information specific to cancellations initiated by Google system.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SystemInitiatedCancellation {
+    pub value: serde_json::Value,
 }
 
 /// Information specific to cancellations initiated by users.
@@ -2932,6 +2898,12 @@ pub struct AutoRenewingPlan {
     /// The current recurring price of the auto renewing plan. Note that the price does not take into account discounts and does not include taxes for tax-exclusive pricing, please call orders.get API instead if transaction details are needed.
     #[serde(default, rename = "recurringPrice")]
     pub recurring_price: ::core::option::Option<Money>,
+}
+
+/// Information related to deferred item replacement.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeferredItemRemoval {
+    pub value: serde_json::Value,
 }
 
 /// Information related to deferred item replacement.
@@ -2978,13 +2950,13 @@ pub struct OfferDetails {
 pub struct OfferPhase {
     /// Set when the offer phase is a base plan pricing phase.
     #[serde(default, rename = "basePrice")]
-    pub base_price: ::core::option::Option<serde_json::Value>,
+    pub base_price: ::core::option::Option<BasePriceOfferPhase>,
     /// Set when the offer phase is a free trial.
     #[serde(default, rename = "freeTrial")]
-    pub free_trial: ::core::option::Option<serde_json::Value>,
+    pub free_trial: ::core::option::Option<FreeTrialOfferPhase>,
     /// Set when the offer phase is an introductory price offer phase.
     #[serde(default, rename = "introductoryPrice")]
-    pub introductory_price: ::core::option::Option<serde_json::Value>,
+    pub introductory_price: ::core::option::Option<IntroductoryPriceOfferPhase>,
     /// Set when the offer phase is a proration period.
     #[serde(default, rename = "prorationPeriod")]
     pub proration_period: ::core::option::Option<ProrationPeriodOfferPhase>,
@@ -3003,7 +2975,7 @@ pub struct PrepaidPlan {
 pub struct SignupPromotion {
     /// A one-time code was applied.
     #[serde(default, rename = "oneTimeCode")]
-    pub one_time_code: ::core::option::Option<serde_json::Value>,
+    pub one_time_code: ::core::option::Option<OneTimeCode>,
     /// A vanity code was applied.
     #[serde(default, rename = "vanityCode")]
     pub vanity_code: ::core::option::Option<VanityCode>,
@@ -3085,7 +3057,7 @@ pub struct OneTimePurchaseDetails {
     pub offer_id: ::core::option::Option<String>,
     /// The details of a pre-order purchase. Only set if it is a pre-order purchase. Note that this field will be set even after pre-order is fulfilled.
     #[serde(default, rename = "preorderDetails")]
-    pub preorder_details: ::core::option::Option<serde_json::Value>,
+    pub preorder_details: ::core::option::Option<PreorderDetails>,
     /// ID of the purchase option. This field is set for both purchase options and variant offers. For purchase options, this ID identifies the purchase option itself. For variant offers, this ID refers to the associated purchase option, and in conjunction with offer_id it identifies the variant offer.
     #[serde(default, rename = "purchaseOptionId")]
     pub purchase_option_id: ::core::option::Option<String>,
@@ -3094,7 +3066,13 @@ pub struct OneTimePurchaseDetails {
     pub quantity: ::core::option::Option<i32>,
     /// The details of a rent purchase. Only set if it is a rent purchase.
     #[serde(default, rename = "rentalDetails")]
-    pub rental_details: ::core::option::Option<serde_json::Value>,
+    pub rental_details: ::core::option::Option<RentalDetails>,
+}
+
+/// Details of a paid app purchase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaidAppDetails {
+    pub value: serde_json::Value,
 }
 
 /// Details of a subscription purchase.
@@ -3209,7 +3187,7 @@ pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
     pub availability: ::core::option::Option<String>,
     /// The price defined in the purchase option for this region will be used.
     #[serde(default, rename = "noOverride")]
-    pub no_override: ::core::option::Option<serde_json::Value>,
+    pub no_override: ::core::option::Option<OneTimeProductOfferNoPriceOverrideOptions>,
     /// Required. Region code this configuration applies to, as defined by ISO 3166-2, e.g., "US".
     #[serde(default, rename = "regionCode")]
     pub region_code: ::core::option::Option<String>,
@@ -3568,6 +3546,12 @@ pub struct PreorderOfferDetails {
     pub preorder_release_time: ::core::option::Option<String>,
 }
 
+/// Offer details information related to a rental line item.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RentOfferDetails {
+    pub value: serde_json::Value,
+}
+
 /// Developer entry from conversation between user and developer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeveloperComment {
@@ -3639,7 +3623,7 @@ pub struct InstallmentPlan {
     pub initial_committed_payments_count: ::core::option::Option<i32>,
     /// If present, this installment plan is pending to be canceled. The cancellation will happen only after the user finished all committed payments.
     #[serde(default, rename = "pendingCancellation")]
-    pub pending_cancellation: ::core::option::Option<serde_json::Value>,
+    pub pending_cancellation: ::core::option::Option<PendingCancellation>,
     /// Total number of committed payments remaining to be paid for in this renewal cycle.
     #[serde(default, rename = "remainingCommittedPaymentsCount")]
     pub remaining_committed_payments_count: ::core::option::Option<i32>,
@@ -3679,12 +3663,36 @@ pub struct PriceStepUpConsentDetails {
     pub state: ::core::option::Option<String>,
 }
 
+/// Details about base price offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasePriceOfferPhase {
+    pub value: serde_json::Value,
+}
+
+/// Details about free trial offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreeTrialOfferPhase {
+    pub value: serde_json::Value,
+}
+
+/// Details about introductory price offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntroductoryPriceOfferPhase {
+    pub value: serde_json::Value,
+}
+
 /// Details about proration period offer phase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProrationPeriodOfferPhase {
     /// The original offer phase type before the proration period. Only set when the proration period is updated from an existing offer phase. // TODO: enum values: ["ORIGINAL_OFFER_PHASE_TYPE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
     #[serde(default, rename = "originalOfferPhaseType")]
     pub original_offer_phase_type: ::core::option::Option<String>,
+}
+
+/// A single use promotion code.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimeCode {
+    pub value: serde_json::Value,
 }
 
 /// A multiple use, predefined promotion code.
@@ -3717,18 +3725,30 @@ pub struct LocalizedText {
     pub text: ::core::option::Option<String>,
 }
 
+/// Details of a pre-order purchase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreorderDetails {
+    pub value: serde_json::Value,
+}
+
+/// Details of a rental purchase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RentalDetails {
+    pub value: serde_json::Value,
+}
+
 /// Details of a pricing phase for the entitlement period funded by this order.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferPhaseDetails {
     /// The order funds a base price period.
     #[serde(default, rename = "baseDetails")]
-    pub base_details: ::core::option::Option<serde_json::Value>,
+    pub base_details: ::core::option::Option<BaseDetails>,
     /// The order funds a free trial period.
     #[serde(default, rename = "freeTrialDetails")]
-    pub free_trial_details: ::core::option::Option<serde_json::Value>,
+    pub free_trial_details: ::core::option::Option<FreeTrialDetails>,
     /// The order funds an introductory pricing period.
     #[serde(default, rename = "introductoryPriceDetails")]
-    pub introductory_price_details: ::core::option::Option<serde_json::Value>,
+    pub introductory_price_details: ::core::option::Option<IntroductoryPriceDetails>,
     /// The order funds a proration period.
     #[serde(default, rename = "prorationPeriodDetails")]
     pub proration_period_details: ::core::option::Option<ProrationPeriodDetails>,
@@ -3743,6 +3763,12 @@ pub struct RefundDetails {
     /// The total amount refunded, including tax.
     #[serde(default)]
     pub total: ::core::option::Option<Money>,
+}
+
+/// Options for one-time product offers without a regional price override.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OneTimeProductOfferNoPriceOverrideOptions {
+    pub value: serde_json::Value,
 }
 
 /// A purchase option that can be bought.
@@ -3828,7 +3854,7 @@ pub struct OtherRegionsSubscriptionOfferPhaseConfig {
     pub absolute_discounts: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
     /// Set to specify this offer is free to obtain.
     #[serde(default)]
-    pub free: ::core::option::Option<serde_json::Value>,
+    pub free: ::core::option::Option<OtherRegionsSubscriptionOfferPhaseFreePriceOverride>,
     /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for any new locations Play may launch in.
     #[serde(default, rename = "otherRegionsPrices")]
     pub other_regions_prices: ::core::option::Option<OtherRegionsSubscriptionOfferPhasePrices>,
@@ -3845,7 +3871,7 @@ pub struct RegionalSubscriptionOfferPhaseConfig {
     pub absolute_discount: ::core::option::Option<Money>,
     /// Set to specify this offer is free to obtain.
     #[serde(default)]
-    pub free: ::core::option::Option<serde_json::Value>,
+    pub free: ::core::option::Option<RegionalSubscriptionOfferPhaseFreePriceOverride>,
     /// The absolute price the user pays for this offer phase. The price must not be smaller than the minimum price allowed for this region.
     #[serde(default)]
     pub price: ::core::option::Option<Money>,
@@ -4122,6 +4148,30 @@ pub struct Timestamp {
     pub seconds: ::core::option::Option<String>,
 }
 
+/// This is an indicator of whether there is a pending cancellation on the virtual installment plan. The cancellation will happen only after the user finished all committed payments.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PendingCancellation {
+    pub value: serde_json::Value,
+}
+
+/// Details of a base price pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BaseDetails {
+    pub value: serde_json::Value,
+}
+
+/// Details of a free trial pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FreeTrialDetails {
+    pub value: serde_json::Value,
+}
+
+/// Details of an introductory price pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntroductoryPriceDetails {
+    pub value: serde_json::Value,
+}
+
 /// Details of a proration period. A proration period can be a period calculated during a plan change to cover existing entitlements (For more information, see [Allow users to upgrade, downgrade, or change their subscription](https://developer.android.com/google/play/billing/subscriptions#allow-users-change), or a prorated period to align add-on renewal dates with the base (For more information, see [Rules applicable for items in the purchase](https://developer.android.com/google/play/billing/subscription-with-addons#rules-base-addons)).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProrationPeriodDetails {
@@ -4141,18 +4191,30 @@ pub struct OtherRegionsSubscriptionOfferPhasePrices {
     pub usd_price: ::core::option::Option<Money>,
 }
 
+/// Represents the free price override configuration for any new locations Play may launch for a single offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {
+    pub value: serde_json::Value,
+}
+
+/// Represents the free price override configuration for a single phase of a subscription offer
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionalSubscriptionOfferPhaseFreePriceOverride {
+    pub value: serde_json::Value,
+}
+
 /// Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingRuleScope {
     /// The scope of the current targeting rule is any subscription in the parent app.
     #[serde(default, rename = "anySubscriptionInApp")]
-    pub any_subscription_in_app: ::core::option::Option<serde_json::Value>,
+    pub any_subscription_in_app: ::core::option::Option<TargetingRuleScopeAnySubscriptionInApp>,
     /// The scope of the current targeting rule is the subscription with the specified subscription ID. Must be a subscription within the same parent app.
     #[serde(default, rename = "specificSubscriptionInApp")]
     pub specific_subscription_in_app: ::core::option::Option<String>,
     /// The scope of the current targeting rule is the subscription in which this offer is defined.
     #[serde(default, rename = "thisSubscription")]
-    pub this_subscription: ::core::option::Option<serde_json::Value>,
+    pub this_subscription: ::core::option::Option<TargetingRuleScopeThisSubscription>,
 }
 
 /// Description of the created apks.
@@ -4210,6 +4272,18 @@ pub struct Money {
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
     pub units: ::core::option::Option<String>,
+}
+
+/// Represents the targeting rule scope corresponding to any subscription in the parent app.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingRuleScopeAnySubscriptionInApp {
+    pub value: serde_json::Value,
+}
+
+/// Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TargetingRuleScopeThisSubscription {
+    pub value: serde_json::Value,
 }
 
 /// Holds data specific to Split APKs.

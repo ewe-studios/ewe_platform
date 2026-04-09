@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -70,7 +72,9 @@ pub struct ListTunnelDestGroupsResponse {
 
 /// The request sent to ResetIdentityAwareProxyClientSecret.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetIdentityAwareProxyClientSecretRequest {}
+pub struct ResetIdentityAwareProxyClientSecretRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -98,7 +102,9 @@ pub struct TestIamPermissionsResponse {
 
 /// IAP Expression Linter endpoint returns empty response body.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateIapAttributeExpressionResponse {}
+pub struct ValidateIapAttributeExpressionResponse {
+    pub value: serde_json::Value,
+}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

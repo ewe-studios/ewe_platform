@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,17 @@ use serde::Serialize;
 
 pub fn games_management_achievements_reset_builder(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    achievementId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/reset",
-        achievementId,
+        achievementId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,8 +69,11 @@ pub fn games_management_achievements_reset_builder(
 pub fn games_management_achievements_reset_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AchievementResetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementResetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -174,7 +178,7 @@ pub fn games_management_achievements_reset(
         + 'static,
     ApiError,
 > {
-    let builder = games_management_achievements_reset_builder(client, &args.achievementId)?;
+    let builder = games_management_achievements_reset_builder(client, args.achievementId.clone())?;
     games_management_achievements_reset_execute(builder)
 }
 
@@ -188,12 +192,12 @@ pub fn games_management_achievements_reset_all_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://gamesmanagement.googleapis.com/games/v1management/achievements/reset",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -223,8 +227,11 @@ pub fn games_management_achievements_reset_all_builder(
 pub fn games_management_achievements_reset_all_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AchievementResetAllResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementResetAllResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -339,13 +346,13 @@ pub fn games_management_achievements_reset_all_for_all_players_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/resetAllForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -375,7 +382,12 @@ pub fn games_management_achievements_reset_all_for_all_players_builder(
 pub fn games_management_achievements_reset_all_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -476,17 +488,17 @@ pub fn games_management_achievements_reset_all_for_all_players(
 
 pub fn games_management_achievements_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    achievementId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/resetForAllPlayers",
-        achievementId,
+        achievementId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -516,7 +528,12 @@ pub fn games_management_achievements_reset_for_all_players_builder(
 pub fn games_management_achievements_reset_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -613,8 +630,10 @@ pub fn games_management_achievements_reset_for_all_players(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_achievements_reset_for_all_players_builder(client, &args.achievementId)?;
+    let builder = games_management_achievements_reset_for_all_players_builder(
+        client,
+        args.achievementId.clone(),
+    )?;
     games_management_achievements_reset_for_all_players_execute(builder)
 }
 
@@ -629,13 +648,13 @@ pub fn games_management_achievements_reset_multiple_for_all_players_builder(
     body: &AchievementResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/resetMultipleForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -667,7 +686,12 @@ pub fn games_management_achievements_reset_multiple_for_all_players_builder(
 pub fn games_management_achievements_reset_multiple_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -777,14 +801,14 @@ pub fn games_management_achievements_reset_multiple_for_all_players(
 
 pub fn games_management_applications_list_hidden_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
+    applicationId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden",
-        applicationId,
+        applicationId.as_str(),
     );
 
     // Build request
@@ -797,9 +821,9 @@ pub fn games_management_applications_list_hidden_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -833,8 +857,11 @@ pub fn games_management_applications_list_hidden_builder(
 pub fn games_management_applications_list_hidden_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<HiddenPlayerList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HiddenPlayerList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -945,9 +972,9 @@ pub fn games_management_applications_list_hidden(
 > {
     let builder = games_management_applications_list_hidden_builder(
         client,
-        &args.applicationId,
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.applicationId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_management_applications_list_hidden_execute(builder)
 }
@@ -960,17 +987,17 @@ pub fn games_management_applications_list_hidden(
 
 pub fn games_management_events_reset_builder(
     client: &SimpleHttpClient,
-    eventId: &str,
+    eventId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/reset",
-        eventId,
+        eventId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1000,7 +1027,12 @@ pub fn games_management_events_reset_builder(
 pub fn games_management_events_reset_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1097,7 +1129,7 @@ pub fn games_management_events_reset(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_builder(client, &args.eventId)?;
+    let builder = games_management_events_reset_builder(client, args.eventId.clone())?;
     games_management_events_reset_execute(builder)
 }
 
@@ -1111,11 +1143,12 @@ pub fn games_management_events_reset_all_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://gamesmanagement.googleapis.com/games/v1management/events/reset",);
+    let endpoint_url =
+        format!("https://gamesmanagement.googleapis.com/games/v1management/events/reset",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1145,7 +1178,12 @@ pub fn games_management_events_reset_all_builder(
 pub fn games_management_events_reset_all_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1248,13 +1286,13 @@ pub fn games_management_events_reset_all_for_all_players_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/resetAllForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1284,7 +1322,12 @@ pub fn games_management_events_reset_all_for_all_players_builder(
 pub fn games_management_events_reset_all_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1385,17 +1428,17 @@ pub fn games_management_events_reset_all_for_all_players(
 
 pub fn games_management_events_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    eventId: &str,
+    eventId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/resetForAllPlayers",
-        eventId,
+        eventId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1425,7 +1468,12 @@ pub fn games_management_events_reset_for_all_players_builder(
 pub fn games_management_events_reset_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1522,7 +1570,8 @@ pub fn games_management_events_reset_for_all_players(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_for_all_players_builder(client, &args.eventId)?;
+    let builder =
+        games_management_events_reset_for_all_players_builder(client, args.eventId.clone())?;
     games_management_events_reset_for_all_players_execute(builder)
 }
 
@@ -1537,13 +1586,13 @@ pub fn games_management_events_reset_multiple_for_all_players_builder(
     body: &EventsResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/resetMultipleForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1575,7 +1624,12 @@ pub fn games_management_events_reset_multiple_for_all_players_builder(
 pub fn games_management_events_reset_multiple_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1685,19 +1739,19 @@ pub fn games_management_events_reset_multiple_for_all_players(
 
 pub fn games_management_players_hide_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    playerId: &str,
+    applicationId: String,
+    playerId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
-        applicationId,
-        playerId,
+        applicationId.as_str(),
+        playerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1727,7 +1781,12 @@ pub fn games_management_players_hide_builder(
 pub fn games_management_players_hide_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1826,163 +1885,12 @@ pub fn games_management_players_hide(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_players_hide_builder(client, &args.applicationId, &args.playerId)?;
+    let builder = games_management_players_hide_builder(
+        client,
+        args.applicationId.clone(),
+        args.playerId.clone(),
+    )?;
     games_management_players_hide_execute(builder)
-}
-
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_management_players_unhide_execute()` to send, or `games_management_players_unhide` for simplest API.
-
-pub fn games_management_players_unhide_builder(
-    client: &SimpleHttpClient,
-    applicationId: &str,
-    playerId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
-        applicationId,
-        playerId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_management_players_unhide_execute()` or `games_management_players_unhide`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_management_players_unhide_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_management_players_unhide_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_management_players_unhide_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_management_players_unhide_task()`.
-/// For the simplest API, use `games_management_players_unhide()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_management_players_unhide_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_management_players_unhide_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = games_management_players_unhide_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_management_players_unhide`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesManagementPlayersUnhideArgs {
-    /// Path parameter: applicationId
-    pub applicationId: String,
-    /// Path parameter: playerId
-    pub playerId: String,
-}
-
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
-/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_management_players_unhide_builder()` + `games_management_players_unhide_execute()`.
-/// For task-level control, use `games_management_players_unhide_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_management_players_unhide(
-    client: &SimpleHttpClient,
-    args: &GamesManagementPlayersUnhideArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        games_management_players_unhide_builder(client, &args.applicationId, &args.playerId)?;
-    games_management_players_unhide_execute(builder)
 }
 
 /// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
@@ -1993,17 +1901,17 @@ pub fn games_management_players_unhide(
 
 pub fn games_management_scores_reset_builder(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    leaderboardId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/reset",
-        leaderboardId,
+        leaderboardId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2033,8 +1941,11 @@ pub fn games_management_scores_reset_builder(
 pub fn games_management_scores_reset_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerScoreResetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerScoreResetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2139,7 +2050,7 @@ pub fn games_management_scores_reset(
         + 'static,
     ApiError,
 > {
-    let builder = games_management_scores_reset_builder(client, &args.leaderboardId)?;
+    let builder = games_management_scores_reset_builder(client, args.leaderboardId.clone())?;
     games_management_scores_reset_execute(builder)
 }
 
@@ -2153,11 +2064,12 @@ pub fn games_management_scores_reset_all_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://gamesmanagement.googleapis.com/games/v1management/scores/reset",);
+    let endpoint_url =
+        format!("https://gamesmanagement.googleapis.com/games/v1management/scores/reset",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2187,8 +2099,11 @@ pub fn games_management_scores_reset_all_builder(
 pub fn games_management_scores_reset_all_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerScoreResetAllResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerScoreResetAllResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2303,13 +2218,13 @@ pub fn games_management_scores_reset_all_for_all_players_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/scores/resetAllForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2339,7 +2254,12 @@ pub fn games_management_scores_reset_all_for_all_players_builder(
 pub fn games_management_scores_reset_all_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2440,17 +2360,17 @@ pub fn games_management_scores_reset_all_for_all_players(
 
 pub fn games_management_scores_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    leaderboardId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/resetForAllPlayers",
-        leaderboardId,
+        leaderboardId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2480,7 +2400,12 @@ pub fn games_management_scores_reset_for_all_players_builder(
 pub fn games_management_scores_reset_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2578,7 +2503,7 @@ pub fn games_management_scores_reset_for_all_players(
     ApiError,
 > {
     let builder =
-        games_management_scores_reset_for_all_players_builder(client, &args.leaderboardId)?;
+        games_management_scores_reset_for_all_players_builder(client, args.leaderboardId.clone())?;
     games_management_scores_reset_for_all_players_execute(builder)
 }
 
@@ -2593,13 +2518,13 @@ pub fn games_management_scores_reset_multiple_for_all_players_builder(
     body: &ScoresResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/scores/resetMultipleForAllPlayers",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2631,7 +2556,12 @@ pub fn games_management_scores_reset_multiple_for_all_players_builder(
 pub fn games_management_scores_reset_multiple_for_all_players_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder

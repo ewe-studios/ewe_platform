@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The CollectApiData method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,7 +76,9 @@ pub struct GoogleCloudApihubV1DisablePluginInstanceActionRequest {
 
 /// The DisablePlugin method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1DisablePluginRequest {}
+pub struct GoogleCloudApihubV1DisablePluginRequest {
+    pub value: serde_json::Value,
+}
 
 /// The EnablePluginInstanceAction method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -86,7 +90,9 @@ pub struct GoogleCloudApihubV1EnablePluginInstanceActionRequest {
 
 /// The EnablePlugin method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1EnablePluginRequest {}
+pub struct GoogleCloudApihubV1EnablePluginRequest {
+    pub value: serde_json::Value,
+}
 
 /// The ExecutePluginInstanceAction method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -120,7 +126,9 @@ pub struct GoogleCloudApihubV1Header {
 
 /// The LintSpec method''s request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1LintSpecRequest {}
+pub struct GoogleCloudApihubV1LintSpecRequest {
+    pub value: serde_json::Value,
+}
 
 /// The ListAddons method''s response.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -347,7 +355,9 @@ pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest {
 
 /// The ManagePluginInstanceSourceData method''s response.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {}
+pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// The config variable value of data type multi string.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -514,7 +524,9 @@ pub struct GoogleCloudLocationListLocationsResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

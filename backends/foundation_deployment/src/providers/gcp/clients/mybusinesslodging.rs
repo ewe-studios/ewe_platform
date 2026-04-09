@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,11 @@ use serde::Serialize;
 
 pub fn mybusinesslodging_locations_get_lodging_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    name: String,
+    readMask: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
-        name,
-    );
+    let endpoint_url = format!("https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -44,9 +42,9 @@ pub fn mybusinesslodging_locations_get_lodging_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -80,7 +78,12 @@ pub fn mybusinesslodging_locations_get_lodging_builder(
 pub fn mybusinesslodging_locations_get_lodging_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Lodging>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -184,186 +187,10 @@ pub fn mybusinesslodging_locations_get_lodging(
 > {
     let builder = mybusinesslodging_locations_get_lodging_builder(
         client,
-        &args.name,
-        args.readMask.as_deref(),
+        args.name.clone(),
+        args.readMask.clone(),
     )?;
     mybusinesslodging_locations_get_lodging_execute(builder)
-}
-
-/// GET v1/locations/{locationsId}/lodging
-/// Updates the Lodging of a specific location.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `mybusinesslodging_locations_update_lodging_execute()` to send, or `mybusinesslodging_locations_update_lodging` for simplest API.
-
-pub fn mybusinesslodging_locations_update_lodging_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Lodging,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/locations/{locationsId}/lodging
-/// Updates the Lodging of a specific location.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `mybusinesslodging_locations_update_lodging_execute()` or `mybusinesslodging_locations_update_lodging`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinesslodging_locations_update_lodging_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn mybusinesslodging_locations_update_lodging_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Lodging = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/locations/{locationsId}/lodging
-/// Updates the Lodging of a specific location.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `mybusinesslodging_locations_update_lodging_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `mybusinesslodging_locations_update_lodging_task()`.
-/// For the simplest API, use `mybusinesslodging_locations_update_lodging()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinesslodging_locations_update_lodging_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn mybusinesslodging_locations_update_lodging_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = mybusinesslodging_locations_update_lodging_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`mybusinesslodging_locations_update_lodging`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MybusinesslodgingLocationsUpdateLodgingArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Lodging,
-}
-
-/// GET v1/locations/{locationsId}/lodging
-/// Updates the Lodging of a specific location.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `mybusinesslodging_locations_update_lodging_builder()` + `mybusinesslodging_locations_update_lodging_execute()`.
-/// For task-level control, use `mybusinesslodging_locations_update_lodging_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn mybusinesslodging_locations_update_lodging(
-    client: &SimpleHttpClient,
-    args: &MybusinesslodgingLocationsUpdateLodgingArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = mybusinesslodging_locations_update_lodging_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    mybusinesslodging_locations_update_lodging_execute(builder)
 }
 
 /// GET v1/locations/{locationsId}/lodging:getGoogleUpdated
@@ -374,13 +201,12 @@ pub fn mybusinesslodging_locations_update_lodging(
 
 pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    name: String,
+    readMask: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging:getGoogleUpdated",
-        name,
     );
 
     // Build request
@@ -390,9 +216,9 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -427,8 +253,9 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetGoogleUpdatedLodgingResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetGoogleUpdatedLodgingResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -542,8 +369,8 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated(
 > {
     let builder = mybusinesslodging_locations_lodging_get_google_updated_builder(
         client,
-        &args.name,
-        args.readMask.as_deref(),
+        args.name.clone(),
+        args.readMask.clone(),
     )?;
     mybusinesslodging_locations_lodging_get_google_updated_execute(builder)
 }

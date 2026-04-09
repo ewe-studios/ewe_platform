@@ -42,13 +42,11 @@ pub struct AuthzPolicyAuthzRuleStringMatch {
     pub suffix: ::core::option::Option<String>,
 }
 
-/// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthzPolicyCustomProviderCloudIap {}
-
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request used by the CloneAddressGroupItems method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,7 +61,9 @@ pub struct CloneAddressGroupItemsRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1351,7 +1351,7 @@ pub struct AuthzPolicyCustomProvider {
     pub authz_extension: ::core::option::Option<AuthzPolicyCustomProviderAuthzExtension>,
     /// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
     #[serde(default, rename = "cloudIap")]
-    pub cloud_iap: ::core::option::Option<serde_json::Value>,
+    pub cloud_iap: ::core::option::Option<AuthzPolicyCustomProviderCloudIap>,
 }
 
 /// Conditions to match against the incoming request.
@@ -1647,6 +1647,12 @@ pub struct AuthzPolicyCustomProviderAuthzExtension {
     /// Required. A list of references to authorization extensions that will be invoked for requests matching this policy. Limited to 1 custom provider.
     #[serde(default)]
     pub resources: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthzPolicyCustomProviderCloudIap {
+    pub value: serde_json::Value,
 }
 
 /// Describes properties of one or more sources of a request.

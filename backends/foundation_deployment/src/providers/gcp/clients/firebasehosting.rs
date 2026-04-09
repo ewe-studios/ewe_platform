@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,15 @@ use serde::Serialize;
 
 pub fn firebasehosting_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebasehosting.googleapis.com/v1/operations/{}:cancel",
-        name,
-    );
+    let endpoint_url = format!("https://firebasehosting.googleapis.com/v1/operations/{}:cancel",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +69,12 @@ pub fn firebasehosting_operations_cancel_builder(
 pub fn firebasehosting_operations_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,7 +176,7 @@ pub fn firebasehosting_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasehosting_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = firebasehosting_operations_cancel_builder(client, args.name.clone(), &args.body)?;
     firebasehosting_operations_cancel_execute(builder)
 }
 
@@ -185,17 +188,14 @@ pub fn firebasehosting_operations_cancel(
 
 pub fn firebasehosting_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebasehosting.googleapis.com/v1/operations/{}",
-        name,
-    );
+    let endpoint_url = format!("https://firebasehosting.googleapis.com/v1/operations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -225,7 +225,12 @@ pub fn firebasehosting_operations_delete_builder(
 pub fn firebasehosting_operations_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -325,513 +330,6 @@ pub fn firebasehosting_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasehosting_operations_delete_builder(client, &args.name)?;
+    let builder = firebasehosting_operations_delete_builder(client, args.name.clone())?;
     firebasehosting_operations_delete_execute(builder)
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebasehosting_operations_list_execute()` to send, or `firebasehosting_operations_list` for simplest API.
-
-pub fn firebasehosting_operations_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://firebasehosting.googleapis.com/v1/operations", name,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = returnPartialSuccess {
-        query_parts.push(format!("returnPartialSuccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebasehosting_operations_list_execute()` or `firebasehosting_operations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_operations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListOperationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebasehosting_operations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebasehosting_operations_list_task()`.
-/// For the simplest API, use `firebasehosting_operations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebasehosting_operations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebasehosting_operations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebasehosting_operations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasehostingOperationsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebasehosting_operations_list_builder()` + `firebasehosting_operations_list_execute()`.
-/// For task-level control, use `firebasehosting_operations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_operations_list(
-    client: &SimpleHttpClient,
-    args: &FirebasehostingOperationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebasehosting_operations_list_builder(
-        client,
-        &args.name,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
-    )?;
-    firebasehosting_operations_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel
-/// CancelOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebasehosting_projects_sites_custom_domains_operations_cancel_execute()` to send, or `firebasehosting_projects_sites_custom_domains_operations_cancel` for simplest API.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebasehosting.googleapis.com/v1/projects/{}/sites/{}/customDomains/{}/operations/{}:cancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel
-/// CancelOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebasehosting_projects_sites_custom_domains_operations_cancel_execute()` or `firebasehosting_projects_sites_custom_domains_operations_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_projects_sites_custom_domains_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel
-/// CancelOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebasehosting_projects_sites_custom_domains_operations_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebasehosting_projects_sites_custom_domains_operations_cancel_task()`.
-/// For the simplest API, use `firebasehosting_projects_sites_custom_domains_operations_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_projects_sites_custom_domains_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebasehosting_projects_sites_custom_domains_operations_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebasehosting_projects_sites_custom_domains_operations_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasehostingProjectsSitesCustomDomainsOperationsCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}:cancel
-/// CancelOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebasehosting_projects_sites_custom_domains_operations_cancel_builder()` + `firebasehosting_projects_sites_custom_domains_operations_cancel_execute()`.
-/// For task-level control, use `firebasehosting_projects_sites_custom_domains_operations_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_cancel(
-    client: &SimpleHttpClient,
-    args: &FirebasehostingProjectsSitesCustomDomainsOperationsCancelArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebasehosting_projects_sites_custom_domains_operations_cancel_builder(
-        client, &args.name, &args.body,
-    )?;
-    firebasehosting_projects_sites_custom_domains_operations_cancel_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}
-/// DeleteOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebasehosting_projects_sites_custom_domains_operations_delete_execute()` to send, or `firebasehosting_projects_sites_custom_domains_operations_delete` for simplest API.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebasehosting.googleapis.com/v1/projects/{}/sites/{}/customDomains/{}/operations/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}
-/// DeleteOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebasehosting_projects_sites_custom_domains_operations_delete_execute()` or `firebasehosting_projects_sites_custom_domains_operations_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_projects_sites_custom_domains_operations_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}
-/// DeleteOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebasehosting_projects_sites_custom_domains_operations_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebasehosting_projects_sites_custom_domains_operations_delete_task()`.
-/// For the simplest API, use `firebasehosting_projects_sites_custom_domains_operations_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebasehosting_projects_sites_custom_domains_operations_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebasehosting_projects_sites_custom_domains_operations_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebasehosting_projects_sites_custom_domains_operations_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebasehostingProjectsSitesCustomDomainsOperationsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/sites/{sitesId}/customDomains/{customDomainsId}/operations/{operationsId}
-/// DeleteOperation is a part of the google.longrunning.Operations interface, but is not implemented for CustomDomain resources.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebasehosting_projects_sites_custom_domains_operations_delete_builder()` + `firebasehosting_projects_sites_custom_domains_operations_delete_execute()`.
-/// For task-level control, use `firebasehosting_projects_sites_custom_domains_operations_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebasehosting_projects_sites_custom_domains_operations_delete(
-    client: &SimpleHttpClient,
-    args: &FirebasehostingProjectsSitesCustomDomainsOperationsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebasehosting_projects_sites_custom_domains_operations_delete_builder(
-        client, &args.name,
-    )?;
-    firebasehosting_projects_sites_custom_domains_operations_delete_execute(builder)
 }

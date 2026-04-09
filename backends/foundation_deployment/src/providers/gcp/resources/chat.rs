@@ -27,7 +27,9 @@ pub struct ChatAppLogEntry {
 
 /// Request message for completing the import process for a space.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompleteImportSpaceRequest {}
+pub struct CompleteImportSpaceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for completing the import process for a space.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -86,11 +88,9 @@ pub struct DeprecatedEvent {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Displays a divider between widgets as a horizontal line. For an example in Google Chat apps, see [Add a horizontal divider between widgets](https://developers.google.com/workspace/chat/format-structure-card-dialog#add_a_horizontal_divider_between_widgets). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a divider:  "divider": {}
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCardV1Divider {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1967,6 +1967,12 @@ pub struct GoogleAppsCardV1DecoratedText {
     pub wrap_text: ::core::option::Option<bool>,
 }
 
+/// Displays a divider between widgets as a horizontal line. For an example in Google Chat apps, see [Add a horizontal divider between widgets](https://developers.google.com/workspace/chat/format-structure-card-dialog#add_a_horizontal_divider_between_widgets). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a divider:  "divider": {}
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsCardV1Divider {
+    pub value: serde_json::Value,
+}
+
 /// Represents an actionthat can be performed on an ui element. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1EventAction {
@@ -2430,7 +2436,7 @@ pub struct GoogleAppsCardV1Widget {
     pub decorated_text: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1DecoratedText>>,
     /// Displays a horizontal line divider between widgets. For example, the following JSON creates a divider:  "divider": { }
     #[serde(default)]
-    pub divider: ::core::option::Option<serde_json::Value>,
+    pub divider: ::core::option::Option<::std::boxed::Box<GoogleAppsCardV1Divider>>,
     /// Specifies the event actions that can be performed on the widget. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "eventActions")]
     pub event_actions: ::std::vec::Vec<::std::boxed::Box<GoogleAppsCardV1EventAction>>,

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,11 +29,11 @@ use serde::Serialize;
 
 pub fn css_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    name: String,
+    parent: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}", name,);
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -41,9 +42,9 @@ pub fn css_accounts_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -77,7 +78,12 @@ pub fn css_accounts_get_builder(
 pub fn css_accounts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,7 +185,7 @@ pub fn css_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_get_builder(client, &args.name, args.parent.as_deref())?;
+    let builder = css_accounts_get_builder(client, args.name.clone(), args.parent.clone())?;
     css_accounts_get_execute(builder)
 }
 
@@ -191,17 +197,14 @@ pub fn css_accounts_get(
 
 pub fn css_accounts_list_child_accounts_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    fullName: Option<&str>,
-    labelId: Option<&str>,
+    parent: String,
+    fullName: Option<String>,
+    labelId: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}:listChildAccounts",
-        parent,
-    );
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}:listChildAccounts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -219,9 +222,9 @@ pub fn css_accounts_list_child_accounts_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -255,8 +258,11 @@ pub fn css_accounts_list_child_accounts_builder(
 pub fn css_accounts_list_child_accounts_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListChildAccountsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListChildAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -371,11 +377,11 @@ pub fn css_accounts_list_child_accounts(
 > {
     let builder = css_accounts_list_child_accounts_builder(
         client,
-        &args.parent,
-        args.fullName.as_deref(),
-        args.labelId.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.fullName.clone(),
+        args.labelId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     css_accounts_list_child_accounts_execute(builder)
 }
@@ -388,18 +394,15 @@ pub fn css_accounts_list_child_accounts(
 
 pub fn css_accounts_update_labels_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &UpdateAccountLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}:updateLabels",
-        name,
-    );
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}:updateLabels",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -431,7 +434,12 @@ pub fn css_accounts_update_labels_builder(
 pub fn css_accounts_update_labels_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -533,178 +541,8 @@ pub fn css_accounts_update_labels(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_update_labels_builder(client, &args.name, &args.body)?;
+    let builder = css_accounts_update_labels_builder(client, args.name.clone(), &args.body)?;
     css_accounts_update_labels_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Deletes a CSS Product input from your CSS Center account. After a delete it may take several minutes until the input is no longer available.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_css_product_inputs_delete_execute()` to send, or `css_accounts_css_product_inputs_delete` for simplest API.
-
-pub fn css_accounts_css_product_inputs_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    supplementalFeedId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}/cssProductInputs/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = supplementalFeedId {
-        query_parts.push(format!("supplementalFeedId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Deletes a CSS Product input from your CSS Center account. After a delete it may take several minutes until the input is no longer available.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_css_product_inputs_delete_execute()` or `css_accounts_css_product_inputs_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_product_inputs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_product_inputs_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Deletes a CSS Product input from your CSS Center account. After a delete it may take several minutes until the input is no longer available.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_css_product_inputs_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_css_product_inputs_delete_task()`.
-/// For the simplest API, use `css_accounts_css_product_inputs_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_product_inputs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_css_product_inputs_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = css_accounts_css_product_inputs_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_css_product_inputs_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsCssProductInputsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: supplementalFeedId
-    pub supplementalFeedId: Option<String>,
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Deletes a CSS Product input from your CSS Center account. After a delete it may take several minutes until the input is no longer available.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_css_product_inputs_delete_builder()` + `css_accounts_css_product_inputs_delete_execute()`.
-/// For task-level control, use `css_accounts_css_product_inputs_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_product_inputs_delete(
-    client: &SimpleHttpClient,
-    args: &CssAccountsCssProductInputsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_css_product_inputs_delete_builder(
-        client,
-        &args.name,
-        args.supplementalFeedId.as_deref(),
-    )?;
-    css_accounts_css_product_inputs_delete_execute(builder)
 }
 
 /// GET v1/accounts/{accountsId}/cssProductInputs:insert
@@ -715,15 +553,13 @@ pub fn css_accounts_css_product_inputs_delete(
 
 pub fn css_accounts_css_product_inputs_insert_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    feedId: Option<&str>,
+    parent: String,
+    feedId: Option<String>,
     body: &CssProductInput,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}/cssProductInputs:insert",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://css.googleapis.com/v1/accounts/{}/cssProductInputs:insert",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -732,9 +568,9 @@ pub fn css_accounts_css_product_inputs_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -770,8 +606,11 @@ pub fn css_accounts_css_product_inputs_insert_builder(
 pub fn css_accounts_css_product_inputs_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CssProductInput>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -882,345 +721,11 @@ pub fn css_accounts_css_product_inputs_insert(
 > {
     let builder = css_accounts_css_product_inputs_insert_builder(
         client,
-        &args.parent,
-        args.feedId.as_deref(),
+        args.parent.clone(),
+        args.feedId.clone(),
         &args.body,
     )?;
     css_accounts_css_product_inputs_insert_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Updates the existing Css Product input in your CSS Center account. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed Css Product can be retrieved.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_css_product_inputs_patch_execute()` to send, or `css_accounts_css_product_inputs_patch` for simplest API.
-
-pub fn css_accounts_css_product_inputs_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CssProductInput,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}/cssProductInputs/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Updates the existing Css Product input in your CSS Center account. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed Css Product can be retrieved.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_css_product_inputs_patch_execute()` or `css_accounts_css_product_inputs_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_product_inputs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_product_inputs_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CssProductInput = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Updates the existing Css Product input in your CSS Center account. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed Css Product can be retrieved.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_css_product_inputs_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_css_product_inputs_patch_task()`.
-/// For the simplest API, use `css_accounts_css_product_inputs_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_product_inputs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_css_product_inputs_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = css_accounts_css_product_inputs_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_css_product_inputs_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsCssProductInputsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: CssProductInput,
-}
-
-/// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
-/// Updates the existing Css Product input in your CSS Center account. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed Css Product can be retrieved.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_css_product_inputs_patch_builder()` + `css_accounts_css_product_inputs_patch_execute()`.
-/// For task-level control, use `css_accounts_css_product_inputs_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_product_inputs_patch(
-    client: &SimpleHttpClient,
-    args: &CssAccountsCssProductInputsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_css_product_inputs_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    css_accounts_css_product_inputs_patch_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/cssProducts/{cssProductsId}
-/// Retrieves the processed CSS Product from your CSS Center account. After inserting, updating, or deleting a product input, it may take several minutes before the updated final product can be retrieved.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_css_products_get_execute()` to send, or `css_accounts_css_products_get` for simplest API.
-
-pub fn css_accounts_css_products_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}/cssProducts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/accounts/{accountsId}/cssProducts/{cssProductsId}
-/// Retrieves the processed CSS Product from your CSS Center account. After inserting, updating, or deleting a product input, it may take several minutes before the updated final product can be retrieved.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_css_products_get_execute()` or `css_accounts_css_products_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_products_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_products_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CssProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CssProduct = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/cssProducts/{cssProductsId}
-/// Retrieves the processed CSS Product from your CSS Center account. After inserting, updating, or deleting a product input, it may take several minutes before the updated final product can be retrieved.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_css_products_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_css_products_get_task()`.
-/// For the simplest API, use `css_accounts_css_products_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_css_products_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_css_products_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CssProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = css_accounts_css_products_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_css_products_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsCssProductsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/accounts/{accountsId}/cssProducts/{cssProductsId}
-/// Retrieves the processed CSS Product from your CSS Center account. After inserting, updating, or deleting a product input, it may take several minutes before the updated final product can be retrieved.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_css_products_get_builder()` + `css_accounts_css_products_get_execute()`.
-/// For task-level control, use `css_accounts_css_products_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_css_products_get(
-    client: &SimpleHttpClient,
-    args: &CssAccountsCssProductsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CssProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_css_products_get_builder(client, &args.name)?;
-    css_accounts_css_products_get_execute(builder)
 }
 
 /// GET v1/accounts/{accountsId}/cssProducts
@@ -1231,15 +736,12 @@ pub fn css_accounts_css_products_get(
 
 pub fn css_accounts_css_products_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://css.googleapis.com/v1/accounts/{}/cssProducts",
-        parent,
-    );
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/cssProducts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1251,9 +753,9 @@ pub fn css_accounts_css_products_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1287,8 +789,11 @@ pub fn css_accounts_css_products_list_builder(
 pub fn css_accounts_css_products_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCssProductsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCssProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1399,9 +904,9 @@ pub fn css_accounts_css_products_list(
 > {
     let builder = css_accounts_css_products_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     css_accounts_css_products_list_execute(builder)
 }
@@ -1414,15 +919,15 @@ pub fn css_accounts_css_products_list(
 
 pub fn css_accounts_labels_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AccountLabel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}/labels", parent,);
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/labels",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1454,7 +959,12 @@ pub fn css_accounts_labels_create_builder(
 pub fn css_accounts_labels_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountLabel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1560,495 +1070,8 @@ pub fn css_accounts_labels_create(
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_create_builder(client, &args.parent, &args.body)?;
+    let builder = css_accounts_labels_create_builder(client, args.parent.clone(), &args.body)?;
     css_accounts_labels_create_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Deletes a label and removes it from all accounts to which it was assigned.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_labels_delete_execute()` to send, or `css_accounts_labels_delete` for simplest API.
-
-pub fn css_accounts_labels_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}/labels/{}", name,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Deletes a label and removes it from all accounts to which it was assigned.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_labels_delete_execute()` or `css_accounts_labels_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Deletes a label and removes it from all accounts to which it was assigned.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_labels_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_labels_delete_task()`.
-/// For the simplest API, use `css_accounts_labels_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_labels_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = css_accounts_labels_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_labels_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsLabelsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Deletes a label and removes it from all accounts to which it was assigned.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_labels_delete_builder()` + `css_accounts_labels_delete_execute()`.
-/// For task-level control, use `css_accounts_labels_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_delete(
-    client: &SimpleHttpClient,
-    args: &CssAccountsLabelsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_labels_delete_builder(client, &args.name)?;
-    css_accounts_labels_delete_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/labels
-/// Lists the labels owned by an account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_labels_list_execute()` to send, or `css_accounts_labels_list` for simplest API.
-
-pub fn css_accounts_labels_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}/labels", parent,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/accounts/{accountsId}/labels
-/// Lists the labels owned by an account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_labels_list_execute()` or `css_accounts_labels_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAccountLabelsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/labels
-/// Lists the labels owned by an account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_labels_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_labels_list_task()`.
-/// For the simplest API, use `css_accounts_labels_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_labels_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = css_accounts_labels_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_labels_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsLabelsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/accounts/{accountsId}/labels
-/// Lists the labels owned by an account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_labels_list_builder()` + `css_accounts_labels_list_execute()`.
-/// For task-level control, use `css_accounts_labels_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_list(
-    client: &SimpleHttpClient,
-    args: &CssAccountsLabelsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_labels_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    css_accounts_labels_list_execute(builder)
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Updates a label.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `css_accounts_labels_patch_execute()` to send, or `css_accounts_labels_patch` for simplest API.
-
-pub fn css_accounts_labels_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &AccountLabel,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}/labels/{}", name,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Updates a label.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `css_accounts_labels_patch_execute()` or `css_accounts_labels_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccountLabel = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Updates a label.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `css_accounts_labels_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `css_accounts_labels_patch_task()`.
-/// For the simplest API, use `css_accounts_labels_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `css_accounts_labels_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn css_accounts_labels_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = css_accounts_labels_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`css_accounts_labels_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CssAccountsLabelsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: AccountLabel,
-}
-
-/// GET v1/accounts/{accountsId}/labels/{labelsId}
-/// Updates a label.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `css_accounts_labels_patch_builder()` + `css_accounts_labels_patch_execute()`.
-/// For task-level control, use `css_accounts_labels_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn css_accounts_labels_patch(
-    client: &SimpleHttpClient,
-    args: &CssAccountsLabelsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = css_accounts_labels_patch_builder(client, &args.name, &args.body)?;
-    css_accounts_labels_patch_execute(builder)
 }
 
 /// GET v1/accounts/{accountsId}/quotas
@@ -2059,12 +1082,12 @@ pub fn css_accounts_labels_patch(
 
 pub fn css_accounts_quotas_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://css.googleapis.com/v1/accounts/{}/quotas", parent,);
+    let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/quotas",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2076,9 +1099,9 @@ pub fn css_accounts_quotas_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2112,8 +1135,11 @@ pub fn css_accounts_quotas_list_builder(
 pub fn css_accounts_quotas_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListQuotaGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListQuotaGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2224,9 +1250,9 @@ pub fn css_accounts_quotas_list(
 > {
     let builder = css_accounts_quotas_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     css_accounts_quotas_list_execute(builder)
 }

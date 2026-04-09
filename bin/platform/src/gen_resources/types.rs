@@ -530,15 +530,16 @@ impl ResourceGenerator {
         for schemas in schemas_maps {
             for (name, value) in schemas {
                 // Include all object types and composition types (allOf/oneOf/anyOf)
-                let is_object = value.get("type").and_then(|t| t.as_str()) == Some("object")
-                    || value.get("allOf").is_some()
+                // Composition types are always included regardless of base type
+                let has_composition = value.get("allOf").is_some()
                     || value.get("oneOf").is_some()
                     || value.get("anyOf").is_some();
+                let is_object = value.get("type").and_then(|t| t.as_str()) == Some("object");
 
                 // Also include response types (they may be allOf-refs-only but are still needed)
                 let is_response = name.to_lowercase().contains("response");
 
-                if is_object || is_response {
+                if is_object || has_composition || is_response {
                     names.insert(name.clone());
                 }
             }
@@ -739,12 +740,9 @@ impl ResourceGenerator {
             });
         }
 
-        // Skip schemas that have no fields (empty structs with no value)
-        // These are typically composition-only wrappers that don't add semantic value
-        if fields.is_empty() {
-            tracing::debug!("Skipping schema with no fields: {}", schema_name);
-            return None;
-        }
+        // For schemas with no fields, generate a single value: serde_json::Value field
+        // This handles composition types (oneOf/anyOf/allOf) and empty object types
+        // Users can work with the raw JSON value for complex cases
 
         Some(ResourceDef {
             name: rust_name,
@@ -1051,54 +1049,65 @@ impl ResourceGenerator {
             }
         })?;
 
-        // Write fields
-        for field in &resource.fields {
-            if let Some(desc) = &field.description {
-                // Field-level comments: first line only, sanitized
-                let sanitized = sanitize_doc_comment(desc, true);
-                writeln!(out, "    /// {sanitized}").map_err(|e| GenResourceError::WriteFile {
-                    path: format!("field {}.{}", resource.name, field.name),
+        // For composition types with no fields, generate a single value: serde_json::Value field
+        // instead of an empty struct
+        if resource.fields.is_empty() {
+            writeln!(out, "    pub value: serde_json::Value,").map_err(|e| {
+                GenResourceError::WriteFile {
+                    path: format!("struct {}", resource.name),
                     source: std::io::Error::new(std::io::ErrorKind::Other, e),
-                })?;
-            }
-            // Add serde attributes
-            if field.name != field.original_name && !field.required {
-                // Both rename and default for optional renamed fields
-                writeln!(
-                    out,
-                    "    #[serde(default, rename = \"{}\")]",
-                    field.original_name
-                )
-                .map_err(|e| GenResourceError::WriteFile {
-                    path: format!("field {}.{}", resource.name, field.name),
-                    source: std::io::Error::new(std::io::ErrorKind::Other, e),
-                })?;
-            } else if field.name != field.original_name {
-                // Rename only for required renamed fields
-                writeln!(out, "    #[serde(rename = \"{}\")]", field.original_name).map_err(
-                    |e| GenResourceError::WriteFile {
+                }
+            })?;
+        } else {
+            // Write fields
+            for field in &resource.fields {
+                if let Some(desc) = &field.description {
+                    // Field-level comments: first line only, sanitized
+                    let sanitized = sanitize_doc_comment(desc, true);
+                    writeln!(out, "    /// {sanitized}").map_err(|e| GenResourceError::WriteFile {
                         path: format!("field {}.{}", resource.name, field.name),
                         source: std::io::Error::new(std::io::ErrorKind::Other, e),
-                    },
-                )?;
-            } else if !field.required {
-                // Default only for optional non-renamed fields
-                writeln!(out, "    #[serde(default)]").map_err(|e| {
+                    })?;
+                }
+                // Add serde attributes
+                if field.name != field.original_name && !field.required {
+                    // Both rename and default for optional renamed fields
+                    writeln!(
+                        out,
+                        "    #[serde(default, rename = \"{}\")]",
+                        field.original_name
+                    )
+                    .map_err(|e| GenResourceError::WriteFile {
+                        path: format!("field {}.{}", resource.name, field.name),
+                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    })?;
+                } else if field.name != field.original_name {
+                    // Rename only for required renamed fields
+                    writeln!(out, "    #[serde(rename = \"{}\")]", field.original_name).map_err(
+                        |e| GenResourceError::WriteFile {
+                            path: format!("field {}.{}", resource.name, field.name),
+                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        },
+                    )?;
+                } else if !field.required {
+                    // Default only for optional non-renamed fields
+                    writeln!(out, "    #[serde(default)]").map_err(|e| {
+                        GenResourceError::WriteFile {
+                            path: format!("field {}.{}", resource.name, field.name),
+                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        }
+                    })?;
+                }
+
+                // Wrap recursive type references in Box to break infinite size cycles
+                let field_ty = self.wrap_recursive_type(&field.ty, field.required, recursive_types);
+                writeln!(out, "    pub {}: {},", field.name, field_ty).map_err(|e| {
                     GenResourceError::WriteFile {
                         path: format!("field {}.{}", resource.name, field.name),
                         source: std::io::Error::new(std::io::ErrorKind::Other, e),
                     }
                 })?;
             }
-
-            // Wrap recursive type references in Box to break infinite size cycles
-            let field_ty = self.wrap_recursive_type(&field.ty, field.required, recursive_types);
-            writeln!(out, "    pub {}: {},", field.name, field_ty).map_err(|e| {
-                GenResourceError::WriteFile {
-                    path: format!("field {}.{}", resource.name, field.name),
-                    source: std::io::Error::new(std::io::ErrorKind::Other, e),
-                }
-            })?;
         }
 
         writeln!(out, "}}\n").map_err(|e| GenResourceError::WriteFile {
@@ -1257,13 +1266,12 @@ impl ResourceGenerator {
         let object_schemas = self.collect_object_schema_names(&spec);
         let resources = self.extract_resources(&spec, &object_schemas)?;
         let resources = Self::dedup_type_names(resources);
-        // Note: We no longer filter out "trivial" types because single-field types
-        // with semantic meaning (like maps with additionalProperties refs) are useful
 
         let rust_code = self.generate_rust_simple(label, &resources)?;
 
         std::fs::write(output_path, rust_code)
             .map_err(|e| GenResourceError::WriteFile { path: output_path.display().to_string(), source: e })?;
+        eprintln!("  Wrote output file");
 
         let _ = Command::new("rustfmt").arg(output_path).output();
         tracing::info!("  Generated: {}", output_path.display());

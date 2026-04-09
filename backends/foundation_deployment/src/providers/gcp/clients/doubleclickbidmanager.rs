@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn doubleclickbidmanager_queries_create_builder(
     body: &Query,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://doubleclickbidmanager.googleapis.com/v2/queries",);
+    let endpoint_url = format!("https://doubleclickbidmanager.googleapis.com/v2/queries",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,7 +68,12 @@ pub fn doubleclickbidmanager_queries_create_builder(
 pub fn doubleclickbidmanager_queries_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Query>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,17 +185,17 @@ pub fn doubleclickbidmanager_queries_create(
 
 pub fn doubleclickbidmanager_queries_delete_builder(
     client: &SimpleHttpClient,
-    queryId: &str,
+    queryId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}",
-        queryId,
+        queryId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -219,7 +225,12 @@ pub fn doubleclickbidmanager_queries_delete_builder(
 pub fn doubleclickbidmanager_queries_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -316,343 +327,8 @@ pub fn doubleclickbidmanager_queries_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_delete_builder(client, &args.queryId)?;
+    let builder = doubleclickbidmanager_queries_delete_builder(client, args.queryId.clone())?;
     doubleclickbidmanager_queries_delete_execute(builder)
-}
-
-/// GET queries/{queryId}
-/// Retrieves a query.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `doubleclickbidmanager_queries_get_execute()` to send, or `doubleclickbidmanager_queries_get` for simplest API.
-
-pub fn doubleclickbidmanager_queries_get_builder(
-    client: &SimpleHttpClient,
-    queryId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://doubleclickbidmanager.googleapis.com/v2/queries/{}",
-        queryId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET queries/{queryId}
-/// Retrieves a query.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `doubleclickbidmanager_queries_get_execute()` or `doubleclickbidmanager_queries_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclickbidmanager_queries_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclickbidmanager_queries_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Query = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET queries/{queryId}
-/// Retrieves a query.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `doubleclickbidmanager_queries_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `doubleclickbidmanager_queries_get_task()`.
-/// For the simplest API, use `doubleclickbidmanager_queries_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclickbidmanager_queries_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn doubleclickbidmanager_queries_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = doubleclickbidmanager_queries_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`doubleclickbidmanager_queries_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DoubleclickbidmanagerQueriesGetArgs {
-    /// Path parameter: queryId
-    pub queryId: String,
-}
-
-/// GET queries/{queryId}
-/// Retrieves a query.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `doubleclickbidmanager_queries_get_builder()` + `doubleclickbidmanager_queries_get_execute()`.
-/// For task-level control, use `doubleclickbidmanager_queries_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclickbidmanager_queries_get(
-    client: &SimpleHttpClient,
-    args: &DoubleclickbidmanagerQueriesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Query>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = doubleclickbidmanager_queries_get_builder(client, &args.queryId)?;
-    doubleclickbidmanager_queries_get_execute(builder)
-}
-
-/// GET queries
-/// Lists queries created by the current user.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `doubleclickbidmanager_queries_list_execute()` to send, or `doubleclickbidmanager_queries_list` for simplest API.
-
-pub fn doubleclickbidmanager_queries_list_builder(
-    client: &SimpleHttpClient,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://doubleclickbidmanager.googleapis.com/v2/queries",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET queries
-/// Lists queries created by the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `doubleclickbidmanager_queries_list_execute()` or `doubleclickbidmanager_queries_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclickbidmanager_queries_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclickbidmanager_queries_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListQueriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListQueriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET queries
-/// Lists queries created by the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `doubleclickbidmanager_queries_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `doubleclickbidmanager_queries_list_task()`.
-/// For the simplest API, use `doubleclickbidmanager_queries_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclickbidmanager_queries_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn doubleclickbidmanager_queries_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListQueriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = doubleclickbidmanager_queries_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`doubleclickbidmanager_queries_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DoubleclickbidmanagerQueriesListArgs {
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET queries
-/// Lists queries created by the current user.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `doubleclickbidmanager_queries_list_builder()` + `doubleclickbidmanager_queries_list_execute()`.
-/// For task-level control, use `doubleclickbidmanager_queries_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclickbidmanager_queries_list(
-    client: &SimpleHttpClient,
-    args: &DoubleclickbidmanagerQueriesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListQueriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = doubleclickbidmanager_queries_list_builder(
-        client,
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    doubleclickbidmanager_queries_list_execute(builder)
 }
 
 /// GET queries/{queryId}:run
@@ -663,14 +339,14 @@ pub fn doubleclickbidmanager_queries_list(
 
 pub fn doubleclickbidmanager_queries_run_builder(
     client: &SimpleHttpClient,
-    queryId: &str,
+    queryId: String,
     synchronous: Option<bool>,
     body: &RunQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}:run",
-        queryId,
+        queryId.as_str(),
     );
 
     // Build request
@@ -680,9 +356,9 @@ pub fn doubleclickbidmanager_queries_run_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -718,7 +394,12 @@ pub fn doubleclickbidmanager_queries_run_builder(
 pub fn doubleclickbidmanager_queries_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -824,8 +505,8 @@ pub fn doubleclickbidmanager_queries_run(
 > {
     let builder = doubleclickbidmanager_queries_run_builder(
         client,
-        &args.queryId,
-        args.synchronous,
+        args.queryId.clone(),
+        args.synchronous.clone(),
         &args.body,
     )?;
     doubleclickbidmanager_queries_run_execute(builder)
@@ -839,18 +520,19 @@ pub fn doubleclickbidmanager_queries_run(
 
 pub fn doubleclickbidmanager_queries_reports_get_builder(
     client: &SimpleHttpClient,
-    queryId: &str,
-    reportId: &str,
+    queryId: String,
+    reportId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports/{}",
-        queryId, reportId,
+        queryId.as_str(),
+        reportId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -880,7 +562,12 @@ pub fn doubleclickbidmanager_queries_reports_get_builder(
 pub fn doubleclickbidmanager_queries_reports_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -982,8 +669,11 @@ pub fn doubleclickbidmanager_queries_reports_get(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        doubleclickbidmanager_queries_reports_get_builder(client, &args.queryId, &args.reportId)?;
+    let builder = doubleclickbidmanager_queries_reports_get_builder(
+        client,
+        args.queryId.clone(),
+        args.reportId.clone(),
+    )?;
     doubleclickbidmanager_queries_reports_get_execute(builder)
 }
 
@@ -995,15 +685,15 @@ pub fn doubleclickbidmanager_queries_reports_get(
 
 pub fn doubleclickbidmanager_queries_reports_list_builder(
     client: &SimpleHttpClient,
-    queryId: &str,
-    orderBy: Option<&str>,
+    queryId: String,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports",
-        queryId,
+        queryId.as_str(),
     );
 
     // Build request
@@ -1019,9 +709,9 @@ pub fn doubleclickbidmanager_queries_reports_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1055,8 +745,11 @@ pub fn doubleclickbidmanager_queries_reports_list_builder(
 pub fn doubleclickbidmanager_queries_reports_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListReportsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReportsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1169,10 +862,10 @@ pub fn doubleclickbidmanager_queries_reports_list(
 > {
     let builder = doubleclickbidmanager_queries_reports_list_builder(
         client,
-        &args.queryId,
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.queryId.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     doubleclickbidmanager_queries_reports_list_execute(builder)
 }

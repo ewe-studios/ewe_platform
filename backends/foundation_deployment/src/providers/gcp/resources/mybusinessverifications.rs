@@ -79,10 +79,6 @@ pub struct ListVerificationsResponse {
     pub verifications: ::core::option::Option<::std::vec::Vec<Verification>>,
 }
 
-/// Indicates that the location duplicates another location that is in good standing.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResolveOwnershipConflict {}
-
 /// Request message for Verifications.VerifyLocation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyLocationRequest {
@@ -134,18 +130,14 @@ pub struct VoiceOfMerchantState {
     pub has_voice_of_merchant: ::core::option::Option<bool>,
     /// This location duplicates another location that is in good standing. If you have access to the location in good standing, use that location''s id to perform operations. Otherwise, request access from the current owner.
     #[serde(default, rename = "resolveOwnershipConflict")]
-    pub resolve_ownership_conflict: ::core::option::Option<serde_json::Value>,
+    pub resolve_ownership_conflict: ::core::option::Option<ResolveOwnershipConflict>,
     /// Start or continue the verification process.
     #[serde(default)]
     pub verify: ::core::option::Option<Verify>,
     /// Wait to gain Voice of Merchant. The location is under review for quality purposes.
     #[serde(default, rename = "waitForVoiceOfMerchant")]
-    pub wait_for_voice_of_merchant: ::core::option::Option<serde_json::Value>,
+    pub wait_for_voice_of_merchant: ::core::option::Option<WaitForVoiceOfMerchant>,
 }
-
-/// Indicates that the location will gain voice of merchant after passing review.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaitForVoiceOfMerchant {}
 
 /// The verification option represents how to verify the location (indicated by verification method) and where the verification will be sent to (indicated by display data).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -222,12 +214,24 @@ pub struct ComplyWithGuidelines {
     pub recommendation_reason: ::core::option::Option<String>,
 }
 
+/// Indicates that the location duplicates another location that is in good standing.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResolveOwnershipConflict {
+    pub value: serde_json::Value,
+}
+
 /// Indicates that the location requires verification. Contains information about the current verification actions performed on the location.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Verify {
     /// Indicates whether a verification process has already started, and can be completed by the location.
     #[serde(default, rename = "hasPendingVerification")]
     pub has_pending_verification: ::core::option::Option<bool>,
+}
+
+/// Indicates that the location will gain voice of merchant after passing review.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitForVoiceOfMerchant {
+    pub value: serde_json::Value,
 }
 
 /// Display data for verifications through postcard.

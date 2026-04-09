@@ -35,7 +35,9 @@ pub struct AnalyzeIamPolicyLongrunningRequest {
 
 /// A response message for AssetService.AnalyzeIamPolicyLongrunning.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalyzeIamPolicyLongrunningResponse {}
+pub struct AnalyzeIamPolicyLongrunningResponse {
+    pub value: serde_json::Value,
+}
 
 /// A response message for AssetService.AnalyzeIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -134,7 +136,9 @@ pub struct CreateFeedRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Export asset request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -155,10 +159,6 @@ pub struct ExportAssetsRequest {
     #[serde(default, rename = "relationshipTypes")]
     pub relationship_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// A Constraint that is either enforced or not. For example a constraint constraints/compute.disableSerialPortAccess. If it is enforced on a VM instance, serial port connections will not be opened to that instance.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssetV1BooleanConstraint {}
 
 /// The string values for the list constraints.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -209,10 +209,6 @@ pub struct GoogleCloudAssetV1p7beta1Asset {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
-
-/// Ignores policies set above this resource and restores the constraint_default enforcement behavior of the specific Constraint at this resource. Suppose that constraint_default is set to ALLOW for the Constraint constraints/serviceuser.services. Suppose that organization foo.com sets a Policy at their Organization resource node that restricts the allowed service activations to deny all service activations. They could then set a Policy with the policy_type restore_default on several experimental projects, restoring the constraint_default enforcement of the Constraint for only those projects, allowing those projects to have all services activated.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudOrgpolicyV1RestoreDefault {}
 
 /// A single piece of inventory on a VM.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -984,7 +980,7 @@ pub struct GoogleCloudAssetV1CustomConstraint {
 pub struct GoogleCloudAssetV1Constraint {
     /// Defines this constraint as being a BooleanConstraint.
     #[serde(default, rename = "booleanConstraint")]
-    pub boolean_constraint: ::core::option::Option<serde_json::Value>,
+    pub boolean_constraint: ::core::option::Option<GoogleCloudAssetV1BooleanConstraint>,
     /// The evaluation behavior of this constraint in the absence of ''Policy''. // TODO: enum values: ["CONSTRAINT_DEFAULT_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "constraintDefault")]
     pub constraint_default: ::core::option::Option<String>,
@@ -1366,6 +1362,12 @@ pub struct EffectiveTagDetails {
     pub effective_tags: ::core::option::Option<::std::vec::Vec<Tag>>,
 }
 
+/// A Constraint that is either enforced or not. For example a constraint constraints/compute.disableSerialPortAccess. If it is enforced on a VM instance, serial port connections will not be opened to that instance.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudAssetV1BooleanConstraint {
+    pub value: serde_json::Value,
+}
+
 /// A Constraint that allows or disallows a list of string values, which are configured by an organization''s policy administrator with a Policy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1ListConstraint {
@@ -1457,7 +1459,7 @@ pub struct GoogleCloudOrgpolicyV1Policy {
     pub list_policy: ::core::option::Option<GoogleCloudOrgpolicyV1ListPolicy>,
     /// Restores the default behavior of the constraint; independent of Constraint type.
     #[serde(default, rename = "restoreDefault")]
-    pub restore_default: ::core::option::Option<serde_json::Value>,
+    pub restore_default: ::core::option::Option<GoogleCloudOrgpolicyV1RestoreDefault>,
     /// The time stamp the Policy was previously updated. This is set by the server, not specified by the caller, and represents the last time a call to SetOrgPolicy was made for that Policy. Any value set by the client will be ignored.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1787,6 +1789,12 @@ pub struct GoogleCloudOrgpolicyV1ListPolicy {
     /// Optional. The Google Cloud Console will try to default to a configuration that matches the value specified in this Policy. If suggested_value is not set, it will inherit the value specified higher in the hierarchy, unless inherit_from_parent is false.
     #[serde(default, rename = "suggestedValue")]
     pub suggested_value: ::core::option::Option<String>,
+}
+
+/// Ignores policies set above this resource and restores the constraint_default enforcement behavior of the specific Constraint at this resource. Suppose that constraint_default is set to ALLOW for the Constraint constraints/serviceuser.services. Suppose that organization foo.com sets a Policy at their Organization resource node that restricts the allowed service activations to deny all service activations. They could then set a Policy with the policy_type restore_default on several experimental projects, restoring the constraint_default enforcement of the Constraint for only those projects, allowing those projects to have all services activated.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudOrgpolicyV1RestoreDefault {
+    pub value: serde_json::Value,
 }
 
 /// Operating system information for the VM.

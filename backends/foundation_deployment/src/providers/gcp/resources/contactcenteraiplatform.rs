@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Represents a quota for contact centers.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -29,13 +31,11 @@ pub struct ContactCenterQuota {
     pub quotas: ::core::option::Option<::std::vec::Vec<Quota>>,
 }
 
-/// LINT.IfChange First Channel to receive the updates. Meant to dev/test instances
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Early {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request with constraints for generating shifts. The shifts generated must adhere to these constraints.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -121,10 +121,6 @@ pub struct ListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Instances in this Channel will receive updates after all instances in Early were updated + 2 days.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Normal {}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -320,7 +316,7 @@ pub struct ContactCenter {
     pub display_name: ::core::option::Option<String>,
     /// Optional. Early release channel.
     #[serde(default)]
-    pub early: ::core::option::Option<serde_json::Value>,
+    pub early: ::core::option::Option<Early>,
     /// Output only. Timestamp in UTC of when this resource is considered expired.
     #[serde(default, rename = "expireTime")]
     pub expire_time: ::core::option::Option<String>,
@@ -341,7 +337,7 @@ pub struct ContactCenter {
     pub name: ::core::option::Option<String>,
     /// Optional. Normal release channel.
     #[serde(default)]
-    pub normal: ::core::option::Option<serde_json::Value>,
+    pub normal: ::core::option::Option<Normal>,
     /// Optional. VPC-SC related networking configuration.
     #[serde(default, rename = "privateAccess")]
     pub private_access: ::core::option::Option<PrivateAccess>,
@@ -457,6 +453,12 @@ pub struct Critical {
     pub peak_hours: ::core::option::Option<::std::vec::Vec<WeeklySchedule>>,
 }
 
+/// LINT.IfChange First Channel to receive the updates. Meant to dev/test instances
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Early {
+    pub value: serde_json::Value,
+}
+
 /// FeatureConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureConfig {
@@ -471,6 +473,12 @@ pub struct InstanceConfig {
     /// The instance size of this the instance configuration. // TODO: enum values: ["INSTANCE_SIZE_UNSPECIFIED", "STANDARD_SMALL", "STANDARD_MEDIUM", "STANDARD_LARGE", "STANDARD_XLARGE", "STANDARD_2XLARGE", "STANDARD_3XLARGE", "MULTIREGION_SMALL", "MULTIREGION_MEDIUM", "MULTIREGION_LARGE", "MULTIREGION_XLARGE", "MULTIREGION_2XLARGE", "MULTIREGION_3XLARGE", "DEV_SMALL", "SANDBOX_SMALL", "TRIAL_SMALL", "TIME_LIMITED_TRIAL_SMALL"]
     #[serde(default, rename = "instanceSize")]
     pub instance_size: ::core::option::Option<String>,
+}
+
+/// Instances in this Channel will receive updates after all instances in Early were updated + 2 days.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Normal {
+    pub value: serde_json::Value,
 }
 
 /// Defines ingress and egress private traffic settings for CCAIP instances.

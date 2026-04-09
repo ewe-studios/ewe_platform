@@ -56,6 +56,12 @@ pub struct AaaApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// AaaApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AaaApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// Provides details about the actor who performed the action.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaAuditLogActorBase {
@@ -532,6 +538,12 @@ pub struct AbuseReportsSubmitErrorResponse {
     pub result: String,
 }
 
+/// AbuseReportsSubmitReportRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsSubmitReportRequest {
+    pub value: serde_json::Value,
+}
+
 /// AbuseReportsSubmitReportResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseReportsSubmitReportResponse {
@@ -646,6 +658,18 @@ pub struct AccessApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// AccessApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
+/// AccessAppId resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessAppId {
+    pub value: serde_json::Value,
+}
+
 /// AccessAppLauncherProps resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessAppLauncherProps {
@@ -719,6 +743,12 @@ pub struct AccessAppReqEmbeddedPolicies {
 pub struct AccessAppReqEmbeddedScimConfig {
     #[serde(default)]
     pub scim_config: ::core::option::Option<AccessScimConfig>,
+}
+
+/// AccessAppRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessAppRequest {
+    pub value: serde_json::Value,
 }
 
 /// The policies that Access applies to the application.
@@ -1062,6 +1092,18 @@ pub struct AccessDeleteAuthenticatorResponse {
 pub struct AccessDeleteUserResponse {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// Determines whether to deny all requests to Cloudflare-protected resources that lack an associated Access application. If enabled, you must explicitly configure an Access application and policy to allow traffic to your Cloudflare-protected resources. For domains you want to be public across all subdomains, add the domain to the deny_unmatched_requests_exempted_zone_names array.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessDenyUnmatchedRequests {
+    pub value: serde_json::Value,
+}
+
+/// Contains zone names to exempt from the deny_unmatched_requests feature. Requests to a subdomain in an exempted zone will block unauthenticated traffic by default if there is a configured Access application and policy that matches the request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessDenyUnmatchedRequestsExemptedZoneNames {
+    pub value: serde_json::Value,
 }
 
 /// Enforces a device posture rule has run successfully
@@ -1683,6 +1725,30 @@ pub struct AccessRdpProps {
     pub type_: ::core::option::Option<serde_json::Value>,
 }
 
+/// The request method of the SCIM request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessRequestMethod {
+    pub value: serde_json::Value,
+}
+
+/// The unique Cloudflare-generated Id of the SCIM resource.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessRequestsCfResourceId {
+    pub value: serde_json::Value,
+}
+
+/// The IdP-generated Id of the SCIM resource.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessRequestsIdpResourceId {
+    pub value: serde_json::Value,
+}
+
+/// The status of the SCIM request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessRequestsStatus {
+    pub value: serde_json::Value,
+}
+
 /// AccessResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessResponseCollection {
@@ -1716,6 +1782,12 @@ pub struct AccessReusablePoliciesComponentsSchemasResponseCollection {
 pub struct AccessReusablePoliciesComponentsSchemasSingleResponse {
     #[serde(default)]
     pub result: ::core::option::Option<AccessReusablePolicyResp>,
+}
+
+/// AccessRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessRule {
+    pub value: serde_json::Value,
 }
 
 /// AccessSaasProps resource type.
@@ -1972,6 +2044,12 @@ pub struct AccessSchemasIdResponse {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// AccessSchemasIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSchemasIdentifier {
+    pub value: serde_json::Value,
+}
+
 /// AccessSchemasIdentityProvider resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasIdentityProvider {
@@ -2173,6 +2251,12 @@ pub struct AccessSchemasScimConfigAuthenticationOauthBearerToken {
     pub token: String,
 }
 
+/// AccessSchemasScimConfigSingleAuthentication resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSchemasScimConfigSingleAuthentication {
+    pub value: serde_json::Value,
+}
+
 /// AccessSchemasSelfHostedProps resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasSelfHostedProps {
@@ -2305,6 +2389,12 @@ pub struct AccessScimConfigAuthenticationOauthBearerToken {
     pub scheme: String,
     /// Token used to authenticate with the remote SCIM service.
     pub token: String,
+}
+
+/// AccessScimConfigSingleAuthentication resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessScimConfigSingleAuthentication {
+    pub value: serde_json::Value,
 }
 
 /// AccessScimGroupsResponse resource type.
@@ -2462,6 +2552,12 @@ pub struct AccessSshProps {
     pub type_: ::core::option::Option<serde_json::Value>,
 }
 
+/// AccessStringKeyMapDeviceSession resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessStringKeyMapDeviceSession {
+    pub value: serde_json::Value,
+}
+
 /// A tag
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessTagWithoutAppCount {
@@ -2598,6 +2694,12 @@ pub struct AddressingApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// AddressingApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddressingApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// AddressingBgpPrefixCreate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpPrefixCreate {
@@ -2662,6 +2764,12 @@ pub struct AddressingLeasesComponentsSchemasResponseCollection {
 pub struct AddressingLoaUploadResponse {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// Zones and Accounts which will be assigned IPs on this Address Map. A zone membership will take priority over an account membership.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AddressingMembershipRequests {
+    pub value: serde_json::Value,
 }
 
 /// AddressingResponseCollection resource type.
@@ -2878,6 +2986,12 @@ pub struct ApiShieldApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// ApiShieldApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// ApiShieldApiResponseSingleObj resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldApiResponseSingleObj {
@@ -2957,6 +3071,12 @@ pub struct ApiShieldConfidenceIntervalsBounds {
 pub struct ApiShieldConfigurationSingleResponse {
     #[serde(default)]
     pub result: ::core::option::Option<ApiShieldConfiguration>,
+}
+
+/// ApiShieldCreateSingleRuleRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldCreateSingleRuleRequest {
+    pub value: serde_json::Value,
 }
 
 /// JSON representation of an ES256 key
@@ -3138,6 +3258,12 @@ pub struct ApiShieldOldOperationSchemaValidationSettingsModifyRequest {
     pub mitigation_action: ::core::option::Option<serde_json::Value>,
 }
 
+/// ApiShieldOldOperationSchemaValidationSettingsMultipleRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldOldOperationSchemaValidationSettingsMultipleRequest {
+    pub value: serde_json::Value,
+}
+
 /// Operation ID to mitigation action mappings
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldOldOperationSchemaValidationSettingsMultipleRequestEntry {
@@ -3195,6 +3321,18 @@ pub struct ApiShieldOldZoneSchemaValidationSettingsPut {
     pub validation_default_mitigation_action: serde_json::Value,
     #[serde(default)]
     pub validation_override_mitigation_action: ::core::option::Option<serde_json::Value>,
+}
+
+/// A OpenAPI 3.0.0 compliant schema.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldOpenapi {
+    pub value: serde_json::Value,
+}
+
+/// A OpenAPI 3.0.0 compliant schema.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldOpenapiWithThresholds {
+    pub value: serde_json::Value,
 }
 
 /// ApiShieldOperationFeatureApiRouting resource type.
@@ -3273,6 +3411,12 @@ pub struct ApiShieldPatchLabelRequest {
     pub metadata: ::core::option::Option<ApiShieldLabelMetadata>,
 }
 
+/// Operation ID to per operation setting mapping
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldPerOperationBulkSettings {
+    pub value: serde_json::Value,
+}
+
 /// ApiShieldPerOperationSetting resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPerOperationSetting {
@@ -3340,6 +3484,12 @@ pub struct ApiShieldRequestExpressionTemplatesFallthrough {
     pub hosts: ::std::vec::Vec<String>,
 }
 
+/// The estimated number of requests covered by these calculations.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldRequests {
+    pub value: serde_json::Value,
+}
+
 /// ApiShieldResponseExpressionTemplatesFallthrough resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldResponseExpressionTemplatesFallthrough {
@@ -3400,6 +3550,12 @@ pub struct ApiShieldSchemaResponseDiscovery {
 pub struct ApiShieldSchemaResponseWithThresholds {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// ApiShieldSchemasIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldSchemasIdentifier {
+    pub value: serde_json::Value,
 }
 
 /// ApiShieldSingleOperationResponse resource type.
@@ -3688,6 +3844,12 @@ pub struct BotManagementApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// BotManagementApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BotManagementApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// BotManagementBaseConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BotManagementBaseConfig {
@@ -3734,6 +3896,12 @@ pub struct BotManagementBotFightModeConfig {
 pub struct BotManagementBotManagementResponseBody {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// BotManagementConfigSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BotManagementConfigSingle {
+    pub value: serde_json::Value,
 }
 
 /// BotManagementFeedbackReport resource type.
@@ -4040,6 +4208,18 @@ pub struct BuildsCreateTriggerRequest {
     pub repo_connection_uuid: serde_json::Value,
     pub root_directory: serde_json::Value,
     pub trigger_name: serde_json::Value,
+}
+
+/// BuildsEnvironmentVariablesRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildsEnvironmentVariablesRequest {
+    pub value: serde_json::Value,
+}
+
+/// BuildsEnvironmentVariablesResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BuildsEnvironmentVariablesResponse {
+    pub value: serde_json::Value,
 }
 
 /// BuildsErrorResponse resource type.
@@ -4501,6 +4681,12 @@ pub struct CallsApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// CallsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CallsApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// CallsAppEditableFields resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppEditableFields {
@@ -4599,6 +4785,19 @@ pub struct CcImageRegistryCredentialsConfiguration {
     pub permissions: ::std::vec::Vec<serde_json::Value>,
 }
 
+/// The instance type will be used to configure vCPU, memory, and disk.
+///
+/// - "lite": 1/16 vCPU, 256 MiB memory, 2 GB disk
+/// - "basic": 1/4 vCPU, 1 GiB memory, 4 GB disk
+/// - "standard-1": 1/2 vCPU, 4 GiB memory, 8 GB disk
+/// - "standard-2": 1 vCPU, 6 GiB memory, 12 GB disk
+/// - "standard-3": 2 vCPU, 8 GiB memory, 16 GB disk
+/// - "standard-4": 4 vCPU, 12 GiB memory, 20 GB disk
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CcInstanceType {
+    pub value: serde_json::Value,
+}
+
 /// CcPublicListApplicationsResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CcPublicListApplicationsResult {
@@ -4679,6 +4878,12 @@ pub struct CloudflarePipelinesConnectionSchema {
     pub format: ::core::option::Option<CloudflarePipelinesFormat>,
     #[serde(default)]
     pub inferred: ::core::option::Option<bool>,
+}
+
+/// CloudflarePipelinesFieldType resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudflarePipelinesFieldType {
+    pub value: serde_json::Value,
 }
 
 /// CloudflarePipelinesJsonFormat resource type.
@@ -4997,6 +5202,42 @@ pub struct CloudforceOneRequestsApiResponseCommonFailure {
     pub success: ::core::option::Option<bool>,
 }
 
+/// Asset file to upload.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsAssetContent {
+    pub value: serde_json::Value,
+}
+
+/// Identifier.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsIdentifier {
+    pub value: serde_json::Value,
+}
+
+/// List of labels.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsLabels {
+    pub value: serde_json::Value,
+}
+
+/// Content of message.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsMessageContent {
+    pub value: serde_json::Value,
+}
+
+/// CloudforceOneRequestsMessages resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsMessages {
+    pub value: serde_json::Value,
+}
+
+/// CloudforceOneRequestsPriority resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsPriority {
+    pub value: serde_json::Value,
+}
+
 /// CloudforceOneRequestsPriorityEdit resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsPriorityEdit {
@@ -5093,6 +5334,12 @@ pub struct CloudforceOneRequestsRequestConstants {
     pub status: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
     #[serde(default)]
     pub tlp: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Request content.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestContent {
+    pub value: serde_json::Value,
 }
 
 /// CloudforceOneRequestsRequestEdit resource type.
@@ -5239,6 +5486,54 @@ pub struct CloudforceOneRequestsRequestMessageList {
     pub sort_order: ::core::option::Option<String>,
 }
 
+/// Readable Request ID.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestReadableId {
+    pub value: serde_json::Value,
+}
+
+/// Request Status.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestStatus {
+    pub value: serde_json::Value,
+}
+
+/// Brief description of the request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestSummary {
+    pub value: serde_json::Value,
+}
+
+/// Requested information from request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestType {
+    pub value: serde_json::Value,
+}
+
+/// CloudforceOneRequestsRequestTypes resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsRequestTypes {
+    pub value: serde_json::Value,
+}
+
+/// CloudforceOneRequestsTime resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsTime {
+    pub value: serde_json::Value,
+}
+
+/// The CISA defined Traffic Light Protocol (TLP).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsTlp {
+    pub value: serde_json::Value,
+}
+
+/// UUID.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneRequestsUuid {
+    pub value: serde_json::Value,
+}
+
 /// CloudforceOneWhoisApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneWhoisApiResponseCommon {
@@ -5257,6 +5552,12 @@ pub struct CloudforceOneWhoisApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Returns a boolean for the success/failure of the API call. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// CloudforceOneWhoisApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudforceOneWhoisApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// CloudforceOneWhoisSchemasSingleResponse resource type.
@@ -5284,6 +5585,12 @@ pub struct CustomIndicatorFeedsApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// CustomIndicatorFeedsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomIndicatorFeedsApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// CustomIndicatorFeedsCreateFeedResponse resource type.
@@ -5400,6 +5707,12 @@ pub struct CustomPagesApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// CustomPagesApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CustomPagesApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// CustomPagesCustomAssetResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomPagesCustomAssetResult {
@@ -5447,6 +5760,12 @@ pub struct D1ApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// A single query object or a batch query object
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct D1BatchQuery {
+    pub value: serde_json::Value,
 }
 
 /// The details of the D1 database.
@@ -5582,6 +5901,18 @@ pub struct DigitalExperienceMonitoringApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// DigitalExperienceMonitoringApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DigitalExperienceMonitoringApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
+/// array of colos.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DigitalExperienceMonitoringColosResponse {
+    pub value: serde_json::Value,
 }
 
 /// DigitalExperienceMonitoringCommandsDevicesResponse resource type.
@@ -5916,6 +6247,12 @@ pub struct DigitalExperienceMonitoringWarpConfigChangeEvent {
     pub user_email: ::core::option::Option<String>,
 }
 
+/// DigitalExperienceMonitoringWarpEventsResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DigitalExperienceMonitoringWarpEventsResponse {
+    pub value: serde_json::Value,
+}
+
 /// DigitalExperienceMonitoringWarpToggleChangeEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringWarpToggleChangeEvent {
@@ -6219,11 +6556,23 @@ pub struct DlpEmailRule {
     pub updated_at: String,
 }
 
+/// DlpEmpty resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmpty {
+    pub value: serde_json::Value,
+}
+
 /// DlpEntryUpdate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpEntryUpdate {
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
+}
+
+/// DlpEntryUpdateType resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryUpdateType {
+    pub value: serde_json::Value,
 }
 
 /// DlpEntryWithSharedProfiles resource type.
@@ -6519,6 +6868,12 @@ pub struct DlpPredefinedProfileUpdate {
     pub ocr_enabled: ::core::option::Option<bool>,
 }
 
+/// DlpProfile resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfile {
+    pub value: serde_json::Value,
+}
+
 /// DlpRegexValidationQuery resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpRegexValidationQuery {
@@ -6674,6 +7029,12 @@ pub struct DlpApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DlpApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// DlsApiResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlsApiResponseCollection {
@@ -6729,6 +7090,12 @@ pub struct DnsAnalyticsApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// DnsAnalyticsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsAnalyticsApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// DnsAnalyticsReport resource type.
@@ -6816,11 +7183,23 @@ pub struct DnsCustomNameserversApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DnsCustomNameserversApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// DnsCustomNameserversEmptyResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversEmptyResponse {
     #[serde(default)]
     pub result: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// DnsCustomNameserversGetResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsCustomNameserversGetResponse {
+    pub value: serde_json::Value,
 }
 
 /// DnsCustomNameserversSchemasEmptyResponse resource type.
@@ -6868,6 +7247,18 @@ pub struct DnsFirewallApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DnsFirewallApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
+/// Whether to refuse to answer queries for the ANY type
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDeprecateAnyRequests {
+    pub value: serde_json::Value,
+}
+
 /// DnsFirewallDnsFirewallCluster resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsFirewallDnsFirewallCluster {
@@ -6893,6 +7284,18 @@ pub struct DnsFirewallDnsFirewallCluster {
     pub upstream_ips: ::core::option::Option<serde_json::Value>,
 }
 
+/// DnsFirewallDnsFirewallClusterPatch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallClusterPatch {
+    pub value: serde_json::Value,
+}
+
+/// DnsFirewallDnsFirewallClusterPost resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallClusterPost {
+    pub value: serde_json::Value,
+}
+
 /// DnsFirewallDnsFirewallResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsFirewallDnsFirewallResponseCollection {
@@ -6906,6 +7309,12 @@ pub struct DnsFirewallDnsFirewallReverseDns {
     /// Map of cluster IP addresses to PTR record contents
     #[serde(default)]
     pub ptr: ::core::option::Option<serde_json::Value>,
+}
+
+/// DnsFirewallDnsFirewallReverseDnsPatch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallReverseDnsPatch {
+    pub value: serde_json::Value,
 }
 
 /// DnsFirewallDnsFirewallReverseDnsResponse resource type.
@@ -7231,6 +7640,24 @@ pub struct DnsRecordsApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DnsRecordsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
+/// DnsRecordsDnsRecordPatch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordPatch {
+    pub value: serde_json::Value,
+}
+
+/// DnsRecordsDnsRecordPost resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordPost {
+    pub value: serde_json::Value,
+}
+
 /// DnsRecordsDnsRecordSharedFields resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRecordSharedFields {
@@ -7246,6 +7673,18 @@ pub struct DnsRecordsDnsRecordSharedFields {
     pub tags: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub ttl: ::core::option::Option<DnsRecordsTtl>,
+}
+
+/// DnsRecordsDnsRecordWithData resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordWithData {
+    pub value: serde_json::Value,
+}
+
+/// DnsRecordsDnsRecordWithoutData resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordWithoutData {
+    pub value: serde_json::Value,
 }
 
 /// DnsRecordsDnsRequestBatchObject resource type.
@@ -7312,6 +7751,12 @@ pub struct DnsRecordsDnsResponseSingle {
     pub result: ::core::option::Option<DnsRecordsDnsRecordResponse>,
 }
 
+/// DnsRecordsDnsResponseTriggerScan resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsResponseTriggerScan {
+    pub value: serde_json::Value,
+}
+
 /// DnsRecordsDnsResponseZoneUsage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseZoneUsage {
@@ -7353,6 +7798,12 @@ pub struct DnsSettingsApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DnsSettingsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// DnsSettingsDnsResponseSingle resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettingsDnsResponseSingle {
@@ -7378,6 +7829,12 @@ pub struct DnsSettingsDnsSettingsBase {
     pub soa: ::core::option::Option<DnsSettingsSoaBase>,
     #[serde(default)]
     pub zone_mode: ::core::option::Option<serde_json::Value>,
+}
+
+/// DnsSettingsDnsSettingsPatch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsSettingsPatch {
+    pub value: serde_json::Value,
 }
 
 /// DnsSettingsDnsSettingsResponse resource type.
@@ -7408,6 +7865,18 @@ pub struct DnsSettingsDnsView {
     pub name: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub zones: ::core::option::Option<serde_json::Value>,
+}
+
+/// DnsSettingsDnsViewPatch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewPatch {
+    pub value: serde_json::Value,
+}
+
+/// DnsSettingsDnsViewPost resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewPost {
+    pub value: serde_json::Value,
 }
 
 /// DnsSettingsDnsViewResponseCollection resource type.
@@ -7448,6 +7917,12 @@ pub struct DnssecApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// DnssecApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnssecApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// DnssecDeleteDnssecResponseSingle resource type.
@@ -7660,6 +8135,12 @@ pub struct DosApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// DosApiResponseCommonPaginated resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DosApiResponseCommonPaginated {
+    pub value: serde_json::Value,
+}
+
 /// DosDnsProtectionRuleListResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosDnsProtectionRuleListResponse {
@@ -7767,6 +8248,12 @@ pub struct EmailApiResponseCommon {
     pub success: bool,
 }
 
+/// EmailApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// EmailCatchAllRuleResponseSingle resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailCatchAllRuleResponseSingle {
@@ -7854,6 +8341,12 @@ pub struct EmailEmailRoutingGetResponseDnsError {
     pub code: ::core::option::Option<String>,
     #[serde(default)]
     pub missing: ::core::option::Option<EmailDnsRecord>,
+}
+
+/// EmailEmailRoutingGetResponseDnsErrors resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailEmailRoutingGetResponseDnsErrors {
+    pub value: serde_json::Value,
 }
 
 /// EmailEmailSettingDnsRequestBody resource type.
@@ -8715,6 +9208,13 @@ pub struct FirewallCountryConfiguration {
     pub value: ::core::option::Option<String>,
 }
 
+/// A custom content type and reponse to return when the threshold is exceeded. The custom response configured in this object will override the custom error for the zone. This object is optional.
+/// Notes: If you omit this object, Cloudflare will use the default HTML error page. If "mode" is "challenge", "managed_challenge", or "js_challenge", Cloudflare will use the zone challenge pages and you should not provide the "response" object.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallCustomResponse {
+    pub value: serde_json::Value,
+}
+
 /// FirewallDeletedFilter resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallDeletedFilter {
@@ -8873,6 +9373,12 @@ pub struct FirewallOverrideResponseSingle {
     pub result: ::core::option::Option<FirewallOverride>,
 }
 
+/// FirewallPackage resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPackage {
+    pub value: serde_json::Value,
+}
+
 /// FirewallPackageDefinition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPackageDefinition {
@@ -8883,6 +9389,18 @@ pub struct FirewallPackageDefinition {
     #[serde(default)]
     pub status: ::core::option::Option<serde_json::Value>,
     pub zone_id: serde_json::Value,
+}
+
+/// FirewallPackageResponseCollection resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPackageResponseCollection {
+    pub value: serde_json::Value,
+}
+
+/// FirewallPackageResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallPackageResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// FirewallRatelimit resource type.
@@ -9020,6 +9538,12 @@ pub struct FraudApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// FraudApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FraudApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// FraudFraudSettingsResponseBody resource type.
@@ -9182,12 +9706,24 @@ pub struct HyperdriveApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// HyperdriveApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// HyperdriveHyperdriveCachingCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveCachingCommon {
     /// Set to true to disable caching of SQL responses. Default is false.
     #[serde(default)]
     pub disabled: ::core::option::Option<bool>,
+}
+
+/// HyperdriveHyperdriveCachingDisabled resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveCachingDisabled {
+    pub value: serde_json::Value,
 }
 
 /// HyperdriveHyperdriveCachingEnabled resource type.
@@ -9236,6 +9772,12 @@ pub struct HyperdriveHyperdriveConfigPatch {
     pub origin_connection_limit: ::core::option::Option<serde_json::Value>,
 }
 
+/// HyperdriveHyperdriveConfigResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveConfigResponse {
+    pub value: serde_json::Value,
+}
+
 /// HyperdriveHyperdriveDatabase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveDatabase {
@@ -9250,6 +9792,18 @@ pub struct HyperdriveHyperdriveDatabase {
     /// Set the user of your origin database.
     #[serde(default)]
     pub user: ::core::option::Option<String>,
+}
+
+/// HyperdriveHyperdriveDatabaseFull resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveDatabaseFull {
+    pub value: serde_json::Value,
+}
+
+/// HyperdriveHyperdriveOrigin resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveOrigin {
+    pub value: serde_json::Value,
 }
 
 /// HyperdriveInternetOrigin resource type.
@@ -9270,6 +9824,12 @@ pub struct HyperdriveOverAccessOrigin {
     pub access_client_secret: String,
     /// Defines the host (hostname or IP) of your origin database.
     pub host: String,
+}
+
+/// Account identifier tag.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamAccountIdentifier {
+    pub value: serde_json::Value,
 }
 
 /// IamApiResponseCollection resource type.
@@ -9297,6 +9857,12 @@ pub struct IamApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// IamApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// IamApiResponseSingleId resource type.
@@ -9353,6 +9919,12 @@ pub struct IamCollectionRoleResponse {
 pub struct IamCollectionTokensResponse {
     #[serde(default)]
     pub result: ::core::option::Option<::std::vec::Vec<IamTokenBase>>,
+}
+
+/// IamComponentsSchemasAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamComponentsSchemasAccount {
+    pub value: serde_json::Value,
 }
 
 /// IamCreateAccount resource type.
@@ -9423,6 +9995,12 @@ pub struct IamMemberResourceGroup {
     pub id: String,
 }
 
+/// Permission Group identifier tag.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamPermissionGroupIdentifier {
+    pub value: serde_json::Value,
+}
+
 /// IamPermissionsGroupResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPermissionsGroupResponseCollection {
@@ -9470,6 +10048,24 @@ pub struct IamResourceGroup {
     pub name: ::core::option::Option<String>,
     /// The scope associated to the resource group
     pub scope: ::std::vec::Vec<IamScope>,
+}
+
+/// Resource Group identifier tag.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamResourceGroupIdentifier {
+    pub value: serde_json::Value,
+}
+
+/// Map of nested resource permissions
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamResourcesTypeObjectNested {
+    pub value: serde_json::Value,
+}
+
+/// Map of simple string resource permissions
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamResourcesTypeObjectString {
+    pub value: serde_json::Value,
 }
 
 /// IamResponseCollection resource type.
@@ -9802,6 +10398,12 @@ pub struct IamSsoConnectorResponse {
     pub result: ::core::option::Option<IamSsoConnector>,
 }
 
+/// IamTokenBody resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamTokenBody {
+    pub value: serde_json::Value,
+}
+
 /// IamTokenVerifyResponseSingleSegment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamTokenVerifyResponseSingleSegment {
@@ -9868,6 +10470,12 @@ pub struct IamUserGroupMember {
     /// The member''s status in the account. // TODO: enum values: ["accepted", "pending"]
     #[serde(default)]
     pub status: ::core::option::Option<serde_json::Value>,
+}
+
+/// The identifier of an existing account Member.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamUserGroupMemberIdentifier {
+    pub value: serde_json::Value,
 }
 
 /// ImagesApiResponseCollectionV2 resource type.
@@ -9981,6 +10589,12 @@ pub struct ImagesImagePatchRequest {
     /// Indicates whether the image can be accessed using only its UID. If set to true, a signed token needs to be generated with a signing key to view the image. Returns a new UID on a change. No change if not specified.
     #[serde(default, rename = "requireSignedURLs")]
     pub require_signed_u_r_ls: ::core::option::Option<bool>,
+}
+
+/// ImagesImageResponseBlob resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageResponseBlob {
+    pub value: serde_json::Value,
 }
 
 /// ImagesImageResponseSingle resource type.
@@ -10104,6 +10718,12 @@ pub struct InfraServiceCommon {
     pub updated_at: ::core::option::Option<String>,
 }
 
+/// InfraServiceConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InfraServiceConfig {
+    pub value: serde_json::Value,
+}
+
 /// InfraTarget resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfraTarget {
@@ -10154,6 +10774,12 @@ pub struct InfraApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// InfraApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InfraApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// IntelApiResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelApiResponseCollection {
@@ -10182,6 +10808,12 @@ pub struct IntelApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful.
     pub success: bool,
+}
+
+/// IntelApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntelApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// IntelAsnComponentsSchemasResponse resource type.
@@ -10343,6 +10975,12 @@ pub struct IntelSinkholesApiResponseCommon {
     pub success: bool,
 }
 
+/// IntelSinkholesEmptyObjectResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntelSinkholesEmptyObjectResponse {
+    pub value: serde_json::Value,
+}
+
 /// IntelSinkholesGetSinkholesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelSinkholesGetSinkholesResponse {
@@ -10488,11 +11126,29 @@ pub struct ListsItemsListResponseCollection {
     pub result_info: ::core::option::Option<serde_json::Value>,
 }
 
+/// ListsItemsUpdateRequestCollection resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsItemsUpdateRequestCollection {
+    pub value: serde_json::Value,
+}
+
 /// ListsListDeleteResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListDeleteResponseCollection {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// ListsListItemAsnComment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemAsnComment {
+    pub value: serde_json::Value,
+}
+
+/// ListsListItemAsnFull resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemAsnFull {
+    pub value: serde_json::Value,
 }
 
 /// ListsListItemAsnObject resource type.
@@ -10501,16 +11157,52 @@ pub struct ListsListItemAsnObject {
     pub asn: serde_json::Value,
 }
 
+/// ListsListItemHostnameComment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemHostnameComment {
+    pub value: serde_json::Value,
+}
+
+/// ListsListItemHostnameFull resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemHostnameFull {
+    pub value: serde_json::Value,
+}
+
 /// ListsListItemHostnameObject resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListItemHostnameObject {
     pub hostname: serde_json::Value,
 }
 
+/// ListsListItemIpComment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemIpComment {
+    pub value: serde_json::Value,
+}
+
+/// ListsListItemIpFull resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemIpFull {
+    pub value: serde_json::Value,
+}
+
 /// ListsListItemIpObject resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListItemIpObject {
     pub ip: serde_json::Value,
+}
+
+/// ListsListItemRedirectComment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemRedirectComment {
+    pub value: serde_json::Value,
+}
+
+/// ListsListItemRedirectFull resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsListItemRedirectFull {
+    pub value: serde_json::Value,
 }
 
 /// ListsListItemRedirectObject resource type.
@@ -10825,6 +11517,12 @@ pub struct LogcontrolApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// LogcontrolApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogcontrolApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// LogcontrolCmbConfigResponseSingle resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogcontrolCmbConfigResponseSingle {
@@ -10857,6 +11555,12 @@ pub struct LogpushApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// LogpushApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogpushApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// LogpushDestinationExistsResponse resource type.
@@ -10933,11 +11637,29 @@ pub struct LogshareApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// Sets the (exclusive) end of the requested time frame. This can be a unix timestamp (in seconds or nanoseconds), or an absolute timestamp that conforms to RFC 3339. end must be at least five minutes earlier than now and must be later than start. Difference between start and end must be not greater than one hour.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogshareEnd {
+    pub value: serde_json::Value,
+}
+
 /// LogshareFieldsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogshareFieldsResponse {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
+}
+
+/// LogshareLogsResponseJsonLines resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogshareLogsResponseJsonLines {
+    pub value: serde_json::Value,
+}
+
+/// Sets the (inclusive) beginning of the requested time frame. This can be a unix timestamp (in seconds or nanoseconds), or an absolute timestamp that conforms to RFC 3339. At this point in time, it cannot exceed a time in the past greater than seven days.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogshareStart {
+    pub value: serde_json::Value,
 }
 
 /// MagicAclDeletedResponse resource type.
@@ -11238,6 +11960,12 @@ pub struct MagicGreTunnelAddSingleRequest {
     pub ttl: ::core::option::Option<serde_json::Value>,
 }
 
+/// MagicGreTunnelUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicGreTunnelUpdateRequest {
+    pub value: serde_json::Value,
+}
+
 /// MagicHealthCheckBase resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicHealthCheckBase {
@@ -11318,6 +12046,12 @@ pub struct MagicInterconnectTunnelUpdateRequest {
     pub name: ::core::option::Option<serde_json::Value>,
 }
 
+/// MagicIpsecTunnelAddRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicIpsecTunnelAddRequest {
+    pub value: serde_json::Value,
+}
+
 /// MagicIpsecTunnelAddSingleRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicIpsecTunnelAddSingleRequest {
@@ -11342,6 +12076,12 @@ pub struct MagicIpsecTunnelAddSingleRequest {
     pub psk: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub replay_protection: ::core::option::Option<serde_json::Value>,
+}
+
+/// MagicIpsecTunnelUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicIpsecTunnelUpdateRequest {
+    pub value: serde_json::Value,
 }
 
 /// MagicLanDeletedResponse resource type.
@@ -11541,6 +12281,12 @@ pub struct MagicRouteSingleResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteUpdateManyRequest {
     pub routes: ::std::vec::Vec<MagicRouteUpdateSingleRequest>,
+}
+
+/// MagicRouteUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicRouteUpdateRequest {
+    pub value: serde_json::Value,
 }
 
 /// MagicRoutesCollectionResponse resource type.
@@ -11918,6 +12664,12 @@ pub struct MagicVisibilityPcapsPcapsRequestFull {
     pub type_: serde_json::Value,
 }
 
+/// MagicVisibilityPcapsPcapsRequestPcap resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsRequestPcap {
+    pub value: serde_json::Value,
+}
+
 /// MagicVisibilityPcapsPcapsRequestSimple resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsRequestSimple {
@@ -11989,6 +12741,12 @@ pub struct MagicVisibilityPcapsPcapsResponseSimple {
 pub struct MagicVisibilityPcapsPcapsSingleResponse {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// The RFC 3339 timestamp when stopping the packet capture was requested. This field only applies to full packet captures.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicVisibilityPcapsPcapsStopRequested {
+    pub value: serde_json::Value,
 }
 
 /// MagicWanDeletedResponse resource type.
@@ -12462,6 +13220,12 @@ pub struct McnYamlItem {
     pub yaml: String,
 }
 
+/// MconnAdminCohortCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminCohortCreateRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminCohortCreateResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminCohortCreateResponse {
@@ -12499,6 +13263,12 @@ pub struct MconnAdminCohortListResponse {
     pub result: ::core::option::Option<::std::vec::Vec<MconnAdminCohort>>,
 }
 
+/// MconnAdminCohortReplaceRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminCohortReplaceRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminCohortReplaceResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminCohortReplaceResponse {
@@ -12506,11 +13276,23 @@ pub struct MconnAdminCohortReplaceResponse {
     pub result: ::core::option::Option<MconnAdminCohort>,
 }
 
+/// MconnAdminCohortUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminCohortUpdateRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminCohortUpdateResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminCohortUpdateResponse {
     #[serde(default)]
     pub result: ::core::option::Option<MconnAdminCohort>,
+}
+
+/// MconnAdminConnectorCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminConnectorCreateRequest {
+    pub value: serde_json::Value,
 }
 
 /// MconnAdminConnectorCreateResponse resource type.
@@ -12582,6 +13364,12 @@ pub struct MconnAdminConnectorListResponse {
     pub result: ::core::option::Option<::std::vec::Vec<MconnAdminConnector>>,
 }
 
+/// MconnAdminConnectorReplaceRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminConnectorReplaceRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminConnectorReplaceResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminConnectorReplaceResponse {
@@ -12589,11 +13377,23 @@ pub struct MconnAdminConnectorReplaceResponse {
     pub result: ::core::option::Option<MconnAdminConnector>,
 }
 
+/// MconnAdminConnectorUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminConnectorUpdateRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminConnectorUpdateResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminConnectorUpdateResponse {
     #[serde(default)]
     pub result: ::core::option::Option<MconnAdminConnector>,
+}
+
+/// MconnAdminDeviceCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminDeviceCreateRequest {
+    pub value: serde_json::Value,
 }
 
 /// MconnAdminDeviceCreateResponse resource type.
@@ -12675,11 +13475,23 @@ pub struct MconnAdminDeviceListResponse {
     pub result: ::core::option::Option<::std::vec::Vec<MconnAdminDevice>>,
 }
 
+/// MconnAdminDeviceReplaceRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminDeviceReplaceRequest {
+    pub value: serde_json::Value,
+}
+
 /// MconnAdminDeviceReplaceResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnAdminDeviceReplaceResponse {
     #[serde(default)]
     pub result: ::core::option::Option<MconnAdminDevice>,
+}
+
+/// MconnAdminDeviceUpdateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnAdminDeviceUpdateRequest {
+    pub value: serde_json::Value,
 }
 
 /// MconnAdminDeviceUpdateResponse resource type.
@@ -13153,6 +13965,12 @@ pub struct MqApiV4Success {
     pub success: ::core::option::Option<bool>,
 }
 
+/// Request body for creating or updating a consumer
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MqConsumerRequest {
+    pub value: serde_json::Value,
+}
+
 /// MqEventDestinationQueue resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqEventDestinationQueue {
@@ -13411,6 +14229,12 @@ pub struct NscCniList {
     pub next: ::core::option::Option<i32>,
 }
 
+/// NscInterconnectCreate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NscInterconnectCreate {
+    pub value: serde_json::Value,
+}
+
 /// NscInterconnectCreateGcpPartnerBody resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscInterconnectCreateGcpPartnerBody {
@@ -13505,6 +14329,18 @@ pub struct NscSlotList {
     pub next: ::core::option::Option<i32>,
 }
 
+/// NscStatusInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NscStatusInfo {
+    pub value: serde_json::Value,
+}
+
+/// ObservatoryApiResponseCollection resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObservatoryApiResponseCollection {
+    pub value: serde_json::Value,
+}
+
 /// ObservatoryApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryApiResponseCommon {
@@ -13523,6 +14359,12 @@ pub struct ObservatoryApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// ObservatoryApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ObservatoryApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// ObservatoryAvailabilitiesResponse resource type.
@@ -14281,6 +15123,12 @@ pub struct PublicIpApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// PublicIpApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PublicIpApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// PublicIpIps resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicIpIps {
@@ -14454,6 +15302,12 @@ pub struct R2DataCatalogCatalogMaintenanceConfigResponse {
     pub maintenance_config: R2DataCatalogCatalogMaintenanceConfig,
 }
 
+/// Contains request to update catalog maintenance configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogCatalogMaintenanceUpdateRequest {
+    pub value: serde_json::Value,
+}
+
 /// Contains maintenance update parameters.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogMaintenanceUpdateParams {
@@ -14499,6 +15353,12 @@ pub struct R2DataCatalogTableListResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogTableMaintenanceConfigResponse {
     pub maintenance_config: R2DataCatalogTableMaintenanceConfig,
+}
+
+/// Contains request to update table maintenance configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogTableMaintenanceUpdateRequest {
+    pub value: serde_json::Value,
 }
 
 /// R2EditCustomDomainRequest resource type.
@@ -15449,6 +16309,12 @@ pub struct RegistrarApiContactProperties {
     pub zip: serde_json::Value,
 }
 
+/// RegistrarApiContacts resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiContacts {
+    pub value: serde_json::Value,
+}
+
 /// RegistrarApiDomainProperties resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistrarApiDomainProperties {
@@ -15503,6 +16369,12 @@ pub struct RegistrarApiDomainUpdateProperties {
     pub privacy: ::core::option::Option<serde_json::Value>,
 }
 
+/// RequestTracerAccountIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerAccountIdentifier {
+    pub value: serde_json::Value,
+}
+
 /// RequestTracerApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestTracerApiResponseCommon {
@@ -15521,6 +16393,24 @@ pub struct RequestTracerApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// Identifier.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerIdentifier {
+    pub value: serde_json::Value,
+}
+
+/// RequestTracerMessages resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerMessages {
+    pub value: serde_json::Value,
+}
+
+/// RequestTracerTrace resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RequestTracerTrace {
+    pub value: serde_json::Value,
 }
 
 /// ResourceSharingApiResponseCollection resource type.
@@ -15602,6 +16492,12 @@ pub struct ResourceSharingShareResponseSingle {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// ResourceSharingUpdateShareRecipientsRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingUpdateShareRecipientsRequest {
+    pub value: serde_json::Value,
+}
+
 /// ResourceSharingUpdateShareRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingUpdateShareRequest {
@@ -15619,6 +16515,12 @@ pub struct ResourceSharingUpdateShareResourceRequest {
 pub struct ResourceSharingV4error {
     pub code: i64,
     pub message: String,
+}
+
+/// ResourceTaggingAccountId resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingAccountId {
+    pub value: serde_json::Value,
 }
 
 /// ResourceTaggingApiResponseCommon resource type.
@@ -15641,6 +16543,12 @@ pub struct ResourceTaggingApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// Request body schema for deleting tags from account-level resources. Use /zones/{zone_id}/tags for zone-level resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
+    pub value: serde_json::Value,
+}
+
 /// Request body schema for deleting tags from account-level resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingDeleteTagsRequestAccountLevelBase {
@@ -15655,6 +16563,12 @@ pub struct ResourceTaggingDeleteTagsRequestAccountLevelWorkerVersion {
     pub resource_type: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub worker_id: ::core::option::Option<serde_json::Value>,
+}
+
+/// Request body schema for deleting tags from zone-level resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingDeleteTagsRequestZoneLevel {
+    pub value: serde_json::Value,
 }
 
 /// Request body schema for deleting tags from access_application_policy resources.
@@ -15673,6 +16587,12 @@ pub struct ResourceTaggingDeleteTagsRequestZoneLevelBase {
     pub resource_type: serde_json::Value,
 }
 
+/// Request body schema for setting tags on account-level resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingSetTagsRequestAccountLevel {
+    pub value: serde_json::Value,
+}
+
 /// Request body schema for setting tags on account-level resources with no extra requirements.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingSetTagsRequestAccountLevelBase {
@@ -15685,6 +16605,12 @@ pub struct ResourceTaggingSetTagsRequestAccountLevelBase {
 pub struct ResourceTaggingSetTagsRequestAccountLevelWorkerVersion {
     #[serde(default)]
     pub tags: ::core::option::Option<ResourceTaggingTags>,
+}
+
+/// Request body schema for setting tags on zone-level resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingSetTagsRequestZoneLevel {
+    pub value: serde_json::Value,
 }
 
 /// Request body schema for setting tags on access_application_policy resources.
@@ -16090,6 +17016,24 @@ pub struct RulesetsJsChallengeRule {
     pub description: ::core::option::Option<serde_json::Value>,
 }
 
+/// The raw response fields to log.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsLogCustomFieldRawResponseFields {
+    pub value: serde_json::Value,
+}
+
+/// The raw request fields to log.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsLogCustomFieldRequestFields {
+    pub value: serde_json::Value,
+}
+
+/// The transformed response fields to log.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsLogCustomFieldResponseFields {
+    pub value: serde_json::Value,
+}
+
 /// RulesetsLogCustomFieldRule resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsLogCustomFieldRule {
@@ -16100,6 +17044,12 @@ pub struct RulesetsLogCustomFieldRule {
     pub action_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub description: ::core::option::Option<serde_json::Value>,
+}
+
+/// The transformed request fields to log.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsLogCustomFieldTransformedRequestFields {
+    pub value: serde_json::Value,
 }
 
 /// RulesetsLogRule resource type.
@@ -16191,6 +17141,18 @@ pub struct RulesetsRedirectRule {
     pub description: ::core::option::Option<serde_json::Value>,
 }
 
+/// RulesetsRequestRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRequestRule {
+    pub value: serde_json::Value,
+}
+
+/// The list of rules in the ruleset.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRequestRules {
+    pub value: serde_json::Value,
+}
+
 /// A response object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsResponse {
@@ -16202,12 +17164,30 @@ pub struct RulesetsResponse {
     pub success: bool,
 }
 
+/// RulesetsResponseRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsResponseRule {
+    pub value: serde_json::Value,
+}
+
+/// The list of rules in the ruleset.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsResponseRules {
+    pub value: serde_json::Value,
+}
+
 /// Information to navigate the results.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsResultInfo {
     /// The set of cursors.
     #[serde(default)]
     pub cursors: ::core::option::Option<serde_json::Value>,
+}
+
+/// A map of headers to rewrite.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRewriteHeaders {
+    pub value: serde_json::Value,
 }
 
 /// RulesetsRewriteRule resource type.
@@ -16317,6 +17297,12 @@ pub struct RulesetsRule {
     pub version: String,
 }
 
+/// An object configuring where the rule will be placed.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsRulePosition {
+    pub value: serde_json::Value,
+}
+
 /// A ruleset object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsRuleset {
@@ -16354,6 +17340,24 @@ pub struct RulesetsServeErrorRule {
     pub action_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub description: ::core::option::Option<serde_json::Value>,
+}
+
+/// A cache-control directive configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsSetCacheControlDirective {
+    pub value: serde_json::Value,
+}
+
+/// A cache-control directive configuration that accepts optional qualifiers (header names).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsSetCacheControlDirectiveWithQualifiers {
+    pub value: serde_json::Value,
+}
+
+/// A cache-control directive configuration that accepts a duration value in seconds.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsSetCacheControlDirectiveWithValue {
+    pub value: serde_json::Value,
 }
 
 /// RulesetsSetCacheControlRule resource type.
@@ -16502,6 +17506,12 @@ pub struct RulesetsSkipRule {
     pub action_parameters: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub description: ::core::option::Option<serde_json::Value>,
+}
+
+/// A mapping of ruleset IDs to a list of rule IDs in that ruleset to skip the execution of. This option is incompatible with the ruleset option.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RulesetsSkipRules {
+    pub value: serde_json::Value,
 }
 
 /// A URL Normalization object.
@@ -16670,6 +17680,12 @@ pub struct SecondaryDnsApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// SecondaryDnsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// SecondaryDnsComponentsSchemasIdResponse resource type.
@@ -16856,6 +17872,24 @@ pub struct SecretsStoreStoresResponseCollection {
     pub result: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
+/// SecurityCenterExternalApiResponseCommon resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityCenterExternalApiResponseCommon {
+    pub value: serde_json::Value,
+}
+
+/// SecurityCenterExternalApiResponseCommonFailure resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityCenterExternalApiResponseCommonFailure {
+    pub value: serde_json::Value,
+}
+
+/// SecurityCenterExternalApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityCenterExternalApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// SecurityCenterApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityCenterApiResponseCommon {
@@ -16874,6 +17908,12 @@ pub struct SecurityCenterApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// SecurityCenterApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecurityCenterApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// SecurityCenterIssue resource type.
@@ -17151,6 +18191,12 @@ pub struct SpectrumAnalyticsApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// SpectrumAnalyticsApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumAnalyticsApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// SpectrumAnalyticsColumn resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumAnalyticsColumn {
@@ -17194,6 +18240,12 @@ pub struct SpectrumAnalyticsQueryResponseSingle {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// SpectrumAnalyticsStat resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumAnalyticsStat {
+    pub value: serde_json::Value,
+}
+
 /// SpectrumConfigApiResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigApiResponseCollection {
@@ -17219,6 +18271,12 @@ pub struct SpectrumConfigApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// SpectrumConfigApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// SpectrumConfigApiResponseSingleId resource type.
@@ -17286,6 +18344,18 @@ pub struct SpectrumConfigPaygoAppConfig {
     pub origin_direct: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub protocol: ::core::option::Option<serde_json::Value>,
+}
+
+/// SpectrumConfigUpdateAppConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigUpdateAppConfig {
+    pub value: serde_json::Value,
+}
+
+/// SpectrumConfigZoneIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigZoneIdentifier {
+    pub value: serde_json::Value,
 }
 
 /// SpeedApiResponseCommon resource type.
@@ -17358,6 +18428,12 @@ pub struct StreamApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// StreamApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// StreamCaptionBasicUpload resource type.
@@ -17863,6 +18939,12 @@ pub struct TeamsDevicesComponentsSchemasSingleResponse {
     pub result: ::core::option::Option<TeamsDevicesDeviceManagedNetworks>,
 }
 
+/// The configuration object containing third-party integration information.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesConfigRequest {
+    pub value: serde_json::Value,
+}
+
 /// TeamsDevicesCrowdstrikeConfigRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesCrowdstrikeConfigRequest {
@@ -18059,6 +19141,18 @@ pub struct TeamsDevicesDomainJoinedInputRequest {
     pub operating_system: String,
 }
 
+/// TeamsDevicesEmptyBody resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesEmptyBody {
+    pub value: serde_json::Value,
+}
+
+/// List of routes excluded in the WARP client''s tunnel. Both ''exclude'' and ''include'' cannot be set in the same request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesExcludeRequest {
+    pub value: serde_json::Value,
+}
+
 /// TeamsDevicesExcludeSplitTunnelWithAddress resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesExcludeSplitTunnelWithAddress {
@@ -18129,6 +19223,12 @@ pub struct TeamsDevicesGlobalWarpOverrideResponse {
 pub struct TeamsDevicesIdResponse {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// List of routes included in the WARP client''s tunnel. Both ''exclude'' and ''include'' cannot be set in the same request.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesIncludeRequest {
+    pub value: serde_json::Value,
 }
 
 /// TeamsDevicesIncludeSplitTunnelWithAddress resource type.
@@ -18390,6 +19490,18 @@ pub struct TeamsDevicesResponseCollection {
     pub result: ::core::option::Option<::std::vec::Vec<TeamsDevicesDevicePostureRules>>,
 }
 
+/// A list of Registration IDs to revoke.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesRevokeDevicesRequest {
+    pub value: serde_json::Value,
+}
+
+/// The configuration object containing information for the WARP client to detect the managed network.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasConfigRequest {
+    pub value: serde_json::Value,
+}
+
 /// TeamsDevicesSchemasIdResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSchemasIdResponse {
@@ -18547,6 +19659,12 @@ pub struct TeamsDevicesUniqueClientIdInputRequest {
     pub operating_system: String,
 }
 
+/// A list of Registration IDs to unrevoke.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesUnrevokeDevicesRequest {
+    pub value: serde_json::Value,
+}
+
 /// TeamsDevicesUptycsConfigRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesUptycsConfigRequest {
@@ -18639,6 +19757,12 @@ pub struct TlsCertificatesAndHostnamesApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// TlsCertificatesAndHostnamesApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// TlsCertificatesAndHostnamesAssociationResponseCollection resource type.
@@ -18799,6 +19923,12 @@ pub struct TlsCertificatesAndHostnamesCustomHostnameResponseSingle {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// Unique key/value metadata for this hostname. These are per-hostname (customer) settings.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesCustomMetadata {
+    pub value: serde_json::Value,
+}
+
 /// TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection {
@@ -18957,6 +20087,18 @@ pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificate
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// This is a record which can be placed to activate a hostname.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesOwnershipVerification {
+    pub value: serde_json::Value,
+}
+
+/// This presents the token to be served by the given http url to activate a hostname.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesOwnershipVerificationHttp {
+    pub value: serde_json::Value,
+}
+
 /// TlsCertificatesAndHostnamesPerHostnameSettingsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesPerHostnameSettingsResponse {
@@ -18989,6 +20131,18 @@ pub struct TlsCertificatesAndHostnamesQuota {
     /// Quantity Used.
     #[serde(default)]
     pub used: ::core::option::Option<i64>,
+}
+
+/// Signature type desired on certificate ("origin-rsa" (rsa), "origin-ecc" (ecdsa), or "keyless-certificate" (for Keyless SSL servers).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesRequestType {
+    pub value: serde_json::Value,
+}
+
+/// The number of days for which the certificate should be valid.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesRequestedValidity {
+    pub value: serde_json::Value,
 }
 
 /// TlsCertificatesAndHostnamesSchemasCertificateResponseCollection resource type.
@@ -19026,6 +20180,12 @@ pub struct TlsCertificatesAndHostnamesSslVerificationResponseCollection {
     pub result: ::core::option::Option<::std::vec::Vec<TlsCertificatesAndHostnamesVerification>>,
 }
 
+/// SSL properties used when creating the custom hostname.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSslpost {
+    pub value: serde_json::Value,
+}
+
 /// SSL specific settings.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSslsettings {
@@ -19051,6 +20211,15 @@ pub struct TlsCertificatesAndHostnamesSslsettings {
 pub struct TlsCertificatesAndHostnamesTotalTlsSettingsResponse {
     #[serde(default)]
     pub result: ::core::option::Option<serde_json::Value>,
+}
+
+/// The TLS setting value. The type depends on the setting_id used in the request path:
+/// - ciphers: an array of allowed cipher suite strings in BoringSSL format (e.g., ["ECDHE-RSA-AES128-GCM-SHA256", "AES128-GCM-SHA256"])
+/// - min_tls_version: a string indicating the minimum TLS version — one of "1.0", "1.1", "1.2", or "1.3" (e.g., "1.2")
+/// - http2: a string indicating whether HTTP/2 is enabled — "on" or "off" (e.g., "on")
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesValue {
+    pub value: serde_json::Value,
 }
 
 /// TunnelApiResponseCollection resource type.
@@ -19081,6 +20250,12 @@ pub struct TunnelApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// TunnelApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TunnelApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// TunnelCfdTunnelResponseCollection resource type.
@@ -19165,6 +20340,12 @@ pub struct TunnelSchemasApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// TunnelSchemasApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TunnelSchemasApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// TunnelSubnetResponseCollection resource type.
@@ -19481,6 +20662,12 @@ pub struct VectorizeIndexGetVectorsByIdRequest {
     pub ids: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
+/// Array of vectors with matching ids.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VectorizeIndexGetVectorsByIdResponse {
+    pub value: serde_json::Value,
+}
+
 /// VectorizeIndexInfoResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeIndexInfoResponse {
@@ -19719,6 +20906,12 @@ pub struct WafManagedRulesRuleResponseSingle {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// WafManagedRulesSchemasBase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WafManagedRulesSchemasBase {
+    pub value: serde_json::Value,
+}
+
 /// When triggered, traditional WAF rules cause the firewall to immediately act on the request based on the rule configuration. An ''allow'' rule will immediately allow the request and no other rules will be processed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafManagedRulesTraditionalAllowRule {
@@ -19869,6 +21062,12 @@ pub struct WafProductApiBundleSchemasResponseStatus {
 pub struct WaitingroomApiResponseCollection {
     #[serde(default)]
     pub result_info: ::core::option::Option<serde_json::Value>,
+}
+
+/// WaitingroomApiResponseCommon resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitingroomApiResponseCommon {
+    pub value: serde_json::Value,
 }
 
 /// WaitingroomApiResponseCommonFailure resource type.
@@ -20473,6 +21672,12 @@ pub struct WorkersApiResponseNullResult {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
+/// WorkersApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// Configuration for assets within a Worker.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersAssets {
@@ -20482,6 +21687,12 @@ pub struct WorkersAssets {
     /// Token provided upon successful upload of all files from a registered manifest.
     #[serde(default)]
     pub jwt: ::core::option::Option<String>,
+}
+
+/// A binding to allow the Worker to communicate with resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersBindingItem {
+    pub value: serde_json::Value,
 }
 
 /// WorkersBindingKindAi resource type.
@@ -20944,6 +22155,12 @@ pub struct WorkersDeployment {
     pub versions: ::std::vec::Vec<serde_json::Value>,
 }
 
+/// WorkersKvAny resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvAny {
+    pub value: serde_json::Value,
+}
+
 /// WorkersKvApiResponseCollection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersKvApiResponseCollection {
@@ -21031,6 +22248,12 @@ pub struct WorkersKvKey {
     pub name: serde_json::Value,
 }
 
+/// WorkersKvMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvMetadata {
+    pub value: serde_json::Value,
+}
+
 /// WorkersKvNamespace resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersKvNamespace {
@@ -21039,6 +22262,12 @@ pub struct WorkersKvNamespace {
     #[serde(default)]
     pub supports_url_encoding: ::core::option::Option<bool>,
     pub title: serde_json::Value,
+}
+
+/// A byte sequence to be stored, up to 25 MiB in length.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvValue {
+    pub value: serde_json::Value,
 }
 
 /// WorkersManifestValue resource type.
@@ -21183,6 +22412,12 @@ pub struct WorkersObservabilityFilterLeaf {
     pub value: ::core::option::Option<serde_json::Value>,
 }
 
+/// Supports nested groups via kind: ''group''.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersObservabilityFilterNode {
+    pub value: serde_json::Value,
+}
+
 /// WorkersObservabilityQuery resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersObservabilityQuery {
@@ -21241,6 +22476,12 @@ pub struct WorkersObservabilityTelemetryEvent {
 pub struct WorkersPlacementRegionsResponse {
     /// List of cloud providers with their available regions.
     pub providers: ::std::vec::Vec<WorkersPlacementProvider>,
+}
+
+/// A target to run your Worker near.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersPlacementTarget {
+    pub value: serde_json::Value,
 }
 
 /// WorkersRoute resource type.
@@ -21303,6 +22544,18 @@ pub struct WorkersScriptResponseUploadSingle {
 pub struct WorkersScriptSettingsResponse {
     #[serde(default)]
     pub result: ::core::option::Option<WorkersScriptSettingsItem>,
+}
+
+/// A secret value accessible through a binding.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersSecret {
+    pub value: serde_json::Value,
+}
+
+/// A single set of migrations to apply.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersSingleStepMigrations {
+    pub value: serde_json::Value,
 }
 
 /// WorkersSubdomain resource type.
@@ -21695,6 +22948,12 @@ pub struct ZeroTrustGatewayApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Indicate whether the API call was successful. // TODO: enum values: [false]
     pub success: bool,
+}
+
+/// ZeroTrustGatewayApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection resource type.
@@ -22171,6 +23430,12 @@ pub struct ZoneActivationApiResponseCommonFailure {
     pub success: bool,
 }
 
+/// ZoneActivationApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneActivationApiResponseSingle {
+    pub value: serde_json::Value,
+}
+
 /// ZoneAnalyticsApiApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneAnalyticsApiApiResponseCommon {
@@ -22287,6 +23552,12 @@ pub struct ZonesApiResponseCommonFailure {
     pub result: serde_json::Value,
     /// Whether the API call was successful.
     pub success: bool,
+}
+
+/// ZonesApiResponseSingle resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesApiResponseSingle {
+    pub value: serde_json::Value,
 }
 
 /// ZonesApiResponseSingleId resource type.
@@ -23204,6 +24475,18 @@ pub struct ZonesServerSideExclude {
     pub value: ::core::option::Option<serde_json::Value>,
 }
 
+/// ZonesSetting resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesSetting {
+    pub value: serde_json::Value,
+}
+
+/// ZonesSettingValue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesSettingValue {
+    pub value: serde_json::Value,
+}
+
 /// ZonesSettingsApiComponentsSchemasApiResponseCommon resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZonesSettingsApiComponentsSchemasApiResponseCommon {
@@ -23262,6 +24545,12 @@ pub struct ZonesStringConstraint {
     pub operator: serde_json::Value,
     /// The value to apply the operator to.
     pub value: String,
+}
+
+/// A request condition target.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesTarget {
+    pub value: serde_json::Value,
 }
 
 /// Only allows TLS1.2.
@@ -23429,6 +24718,12 @@ pub struct ZonesZone {
 pub struct ZonesZoneSettingsResponseCollection {
     #[serde(default)]
     pub result: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// ZonesZoneSettingsSingleRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesZoneSettingsSingleRequest {
+    pub value: serde_json::Value,
 }
 
 /// AaaSchemasResultInfo resource type.
@@ -23681,6 +24976,12 @@ pub struct AbuseReportsRegistrarWhoIsFields {
     pub reg_who_requestor_type: ::core::option::Option<String>,
 }
 
+/// AbuseReportsErrorCode resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AbuseReportsErrorCode {
+    pub value: serde_json::Value,
+}
+
 /// AccessAccessRequests resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessAccessRequests {
@@ -23738,6 +25039,18 @@ pub struct AccessTargetCriteriaInfraApp {
 pub struct AccessTargetCriteriaSelfHostedApp {
     #[serde(default)]
     pub protocol: ::core::option::Option<serde_json::Value>,
+}
+
+/// AccessAppResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessAppResponse {
+    pub value: serde_json::Value,
+}
+
+/// AccessApps resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessApps {
+    pub value: serde_json::Value,
 }
 
 /// AccessBookmarks resource type.
@@ -23822,6 +25135,12 @@ pub struct AccessComponentsSchemasCertificates {
     pub updated_at: ::core::option::Option<serde_json::Value>,
 }
 
+/// AccessIdentityProviders resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessIdentityProviders {
+    pub value: serde_json::Value,
+}
+
 /// AccessCustomPage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCustomPage {
@@ -23875,6 +25194,12 @@ pub struct AccessComponentsSchemasGroups {
 pub struct AccessGeo {
     #[serde(default)]
     pub country: ::core::option::Option<String>,
+}
+
+/// AccessSchemasIdentityProviders resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessSchemasIdentityProviders {
+    pub value: serde_json::Value,
 }
 
 /// AccessInfraPolicyReq resource type.
@@ -24374,6 +25699,12 @@ pub struct AccessTag {
     pub updated_at: ::core::option::Option<AccessUpdatedAt>,
 }
 
+/// Contains a map of target attribute keys to target attribute values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessTargetAttributes {
+    pub value: serde_json::Value,
+}
+
 /// AccessSchemasUsers resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasUsers {
@@ -24590,6 +25921,18 @@ pub struct ApiShieldTrafficStats {
     pub traffic_stats: ::core::option::Option<serde_json::Value>,
 }
 
+/// Update rule order among zone rules.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldPosition {
+    pub value: serde_json::Value,
+}
+
+/// Provides counts of what resources are linked to this label
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldLabelMappedResources {
+    pub value: serde_json::Value,
+}
+
 /// ApiShieldOldSchemaUploadDetailsErrorsCritical resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldOldSchemaUploadDetailsErrorsCritical {
@@ -24639,6 +25982,12 @@ pub struct ApiShieldLabel {
     pub name: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub source: ::core::option::Option<serde_json::Value>,
+}
+
+/// ApiShieldApiDiscoveryPatchMultipleRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldApiDiscoveryPatchMultipleRequest {
+    pub value: serde_json::Value,
 }
 
 /// A schema used in schema validation
@@ -24724,6 +26073,12 @@ pub struct BillSubsApiBillingHistory {
     pub zone: BillSubsApiSchemasZone,
 }
 
+/// BillSubsApiSchemasRatePlan resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiSchemasRatePlan {
+    pub value: serde_json::Value,
+}
+
 /// The rate plan applied to the subscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiRatePlan {
@@ -24757,6 +26112,12 @@ pub struct BillSubsApiZone {
     pub id: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub name: ::core::option::Option<serde_json::Value>,
+}
+
+/// BillSubsApiSubscription resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiSubscription {
+    pub value: serde_json::Value,
 }
 
 /// BillSubsApiSubscriptionResponse resource type.
@@ -24812,6 +26173,24 @@ pub struct BillableUsageApiUsageRecord {
     /// Identifies the Cloudflare service.
     #[serde(rename = "ServiceName")]
     pub service_name: String,
+}
+
+/// Top attributes contributing to the feedback sample. Keys include topASNs, topCountries, topHosts, topIPs, topJA3Hashes, topJA4s, topPaths, topUserAgents.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BotManagementRequestsByAttribute {
+    pub value: serde_json::Value,
+}
+
+/// Map of bot scores (1-99) to request counts. Sum must equal requests.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BotManagementRequestsByScore {
+    pub value: serde_json::Value,
+}
+
+/// Map of score source to request counts. Sum must equal requests.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BotManagementRequestsByScoreSrc {
+    pub value: serde_json::Value,
 }
 
 /// BuildsPaginationInfo resource type.
@@ -25040,6 +26419,12 @@ pub struct CcPublicApplication {
     pub updated_at: serde_json::Value,
     /// The current version number of this application. This increments with application rollouts.
     pub version: i64,
+}
+
+/// CloudflarePipelinesFormat resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CloudflarePipelinesFormat {
+    pub value: serde_json::Value,
 }
 
 /// CloudflarePipelinesPipelineEdge resource type.
@@ -25513,6 +26898,12 @@ pub struct DigitalExperienceMonitoringWarpConfigDetails {
     pub config_name: ::core::option::Option<String>,
 }
 
+/// DlpProfileEntryUpdate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpProfileEntryUpdate {
+    pub value: serde_json::Value,
+}
+
 /// DlpSharedEntryUpdate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpSharedEntryUpdate {
@@ -25564,6 +26955,12 @@ pub struct DlpPayloadLogSettingUpdate {
     pub public_key: ::core::option::Option<String>,
 }
 
+/// DlpEmailRuleAction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleAction {
+    pub value: serde_json::Value,
+}
+
 /// DlpEmailRuleCondition resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpEmailRuleCondition {
@@ -25577,6 +26974,12 @@ pub struct DlpEmailRuleCondition {
 pub struct DlpEntryProfile {
     pub id: String,
     pub name: String,
+}
+
+/// DlpEntryOfNewProfile resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntryOfNewProfile {
+    pub value: serde_json::Value,
 }
 
 /// A reference pairing a sensitivity group with a specific level within that group.
@@ -25608,6 +27011,18 @@ pub struct DlpEntryConfidence {
     pub ai_context_available: bool,
     /// Indicates whether this entry has any form of validation that is not an AI remote service.
     pub available: bool,
+}
+
+/// DlpPredefinedEntryVariant resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpPredefinedEntryVariant {
+    pub value: serde_json::Value,
+}
+
+/// DlpEntry resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEntry {
+    pub value: serde_json::Value,
 }
 
 /// Scan the context of predefined entries to only return matches surrounded by keywords.
@@ -25655,6 +27070,12 @@ pub struct DlpSensitivityLevel {
     pub id: String,
     pub name: String,
     pub updated_at: String,
+}
+
+/// DlpAddinAuth resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpAddinAuth {
+    pub value: serde_json::Value,
 }
 
 /// DnsAnalyticsQuery resource type.
@@ -25720,6 +27141,12 @@ pub struct DnsRecordsSettings {
     pub ipv6_only: ::core::option::Option<bool>,
 }
 
+/// Time To Live (TTL) of the DNS record in seconds. Setting to 1 means ''automatic''. Value must be between 60 and 86400, with the minimum reduced to 30 for Enterprise zones.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsTtl {
+    pub value: serde_json::Value,
+}
+
 /// DnsRecordsDnsRecordBatchDelete resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRecordBatchDelete {
@@ -25732,10 +27159,22 @@ pub struct DnsRecordsDnsRecordBatchPatch {
     pub id: serde_json::Value,
 }
 
+/// DnsRecordsDnsRecordBatchPost resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordBatchPost {
+    pub value: serde_json::Value,
+}
+
 /// DnsRecordsDnsRecordBatchPut resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRecordBatchPut {
     pub id: serde_json::Value,
+}
+
+/// DnsRecordsDnsRecordScanBatchAccept resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsRecordScanBatchAccept {
+    pub value: serde_json::Value,
 }
 
 /// DnsRecordsDnsRecordScanBatchReject resource type.
@@ -25812,6 +27251,18 @@ pub struct DnsSettingsSoaBase {
     /// The time to live (TTL) of the SOA record itself.
     #[serde(default)]
     pub ttl: ::core::option::Option<f64>,
+}
+
+/// DnsSettingsInternalDnsResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsInternalDnsResponse {
+    pub value: serde_json::Value,
+}
+
+/// DnsSettingsSoaResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsSoaResponse {
+    pub value: serde_json::Value,
 }
 
 /// DnsSettingsDnsViewResponse resource type.
@@ -26000,6 +27451,24 @@ pub struct EmailCatchAllRule {
     pub tag: ::core::option::Option<serde_json::Value>,
 }
 
+/// EmailAddresses resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailAddresses {
+    pub value: serde_json::Value,
+}
+
+/// EmailSettings resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailSettings {
+    pub value: serde_json::Value,
+}
+
+/// EmailRules resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailRules {
+    pub value: serde_json::Value,
+}
+
 /// EmailSecurityMessage resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityMessage {
@@ -26032,6 +27501,12 @@ pub struct EmailDnsRecord {
     /// DNS record type. // TODO: enum values: ["A", "AAAA", "CNAME", "HTTPS", "TXT", "SRV", "LOC", "MX", "NS", "CERT", "DNSKEY", "DS", "NAPTR", "SMIMEA", "SSHFP", "SVCB", "TLSA", "URI"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// EmailSendingSubdomain resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmailSendingSubdomain {
+    pub value: serde_json::Value,
 }
 
 /// FirewallResultInfo resource type.
@@ -26107,6 +27582,24 @@ pub struct FirewallOverride {
     pub rules: ::core::option::Option<FirewallRules>,
     #[serde(default)]
     pub urls: ::core::option::Option<serde_json::Value>,
+}
+
+/// The action to perform when the threshold of matched traffic within the configured period is exceeded.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallAction {
+    pub value: serde_json::Value,
+}
+
+/// Determines which traffic the rate limit counts towards the threshold.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallMatch {
+    pub value: serde_json::Value,
+}
+
+/// FirewallRateLimits resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallRateLimits {
+    pub value: serde_json::Value,
 }
 
 /// FirewallSchemasRule resource type.
@@ -26230,6 +27723,12 @@ pub struct HyperdriveResultInfo {
     pub total_count: ::core::option::Option<f64>,
 }
 
+/// HyperdriveHyperdriveCaching resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HyperdriveHyperdriveCaching {
+    pub value: serde_json::Value,
+}
+
 /// HyperdriveHyperdriveMtls resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HyperdriveHyperdriveMtls {
@@ -26275,6 +27774,12 @@ pub struct IamOrganization {
     pub roles: ::core::option::Option<::std::vec::Vec<String>>,
     #[serde(default)]
     pub status: ::core::option::Option<serde_json::Value>,
+}
+
+/// A list of resource names that the policy applies to.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamResources {
+    pub value: serde_json::Value,
 }
 
 /// A scope is a combination of scope objects which provides additional context.
@@ -26631,6 +28136,12 @@ pub struct IamSsoConnector {
     pub verification: ::core::option::Option<IamSsoConnectorVerificationInfo>,
 }
 
+/// User Group identifier tag.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamUserGroupIdentifier {
+    pub value: serde_json::Value,
+}
+
 /// ImagesImageKeysResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageKeysResponse {
@@ -26690,6 +28201,12 @@ pub struct InfraResolverNetwork {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfraNetwork {
     pub tunnel_id: String,
+}
+
+/// InfraServiceHost resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InfraServiceHost {
+    pub value: serde_json::Value,
 }
 
 /// The IPv4/IPv6 address that identifies where to reach a target
@@ -26889,6 +28406,18 @@ pub struct KaminoMessage {
     pub message: String,
 }
 
+/// ListsOperation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsOperation {
+    pub value: serde_json::Value,
+}
+
+/// ListsItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListsItem {
+    pub value: serde_json::Value,
+}
+
 /// ListsList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsList {
@@ -26967,6 +28496,12 @@ pub struct LoadBalancingLoadBalancer {
     pub zone_name: ::core::option::Option<serde_json::Value>,
 }
 
+/// The HTTP request headers to send in the health check. It is recommended you set a Host header by default. The User-Agent header cannot be overridden. This parameter is only valid for HTTP and HTTPS monitors.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingHeader {
+    pub value: serde_json::Value,
+}
+
 /// LoadBalancingResultInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingResultInfo {
@@ -27019,6 +28554,12 @@ pub struct LoadBalancingMonitor {
 pub struct LoadBalancingSchemasHeader {
     #[serde(default, rename = "Host")]
     pub host: ::core::option::Option<serde_json::Value>,
+}
+
+/// Resulting health data from a preview operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingPreviewResult {
+    pub value: serde_json::Value,
 }
 
 /// LoadBalancingPool resource type.
@@ -27190,6 +28731,12 @@ pub struct MagicAccountApp {
     pub source_subnets: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<serde_json::Value>,
+}
+
+/// Collection of Hostnames and/or IP Subnets to associate with traffic decisions.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicApp {
+    pub value: serde_json::Value,
 }
 
 /// MagicGreTunnel resource type.
@@ -27816,6 +29363,12 @@ pub struct MconnAdminUpgradeSlot {
     pub started_at: ::core::option::Option<String>,
 }
 
+/// MconnNone resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnNone {
+    pub value: serde_json::Value,
+}
+
 /// MconnConduitConnector resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnConduitConnector {
@@ -27903,6 +29456,18 @@ pub struct MconnControllerIdentifyLicenseKeyResult {
     pub connector: ::core::option::Option<MconnControllerConnectorIdentity>,
     #[serde(default)]
     pub device: ::core::option::Option<MconnControllerDeviceIdentity>,
+}
+
+/// MconnControllerUpdateConnectorResult resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnControllerUpdateConnectorResult {
+    pub value: serde_json::Value,
+}
+
+/// MconnControllerUpdateDeviceResult resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnControllerUpdateDeviceResult {
+    pub value: serde_json::Value,
 }
 
 /// Exactly one of id, serial_number, or provision_license must be provided.
@@ -28036,6 +29601,30 @@ pub struct MconnSupportMacrosProvisionPhysicalConnectorResult {
     pub connector: MconnSupportConnector,
 }
 
+/// Destination configuration for the subscription
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MqEventDestination {
+    pub value: serde_json::Value,
+}
+
+/// Source configuration for the subscription
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MqEventSource {
+    pub value: serde_json::Value,
+}
+
+/// Response body representing a consumer
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MqConsumerResponse {
+    pub value: serde_json::Value,
+}
+
+/// MqProducer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MqProducer {
+    pub value: serde_json::Value,
+}
+
 /// MqQueueSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqQueueSettings {
@@ -28072,6 +29661,12 @@ pub struct NscCni {
     pub magic: NscMagicSettings,
     /// Cloudflare end of the point-to-point link
     pub p2p_ip: String,
+}
+
+/// NscInterconnect resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NscInterconnect {
+    pub value: serde_json::Value,
 }
 
 /// NscSlotInfo resource type.
@@ -28276,6 +29871,12 @@ pub struct PagesStage {
     pub status: String,
 }
 
+/// Environment variables used for builds and Pages Functions.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PagesEnvVars {
+    pub value: serde_json::Value,
+}
+
 /// Configs for the project build process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PagesBuildConfig {
@@ -28422,6 +30023,24 @@ pub struct R2BucketLockRule {
     pub prefix: ::core::option::Option<String>,
 }
 
+/// Contains errors if the API call was unsuccessful.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseErrors {
+    pub value: serde_json::Value,
+}
+
+/// Contains informational messages.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseMessages {
+    pub value: serde_json::Value,
+}
+
+/// Indicates whether the API call was successful.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2DataCatalogApiResponseSuccess {
+    pub value: serde_json::Value,
+}
+
 /// Contains R2 Data Catalog information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogCatalog {
@@ -28536,6 +30155,12 @@ pub struct R2LifecycleRule {
     #[serde(default, rename = "storageClassTransitions")]
     pub storage_class_transitions:
         ::core::option::Option<::std::vec::Vec<R2LifecycleStorageTransition>>,
+}
+
+/// R2SlurperSourceJobSchema resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct R2SlurperSourceJobSchema {
+    pub value: serde_json::Value,
 }
 
 /// R2SlurperR2TargetSchema resource type.
@@ -28692,6 +30317,18 @@ pub struct RegistrarApiResultInfo {
     pub total_count: ::core::option::Option<f64>,
 }
 
+/// Shows contact information for domain registrant.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiRegistrantContact {
+    pub value: serde_json::Value,
+}
+
+/// RegistrarApiDomains resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiDomains {
+    pub value: serde_json::Value,
+}
+
 /// ResourceSharingResultInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingResultInfo {
@@ -28730,6 +30367,18 @@ pub struct ResourceSharingCreateShareResourceRequest {
     pub resource_type: serde_json::Value,
 }
 
+/// Contains key-value pairs of tags.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTags {
+    pub value: serde_json::Value,
+}
+
+/// Zone ID is required only for zone-level resources
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingZoneId {
+    pub value: serde_json::Value,
+}
+
 /// ResourceTaggingCursorResultInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingCursorResultInfo {
@@ -28739,6 +30388,12 @@ pub struct ResourceTaggingCursorResultInfo {
     /// Provides a cursor for the next page of results. Include this value in the next request to continue pagination.
     #[serde(default)]
     pub cursor: ::core::option::Option<String>,
+}
+
+/// ResourceTaggingTaggedResourceObject resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTaggedResourceObject {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for exposed credential checking.
@@ -28975,6 +30630,24 @@ pub struct SmartshieldSmartShieldSettingsPatchResponse {
     pub smart_tiered_cache: serde_json::Value,
 }
 
+/// SpectrumAnalyticsSince resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumAnalyticsSince {
+    pub value: serde_json::Value,
+}
+
+/// SpectrumAnalyticsUntil resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumAnalyticsUntil {
+    pub value: serde_json::Value,
+}
+
+/// The anycast edge IP configuration for the hostname of this application.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigEdgeIps {
+    pub value: serde_json::Value,
+}
+
 /// The name and type of DNS record for the Spectrum application.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigOriginDns {
@@ -28984,6 +30657,31 @@ pub struct SpectrumConfigOriginDns {
     pub ttl: ::core::option::Option<serde_json::Value>,
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<serde_json::Value>,
+}
+
+/// The destination port at the origin. Only specified in conjunction with origin_dns. May use an integer to specify a single origin port, for example 1000, or a string to specify a range of origin ports, for example "1000-2000".
+/// Notes: If specifying a port range, the number of ports in the range must match the number of ports specified in the "protocol" field.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigOriginPort {
+    pub value: serde_json::Value,
+}
+
+/// SpectrumConfigCreated resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigCreated {
+    pub value: serde_json::Value,
+}
+
+/// SpectrumConfigAppIdentifier resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigAppIdentifier {
+    pub value: serde_json::Value,
+}
+
+/// SpectrumConfigModified resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SpectrumConfigModified {
+    pub value: serde_json::Value,
 }
 
 /// The name and type of DNS record for the Spectrum application.
@@ -29487,6 +31185,18 @@ pub struct TeamsDevicesDevicePostureRules {
     pub type_: ::core::option::Option<serde_json::Value>,
 }
 
+/// TeamsDevicesSplitTunnelInclude resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnelInclude {
+    pub value: serde_json::Value,
+}
+
+/// TeamsDevicesSplitTunnel resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSplitTunnel {
+    pub value: serde_json::Value,
+}
+
 /// TeamsDevicesZeroTrustAccountDeviceSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesZeroTrustAccountDeviceSettings {
@@ -29967,6 +31677,12 @@ pub struct VectorizeResultInfo {
     pub total_count: ::core::option::Option<f64>,
 }
 
+/// Specifies the type of configuration to use for the index.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VectorizeIndexConfiguration {
+    pub value: serde_json::Value,
+}
+
 /// VectorizeIndexDimensionConfiguration resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeIndexDimensionConfiguration {
@@ -30003,6 +31719,12 @@ pub struct WafManagedRulesSchemasGroup {
     #[serde(default)]
     pub allowed_modes: ::core::option::Option<serde_json::Value>,
     pub mode: serde_json::Value,
+}
+
+/// WafManagedRulesRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WafManagedRulesRule {
+    pub value: serde_json::Value,
 }
 
 /// Defines a custom set of username/password expressions to match Leaked Credential Checks on.
@@ -30138,6 +31860,12 @@ pub struct WaitingroomEventResult {
     pub turnstile_action: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub turnstile_mode: ::core::option::Option<serde_json::Value>,
+}
+
+/// Reorder the position of a rule
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitingroomRulePosition {
+    pub value: serde_json::Value,
 }
 
 /// WaitingroomRuleResult resource type.
@@ -30278,6 +32006,12 @@ pub struct Web3Web3Hostname {
     pub target: ::core::option::Option<serde_json::Value>,
 }
 
+/// Configuration for [Smart Placement](https://developers.cloudflare.com/workers/configuration/smart-placement). Specify mode=''smart'' for Smart Placement, or one of region/hostname/host.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersPlacementInfoNoStatus {
+    pub value: serde_json::Value,
+}
+
 /// WorkersKvResultInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersKvResultInfo {
@@ -30293,6 +32027,12 @@ pub struct WorkersKvResultInfo {
     /// Total results available without any search parameters.
     #[serde(default)]
     pub total_count: ::core::option::Option<f64>,
+}
+
+/// WorkersKvListMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkersKvListMetadata {
+    pub value: serde_json::Value,
 }
 
 /// WorkersMigrationStep resource type.
@@ -30507,6 +32247,12 @@ pub struct ZeroTrustGatewayResultInfo {
     pub total_count: ::core::option::Option<f64>,
 }
 
+/// ZeroTrustGatewayAppTypes resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayAppTypes {
+    pub value: serde_json::Value,
+}
+
 /// ZeroTrustGatewayApplicationsReviewStatusResponseContent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApplicationsReviewStatusResponseContent {
@@ -30583,6 +32329,12 @@ pub struct ZeroTrustGatewayPacfile {
     pub updated_at: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub url: ::core::option::Option<serde_json::Value>,
+}
+
+/// ZeroTrustGatewayProxyEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZeroTrustGatewayProxyEndpoints {
+    pub value: serde_json::Value,
 }
 
 /// ZeroTrustGatewayRules resource type.
@@ -30804,6 +32556,12 @@ pub struct ZonesAutomaticPlatformOptimization {
     pub wordpress: bool,
     /// Indicates whether or not [Cloudflare for WordPress plugin](https://wordpress.org/plugins/cloudflare/) is installed.
     pub wp_plugin: bool,
+}
+
+/// Value of the zone setting.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZonesResponseBufferingValue {
+    pub value: serde_json::Value,
 }
 
 /// ZonesSecurityHeaderValue resource type.
@@ -31087,6 +32845,18 @@ pub struct AccessOrgMfaConfig {
     pub session_duration: ::core::option::Option<String>,
 }
 
+/// AccessCreatedAt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessCreatedAt {
+    pub value: serde_json::Value,
+}
+
+/// AccessUpdatedAt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AccessUpdatedAt {
+    pub value: serde_json::Value,
+}
+
 /// AddressingBgpSignalOpts resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpSignalOpts {
@@ -31109,6 +32879,12 @@ pub struct AddressingBgpOnDemand {
     pub on_demand_locked: ::core::option::Option<serde_json::Value>,
 }
 
+/// JSON representation of a JWKS key.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldCredentialsJWTKey {
+    pub value: serde_json::Value,
+}
+
 /// ApiShieldOldSchemaUploadLogEvent resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldOldSchemaUploadLogEvent {
@@ -31120,6 +32896,18 @@ pub struct ApiShieldOldSchemaUploadLogEvent {
     /// Diagnostic message that describes the event.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Metadata for the label
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldLabelMetadata {
+    pub value: serde_json::Value,
+}
+
+/// ApiShieldSchemasTimestamp resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldSchemasTimestamp {
+    pub value: serde_json::Value,
 }
 
 /// ApiShieldSelectorExclude resource type.
@@ -31138,11 +32926,23 @@ pub struct ApiShieldSelectorInclude {
     pub host: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
+/// ApiShieldOperationFeatures resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldOperationFeatures {
+    pub value: serde_json::Value,
+}
+
 /// BillSubsApiSchemasZone resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiSchemasZone {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// How often the subscription is renewed automatically (computed field).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BillSubsApiFrequencyResponse {
+    pub value: serde_json::Value,
 }
 
 /// BuildsBuildSeedRepoInputFile resource type.
@@ -31182,6 +32982,12 @@ pub struct CcApplicationHealthInstances {
     pub active: i64,
     /// Number of instances assigned to a container, but the container is not yet running.
     pub assigned: i64,
+}
+
+/// Specifies either a pre-set instance type or a custom resource allocation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CcPublicInstanceType {
+    pub value: serde_json::Value,
 }
 
 /// Network settings for an application
@@ -31249,6 +33055,12 @@ pub struct DlpDatasetUpload {
     pub version: i64,
 }
 
+/// DlpEmailRuleValue resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DlpEmailRuleValue {
+    pub value: serde_json::Value,
+}
+
 /// Content types to exclude from context analysis and return all matches.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpSkipConfig {
@@ -31300,6 +33112,12 @@ pub struct FirewallSchemasConfiguration {
     pub value: ::core::option::Option<String>,
 }
 
+/// An object that allows you to enable or disable WAF rule groups for the current WAF override. Each key of this object must be the ID of a WAF rule group, and each value must be a valid WAF action (usually default or disable). When creating a new URI-based WAF override, you must provide a groups object or a rules object.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallGroups {
+    pub value: serde_json::Value,
+}
+
 /// Specifies that, when a WAF rule matches, its configured action will be replaced by the action configured in this object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallRewriteAction {
@@ -31313,6 +33131,18 @@ pub struct FirewallRewriteAction {
     pub disable: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub simulate: ::core::option::Option<serde_json::Value>,
+}
+
+/// An object that allows you to override the action of specific WAF rules. Each key of this object must be the ID of a WAF rule, and each value must be a valid WAF action. Unless you are disabling a rule, ensure that you also enable the rule group that this WAF rule belongs to. When creating a new URI-based WAF override, you must provide a groups object or a rules object.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallRules {
+    pub value: serde_json::Value,
+}
+
+/// The rule configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FirewallConfiguration {
+    pub value: serde_json::Value,
 }
 
 /// Parameters specific to an HTTP or HTTPS health check.
@@ -31479,6 +33309,12 @@ pub struct IamRole {
     pub permissions: serde_json::Value,
 }
 
+/// IamSchemasAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamSchemasAccount {
+    pub value: serde_json::Value,
+}
+
 /// IamPermissions resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPermissions {
@@ -31515,6 +33351,12 @@ pub struct IamCondition {
     pub request_ip: ::core::option::Option<IamRequestIp>,
 }
 
+/// SSO Connector identifier tag.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IamSsoConnectorIdentifier {
+    pub value: serde_json::Value,
+}
+
 /// IamSsoConnectorVerificationInfo resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamSsoConnectorVerificationInfo {
@@ -31532,6 +33374,12 @@ pub struct ImagesImageKeys {
     pub name: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// User modifiable key-value store. Can be used for keeping references to another system of record for managing images. Metadata must not exceed 1024 bytes.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImagesImageMetadata {
+    pub value: serde_json::Value,
 }
 
 /// ImagesImageVariantPublicRequest resource type.
@@ -31557,6 +33405,12 @@ pub struct ImagesImagesStatsCount {
     pub allowed: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub current: ::core::option::Option<serde_json::Value>,
+}
+
+/// IntelIp resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntelIp {
+    pub value: serde_json::Value,
 }
 
 /// Additional information related to the host name.
@@ -31617,6 +33471,12 @@ pub struct LoadBalancingAdaptiveRouting {
     pub failover_across_pools: ::core::option::Option<bool>,
 }
 
+/// A mapping of country codes to a list of pool IDs (ordered by their failover priority) for the given country. Any country not explicitly defined will fall back to using the corresponding region_pool mapping if it exists else to default_pools.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingCountryPools {
+    pub value: serde_json::Value,
+}
+
 /// Controls location-based steering for non-proxied requests. See steering_policy to learn how steering is affected.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingLocationStrategy {
@@ -31626,6 +33486,12 @@ pub struct LoadBalancingLocationStrategy {
     /// Whether the EDNS Client Subnet (ECS) GeoIP should be preferred as the authoritative location.
     #[serde(default)]
     pub prefer_ecs: ::core::option::Option<String>,
+}
+
+/// Enterprise only: A mapping of Cloudflare PoP identifiers to a list of pool IDs (ordered by their failover priority) for the PoP (datacenter). Any PoPs not explicitly defined will fall back to using the corresponding country_pool, then region_pool mapping if it exists else to default_pools.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingPopPools {
+    pub value: serde_json::Value,
 }
 
 /// Configures pool weights.
@@ -31640,6 +33506,12 @@ pub struct LoadBalancingRandomSteering {
     /// A mapping of pool IDs to custom weights. The weight is relative to other pools in the load balancer.
     #[serde(default)]
     pub pool_weights: ::core::option::Option<serde_json::Value>,
+}
+
+/// A mapping of region codes to a list of pool IDs (ordered by their failover priority) for the given region. Any regions not explicitly defined will fall back to using default_pools.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadBalancingRegionPools {
+    pub value: serde_json::Value,
 }
 
 /// Configures attributes for session affinity.
@@ -31734,6 +33606,24 @@ pub struct LoadBalancingResourceReference {
     /// The type of the resource. // TODO: enum values: ["load_balancer", "monitor", "pool"]
     #[serde(default)]
     pub resource_type: ::core::option::Option<String>,
+}
+
+/// The maximum uncompressed file size of a batch of logs. This setting value must be between 5 MB and 1 GB, or 0 to disable it. Note that you cannot set a minimum file size; this means that log files may be much smaller than this batch size.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogpushMaxUploadBytes {
+    pub value: serde_json::Value,
+}
+
+/// The maximum interval in seconds for log batches. This setting must be between 30 and 300 seconds (5 minutes), or 0 to disable it. Note that you cannot specify a minimum interval for log batches; this means that log files may be sent in shorter intervals than this.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogpushMaxUploadIntervalSeconds {
+    pub value: serde_json::Value,
+}
+
+/// The maximum number of log lines per batch. This setting must be between 1000 and 1,000,000 lines, or 0 to disable it. Note that you cannot specify a minimum number of log lines per batch; this means that log files may contain many fewer lines than this.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogpushMaxUploadRecords {
+    pub value: serde_json::Value,
 }
 
 /// The structured replacement for logpull_options. When including this field, the logpull_option field will be ignored.
@@ -32935,6 +34825,12 @@ pub struct RealtimekitStorageConfig {
     pub username: ::core::option::Option<String>,
 }
 
+/// Resource Metadata.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceSharingResourceMeta {
+    pub value: serde_json::Value,
+}
+
 /// Which cookies to include in the cache key.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RulesetsSetCacheSettingsCustomCacheKeyCookie {
@@ -33039,6 +34935,12 @@ pub struct SmartshieldTcpConfig {
     pub port: ::core::option::Option<i64>,
 }
 
+/// A user modifiable key-value store used to reference other systems of record for managing live inputs.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamLiveInputMetadata {
+    pub value: serde_json::Value,
+}
+
 /// Records the input to a Cloudflare Stream video. Behavior depends on the mode. In most cases, the video will initially be viewable as a live video and transition to on-demand after a condition is satisfied.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInputRecordingSettings {
@@ -33119,6 +35021,12 @@ pub struct StreamInput {
     pub width: ::core::option::Option<i64>,
 }
 
+/// A user modifiable key-value store used to reference other systems of record for managing videos.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamMediaMetadata {
+    pub value: serde_json::Value,
+}
+
 /// StreamPlayback resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamPlayback {
@@ -33155,6 +35063,12 @@ pub struct StreamWatermarks {
     pub uid: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub width: ::core::option::Option<serde_json::Value>,
+}
+
+/// The configuration object containing information for the WARP client to detect the managed network.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesSchemasConfigResponse {
+    pub value: serde_json::Value,
 }
 
 /// TeamsDevicesAccount resource type.
@@ -33215,6 +35129,18 @@ pub struct TeamsDevicesDeviceDexTestSchemasData {
     /// The HTTP request method type.
     #[serde(default)]
     pub method: ::core::option::Option<String>,
+}
+
+/// The configuration object containing third-party integration information.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesConfigResponse {
+    pub value: serde_json::Value,
+}
+
+/// The value to be checked against.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesInput {
+    pub value: serde_json::Value,
 }
 
 /// An individual certificate within a certificate pack.
@@ -33291,6 +35217,18 @@ pub struct TlsCertificatesAndHostnamesGeoRestrictions {
     pub label: ::core::option::Option<String>,
 }
 
+/// TlsCertificatesAndHostnamesKeylessCertificate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesKeylessCertificate {
+    pub value: serde_json::Value,
+}
+
+/// SSL properties for the custom hostname.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TlsCertificatesAndHostnamesSsl {
+    pub value: serde_json::Value,
+}
+
 /// Certificate''s required verification information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesVerificationInfo {
@@ -33315,6 +35253,24 @@ pub struct TunnelConfig {
     pub warp_routing: ::core::option::Option<serde_json::Value>,
 }
 
+/// Metadata associated with the tunnel.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TunnelMetadata {
+    pub value: serde_json::Value,
+}
+
+/// Defines the unique ID for this custom detection.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WafProductApiBundleDetectionId {
+    pub value: serde_json::Value,
+}
+
+/// defines the unique ID for this custom scan expression.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WafProductApiBundleCustomScanId {
+    pub value: serde_json::Value,
+}
+
 /// WafProductApiBundleCustomTopic resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleCustomTopic {
@@ -33333,6 +35289,102 @@ pub struct WaitingroomCookieAttributes {
     /// Configures the Secure attribute on the waiting room cookie. Value always indicates that the Secure attribute will be set in the Set-Cookie header, never indicates that the Secure attribute will not be set, and auto will set the Secure attribute depending if **Always Use HTTPS** is enabled. // TODO: enum values: ["auto", "always", "never"]
     #[serde(default)]
     pub secure: ::core::option::Option<String>,
+}
+
+/// Only available for the Waiting Room Advanced subscription. If true, requests to the waiting room with the header Accept: application/json will receive a JSON response object with information on the user''s status in the waiting room as opposed to the configured static HTML page. This JSON response object has one property cfWaitingRoom which is an object containing the following fields:
+/// 1. inWaitingRoom: Boolean indicating if the user is in the waiting room (always **true**).
+/// 2. waitTimeKnown: Boolean indicating if the current estimated wait times are accurate. If **false**, they are not available.
+/// 3. waitTime: Valid only when waitTimeKnown is **true**. Integer indicating the current estimated time in minutes the user will wait in the waiting room. When queueingMethod is **random**, this is set to waitTime50Percentile.
+/// 4. waitTime25Percentile: Valid only when queueingMethod is **random** and waitTimeKnown is **true**. Integer indicating the current estimated maximum wait time for the 25% of users that gain entry the fastest (25th percentile).
+/// 5. waitTime50Percentile: Valid only when queueingMethod is **random** and waitTimeKnown is **true**. Integer indicating the current estimated maximum wait time for the 50% of users that gain entry the fastest (50th percentile). In other words, half of the queued users are expected to let into the origin website before waitTime50Percentile and half are expected to be let in after it.
+/// 6. waitTime75Percentile: Valid only when queueingMethod is **random** and waitTimeKnown is **true**. Integer indicating the current estimated maximum wait time for the 75% of users that gain entry the fastest (75th percentile).
+/// 7. waitTimeFormatted: String displaying the waitTime formatted in English for users. If waitTimeKnown is **false**, waitTimeFormatted will display **unavailable**.
+/// 8. queueIsFull: Boolean indicating if the waiting room''s queue is currently full and not accepting new users at the moment.
+/// 9. queueAll: Boolean indicating if all users will be queued in the waiting room and no one will be let into the origin website.
+/// 10. lastUpdated: String displaying the timestamp as an ISO 8601 string of the user''s last attempt to leave the waiting room and be let into the origin website. The user is able to make another attempt after refreshIntervalSeconds past this time. If the user makes a request too soon, it will be ignored and lastUpdated will not change.
+/// 11. refreshIntervalSeconds: Integer indicating the number of seconds after lastUpdated until the user is able to make another attempt to leave the waiting room and be let into the origin website. When the queueingMethod is reject, there is no specified refresh time —\_it will always be **zero**.
+/// 12. queueingMethod: The queueing method currently used by the waiting room. It is either **fifo**, **random**, **passthrough**, or **reject**.
+/// 13. isFIFOQueue: Boolean indicating if the waiting room uses a FIFO (First-In-First-Out) queue.
+/// 14. isRandomQueue: Boolean indicating if the waiting room uses a Random queue where users gain access randomly.
+/// 15. isPassthroughQueue: Boolean indicating if the waiting room uses a passthrough queue. Keep in mind that when passthrough is enabled, this JSON response will only exist when queueAll is **true** or isEventPrequeueing is **true** because in all other cases requests will go directly to the origin.
+/// 16. isRejectQueue: Boolean indicating if the waiting room uses a reject queue.
+/// 17. isEventActive: Boolean indicating if an event is currently occurring. Events are able to change a waiting room''s behavior during a specified period of time. For additional information, look at the event properties prequeue_start_time, event_start_time, and event_end_time in the documentation for creating waiting room events. Events are considered active between these start and end times, as well as during the prequeueing period if it exists.
+/// 18. isEventPrequeueing: Valid only when isEventActive is **true**. Boolean indicating if an event is currently prequeueing users before it starts.
+/// 19. timeUntilEventStart: Valid only when isEventPrequeueing is **true**. Integer indicating the number of minutes until the event starts.
+/// 20. timeUntilEventStartFormatted: String displaying the timeUntilEventStart formatted in English for users. If isEventPrequeueing is **false**, timeUntilEventStartFormatted will display **unavailable**.
+/// 21. timeUntilEventEnd: Valid only when isEventActive is **true**. Integer indicating the number of minutes until the event ends.
+/// 22. timeUntilEventEndFormatted: String displaying the timeUntilEventEnd formatted in English for users. If isEventActive is **false**, timeUntilEventEndFormatted will display **unavailable**.
+/// 23. shuffleAtEventStart: Valid only when isEventActive is **true**. Boolean indicating if the users in the prequeue are shuffled randomly when the event starts.
+/// 24. turnstile: Empty when turnstile isn''t enabled. String displaying an html tag to display the Turnstile widget. Please add the {{{turnstile}}} tag to the custom_html template to ensure the Turnstile widget appears.
+/// 25. infiniteQueue: Boolean indicating whether the response is for a user in the infinite queue.
+///
+/// An example cURL to a waiting room could be:
+///
+/// 	curl -X GET "https://example.com/waitingroom" \
+/// 		-H "Accept: application/json"
+///
+/// If json_response_enabled is **true** and the request hits the waiting room, an example JSON response when queueingMethod is **fifo** and no event is active could be:
+///
+/// 	{
+/// 		"cfWaitingRoom": {
+/// 			"inWaitingRoom": true,
+/// 			"waitTimeKnown": true,
+/// 			"waitTime": 10,
+/// 			"waitTime25Percentile": 0,
+/// 			"waitTime50Percentile": 0,
+/// 			"waitTime75Percentile": 0,
+/// 			"waitTimeFormatted": "10 minutes",
+/// 			"queueIsFull": false,
+/// 			"queueAll": false,
+/// 			"lastUpdated": "2020-08-03T23:46:00.000Z",
+/// 			"refreshIntervalSeconds": 20,
+/// 			"queueingMethod": "fifo",
+/// 			"isFIFOQueue": true,
+/// 			"isRandomQueue": false,
+/// 			"isPassthroughQueue": false,
+/// 			"isRejectQueue": false,
+/// 			"isEventActive": false,
+/// 			"isEventPrequeueing": false,
+/// 			"timeUntilEventStart": 0,
+/// 			"timeUntilEventStartFormatted": "unavailable",
+/// 			"timeUntilEventEnd": 0,
+/// 			"timeUntilEventEndFormatted": "unavailable",
+/// 			"shuffleAtEventStart": false
+/// 		}
+/// 	}
+///
+/// If json_response_enabled is **true** and the request hits the waiting room, an example JSON response when queueingMethod is **random** and an event is active could be:
+///
+/// 	{
+/// 		"cfWaitingRoom": {
+/// 			"inWaitingRoom": true,
+/// 			"waitTimeKnown": true,
+/// 			"waitTime": 10,
+/// 			"waitTime25Percentile": 5,
+/// 			"waitTime50Percentile": 10,
+/// 			"waitTime75Percentile": 15,
+/// 			"waitTimeFormatted": "5 minutes to 15 minutes",
+/// 			"queueIsFull": false,
+/// 			"queueAll": false,
+/// 			"lastUpdated": "2020-08-03T23:46:00.000Z",
+/// 			"refreshIntervalSeconds": 20,
+/// 			"queueingMethod": "random",
+/// 			"isFIFOQueue": false,
+/// 			"isRandomQueue": true,
+/// 			"isPassthroughQueue": false,
+/// 			"isRejectQueue": false,
+/// 			"isEventActive": true,
+/// 			"isEventPrequeueing": false,
+/// 			"timeUntilEventStart": 0,
+/// 			"timeUntilEventStartFormatted": "unavailable",
+/// 			"timeUntilEventEnd": 15,
+/// 			"timeUntilEventEndFormatted": "15 minutes",
+/// 			"shuffleAtEventStart": true
+/// 		}
+/// 	}
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitingroomJsonResponseEnabled {
+    pub value: serde_json::Value,
 }
 
 /// WorkersScriptResponse resource type.
@@ -33591,6 +35643,12 @@ pub struct AccessConnectionRulesSsh {
     pub usernames: serde_json::Value,
 }
 
+/// ApiShieldSchemasUuid resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ApiShieldSchemasUuid {
+    pub value: serde_json::Value,
+}
+
 /// Observability logging settings.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CcObservabilityLogs {
@@ -33657,6 +35715,12 @@ pub struct LoadBalancingFilterOptions {
     pub healthy: ::core::option::Option<bool>,
 }
 
+/// MagicAclSubnet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicAclSubnet {
+    pub value: serde_json::Value,
+}
+
 /// MagicNat resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicNat {
@@ -33709,6 +35773,12 @@ pub struct MagicTransitHopResult {
     pub packets_sent: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub packets_ttl: ::core::option::Option<serde_json::Value>,
+}
+
+/// Aggregated statistics from all hops about the target.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MagicTransitTargetSummary {
+    pub value: serde_json::Value,
 }
 
 /// McnResourceDetailsSectionItem resource type.
@@ -33781,6 +35851,12 @@ pub struct McnCloudPlatformClient {
     pub client_type: String,
     pub id: serde_json::Value,
     pub name: String,
+}
+
+/// MconnEvent resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MconnEvent {
+    pub value: serde_json::Value,
 }
 
 /// Snapshot Bond
@@ -34123,6 +36199,19 @@ pub struct ZoneAnalyticsApiRequests {
     pub uncached: ::core::option::Option<i64>,
 }
 
+/// The (inclusive) beginning of the requested time frame. This value can be a negative integer representing the number of minutes in the past relative to time the request is made, or can be an absolute timestamp that conforms to RFC 3339. At this point in time, it cannot exceed a time in the past greater than one year.
+///
+/// Ranges that the Cloudflare web application provides will provide the following period length for each point:
+/// - Last 60 minutes (from -59 to -1): 1 minute resolution
+/// - Last 7 hours (from -419 to -60): 15 minutes resolution
+/// - Last 15 hours (from -899 to -420): 30 minutes resolution
+/// - Last 72 hours (from -4320 to -900): 1 hour resolution
+/// - Older than 3 days (-525600 to -4320): 1 day resolution.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneAnalyticsApiSince {
+    pub value: serde_json::Value,
+}
+
 /// Breakdown of totals for threats.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneAnalyticsApiThreats {
@@ -34143,6 +36232,12 @@ pub struct ZoneAnalyticsApiUniques {
     /// Total number of unique IP addresses within the time range.
     #[serde(default)]
     pub all: ::core::option::Option<i64>,
+}
+
+/// The (exclusive) end of the requested time frame. This value can be a negative integer representing the number of minutes in the past relative to time the request is made, or can be an absolute timestamp that conforms to RFC 3339. If omitted, the time of the request is used.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ZoneAnalyticsApiUntil {
+    pub value: serde_json::Value,
 }
 
 /// MagicTransitNodeResult resource type.

@@ -44,15 +44,21 @@ pub struct CheckUpgradeResponse {
 
 /// Request to trigger database failover (only for highly resilient environments).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseFailoverRequest {}
+pub struct DatabaseFailoverRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for DatabaseFailoverRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabaseFailoverResponse {}
+pub struct DatabaseFailoverResponse {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Execute Airflow Command request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -190,7 +196,9 @@ pub struct LoadSnapshotRequest {
 
 /// Response to LoadSnapshotRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadSnapshotResponse {}
+pub struct LoadSnapshotResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata describing an operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -248,7 +256,9 @@ pub struct PollAirflowCommandResponse {
 
 /// Restart Airflow web server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestartWebServerRequest {}
+pub struct RestartWebServerRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to create a snapshot of a Cloud Composer environment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

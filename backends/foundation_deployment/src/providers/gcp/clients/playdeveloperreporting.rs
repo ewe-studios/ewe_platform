@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,16 +29,14 @@ use serde::Serialize;
 
 pub fn playdeveloperreporting_anomalies_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anomalies",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anomalies",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -52,9 +51,9 @@ pub fn playdeveloperreporting_anomalies_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -89,11 +88,12 @@ pub fn playdeveloperreporting_anomalies_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -218,10 +218,10 @@ pub fn playdeveloperreporting_anomalies_list(
 > {
     let builder = playdeveloperreporting_anomalies_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     playdeveloperreporting_anomalies_list_execute(builder)
 }
@@ -234,17 +234,16 @@ pub fn playdeveloperreporting_anomalies_list(
 
 pub fn playdeveloperreporting_apps_fetch_release_filter_options_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}:fetchReleaseFilterOptions",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -275,11 +274,12 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -396,8 +396,10 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_apps_fetch_release_filter_options_builder(client, &args.name)?;
+    let builder = playdeveloperreporting_apps_fetch_release_filter_options_builder(
+        client,
+        args.name.clone(),
+    )?;
     playdeveloperreporting_apps_fetch_release_filter_options_execute(builder)
 }
 
@@ -410,10 +412,11 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
 pub fn playdeveloperreporting_apps_search_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps:search",);
+    let endpoint_url =
+        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -425,9 +428,9 @@ pub fn playdeveloperreporting_apps_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -462,11 +465,12 @@ pub fn playdeveloperreporting_apps_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -587,8 +591,8 @@ pub fn playdeveloperreporting_apps_search(
 > {
     let builder = playdeveloperreporting_apps_search_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     playdeveloperreporting_apps_search_execute(builder)
 }
@@ -601,17 +605,15 @@ pub fn playdeveloperreporting_apps_search(
 
 pub fn playdeveloperreporting_vitals_anrrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet",
-        name,
-    );
+    let endpoint_url =
+        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -642,8 +644,12 @@ pub fn playdeveloperreporting_vitals_anrrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1AnrRateMetricSet>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GooglePlayDeveloperReportingV1beta1AnrRateMetricSet>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -754,7 +760,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, &args.name)?;
+    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_anrrate_get_execute(builder)
 }
 
@@ -766,18 +772,17 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
 
 pub fn playdeveloperreporting_vitals_anrrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/anrRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -810,11 +815,12 @@ pub fn playdeveloperreporting_vitals_anrrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -934,7 +940,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_anrrate_query_builder(client, &args.name, &args.body)?;
+        playdeveloperreporting_vitals_anrrate_query_builder(client, args.name.clone(), &args.body)?;
     playdeveloperreporting_vitals_anrrate_query_execute(builder)
 }
 
@@ -946,17 +952,16 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
 
 pub fn playdeveloperreporting_vitals_crashrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -987,11 +992,12 @@ pub fn playdeveloperreporting_vitals_crashrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1CrashRateMetricSet>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1108,7 +1114,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, &args.name)?;
+    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_crashrate_get_execute(builder)
 }
 
@@ -1120,18 +1126,17 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
 
 pub fn playdeveloperreporting_vitals_crashrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/crashRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1164,11 +1169,12 @@ pub fn playdeveloperreporting_vitals_crashrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1287,8 +1293,11 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_crashrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_crashrate_query_builder(
+        client,
+        args.name.clone(),
+        &args.body,
+    )?;
     playdeveloperreporting_vitals_crashrate_query_execute(builder)
 }
 
@@ -1300,17 +1309,16 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
 
 pub fn playdeveloperreporting_vitals_errors_counts_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1341,11 +1349,12 @@ pub fn playdeveloperreporting_vitals_errors_counts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1462,7 +1471,8 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_errors_counts_get_builder(client, &args.name)?;
+    let builder =
+        playdeveloperreporting_vitals_errors_counts_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_errors_counts_get_execute(builder)
 }
 
@@ -1474,18 +1484,17 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
 
 pub fn playdeveloperreporting_vitals_errors_counts_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorCountMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1518,11 +1527,12 @@ pub fn playdeveloperreporting_vitals_errors_counts_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1641,8 +1651,11 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_errors_counts_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_errors_counts_query_builder(
+        client,
+        args.name.clone(),
+        &args.body,
+    )?;
     playdeveloperreporting_vitals_errors_counts_query_execute(builder)
 }
 
@@ -1654,17 +1667,17 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
 
 pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     interval_endTime_day: Option<i32>,
     interval_endTime_hours: Option<i32>,
     interval_endTime_minutes: Option<i32>,
     interval_endTime_month: Option<i32>,
     interval_endTime_nanos: Option<i32>,
     interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<&str>,
-    interval_endTime_timeZone_version: Option<&str>,
-    interval_endTime_utcOffset: Option<&str>,
+    interval_endTime_timeZone_id: Option<String>,
+    interval_endTime_timeZone_version: Option<String>,
+    interval_endTime_utcOffset: Option<String>,
     interval_endTime_year: Option<i32>,
     interval_startTime_day: Option<i32>,
     interval_startTime_hours: Option<i32>,
@@ -1672,19 +1685,18 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     interval_startTime_month: Option<i32>,
     interval_startTime_nanos: Option<i32>,
     interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<&str>,
-    interval_startTime_timeZone_version: Option<&str>,
-    interval_startTime_utcOffset: Option<&str>,
+    interval_startTime_timeZone_id: Option<String>,
+    interval_startTime_timeZone_version: Option<String>,
+    interval_startTime_utcOffset: Option<String>,
     interval_startTime_year: Option<i32>,
-    orderBy: Option<&str>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     sampleErrorReportLimit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorIssues:search",
-        parent,
     );
 
     // Build request
@@ -1693,64 +1705,64 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
         query_parts.push(format!("filter={}", val));
     }
     if let Some(val) = interval_endTime_day {
-        query_parts.push(format!("interval_endTime_day={}", val));
+        query_parts.push(format!("interval.endTime.day={}", val));
     }
     if let Some(val) = interval_endTime_hours {
-        query_parts.push(format!("interval_endTime_hours={}", val));
+        query_parts.push(format!("interval.endTime.hours={}", val));
     }
     if let Some(val) = interval_endTime_minutes {
-        query_parts.push(format!("interval_endTime_minutes={}", val));
+        query_parts.push(format!("interval.endTime.minutes={}", val));
     }
     if let Some(val) = interval_endTime_month {
-        query_parts.push(format!("interval_endTime_month={}", val));
+        query_parts.push(format!("interval.endTime.month={}", val));
     }
     if let Some(val) = interval_endTime_nanos {
-        query_parts.push(format!("interval_endTime_nanos={}", val));
+        query_parts.push(format!("interval.endTime.nanos={}", val));
     }
     if let Some(val) = interval_endTime_seconds {
-        query_parts.push(format!("interval_endTime_seconds={}", val));
+        query_parts.push(format!("interval.endTime.seconds={}", val));
     }
     if let Some(val) = interval_endTime_timeZone_id {
-        query_parts.push(format!("interval_endTime_timeZone_id={}", val));
+        query_parts.push(format!("interval.endTime.timeZone.id={}", val));
     }
     if let Some(val) = interval_endTime_timeZone_version {
-        query_parts.push(format!("interval_endTime_timeZone_version={}", val));
+        query_parts.push(format!("interval.endTime.timeZone.version={}", val));
     }
     if let Some(val) = interval_endTime_utcOffset {
-        query_parts.push(format!("interval_endTime_utcOffset={}", val));
+        query_parts.push(format!("interval.endTime.utcOffset={}", val));
     }
     if let Some(val) = interval_endTime_year {
-        query_parts.push(format!("interval_endTime_year={}", val));
+        query_parts.push(format!("interval.endTime.year={}", val));
     }
     if let Some(val) = interval_startTime_day {
-        query_parts.push(format!("interval_startTime_day={}", val));
+        query_parts.push(format!("interval.startTime.day={}", val));
     }
     if let Some(val) = interval_startTime_hours {
-        query_parts.push(format!("interval_startTime_hours={}", val));
+        query_parts.push(format!("interval.startTime.hours={}", val));
     }
     if let Some(val) = interval_startTime_minutes {
-        query_parts.push(format!("interval_startTime_minutes={}", val));
+        query_parts.push(format!("interval.startTime.minutes={}", val));
     }
     if let Some(val) = interval_startTime_month {
-        query_parts.push(format!("interval_startTime_month={}", val));
+        query_parts.push(format!("interval.startTime.month={}", val));
     }
     if let Some(val) = interval_startTime_nanos {
-        query_parts.push(format!("interval_startTime_nanos={}", val));
+        query_parts.push(format!("interval.startTime.nanos={}", val));
     }
     if let Some(val) = interval_startTime_seconds {
-        query_parts.push(format!("interval_startTime_seconds={}", val));
+        query_parts.push(format!("interval.startTime.seconds={}", val));
     }
     if let Some(val) = interval_startTime_timeZone_id {
-        query_parts.push(format!("interval_startTime_timeZone_id={}", val));
+        query_parts.push(format!("interval.startTime.timeZone.id={}", val));
     }
     if let Some(val) = interval_startTime_timeZone_version {
-        query_parts.push(format!("interval_startTime_timeZone_version={}", val));
+        query_parts.push(format!("interval.startTime.timeZone.version={}", val));
     }
     if let Some(val) = interval_startTime_utcOffset {
-        query_parts.push(format!("interval_startTime_utcOffset={}", val));
+        query_parts.push(format!("interval.startTime.utcOffset={}", val));
     }
     if let Some(val) = interval_startTime_year {
-        query_parts.push(format!("interval_startTime_year={}", val));
+        query_parts.push(format!("interval.startTime.year={}", val));
     }
     if let Some(val) = orderBy {
         query_parts.push(format!("orderBy={}", val));
@@ -1766,9 +1778,9 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1803,11 +1815,12 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1976,32 +1989,32 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_issues_search_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.interval_endTime_day,
-        args.interval_endTime_hours,
-        args.interval_endTime_minutes,
-        args.interval_endTime_month,
-        args.interval_endTime_nanos,
-        args.interval_endTime_seconds,
-        args.interval_endTime_timeZone_id.as_deref(),
-        args.interval_endTime_timeZone_version.as_deref(),
-        args.interval_endTime_utcOffset.as_deref(),
-        args.interval_endTime_year,
-        args.interval_startTime_day,
-        args.interval_startTime_hours,
-        args.interval_startTime_minutes,
-        args.interval_startTime_month,
-        args.interval_startTime_nanos,
-        args.interval_startTime_seconds,
-        args.interval_startTime_timeZone_id.as_deref(),
-        args.interval_startTime_timeZone_version.as_deref(),
-        args.interval_startTime_utcOffset.as_deref(),
-        args.interval_startTime_year,
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.sampleErrorReportLimit,
+        args.parent.clone(),
+        args.filter.clone(),
+        args.interval_endTime_day.clone(),
+        args.interval_endTime_hours.clone(),
+        args.interval_endTime_minutes.clone(),
+        args.interval_endTime_month.clone(),
+        args.interval_endTime_nanos.clone(),
+        args.interval_endTime_seconds.clone(),
+        args.interval_endTime_timeZone_id.clone(),
+        args.interval_endTime_timeZone_version.clone(),
+        args.interval_endTime_utcOffset.clone(),
+        args.interval_endTime_year.clone(),
+        args.interval_startTime_day.clone(),
+        args.interval_startTime_hours.clone(),
+        args.interval_startTime_minutes.clone(),
+        args.interval_startTime_month.clone(),
+        args.interval_startTime_nanos.clone(),
+        args.interval_startTime_seconds.clone(),
+        args.interval_startTime_timeZone_id.clone(),
+        args.interval_startTime_timeZone_version.clone(),
+        args.interval_startTime_utcOffset.clone(),
+        args.interval_startTime_year.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.sampleErrorReportLimit.clone(),
     )?;
     playdeveloperreporting_vitals_errors_issues_search_execute(builder)
 }
@@ -2014,17 +2027,17 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 
 pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     interval_endTime_day: Option<i32>,
     interval_endTime_hours: Option<i32>,
     interval_endTime_minutes: Option<i32>,
     interval_endTime_month: Option<i32>,
     interval_endTime_nanos: Option<i32>,
     interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<&str>,
-    interval_endTime_timeZone_version: Option<&str>,
-    interval_endTime_utcOffset: Option<&str>,
+    interval_endTime_timeZone_id: Option<String>,
+    interval_endTime_timeZone_version: Option<String>,
+    interval_endTime_utcOffset: Option<String>,
     interval_endTime_year: Option<i32>,
     interval_startTime_day: Option<i32>,
     interval_startTime_hours: Option<i32>,
@@ -2032,17 +2045,16 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     interval_startTime_month: Option<i32>,
     interval_startTime_nanos: Option<i32>,
     interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<&str>,
-    interval_startTime_timeZone_version: Option<&str>,
-    interval_startTime_utcOffset: Option<&str>,
+    interval_startTime_timeZone_id: Option<String>,
+    interval_startTime_timeZone_version: Option<String>,
+    interval_startTime_utcOffset: Option<String>,
     interval_startTime_year: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/errorReports:search",
-        parent,
     );
 
     // Build request
@@ -2051,64 +2063,64 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
         query_parts.push(format!("filter={}", val));
     }
     if let Some(val) = interval_endTime_day {
-        query_parts.push(format!("interval_endTime_day={}", val));
+        query_parts.push(format!("interval.endTime.day={}", val));
     }
     if let Some(val) = interval_endTime_hours {
-        query_parts.push(format!("interval_endTime_hours={}", val));
+        query_parts.push(format!("interval.endTime.hours={}", val));
     }
     if let Some(val) = interval_endTime_minutes {
-        query_parts.push(format!("interval_endTime_minutes={}", val));
+        query_parts.push(format!("interval.endTime.minutes={}", val));
     }
     if let Some(val) = interval_endTime_month {
-        query_parts.push(format!("interval_endTime_month={}", val));
+        query_parts.push(format!("interval.endTime.month={}", val));
     }
     if let Some(val) = interval_endTime_nanos {
-        query_parts.push(format!("interval_endTime_nanos={}", val));
+        query_parts.push(format!("interval.endTime.nanos={}", val));
     }
     if let Some(val) = interval_endTime_seconds {
-        query_parts.push(format!("interval_endTime_seconds={}", val));
+        query_parts.push(format!("interval.endTime.seconds={}", val));
     }
     if let Some(val) = interval_endTime_timeZone_id {
-        query_parts.push(format!("interval_endTime_timeZone_id={}", val));
+        query_parts.push(format!("interval.endTime.timeZone.id={}", val));
     }
     if let Some(val) = interval_endTime_timeZone_version {
-        query_parts.push(format!("interval_endTime_timeZone_version={}", val));
+        query_parts.push(format!("interval.endTime.timeZone.version={}", val));
     }
     if let Some(val) = interval_endTime_utcOffset {
-        query_parts.push(format!("interval_endTime_utcOffset={}", val));
+        query_parts.push(format!("interval.endTime.utcOffset={}", val));
     }
     if let Some(val) = interval_endTime_year {
-        query_parts.push(format!("interval_endTime_year={}", val));
+        query_parts.push(format!("interval.endTime.year={}", val));
     }
     if let Some(val) = interval_startTime_day {
-        query_parts.push(format!("interval_startTime_day={}", val));
+        query_parts.push(format!("interval.startTime.day={}", val));
     }
     if let Some(val) = interval_startTime_hours {
-        query_parts.push(format!("interval_startTime_hours={}", val));
+        query_parts.push(format!("interval.startTime.hours={}", val));
     }
     if let Some(val) = interval_startTime_minutes {
-        query_parts.push(format!("interval_startTime_minutes={}", val));
+        query_parts.push(format!("interval.startTime.minutes={}", val));
     }
     if let Some(val) = interval_startTime_month {
-        query_parts.push(format!("interval_startTime_month={}", val));
+        query_parts.push(format!("interval.startTime.month={}", val));
     }
     if let Some(val) = interval_startTime_nanos {
-        query_parts.push(format!("interval_startTime_nanos={}", val));
+        query_parts.push(format!("interval.startTime.nanos={}", val));
     }
     if let Some(val) = interval_startTime_seconds {
-        query_parts.push(format!("interval_startTime_seconds={}", val));
+        query_parts.push(format!("interval.startTime.seconds={}", val));
     }
     if let Some(val) = interval_startTime_timeZone_id {
-        query_parts.push(format!("interval_startTime_timeZone_id={}", val));
+        query_parts.push(format!("interval.startTime.timeZone.id={}", val));
     }
     if let Some(val) = interval_startTime_timeZone_version {
-        query_parts.push(format!("interval_startTime_timeZone_version={}", val));
+        query_parts.push(format!("interval.startTime.timeZone.version={}", val));
     }
     if let Some(val) = interval_startTime_utcOffset {
-        query_parts.push(format!("interval_startTime_utcOffset={}", val));
+        query_parts.push(format!("interval.startTime.utcOffset={}", val));
     }
     if let Some(val) = interval_startTime_year {
-        query_parts.push(format!("interval_startTime_year={}", val));
+        query_parts.push(format!("interval.startTime.year={}", val));
     }
     if let Some(val) = pageSize {
         query_parts.push(format!("pageSize={}", val));
@@ -2118,9 +2130,9 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2155,11 +2167,12 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2324,30 +2337,30 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_reports_search_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.interval_endTime_day,
-        args.interval_endTime_hours,
-        args.interval_endTime_minutes,
-        args.interval_endTime_month,
-        args.interval_endTime_nanos,
-        args.interval_endTime_seconds,
-        args.interval_endTime_timeZone_id.as_deref(),
-        args.interval_endTime_timeZone_version.as_deref(),
-        args.interval_endTime_utcOffset.as_deref(),
-        args.interval_endTime_year,
-        args.interval_startTime_day,
-        args.interval_startTime_hours,
-        args.interval_startTime_minutes,
-        args.interval_startTime_month,
-        args.interval_startTime_nanos,
-        args.interval_startTime_seconds,
-        args.interval_startTime_timeZone_id.as_deref(),
-        args.interval_startTime_timeZone_version.as_deref(),
-        args.interval_startTime_utcOffset.as_deref(),
-        args.interval_startTime_year,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.interval_endTime_day.clone(),
+        args.interval_endTime_hours.clone(),
+        args.interval_endTime_minutes.clone(),
+        args.interval_endTime_month.clone(),
+        args.interval_endTime_nanos.clone(),
+        args.interval_endTime_seconds.clone(),
+        args.interval_endTime_timeZone_id.clone(),
+        args.interval_endTime_timeZone_version.clone(),
+        args.interval_endTime_utcOffset.clone(),
+        args.interval_endTime_year.clone(),
+        args.interval_startTime_day.clone(),
+        args.interval_startTime_hours.clone(),
+        args.interval_startTime_minutes.clone(),
+        args.interval_startTime_month.clone(),
+        args.interval_startTime_nanos.clone(),
+        args.interval_startTime_seconds.clone(),
+        args.interval_startTime_timeZone_id.clone(),
+        args.interval_startTime_timeZone_version.clone(),
+        args.interval_startTime_utcOffset.clone(),
+        args.interval_startTime_year.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     playdeveloperreporting_vitals_errors_reports_search_execute(builder)
 }
@@ -2360,17 +2373,16 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2401,11 +2413,12 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2523,7 +2536,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, &args.name)?;
+        playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_excessivewakeuprate_get_execute(builder)
 }
 
@@ -2535,18 +2548,17 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/excessiveWakeupRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2579,13 +2591,14 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<
                     GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse,
                 >,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2703,7 +2716,9 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
     ApiError,
 > {
     let builder = playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
-        client, &args.name, &args.body,
+        client,
+        args.name.clone(),
+        &args.body,
     )?;
     playdeveloperreporting_vitals_excessivewakeuprate_query_execute(builder)
 }
@@ -2716,17 +2731,15 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
 
 pub fn playdeveloperreporting_vitals_lmkrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet",
-        name,
-    );
+    let endpoint_url =
+        format!("https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2757,8 +2770,12 @@ pub fn playdeveloperreporting_vitals_lmkrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1LmkRateMetricSet>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GooglePlayDeveloperReportingV1beta1LmkRateMetricSet>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2869,7 +2886,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, &args.name)?;
+    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_lmkrate_get_execute(builder)
 }
 
@@ -2881,18 +2898,17 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
 
 pub fn playdeveloperreporting_vitals_lmkrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/lmkRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2925,11 +2941,12 @@ pub fn playdeveloperreporting_vitals_lmkrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3049,7 +3066,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_lmkrate_query_builder(client, &args.name, &args.body)?;
+        playdeveloperreporting_vitals_lmkrate_query_builder(client, args.name.clone(), &args.body)?;
     playdeveloperreporting_vitals_lmkrate_query_execute(builder)
 }
 
@@ -3061,17 +3078,16 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3102,11 +3118,12 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3223,7 +3240,8 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, &args.name)?;
+    let builder =
+        playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_slowrenderingrate_get_execute(builder)
 }
 
@@ -3235,18 +3253,17 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowRenderingRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3279,13 +3296,14 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<
                     GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse,
                 >,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3403,7 +3421,9 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
     ApiError,
 > {
     let builder = playdeveloperreporting_vitals_slowrenderingrate_query_builder(
-        client, &args.name, &args.body,
+        client,
+        args.name.clone(),
+        &args.body,
     )?;
     playdeveloperreporting_vitals_slowrenderingrate_query_execute(builder)
 }
@@ -3416,17 +3436,16 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3457,11 +3476,12 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3578,7 +3598,8 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowstartrate_get_builder(client, &args.name)?;
+    let builder =
+        playdeveloperreporting_vitals_slowstartrate_get_builder(client, args.name.clone())?;
     playdeveloperreporting_vitals_slowstartrate_get_execute(builder)
 }
 
@@ -3590,18 +3611,17 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/slowStartRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3634,11 +3654,12 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3756,8 +3777,11 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_slowstartrate_query_builder(client, &args.name, &args.body)?;
+    let builder = playdeveloperreporting_vitals_slowstartrate_query_builder(
+        client,
+        args.name.clone(),
+        &args.body,
+    )?;
     playdeveloperreporting_vitals_slowstartrate_query_execute(builder)
 }
 
@@ -3769,17 +3793,16 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3810,13 +3833,14 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<
                     GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet,
                 >,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3931,8 +3955,10 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(client, &args.name)?;
+    let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
+        client,
+        args.name.clone(),
+    )?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(builder)
 }
 
@@ -3944,18 +3970,17 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playdeveloperreporting.googleapis.com/v1beta1/apps/{}/stuckBackgroundWakelockRateMetricSet:query",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3988,8 +4013,9 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        D = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse>, ApiError>,
-        P = ApiPending
+        Ready = Result<ApiResponse<GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse>, ApiError>,
+        Pending = ApiPending,
+        Spawner = BoxedSendExecutionAction
     > + Send + 'static,
     ApiError,
 >{
@@ -4094,7 +4120,9 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
     ApiError,
 >{
     let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
-        client, &args.name, &args.body,
+        client,
+        args.name.clone(),
+        &args.body,
     )?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(builder)
 }

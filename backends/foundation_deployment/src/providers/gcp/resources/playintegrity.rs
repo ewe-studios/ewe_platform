@@ -56,7 +56,9 @@ pub struct WriteDeviceRecallRequest {
 
 /// Response for the Write Device Recall action. Currently empty.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteDeviceRecallResponse {}
+pub struct WriteDeviceRecallResponse {
+    pub value: serde_json::Value,
+}
 
 /// Contains basic app information and integrity signals like device attestation and licensing details.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

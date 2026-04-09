@@ -24,7 +24,9 @@ pub struct AddAclEntryResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for CheckCompatibility.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -128,7 +130,9 @@ pub struct CreateVersionResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -297,11 +301,15 @@ pub struct OperationMetadata {
 
 /// Request for PauseConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PauseConnectorRequest {}
+pub struct PauseConnectorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for PauseConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PauseConnectorResponse {}
+pub struct PauseConnectorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response for RemoveAclEntry.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -316,19 +324,27 @@ pub struct RemoveAclEntryResponse {
 
 /// Request for RestartConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestartConnectorRequest {}
+pub struct RestartConnectorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for RestartConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestartConnectorResponse {}
+pub struct RestartConnectorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for ResumeConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeConnectorRequest {}
+pub struct ResumeConnectorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for ResumeConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeConnectorResponse {}
+pub struct ResumeConnectorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Schema for a Kafka message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -391,11 +407,15 @@ pub struct SchemaVersion {
 
 /// Request for StopConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopConnectorRequest {}
+pub struct StopConnectorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for StopConnector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopConnectorResponse {}
+pub struct StopConnectorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for updating schema config. On a SchemaSubject-level SchemaConfig, an unset field will be removed from the SchemaConfig.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

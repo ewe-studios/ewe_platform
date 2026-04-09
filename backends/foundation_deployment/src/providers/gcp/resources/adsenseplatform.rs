@@ -13,15 +13,21 @@ use serde::{Deserialize, Serialize};
 
 /// Request definition for the account close rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseAccountRequest {}
+pub struct CloseAccountRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response definition for the account close rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseAccountResponse {}
+pub struct CloseAccountResponse {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// A platform sub-account event to record spam signals.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,7 +75,9 @@ pub struct LookupAccountResponse {
 
 /// Response definition for the site request review rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestSiteReviewResponse {}
+pub struct RequestSiteReviewResponse {
+    pub value: serde_json::Value,
+}
 
 /// Private information for partner recorded events (PII).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

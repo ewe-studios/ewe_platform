@@ -13,15 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// Message for approving a QueryTemplate.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproveQueryTemplateRequest {}
-
-/// Default Analytics Hub data exchange, used for secured data sharing.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DefaultExchangeConfig {}
+pub struct ApproveQueryTemplateRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -143,13 +143,11 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubsubWrapper {}
-
 /// Message for refreshing a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshSubscriptionRequest {}
+pub struct RefreshSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for response when you refresh a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -169,7 +167,9 @@ pub struct RevokeSubscriptionRequest {
 
 /// Message for response when you revoke a subscription. Empty for now.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RevokeSubscriptionResponse {}
+pub struct RevokeSubscriptionResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -184,7 +184,9 @@ pub struct SetIamPolicyRequest {
 
 /// Message for submitting a QueryTemplate.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubmitQueryTemplateRequest {}
+pub struct SubmitQueryTemplateRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for subscribing to a Data Exchange.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -245,10 +247,6 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextConfig {}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -580,7 +578,7 @@ pub struct SharingEnvironmentConfig {
     pub dcr_exchange_config: ::core::option::Option<DcrExchangeConfig>,
     /// Default Analytics Hub data exchange, used for secured data sharing.
     #[serde(default, rename = "defaultExchangeConfig")]
-    pub default_exchange_config: ::core::option::Option<serde_json::Value>,
+    pub default_exchange_config: ::core::option::Option<DefaultExchangeConfig>,
 }
 
 /// Represents a bigquery routine.
@@ -786,6 +784,12 @@ pub struct DcrExchangeConfig {
     pub single_selected_resource_sharing_restriction: ::core::option::Option<bool>,
 }
 
+/// Default Analytics Hub data exchange, used for secured data sharing.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DefaultExchangeConfig {
+    pub value: serde_json::Value,
+}
+
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
@@ -886,7 +890,7 @@ pub struct CloudStorageConfig {
     pub service_account_email: ::core::option::Option<String>,
     /// Optional. If set, message data will be written to Cloud Storage in text format.
     #[serde(default, rename = "textConfig")]
-    pub text_config: ::core::option::Option<serde_json::Value>,
+    pub text_config: ::core::option::Option<TextConfig>,
 }
 
 /// Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.
@@ -939,7 +943,7 @@ pub struct PushConfig {
     pub oidc_token: ::core::option::Option<OidcToken>,
     /// Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
     #[serde(default, rename = "pubsubWrapper")]
-    pub pubsub_wrapper: ::core::option::Option<serde_json::Value>,
+    pub pubsub_wrapper: ::core::option::Option<PubsubWrapper>,
     /// Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use https://example.com/push.
     #[serde(default, rename = "pushEndpoint")]
     pub push_endpoint: ::core::option::Option<String>,
@@ -986,6 +990,12 @@ pub struct AvroConfig {
     pub write_metadata: ::core::option::Option<bool>,
 }
 
+/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextConfig {
+    pub value: serde_json::Value,
+}
+
 /// Configuration for making inference requests against Vertex AI models.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AIInference {
@@ -1028,6 +1038,12 @@ pub struct OidcToken {
     /// Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).
     #[serde(default, rename = "serviceAccountEmail")]
     pub service_account_email: ::core::option::Option<String>,
+}
+
+/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubsubWrapper {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for making inferences using arbitrary JSON payloads.

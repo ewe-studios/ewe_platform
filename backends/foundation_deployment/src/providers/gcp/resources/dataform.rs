@@ -11,21 +11,23 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Simple load definition
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActionSimpleLoadMode {}
-
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// CancelWorkflowInvocation request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelWorkflowInvocationRequest {}
+pub struct CancelWorkflowInvocationRequest {
+    pub value: serde_json::Value,
+}
 
 /// CancelWorkflowInvocation response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelWorkflowInvocationResponse {}
+pub struct CancelWorkflowInvocationResponse {
+    pub value: serde_json::Value,
+}
 
 /// CommitRepositoryChanges request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,7 +67,9 @@ pub struct CommitWorkspaceChangesRequest {
 
 /// CommitWorkspaceChanges response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitWorkspaceChangesResponse {}
+pub struct CommitWorkspaceChangesResponse {
+    pub value: serde_json::Value,
+}
 
 /// ComputeRepositoryAccessTokenStatus response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -89,10 +93,6 @@ pub struct Config {
     pub name: ::core::option::Option<String>,
 }
 
-/// Represents the delete file operation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteFile {}
-
 /// DeleteFolderTree request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFolderTreeRequest {
@@ -111,7 +111,9 @@ pub struct DeleteTeamFolderTreeRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// FetchFileDiff response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -164,7 +166,7 @@ pub struct FetchRepositoryHistoryResponse {
 pub struct FileOperation {
     /// Represents the delete operation.
     #[serde(default, rename = "deleteFile")]
-    pub delete_file: ::core::option::Option<serde_json::Value>,
+    pub delete_file: ::core::option::Option<DeleteFile>,
     /// Represents the write operation.
     #[serde(default, rename = "writeFile")]
     pub write_file: ::core::option::Option<WriteFile>,
@@ -183,11 +185,15 @@ pub struct IamPolicyOverrideView {
 
 /// InstallNpmPackages request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallNpmPackagesRequest {}
+pub struct InstallNpmPackagesRequest {
+    pub value: serde_json::Value,
+}
 
 /// InstallNpmPackages response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstallNpmPackagesResponse {}
+pub struct InstallNpmPackagesResponse {
+    pub value: serde_json::Value,
+}
 
 /// ListCompilationResults response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -308,7 +314,9 @@ pub struct MakeDirectoryRequest {
 
 /// MakeDirectory response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MakeDirectoryResponse {}
+pub struct MakeDirectoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// MoveDirectory request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -323,7 +331,9 @@ pub struct MoveDirectoryRequest {
 
 /// MoveDirectory response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveDirectoryResponse {}
+pub struct MoveDirectoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// MoveFile request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -338,7 +348,9 @@ pub struct MoveFileRequest {
 
 /// MoveFile response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveFileResponse {}
+pub struct MoveFileResponse {
+    pub value: serde_json::Value,
+}
 
 /// MoveFolder request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -395,7 +407,9 @@ pub struct PullGitCommitsRequest {
 
 /// PullGitCommits response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PullGitCommitsResponse {}
+pub struct PullGitCommitsResponse {
+    pub value: serde_json::Value,
+}
 
 /// PushGitCommits request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -407,7 +421,9 @@ pub struct PushGitCommitsRequest {
 
 /// PushGitCommits response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PushGitCommitsResponse {}
+pub struct PushGitCommitsResponse {
+    pub value: serde_json::Value,
+}
 
 /// QueryCompilationResultActions response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -514,7 +530,9 @@ pub struct RemoveDirectoryRequest {
 
 /// RemoveDirectory response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveDirectoryResponse {}
+pub struct RemoveDirectoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// RemoveFile request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -526,7 +544,9 @@ pub struct RemoveFileRequest {
 
 /// RemoveFile response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveFileResponse {}
+pub struct RemoveFileResponse {
+    pub value: serde_json::Value,
+}
 
 /// ResetWorkspaceChanges request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -541,7 +561,9 @@ pub struct ResetWorkspaceChangesRequest {
 
 /// ResetWorkspaceChanges response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetWorkspaceChangesResponse {}
+pub struct ResetWorkspaceChangesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Client-facing representation of a file search response.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -573,10 +595,6 @@ pub struct SetIamPolicyRequest {
     pub policy: ::core::option::Option<Policy>,
 }
 
-/// Simple load definition
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SimpleLoadMode {}
-
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
@@ -606,7 +624,9 @@ pub struct WriteFileRequest {
 
 /// WriteFile response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteFileResponse {}
+pub struct WriteFileResponse {
+    pub value: serde_json::Value,
+}
 
 /// Represents a Dataform Git commit.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -645,6 +665,12 @@ pub struct CommitLogEntry {
     /// Commit timestamp.
     #[serde(default, rename = "commitTime")]
     pub commit_time: ::core::option::Option<String>,
+}
+
+/// Represents the delete file operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteFile {
+    pub value: serde_json::Value,
 }
 
 /// Represents the write file operation (for files added or modified).
@@ -1654,13 +1680,13 @@ pub struct ErrorTable {
 pub struct LoadConfig {
     /// Append into destination table
     #[serde(default)]
-    pub append: ::core::option::Option<serde_json::Value>,
+    pub append: ::core::option::Option<SimpleLoadMode>,
     /// Insert records where the value exceeds the previous maximum value for a column in the destination table
     #[serde(default)]
     pub maximum: ::core::option::Option<IncrementalLoadMode>,
     /// Replace destination table
     #[serde(default)]
-    pub replace: ::core::option::Option<serde_json::Value>,
+    pub replace: ::core::option::Option<SimpleLoadMode>,
     /// Insert records where the value of a column is not already present in the destination table
     #[serde(default)]
     pub unique: ::core::option::Option<IncrementalLoadMode>,
@@ -1707,16 +1733,22 @@ pub struct ActionErrorTable {
 pub struct ActionLoadConfig {
     /// Append into destination table
     #[serde(default)]
-    pub append: ::core::option::Option<serde_json::Value>,
+    pub append: ::core::option::Option<ActionSimpleLoadMode>,
     /// Insert records where the value exceeds the previous maximum value for a column in the destination table
     #[serde(default)]
     pub maximum: ::core::option::Option<ActionIncrementalLoadMode>,
     /// Replace destination table
     #[serde(default)]
-    pub replace: ::core::option::Option<serde_json::Value>,
+    pub replace: ::core::option::Option<ActionSimpleLoadMode>,
     /// Insert records where the value of a column is not already present in the destination table
     #[serde(default)]
     pub unique: ::core::option::Option<ActionIncrementalLoadMode>,
+}
+
+/// Simple load definition
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SimpleLoadMode {
+    pub value: serde_json::Value,
 }
 
 /// Load definition for incremental load modes
@@ -1739,6 +1771,12 @@ pub struct Target {
     /// Optional. The action''s schema (BigQuery dataset ID), within database.
     #[serde(default)]
     pub schema: ::core::option::Option<String>,
+}
+
+/// Simple load definition
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActionSimpleLoadMode {
+    pub value: serde_json::Value,
 }
 
 /// Load definition for incremental load modes

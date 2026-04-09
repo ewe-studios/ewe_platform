@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,19 @@ use serde::Serialize;
 
 pub fn calendar_acl_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
+    calendarId: String,
+    ruleId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
-        calendarId, ruleId,
+        calendarId.as_str(),
+        ruleId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -69,7 +71,12 @@ pub fn calendar_acl_delete_builder(
 pub fn calendar_acl_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -168,163 +175,9 @@ pub fn calendar_acl_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_delete_builder(client, &args.calendarId, &args.ruleId)?;
+    let builder =
+        calendar_acl_delete_builder(client, args.calendarId.clone(), args.ruleId.clone())?;
     calendar_acl_delete_execute(builder)
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Returns an access control rule.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_acl_get_execute()` to send, or `calendar_acl_get` for simplest API.
-
-pub fn calendar_acl_get_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
-        calendarId, ruleId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Returns an access control rule.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_acl_get_execute()` or `calendar_acl_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AclRule = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Returns an access control rule.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_acl_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_acl_get_task()`.
-/// For the simplest API, use `calendar_acl_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_acl_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_acl_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_acl_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarAclGetArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: ruleId
-    pub ruleId: String,
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Returns an access control rule.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_acl_get_builder()` + `calendar_acl_get_execute()`.
-/// For task-level control, use `calendar_acl_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_get(
-    client: &SimpleHttpClient,
-    args: &CalendarAclGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_acl_get_builder(client, &args.calendarId, &args.ruleId)?;
-    calendar_acl_get_execute(builder)
 }
 
 /// GET calendars/{calendarId}/acl
@@ -335,14 +188,14 @@ pub fn calendar_acl_get(
 
 pub fn calendar_acl_insert_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
     sendNotifications: Option<bool>,
     body: &AclRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
@@ -352,9 +205,9 @@ pub fn calendar_acl_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -390,7 +243,12 @@ pub fn calendar_acl_insert_builder(
 pub fn calendar_acl_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AclRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -494,560 +352,13 @@ pub fn calendar_acl_insert(
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        calendar_acl_insert_builder(client, &args.calendarId, args.sendNotifications, &args.body)?;
+    let builder = calendar_acl_insert_builder(
+        client,
+        args.calendarId.clone(),
+        args.sendNotifications.clone(),
+        &args.body,
+    )?;
     calendar_acl_insert_execute(builder)
-}
-
-/// GET calendars/{calendarId}/acl
-/// Returns the rules in the access control list for the calendar.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_acl_list_execute()` to send, or `calendar_acl_list` for simplest API.
-
-pub fn calendar_acl_list_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    syncToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
-        calendarId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = syncToken {
-        query_parts.push(format!("syncToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/acl
-/// Returns the rules in the access control list for the calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_acl_list_execute()` or `calendar_acl_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Acl = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/acl
-/// Returns the rules in the access control list for the calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_acl_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_acl_list_task()`.
-/// For the simplest API, use `calendar_acl_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_acl_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_acl_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_acl_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarAclListArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-}
-
-/// GET calendars/{calendarId}/acl
-/// Returns the rules in the access control list for the calendar.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_acl_list_builder()` + `calendar_acl_list_execute()`.
-/// For task-level control, use `calendar_acl_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_list(
-    client: &SimpleHttpClient,
-    args: &CalendarAclListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_acl_list_builder(
-        client,
-        &args.calendarId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.syncToken.as_deref(),
-    )?;
-    calendar_acl_list_execute(builder)
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_acl_patch_execute()` to send, or `calendar_acl_patch` for simplest API.
-
-pub fn calendar_acl_patch_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
-    sendNotifications: Option<bool>,
-    body: &AclRule,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
-        calendarId, ruleId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_acl_patch_execute()` or `calendar_acl_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AclRule = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_acl_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_acl_patch_task()`.
-/// For the simplest API, use `calendar_acl_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_acl_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_acl_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_acl_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarAclPatchArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: ruleId
-    pub ruleId: String,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Request body.
-    pub body: AclRule,
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_acl_patch_builder()` + `calendar_acl_patch_execute()`.
-/// For task-level control, use `calendar_acl_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_patch(
-    client: &SimpleHttpClient,
-    args: &CalendarAclPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_acl_patch_builder(
-        client,
-        &args.calendarId,
-        &args.ruleId,
-        args.sendNotifications,
-        &args.body,
-    )?;
-    calendar_acl_patch_execute(builder)
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_acl_update_execute()` to send, or `calendar_acl_update` for simplest API.
-
-pub fn calendar_acl_update_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
-    sendNotifications: Option<bool>,
-    body: &AclRule,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
-        calendarId, ruleId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_acl_update_execute()` or `calendar_acl_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AclRule = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_acl_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_acl_update_task()`.
-/// For the simplest API, use `calendar_acl_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_acl_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_acl_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_acl_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarAclUpdateArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: ruleId
-    pub ruleId: String,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Request body.
-    pub body: AclRule,
-}
-
-/// GET calendars/{calendarId}/acl/{ruleId}
-/// Updates an access control rule.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_acl_update_builder()` + `calendar_acl_update_execute()`.
-/// For task-level control, use `calendar_acl_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_acl_update(
-    client: &SimpleHttpClient,
-    args: &CalendarAclUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_acl_update_builder(
-        client,
-        &args.calendarId,
-        &args.ruleId,
-        args.sendNotifications,
-        &args.body,
-    )?;
-    calendar_acl_update_execute(builder)
 }
 
 /// GET calendars/{calendarId}/acl/watch
@@ -1058,17 +369,17 @@ pub fn calendar_acl_update(
 
 pub fn calendar_acl_watch_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     showDeleted: Option<bool>,
-    syncToken: Option<&str>,
+    syncToken: Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/watch",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
@@ -1087,9 +398,9 @@ pub fn calendar_acl_watch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1125,7 +436,12 @@ pub fn calendar_acl_watch_builder(
 pub fn calendar_acl_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1237,11 +553,11 @@ pub fn calendar_acl_watch(
 > {
     let builder = calendar_acl_watch_builder(
         client,
-        &args.calendarId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.syncToken.as_deref(),
+        args.calendarId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.showDeleted.clone(),
+        args.syncToken.clone(),
         &args.body,
     )?;
     calendar_acl_watch_execute(builder)
@@ -1255,17 +571,17 @@ pub fn calendar_acl_watch(
 
 pub fn calendar_calendar_list_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1295,7 +611,12 @@ pub fn calendar_calendar_list_delete_builder(
 pub fn calendar_calendar_list_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1392,166 +713,8 @@ pub fn calendar_calendar_list_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_delete_builder(client, &args.calendarId)?;
+    let builder = calendar_calendar_list_delete_builder(client, args.calendarId.clone())?;
     calendar_calendar_list_delete_execute(builder)
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendar_list_get_execute()` to send, or `calendar_calendar_list_get` for simplest API.
-
-pub fn calendar_calendar_list_get_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
-        calendarId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendar_list_get_execute()` or `calendar_calendar_list_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CalendarListEntry = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendar_list_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendar_list_get_task()`.
-/// For the simplest API, use `calendar_calendar_list_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendar_list_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = calendar_calendar_list_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendar_list_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarListGetArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Returns a calendar from the user's calendar list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendar_list_get_builder()` + `calendar_calendar_list_get_execute()`.
-/// For task-level control, use `calendar_calendar_list_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_get(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarListGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendar_list_get_builder(client, &args.calendarId)?;
-    calendar_calendar_list_get_execute(builder)
 }
 
 /// GET users/me/calendarList
@@ -1566,7 +729,7 @@ pub fn calendar_calendar_list_insert_builder(
     body: &CalendarListEntry,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1575,9 +738,9 @@ pub fn calendar_calendar_list_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1613,8 +776,11 @@ pub fn calendar_calendar_list_insert_builder(
 pub fn calendar_calendar_list_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CalendarListEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1721,574 +887,9 @@ pub fn calendar_calendar_list_insert(
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_insert_builder(client, args.colorRgbFormat, &args.body)?;
+    let builder =
+        calendar_calendar_list_insert_builder(client, args.colorRgbFormat.clone(), &args.body)?;
     calendar_calendar_list_insert_execute(builder)
-}
-
-/// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendar_list_list_execute()` to send, or `calendar_calendar_list_list` for simplest API.
-
-pub fn calendar_calendar_list_list_builder(
-    client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    minAccessRole: Option<&str>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    syncToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = minAccessRole {
-        query_parts.push(format!("minAccessRole={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = showHidden {
-        query_parts.push(format!("showHidden={}", val));
-    }
-    if let Some(val) = syncToken {
-        query_parts.push(format!("syncToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendar_list_list_execute()` or `calendar_calendar_list_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CalendarList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendar_list_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendar_list_list_task()`.
-/// For the simplest API, use `calendar_calendar_list_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendar_list_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = calendar_calendar_list_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendar_list_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarListListArgs {
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: minAccessRole
-    pub minAccessRole: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: showHidden
-    pub showHidden: Option<bool>,
-    /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-}
-
-/// GET users/me/calendarList
-/// Returns the calendars on the user's calendar list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendar_list_list_builder()` + `calendar_calendar_list_list_execute()`.
-/// For task-level control, use `calendar_calendar_list_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_list(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarListListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendar_list_list_builder(
-        client,
-        args.maxResults,
-        args.minAccessRole.as_deref(),
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.showHidden,
-        args.syncToken.as_deref(),
-    )?;
-    calendar_calendar_list_list_execute(builder)
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendar_list_patch_execute()` to send, or `calendar_calendar_list_patch` for simplest API.
-
-pub fn calendar_calendar_list_patch_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    colorRgbFormat: Option<bool>,
-    body: &CalendarListEntry,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
-        calendarId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = colorRgbFormat {
-        query_parts.push(format!("colorRgbFormat={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendar_list_patch_execute()` or `calendar_calendar_list_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CalendarListEntry = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendar_list_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendar_list_patch_task()`.
-/// For the simplest API, use `calendar_calendar_list_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendar_list_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = calendar_calendar_list_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendar_list_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarListPatchArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<bool>,
-    /// Request body.
-    pub body: CalendarListEntry,
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendar_list_patch_builder()` + `calendar_calendar_list_patch_execute()`.
-/// For task-level control, use `calendar_calendar_list_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_patch(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarListPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendar_list_patch_builder(
-        client,
-        &args.calendarId,
-        args.colorRgbFormat,
-        &args.body,
-    )?;
-    calendar_calendar_list_patch_execute(builder)
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendar_list_update_execute()` to send, or `calendar_calendar_list_update` for simplest API.
-
-pub fn calendar_calendar_list_update_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    colorRgbFormat: Option<bool>,
-    body: &CalendarListEntry,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
-        calendarId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = colorRgbFormat {
-        query_parts.push(format!("colorRgbFormat={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendar_list_update_execute()` or `calendar_calendar_list_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CalendarListEntry = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendar_list_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendar_list_update_task()`.
-/// For the simplest API, use `calendar_calendar_list_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendar_list_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = calendar_calendar_list_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendar_list_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarListUpdateArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<bool>,
-    /// Request body.
-    pub body: CalendarListEntry,
-}
-
-/// GET users/me/calendarList/{calendarId}
-/// Updates an existing calendar on the user's calendar list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendar_list_update_builder()` + `calendar_calendar_list_update_execute()`.
-/// For task-level control, use `calendar_calendar_list_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendar_list_update(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarListUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendar_list_update_builder(
-        client,
-        &args.calendarId,
-        args.colorRgbFormat,
-        &args.body,
-    )?;
-    calendar_calendar_list_update_execute(builder)
 }
 
 /// GET users/me/calendarList/watch
@@ -2300,15 +901,16 @@ pub fn calendar_calendar_list_update(
 pub fn calendar_calendar_list_watch_builder(
     client: &SimpleHttpClient,
     maxResults: Option<i32>,
-    minAccessRole: Option<&str>,
-    pageToken: Option<&str>,
+    minAccessRole: Option<String>,
+    pageToken: Option<String>,
     showDeleted: Option<bool>,
     showHidden: Option<bool>,
-    syncToken: Option<&str>,
+    syncToken: Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList/watch",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/calendar/v3/users/me/calendarList/watch",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2332,9 +934,9 @@ pub fn calendar_calendar_list_watch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2370,7 +972,12 @@ pub fn calendar_calendar_list_watch_builder(
 pub fn calendar_calendar_list_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2484,12 +1091,12 @@ pub fn calendar_calendar_list_watch(
 > {
     let builder = calendar_calendar_list_watch_builder(
         client,
-        args.maxResults,
-        args.minAccessRole.as_deref(),
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.showHidden,
-        args.syncToken.as_deref(),
+        args.maxResults.clone(),
+        args.minAccessRole.clone(),
+        args.pageToken.clone(),
+        args.showDeleted.clone(),
+        args.showHidden.clone(),
+        args.syncToken.clone(),
         &args.body,
     )?;
     calendar_calendar_list_watch_execute(builder)
@@ -2503,17 +1110,17 @@ pub fn calendar_calendar_list_watch(
 
 pub fn calendar_calendars_clear_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/clear",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2543,7 +1150,12 @@ pub fn calendar_calendars_clear_builder(
 pub fn calendar_calendars_clear_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2640,7 +1252,7 @@ pub fn calendar_calendars_clear(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_clear_builder(client, &args.calendarId)?;
+    let builder = calendar_calendars_clear_builder(client, args.calendarId.clone())?;
     calendar_calendars_clear_execute(builder)
 }
 
@@ -2652,17 +1264,17 @@ pub fn calendar_calendars_clear(
 
 pub fn calendar_calendars_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2692,7 +1304,12 @@ pub fn calendar_calendars_delete_builder(
 pub fn calendar_calendars_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2789,160 +1406,8 @@ pub fn calendar_calendars_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_delete_builder(client, &args.calendarId)?;
+    let builder = calendar_calendars_delete_builder(client, args.calendarId.clone())?;
     calendar_calendars_delete_execute(builder)
-}
-
-/// GET calendars/{calendarId}
-/// Returns metadata for a calendar.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendars_get_execute()` to send, or `calendar_calendars_get` for simplest API.
-
-pub fn calendar_calendars_get_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}",
-        calendarId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}
-/// Returns metadata for a calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendars_get_execute()` or `calendar_calendars_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Calendar = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}
-/// Returns metadata for a calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendars_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendars_get_task()`.
-/// For the simplest API, use `calendar_calendars_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendars_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_calendars_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendars_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarsGetArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-}
-
-/// GET calendars/{calendarId}
-/// Returns metadata for a calendar.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendars_get_builder()` + `calendar_calendars_get_execute()`.
-/// For task-level control, use `calendar_calendars_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_get(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendars_get_builder(client, &args.calendarId)?;
-    calendar_calendars_get_execute(builder)
 }
 
 /// GET calendars
@@ -2956,11 +1421,11 @@ pub fn calendar_calendars_insert_builder(
     body: &Calendar,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/calendars",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/calendars",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2992,7 +1457,12 @@ pub fn calendar_calendars_insert_builder(
 pub fn calendar_calendars_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Calendar>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3096,320 +1566,6 @@ pub fn calendar_calendars_insert(
     calendar_calendars_insert_execute(builder)
 }
 
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendars_patch_execute()` to send, or `calendar_calendars_patch` for simplest API.
-
-pub fn calendar_calendars_patch_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    body: &Calendar,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}",
-        calendarId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendars_patch_execute()` or `calendar_calendars_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Calendar = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendars_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendars_patch_task()`.
-/// For the simplest API, use `calendar_calendars_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendars_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_calendars_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendars_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarsPatchArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Request body.
-    pub body: Calendar,
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendars_patch_builder()` + `calendar_calendars_patch_execute()`.
-/// For task-level control, use `calendar_calendars_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_patch(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendars_patch_builder(client, &args.calendarId, &args.body)?;
-    calendar_calendars_patch_execute(builder)
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_calendars_update_execute()` to send, or `calendar_calendars_update` for simplest API.
-
-pub fn calendar_calendars_update_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    body: &Calendar,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}",
-        calendarId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_calendars_update_execute()` or `calendar_calendars_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Calendar = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_calendars_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_calendars_update_task()`.
-/// For the simplest API, use `calendar_calendars_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_calendars_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_calendars_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_calendars_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarsUpdateArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Request body.
-    pub body: Calendar,
-}
-
-/// GET calendars/{calendarId}
-/// Updates metadata for a calendar.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_calendars_update_builder()` + `calendar_calendars_update_execute()`.
-/// For task-level control, use `calendar_calendars_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_calendars_update(
-    client: &SimpleHttpClient,
-    args: &CalendarCalendarsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_calendars_update_builder(client, &args.calendarId, &args.body)?;
-    calendar_calendars_update_execute(builder)
-}
-
 /// GET channels/stop
 /// Stop watching resources through this channel
 ///
@@ -3421,11 +1577,11 @@ pub fn calendar_channels_stop_builder(
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/channels/stop",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/channels/stop",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3457,7 +1613,12 @@ pub fn calendar_channels_stop_builder(
 pub fn calendar_channels_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3568,11 +1729,11 @@ pub fn calendar_colors_get_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/colors",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/colors",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3602,7 +1763,12 @@ pub fn calendar_colors_get_builder(
 pub fn calendar_colors_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Colors>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Colors>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3706,15 +1872,16 @@ pub fn calendar_colors_get(
 
 pub fn calendar_events_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
+    calendarId: String,
+    eventId: String,
     sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
+    sendUpdates: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        calendarId, eventId,
+        calendarId.as_str(),
+        eventId.as_str(),
     );
 
     // Build request
@@ -3727,9 +1894,9 @@ pub fn calendar_events_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3763,7 +1930,12 @@ pub fn calendar_events_delete_builder(
 pub fn calendar_events_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3868,200 +2040,12 @@ pub fn calendar_events_delete(
 > {
     let builder = calendar_events_delete_builder(
         client,
-        &args.calendarId,
-        &args.eventId,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
+        args.calendarId.clone(),
+        args.eventId.clone(),
+        args.sendNotifications.clone(),
+        args.sendUpdates.clone(),
     )?;
     calendar_events_delete_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_get_execute()` to send, or `calendar_events_get` for simplest API.
-
-pub fn calendar_events_get_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    maxAttendees: Option<i32>,
-    timeZone: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        calendarId, eventId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
-        query_parts.push(format!("alwaysIncludeEmail={}", val));
-    }
-    if let Some(val) = maxAttendees {
-        query_parts.push(format!("maxAttendees={}", val));
-    }
-    if let Some(val) = timeZone {
-        query_parts.push(format!("timeZone={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_get_execute()` or `calendar_events_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Event = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_get_task()`.
-/// For the simplest API, use `calendar_events_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsGetArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: eventId
-    pub eventId: String,
-    /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
-    /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
-    /// Query parameter: timeZone
-    pub timeZone: Option<String>,
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_get_builder()` + `calendar_events_get_execute()`.
-/// For task-level control, use `calendar_events_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_get(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_get_builder(
-        client,
-        &args.calendarId,
-        &args.eventId,
-        args.alwaysIncludeEmail,
-        args.maxAttendees,
-        args.timeZone.as_deref(),
-    )?;
-    calendar_events_get_execute(builder)
 }
 
 /// GET calendars/{calendarId}/events/import
@@ -4072,15 +2056,15 @@ pub fn calendar_events_get(
 
 pub fn calendar_events_import_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
     conferenceDataVersion: Option<i32>,
     supportsAttachments: Option<bool>,
     body: &Event,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/import",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
@@ -4093,9 +2077,9 @@ pub fn calendar_events_import_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4131,7 +2115,12 @@ pub fn calendar_events_import_builder(
 pub fn calendar_events_import_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4239,9 +2228,9 @@ pub fn calendar_events_import(
 > {
     let builder = calendar_events_import_builder(
         client,
-        &args.calendarId,
-        args.conferenceDataVersion,
-        args.supportsAttachments,
+        args.calendarId.clone(),
+        args.conferenceDataVersion.clone(),
+        args.supportsAttachments.clone(),
         &args.body,
     )?;
     calendar_events_import_execute(builder)
@@ -4255,18 +2244,18 @@ pub fn calendar_events_import(
 
 pub fn calendar_events_insert_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
     conferenceDataVersion: Option<i32>,
     maxAttendees: Option<i32>,
     sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
+    sendUpdates: Option<String>,
     supportsAttachments: Option<bool>,
     body: &Event,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
@@ -4288,9 +2277,9 @@ pub fn calendar_events_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4326,7 +2315,12 @@ pub fn calendar_events_insert_builder(
 pub fn calendar_events_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4440,12 +2434,12 @@ pub fn calendar_events_insert(
 > {
     let builder = calendar_events_insert_builder(
         client,
-        &args.calendarId,
-        args.conferenceDataVersion,
-        args.maxAttendees,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
-        args.supportsAttachments,
+        args.calendarId.clone(),
+        args.conferenceDataVersion.clone(),
+        args.maxAttendees.clone(),
+        args.sendNotifications.clone(),
+        args.sendUpdates.clone(),
+        args.supportsAttachments.clone(),
         &args.body,
     )?;
     calendar_events_insert_execute(builder)
@@ -4459,22 +2453,23 @@ pub fn calendar_events_insert(
 
 pub fn calendar_events_instances_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
+    calendarId: String,
+    eventId: String,
     alwaysIncludeEmail: Option<bool>,
     maxAttendees: Option<i32>,
     maxResults: Option<i32>,
-    originalStart: Option<&str>,
-    pageToken: Option<&str>,
+    originalStart: Option<String>,
+    pageToken: Option<String>,
     showDeleted: Option<bool>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
+    timeMax: Option<String>,
+    timeMin: Option<String>,
+    timeZone: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/instances",
-        calendarId, eventId,
+        calendarId.as_str(),
+        eventId.as_str(),
     );
 
     // Build request
@@ -4508,9 +2503,9 @@ pub fn calendar_events_instances_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4544,7 +2539,12 @@ pub fn calendar_events_instances_builder(
 pub fn calendar_events_instances_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Events>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4666,1104 +2666,19 @@ pub fn calendar_events_instances(
 > {
     let builder = calendar_events_instances_builder(
         client,
-        &args.calendarId,
-        &args.eventId,
-        args.alwaysIncludeEmail,
-        args.maxAttendees,
-        args.maxResults,
-        args.originalStart.as_deref(),
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.timeMax.as_deref(),
-        args.timeMin.as_deref(),
-        args.timeZone.as_deref(),
+        args.calendarId.clone(),
+        args.eventId.clone(),
+        args.alwaysIncludeEmail.clone(),
+        args.maxAttendees.clone(),
+        args.maxResults.clone(),
+        args.originalStart.clone(),
+        args.pageToken.clone(),
+        args.showDeleted.clone(),
+        args.timeMax.clone(),
+        args.timeMin.clone(),
+        args.timeZone.clone(),
     )?;
     calendar_events_instances_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events
-/// Returns events on the specified calendar.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_list_execute()` to send, or `calendar_events_list` for simplest API.
-
-pub fn calendar_events_list_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    eventTypes: Option<&str>,
-    iCalUID: Option<&str>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    privateExtendedProperty: Option<&str>,
-    q: Option<&str>,
-    sharedExtendedProperty: Option<&str>,
-    showDeleted: Option<bool>,
-    showHiddenInvitations: Option<bool>,
-    singleEvents: Option<bool>,
-    syncToken: Option<&str>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
-    updatedMin: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events",
-        calendarId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
-        query_parts.push(format!("alwaysIncludeEmail={}", val));
-    }
-    if let Some(val) = eventTypes {
-        query_parts.push(format!("eventTypes={}", val));
-    }
-    if let Some(val) = iCalUID {
-        query_parts.push(format!("iCalUID={}", val));
-    }
-    if let Some(val) = maxAttendees {
-        query_parts.push(format!("maxAttendees={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = privateExtendedProperty {
-        query_parts.push(format!("privateExtendedProperty={}", val));
-    }
-    if let Some(val) = q {
-        query_parts.push(format!("q={}", val));
-    }
-    if let Some(val) = sharedExtendedProperty {
-        query_parts.push(format!("sharedExtendedProperty={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = showHiddenInvitations {
-        query_parts.push(format!("showHiddenInvitations={}", val));
-    }
-    if let Some(val) = singleEvents {
-        query_parts.push(format!("singleEvents={}", val));
-    }
-    if let Some(val) = syncToken {
-        query_parts.push(format!("syncToken={}", val));
-    }
-    if let Some(val) = timeMax {
-        query_parts.push(format!("timeMax={}", val));
-    }
-    if let Some(val) = timeMin {
-        query_parts.push(format!("timeMin={}", val));
-    }
-    if let Some(val) = timeZone {
-        query_parts.push(format!("timeZone={}", val));
-    }
-    if let Some(val) = updatedMin {
-        query_parts.push(format!("updatedMin={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/events
-/// Returns events on the specified calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_list_execute()` or `calendar_events_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Events = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events
-/// Returns events on the specified calendar.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_list_task()`.
-/// For the simplest API, use `calendar_events_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsListArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
-    /// Query parameter: eventTypes
-    pub eventTypes: Option<String>,
-    /// Query parameter: iCalUID
-    pub iCalUID: Option<String>,
-    /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: privateExtendedProperty
-    pub privateExtendedProperty: Option<String>,
-    /// Query parameter: q
-    pub q: Option<String>,
-    /// Query parameter: sharedExtendedProperty
-    pub sharedExtendedProperty: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: showHiddenInvitations
-    pub showHiddenInvitations: Option<bool>,
-    /// Query parameter: singleEvents
-    pub singleEvents: Option<bool>,
-    /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-    /// Query parameter: timeMax
-    pub timeMax: Option<String>,
-    /// Query parameter: timeMin
-    pub timeMin: Option<String>,
-    /// Query parameter: timeZone
-    pub timeZone: Option<String>,
-    /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-}
-
-/// GET calendars/{calendarId}/events
-/// Returns events on the specified calendar.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_list_builder()` + `calendar_events_list_execute()`.
-/// For task-level control, use `calendar_events_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_list(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_list_builder(
-        client,
-        &args.calendarId,
-        args.alwaysIncludeEmail,
-        args.eventTypes.as_deref(),
-        args.iCalUID.as_deref(),
-        args.maxAttendees,
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
-        args.privateExtendedProperty.as_deref(),
-        args.q.as_deref(),
-        args.sharedExtendedProperty.as_deref(),
-        args.showDeleted,
-        args.showHiddenInvitations,
-        args.singleEvents,
-        args.syncToken.as_deref(),
-        args.timeMax.as_deref(),
-        args.timeMin.as_deref(),
-        args.timeZone.as_deref(),
-        args.updatedMin.as_deref(),
-    )?;
-    calendar_events_list_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_move_execute()` to send, or `calendar_events_move` for simplest API.
-
-pub fn calendar_events_move_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    destination: &str,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/move",
-        calendarId, eventId, destination,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-    if let Some(val) = sendUpdates {
-        query_parts.push(format!("sendUpdates={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_move_execute()` or `calendar_events_move`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_move_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_move_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Event = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_move_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_move_task()`.
-/// For the simplest API, use `calendar_events_move()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_move_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_move_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_move_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_move`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsMoveArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: eventId
-    pub eventId: String,
-    /// Path parameter: destination
-    pub destination: String,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
-}
-
-/// GET calendars/{calendarId}/events/{eventId}/move
-/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_move_builder()` + `calendar_events_move_execute()`.
-/// For task-level control, use `calendar_events_move_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_move(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsMoveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_move_builder(
-        client,
-        &args.calendarId,
-        &args.eventId,
-        &args.destination,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
-    )?;
-    calendar_events_move_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_patch_execute()` to send, or `calendar_events_patch` for simplest API.
-
-pub fn calendar_events_patch_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        calendarId, eventId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
-        query_parts.push(format!("alwaysIncludeEmail={}", val));
-    }
-    if let Some(val) = conferenceDataVersion {
-        query_parts.push(format!("conferenceDataVersion={}", val));
-    }
-    if let Some(val) = maxAttendees {
-        query_parts.push(format!("maxAttendees={}", val));
-    }
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-    if let Some(val) = sendUpdates {
-        query_parts.push(format!("sendUpdates={}", val));
-    }
-    if let Some(val) = supportsAttachments {
-        query_parts.push(format!("supportsAttachments={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_patch_execute()` or `calendar_events_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Event = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_patch_task()`.
-/// For the simplest API, use `calendar_events_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsPatchArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: eventId
-    pub eventId: String,
-    /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
-    /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<i32>,
-    /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
-    /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<bool>,
-    /// Request body.
-    pub body: Event,
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_patch_builder()` + `calendar_events_patch_execute()`.
-/// For task-level control, use `calendar_events_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_patch(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_patch_builder(
-        client,
-        &args.calendarId,
-        &args.eventId,
-        args.alwaysIncludeEmail,
-        args.conferenceDataVersion,
-        args.maxAttendees,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
-        args.supportsAttachments,
-        &args.body,
-    )?;
-    calendar_events_patch_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events/quickAdd
-/// Creates an event based on a simple text string.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_quick_add_execute()` to send, or `calendar_events_quick_add` for simplest API.
-
-pub fn calendar_events_quick_add_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    text: &str,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events/quickAdd",
-        calendarId, text,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-    if let Some(val) = sendUpdates {
-        query_parts.push(format!("sendUpdates={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET calendars/{calendarId}/events/quickAdd
-/// Creates an event based on a simple text string.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_quick_add_execute()` or `calendar_events_quick_add`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_quick_add_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_quick_add_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Event = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events/quickAdd
-/// Creates an event based on a simple text string.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_quick_add_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_quick_add_task()`.
-/// For the simplest API, use `calendar_events_quick_add()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_quick_add_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_quick_add_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_quick_add_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_quick_add`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsQuickAddArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: text
-    pub text: String,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
-}
-
-/// GET calendars/{calendarId}/events/quickAdd
-/// Creates an event based on a simple text string.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_quick_add_builder()` + `calendar_events_quick_add_execute()`.
-/// For task-level control, use `calendar_events_quick_add_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_quick_add(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsQuickAddArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_quick_add_builder(
-        client,
-        &args.calendarId,
-        &args.text,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
-    )?;
-    calendar_events_quick_add_execute(builder)
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `calendar_events_update_execute()` to send, or `calendar_events_update` for simplest API.
-
-pub fn calendar_events_update_builder(
-    client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        calendarId, eventId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
-        query_parts.push(format!("alwaysIncludeEmail={}", val));
-    }
-    if let Some(val) = conferenceDataVersion {
-        query_parts.push(format!("conferenceDataVersion={}", val));
-    }
-    if let Some(val) = maxAttendees {
-        query_parts.push(format!("maxAttendees={}", val));
-    }
-    if let Some(val) = sendNotifications {
-        query_parts.push(format!("sendNotifications={}", val));
-    }
-    if let Some(val) = sendUpdates {
-        query_parts.push(format!("sendUpdates={}", val));
-    }
-    if let Some(val) = supportsAttachments {
-        query_parts.push(format!("supportsAttachments={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `calendar_events_update_execute()` or `calendar_events_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Event = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `calendar_events_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `calendar_events_update_task()`.
-/// For the simplest API, use `calendar_events_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn calendar_events_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = calendar_events_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`calendar_events_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarEventsUpdateArgs {
-    /// Path parameter: calendarId
-    pub calendarId: String,
-    /// Path parameter: eventId
-    pub eventId: String,
-    /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
-    /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<i32>,
-    /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
-    /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
-    /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<bool>,
-    /// Request body.
-    pub body: Event,
-}
-
-/// GET calendars/{calendarId}/events/{eventId}
-/// Updates an event.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `calendar_events_update_builder()` + `calendar_events_update_execute()`.
-/// For task-level control, use `calendar_events_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn calendar_events_update(
-    client: &SimpleHttpClient,
-    args: &CalendarEventsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = calendar_events_update_builder(
-        client,
-        &args.calendarId,
-        &args.eventId,
-        args.alwaysIncludeEmail,
-        args.conferenceDataVersion,
-        args.maxAttendees,
-        args.sendNotifications,
-        args.sendUpdates.as_deref(),
-        args.supportsAttachments,
-        &args.body,
-    )?;
-    calendar_events_update_execute(builder)
 }
 
 /// GET calendars/{calendarId}/events/watch
@@ -5774,31 +2689,31 @@ pub fn calendar_events_update(
 
 pub fn calendar_events_watch_builder(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    calendarId: String,
     alwaysIncludeEmail: Option<bool>,
-    eventTypes: Option<&str>,
-    iCalUID: Option<&str>,
+    eventTypes: Option<String>,
+    iCalUID: Option<String>,
     maxAttendees: Option<i32>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    privateExtendedProperty: Option<&str>,
-    q: Option<&str>,
-    sharedExtendedProperty: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
+    privateExtendedProperty: Option<String>,
+    q: Option<String>,
+    sharedExtendedProperty: Option<String>,
     showDeleted: Option<bool>,
     showHiddenInvitations: Option<bool>,
     singleEvents: Option<bool>,
-    syncToken: Option<&str>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
-    updatedMin: Option<&str>,
+    syncToken: Option<String>,
+    timeMax: Option<String>,
+    timeMin: Option<String>,
+    timeZone: Option<String>,
+    updatedMin: Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch",
-        calendarId,
+        calendarId.as_str(),
     );
 
     // Build request
@@ -5859,9 +2774,9 @@ pub fn calendar_events_watch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5897,7 +2812,12 @@ pub fn calendar_events_watch_builder(
 pub fn calendar_events_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6037,25 +2957,25 @@ pub fn calendar_events_watch(
 > {
     let builder = calendar_events_watch_builder(
         client,
-        &args.calendarId,
-        args.alwaysIncludeEmail,
-        args.eventTypes.as_deref(),
-        args.iCalUID.as_deref(),
-        args.maxAttendees,
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
-        args.privateExtendedProperty.as_deref(),
-        args.q.as_deref(),
-        args.sharedExtendedProperty.as_deref(),
-        args.showDeleted,
-        args.showHiddenInvitations,
-        args.singleEvents,
-        args.syncToken.as_deref(),
-        args.timeMax.as_deref(),
-        args.timeMin.as_deref(),
-        args.timeZone.as_deref(),
-        args.updatedMin.as_deref(),
+        args.calendarId.clone(),
+        args.alwaysIncludeEmail.clone(),
+        args.eventTypes.clone(),
+        args.iCalUID.clone(),
+        args.maxAttendees.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
+        args.privateExtendedProperty.clone(),
+        args.q.clone(),
+        args.sharedExtendedProperty.clone(),
+        args.showDeleted.clone(),
+        args.showHiddenInvitations.clone(),
+        args.singleEvents.clone(),
+        args.syncToken.clone(),
+        args.timeMax.clone(),
+        args.timeMin.clone(),
+        args.timeZone.clone(),
+        args.updatedMin.clone(),
         &args.body,
     )?;
     calendar_events_watch_execute(builder)
@@ -6072,11 +2992,11 @@ pub fn calendar_freebusy_query_builder(
     body: &FreeBusyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/freeBusy",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/freeBusy",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6108,8 +3028,11 @@ pub fn calendar_freebusy_query_builder(
 pub fn calendar_freebusy_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FreeBusyResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FreeBusyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6226,17 +3149,17 @@ pub fn calendar_freebusy_query(
 
 pub fn calendar_settings_get_builder(
     client: &SimpleHttpClient,
-    setting: &str,
+    setting: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/settings/{}",
-        setting,
+        setting.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6266,7 +3189,12 @@ pub fn calendar_settings_get_builder(
 pub fn calendar_settings_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Setting>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Setting>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6366,7 +3294,7 @@ pub fn calendar_settings_get(
     impl StreamIterator<D = Result<ApiResponse<Setting>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_get_builder(client, &args.setting)?;
+    let builder = calendar_settings_get_builder(client, args.setting.clone())?;
     calendar_settings_get_execute(builder)
 }
 
@@ -6379,11 +3307,11 @@ pub fn calendar_settings_get(
 pub fn calendar_settings_list_builder(
     client: &SimpleHttpClient,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
+    pageToken: Option<String>,
+    syncToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/users/me/settings",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6398,9 +3326,9 @@ pub fn calendar_settings_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6434,7 +3362,12 @@ pub fn calendar_settings_list_builder(
 pub fn calendar_settings_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Settings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6540,9 +3473,9 @@ pub fn calendar_settings_list(
 > {
     let builder = calendar_settings_list_builder(
         client,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.syncToken.as_deref(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.syncToken.clone(),
     )?;
     calendar_settings_list_execute(builder)
 }
@@ -6556,12 +3489,12 @@ pub fn calendar_settings_list(
 pub fn calendar_settings_watch_builder(
     client: &SimpleHttpClient,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
+    pageToken: Option<String>,
+    syncToken: Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/calendar/v3/users/me/settings/watch",);
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings/watch",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6576,9 +3509,9 @@ pub fn calendar_settings_watch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6614,7 +3547,12 @@ pub fn calendar_settings_watch_builder(
 pub fn calendar_settings_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6722,9 +3660,9 @@ pub fn calendar_settings_watch(
 > {
     let builder = calendar_settings_watch_builder(
         client,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.syncToken.as_deref(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.syncToken.clone(),
         &args.body,
     )?;
     calendar_settings_watch_execute(builder)

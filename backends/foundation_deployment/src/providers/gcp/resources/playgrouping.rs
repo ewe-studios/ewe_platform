@@ -37,7 +37,9 @@ pub struct VerifyTokenRequest {
 
 /// Response message for VerifyToken.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifyTokenResponse {}
+pub struct VerifyTokenResponse {
+    pub value: serde_json::Value,
+}
 
 /// A tag is associated with exactly one package name and user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

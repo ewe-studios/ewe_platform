@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// An ADB interactive shell was opened via “adb shell”. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdbShellInteractiveEvent {}
-
 /// Information about an app.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
@@ -150,7 +146,7 @@ pub struct Command {
     pub start_lost_mode_status: ::core::option::Option<StartLostModeStatus>,
     /// Parameters for the STOP_LOST_MODE command to take the device out of lost mode. See StopLostModeParams. If this is set, then it is suggested that type should not be set. In this case, the server automatically sets it to STOP_LOST_MODE. It is also acceptable to explicitly set type to STOP_LOST_MODE.
     #[serde(default, rename = "stopLostModeParams")]
-    pub stop_lost_mode_params: ::core::option::Option<serde_json::Value>,
+    pub stop_lost_mode_params: ::core::option::Option<StopLostModeParams>,
     /// Output only. Status of the STOP_LOST_MODE command to take the device out of lost mode. See StopLostModeStatus.
     #[serde(default, rename = "stopLostModeStatus")]
     pub stop_lost_mode_status: ::core::option::Option<StopLostModeStatus>,
@@ -167,11 +163,9 @@ pub struct Command {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Represents that the device has completed enrollment. User should be in the launcher at this point, device at this point will be compliant and all setup steps have been completed. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnrollmentCompleteEvent {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// An event sent for an enterprise upgrade. An enterprise upgrade is a process that upgrades a managed Google Play Accounts enterprise to a managed Google domain.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -205,15 +199,9 @@ pub struct GenerateEnterpriseUpgradeUrlResponse {
 
 /// Response on issuing a command. This is currently empty as a placeholder.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IssueCommandResponse {}
-
-/// The keyguard was dismissed. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyguardDismissedEvent {}
-
-/// The device was locked either by user or timeout. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct KeyguardSecuredEvent {}
+pub struct IssueCommandResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response to a request to list devices for a given enterprise.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -295,22 +283,6 @@ pub struct ListWebAppsResponse {
     pub web_apps: ::core::option::Option<::std::vec::Vec<WebApp>>,
 }
 
-/// The usageLog buffer on the device has reached 90% of its capacity, therefore older events may be dropped. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogBufferSizeCriticalEvent {}
-
-/// usageLog policy has been enabled. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingStartedEvent {}
-
-/// usageLog policy has been disabled. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoggingStoppedEvent {}
-
-/// An event indicating an outgoing phone call has been made when a device is in lost mode. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LostModeOutgoingPhoneCallEvent {}
-
 /// Request to update or create ApplicationPolicy objects in the given Policy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyPolicyApplicationsRequest {
@@ -326,10 +298,6 @@ pub struct ModifyPolicyApplicationsResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
 }
-
-/// Device was shutdown. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OsShutdownEvent {}
 
 /// The result of an attempt to clear the data of a single app.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -404,10 +372,6 @@ pub struct SignupUrl {
     pub url: ::core::option::Option<String>,
 }
 
-/// Parameters associated with the STOP_LOST_MODE command to take the device out of lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopLostModeParams {}
-
 /// A web token used to access the managed Google Play iframe.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebToken {
@@ -427,10 +391,6 @@ pub struct WebToken {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
-
-/// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WipeFailureEvent {}
 
 /// Id to name association of a app track.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -508,7 +468,7 @@ pub struct UsageLogEvent {
     pub adb_shell_command_event: ::core::option::Option<AdbShellCommandEvent>,
     /// An ADB interactive shell was opened via “adb shell”. Part of SECURITY_LOGS.
     #[serde(default, rename = "adbShellInteractiveEvent")]
-    pub adb_shell_interactive_event: ::core::option::Option<serde_json::Value>,
+    pub adb_shell_interactive_event: ::core::option::Option<AdbShellInteractiveEvent>,
     /// An app process was started. Part of SECURITY_LOGS.
     #[serde(default, rename = "appProcessStartEvent")]
     pub app_process_start_event: ::core::option::Option<AppProcessStartEvent>,
@@ -535,7 +495,7 @@ pub struct UsageLogEvent {
     pub dns_event: ::core::option::Option<DnsEvent>,
     /// Device has completed enrollment. Part of AMAPI_LOGS.
     #[serde(default, rename = "enrollmentCompleteEvent")]
-    pub enrollment_complete_event: ::core::option::Option<serde_json::Value>,
+    pub enrollment_complete_event: ::core::option::Option<EnrollmentCompleteEvent>,
     /// Unique id of the event.
     #[serde(default, rename = "eventId")]
     pub event_id: ::core::option::Option<String>,
@@ -569,25 +529,25 @@ pub struct UsageLogEvent {
         ::core::option::Option<KeyguardDismissAuthAttemptEvent>,
     /// The keyguard was dismissed. Part of SECURITY_LOGS.
     #[serde(default, rename = "keyguardDismissedEvent")]
-    pub keyguard_dismissed_event: ::core::option::Option<serde_json::Value>,
+    pub keyguard_dismissed_event: ::core::option::Option<KeyguardDismissedEvent>,
     /// The device was locked either by user or timeout. Part of SECURITY_LOGS.
     #[serde(default, rename = "keyguardSecuredEvent")]
-    pub keyguard_secured_event: ::core::option::Option<serde_json::Value>,
+    pub keyguard_secured_event: ::core::option::Option<KeyguardSecuredEvent>,
     /// The audit log buffer has reached 90% of its capacity, therefore older events may be dropped. Part of SECURITY_LOGS.
     #[serde(default, rename = "logBufferSizeCriticalEvent")]
-    pub log_buffer_size_critical_event: ::core::option::Option<serde_json::Value>,
+    pub log_buffer_size_critical_event: ::core::option::Option<LogBufferSizeCriticalEvent>,
     /// usageLog policy has been enabled. Part of SECURITY_LOGS.
     #[serde(default, rename = "loggingStartedEvent")]
-    pub logging_started_event: ::core::option::Option<serde_json::Value>,
+    pub logging_started_event: ::core::option::Option<LoggingStartedEvent>,
     /// usageLog policy has been disabled. Part of SECURITY_LOGS.
     #[serde(default, rename = "loggingStoppedEvent")]
-    pub logging_stopped_event: ::core::option::Option<serde_json::Value>,
+    pub logging_stopped_event: ::core::option::Option<LoggingStoppedEvent>,
     /// A lost mode location update when a device in lost mode.
     #[serde(default, rename = "lostModeLocationEvent")]
     pub lost_mode_location_event: ::core::option::Option<LostModeLocationEvent>,
     /// An outgoing phone call has been made when a device in lost mode.
     #[serde(default, rename = "lostModeOutgoingPhoneCallEvent")]
-    pub lost_mode_outgoing_phone_call_event: ::core::option::Option<serde_json::Value>,
+    pub lost_mode_outgoing_phone_call_event: ::core::option::Option<LostModeOutgoingPhoneCallEvent>,
     /// Removable media was mounted. Part of SECURITY_LOGS.
     #[serde(default, rename = "mediaMountEvent")]
     pub media_mount_event: ::core::option::Option<MediaMountEvent>,
@@ -596,7 +556,7 @@ pub struct UsageLogEvent {
     pub media_unmount_event: ::core::option::Option<MediaUnmountEvent>,
     /// Device was shutdown. Part of SECURITY_LOGS.
     #[serde(default, rename = "osShutdownEvent")]
-    pub os_shutdown_event: ::core::option::Option<serde_json::Value>,
+    pub os_shutdown_event: ::core::option::Option<OsShutdownEvent>,
     /// Device was started. Part of SECURITY_LOGS.
     #[serde(default, rename = "osStartupEvent")]
     pub os_startup_event: ::core::option::Option<OsStartupEvent>,
@@ -608,7 +568,7 @@ pub struct UsageLogEvent {
     pub stop_lost_mode_user_attempt_event: ::core::option::Option<StopLostModeUserAttemptEvent>,
     /// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Part of SECURITY_LOGS.
     #[serde(default, rename = "wipeFailureEvent")]
-    pub wipe_failure_event: ::core::option::Option<serde_json::Value>,
+    pub wipe_failure_event: ::core::option::Option<WipeFailureEvent>,
 }
 
 /// Parameters associated with the ADD_ESIM command to add an eSIM profile to the device.
@@ -705,6 +665,12 @@ pub struct StartLostModeStatus {
     /// The status. See StartLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "RESET_PASSWORD_RECENTLY", "USER_EXIT_LOST_MODE_RECENTLY", "ALREADY_IN_LOST_MODE"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
+}
+
+/// Parameters associated with the STOP_LOST_MODE command to take the device out of lost mode.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StopLostModeParams {
+    pub value: serde_json::Value,
 }
 
 /// Status of the STOP_LOST_MODE command to take the device out of lost mode.
@@ -1339,6 +1305,12 @@ pub struct AdbShellCommandEvent {
     pub shell_cmd: ::core::option::Option<String>,
 }
 
+/// An ADB interactive shell was opened via “adb shell”. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdbShellInteractiveEvent {
+    pub value: serde_json::Value,
+}
+
 /// An app process was started. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppProcessStartEvent {
@@ -1436,6 +1408,12 @@ pub struct DnsEvent {
     pub total_ip_addresses_returned: ::core::option::Option<String>,
 }
 
+/// Represents that the device has completed enrollment. User should be in the launcher at this point, device at this point will be compliant and all setup steps have been completed. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnrollmentCompleteEvent {
+    pub value: serde_json::Value,
+}
+
 /// A file was downloaded from the device.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilePulledEvent {
@@ -1516,6 +1494,36 @@ pub struct KeyguardDismissAuthAttemptEvent {
     pub success: ::core::option::Option<bool>,
 }
 
+/// The keyguard was dismissed. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyguardDismissedEvent {
+    pub value: serde_json::Value,
+}
+
+/// The device was locked either by user or timeout. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct KeyguardSecuredEvent {
+    pub value: serde_json::Value,
+}
+
+/// The usageLog buffer on the device has reached 90% of its capacity, therefore older events may be dropped. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogBufferSizeCriticalEvent {
+    pub value: serde_json::Value,
+}
+
+/// usageLog policy has been enabled. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingStartedEvent {
+    pub value: serde_json::Value,
+}
+
+/// usageLog policy has been disabled. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoggingStoppedEvent {
+    pub value: serde_json::Value,
+}
+
 /// A lost mode event containing the device location and battery level as a percentage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LostModeLocationEvent {
@@ -1525,6 +1533,12 @@ pub struct LostModeLocationEvent {
     /// The device location
     #[serde(default)]
     pub location: ::core::option::Option<Location>,
+}
+
+/// An event indicating an outgoing phone call has been made when a device is in lost mode. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LostModeOutgoingPhoneCallEvent {
+    pub value: serde_json::Value,
 }
 
 /// Removable media was mounted.
@@ -1547,6 +1561,12 @@ pub struct MediaUnmountEvent {
     /// Volume label. Redacted to empty string on organization-owned managed profile devices.
     #[serde(default, rename = "volumeLabel")]
     pub volume_label: ::core::option::Option<String>,
+}
+
+/// Device was shutdown. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OsShutdownEvent {
+    pub value: serde_json::Value,
 }
 
 /// Device was started.
@@ -1580,6 +1600,12 @@ pub struct StopLostModeUserAttemptEvent {
     /// The status of the attempt to stop lost mode. // TODO: enum values: ["STATUS_UNSPECIFIED", "ATTEMPT_SUCCEEDED", "ATTEMPT_FAILED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
+}
+
+/// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Intentionally empty.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WipeFailureEvent {
+    pub value: serde_json::Value,
 }
 
 /// Details of the eSIM added or removed.

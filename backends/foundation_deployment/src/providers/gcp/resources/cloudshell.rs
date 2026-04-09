@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// Message included in the metadata field of operations returned from AddPublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddPublicKeyMetadata {}
+pub struct AddPublicKeyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for AddPublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -33,7 +35,9 @@ pub struct AddPublicKeyResponse {
 
 /// Message included in the metadata field of operations returned from AuthorizeEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizeEnvironmentMetadata {}
+pub struct AuthorizeEnvironmentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for AuthorizeEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,23 +55,33 @@ pub struct AuthorizeEnvironmentRequest {
 
 /// Response message for AuthorizeEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AuthorizeEnvironmentResponse {}
+pub struct AuthorizeEnvironmentResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message included in the metadata field of operations returned from CreateEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateEnvironmentMetadata {}
+pub struct CreateEnvironmentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Message included in the metadata field of operations returned from DeleteEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteEnvironmentMetadata {}
+pub struct DeleteEnvironmentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for GenerateAccessToken.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -93,7 +107,9 @@ pub struct ListOperationsResponse {
 
 /// Message included in the metadata field of operations returned from RemovePublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemovePublicKeyMetadata {}
+pub struct RemovePublicKeyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for RemovePublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -105,7 +121,9 @@ pub struct RemovePublicKeyRequest {
 
 /// Response message for RemovePublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemovePublicKeyResponse {}
+pub struct RemovePublicKeyResponse {
+    pub value: serde_json::Value,
+}
 
 /// Message included in the metadata field of operations returned from StartEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

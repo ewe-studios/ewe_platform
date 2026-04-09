@@ -13,11 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// Metadata of Access Context Manager''s Long Running Operations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AccessContextManagerOperationMetadata {}
+pub struct AccessContextManagerOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request to commit dry-run specs in all Service Perimeters belonging to an Access Policy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,11 +41,15 @@ pub struct CommitServicePerimetersResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of Google Cloud Access Binding Long Running Operations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GcpUserAccessBindingOperationMetadata {}
+pub struct GcpUserAccessBindingOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,17 @@ use serde::Serialize;
 
 pub fn storagetransfer_google_service_accounts_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/googleServiceAccounts/{}",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,8 +69,11 @@ pub fn storagetransfer_google_service_accounts_get_builder(
 pub fn storagetransfer_google_service_accounts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleServiceAccount>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleServiceAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -174,7 +178,8 @@ pub fn storagetransfer_google_service_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_google_service_accounts_get_builder(client, &args.projectId)?;
+    let builder =
+        storagetransfer_google_service_accounts_get_builder(client, args.projectId.clone())?;
     storagetransfer_google_service_accounts_get_execute(builder)
 }
 
@@ -186,15 +191,12 @@ pub fn storagetransfer_google_service_accounts_get(
 
 pub fn storagetransfer_projects_agent_pools_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    agentPoolId: Option<&str>,
+    projectId: String,
+    agentPoolId: Option<String>,
     body: &AgentPool,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
-        projectId,
-    );
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -203,9 +205,9 @@ pub fn storagetransfer_projects_agent_pools_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -241,7 +243,12 @@ pub fn storagetransfer_projects_agent_pools_create_builder(
 pub fn storagetransfer_projects_agent_pools_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AgentPool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -347,681 +354,11 @@ pub fn storagetransfer_projects_agent_pools_create(
 > {
     let builder = storagetransfer_projects_agent_pools_create_builder(
         client,
-        &args.projectId,
-        args.agentPoolId.as_deref(),
+        args.projectId.clone(),
+        args.agentPoolId.clone(),
         &args.body,
     )?;
     storagetransfer_projects_agent_pools_create_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Deletes an agent pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_projects_agent_pools_delete_execute()` to send, or `storagetransfer_projects_agent_pools_delete` for simplest API.
-
-pub fn storagetransfer_projects_agent_pools_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Deletes an agent pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_projects_agent_pools_delete_execute()` or `storagetransfer_projects_agent_pools_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Deletes an agent pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_projects_agent_pools_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_projects_agent_pools_delete_task()`.
-/// For the simplest API, use `storagetransfer_projects_agent_pools_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_projects_agent_pools_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_projects_agent_pools_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_projects_agent_pools_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferProjectsAgentPoolsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Deletes an agent pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_projects_agent_pools_delete_builder()` + `storagetransfer_projects_agent_pools_delete_execute()`.
-/// For task-level control, use `storagetransfer_projects_agent_pools_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_delete(
-    client: &SimpleHttpClient,
-    args: &StoragetransferProjectsAgentPoolsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_projects_agent_pools_delete_builder(client, &args.name)?;
-    storagetransfer_projects_agent_pools_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Gets an agent pool.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_projects_agent_pools_get_execute()` to send, or `storagetransfer_projects_agent_pools_get` for simplest API.
-
-pub fn storagetransfer_projects_agent_pools_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Gets an agent pool.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_projects_agent_pools_get_execute()` or `storagetransfer_projects_agent_pools_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AgentPool = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Gets an agent pool.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_projects_agent_pools_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_projects_agent_pools_get_task()`.
-/// For the simplest API, use `storagetransfer_projects_agent_pools_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_projects_agent_pools_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_projects_agent_pools_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_projects_agent_pools_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferProjectsAgentPoolsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Gets an agent pool.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_projects_agent_pools_get_builder()` + `storagetransfer_projects_agent_pools_get_execute()`.
-/// For task-level control, use `storagetransfer_projects_agent_pools_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_get(
-    client: &SimpleHttpClient,
-    args: &StoragetransferProjectsAgentPoolsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_projects_agent_pools_get_builder(client, &args.name)?;
-    storagetransfer_projects_agent_pools_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools
-/// Lists agent pools.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_projects_agent_pools_list_execute()` to send, or `storagetransfer_projects_agent_pools_list` for simplest API.
-
-pub fn storagetransfer_projects_agent_pools_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools
-/// Lists agent pools.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_projects_agent_pools_list_execute()` or `storagetransfer_projects_agent_pools_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAgentPoolsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/agentPools
-/// Lists agent pools.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_projects_agent_pools_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_projects_agent_pools_list_task()`.
-/// For the simplest API, use `storagetransfer_projects_agent_pools_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_projects_agent_pools_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_projects_agent_pools_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_projects_agent_pools_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferProjectsAgentPoolsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/agentPools
-/// Lists agent pools.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_projects_agent_pools_list_builder()` + `storagetransfer_projects_agent_pools_list_execute()`.
-/// For task-level control, use `storagetransfer_projects_agent_pools_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_list(
-    client: &SimpleHttpClient,
-    args: &StoragetransferProjectsAgentPoolsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_projects_agent_pools_list_builder(
-        client,
-        &args.projectId,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    storagetransfer_projects_agent_pools_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Updates an existing agent pool resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_projects_agent_pools_patch_execute()` to send, or `storagetransfer_projects_agent_pools_patch` for simplest API.
-
-pub fn storagetransfer_projects_agent_pools_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AgentPool,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Updates an existing agent pool resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_projects_agent_pools_patch_execute()` or `storagetransfer_projects_agent_pools_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AgentPool = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Updates an existing agent pool resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_projects_agent_pools_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_projects_agent_pools_patch_task()`.
-/// For the simplest API, use `storagetransfer_projects_agent_pools_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_projects_agent_pools_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_projects_agent_pools_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_projects_agent_pools_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferProjectsAgentPoolsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AgentPool,
-}
-
-/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
-/// Updates an existing agent pool resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_projects_agent_pools_patch_builder()` + `storagetransfer_projects_agent_pools_patch_execute()`.
-/// For task-level control, use `storagetransfer_projects_agent_pools_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_projects_agent_pools_patch(
-    client: &SimpleHttpClient,
-    args: &StoragetransferProjectsAgentPoolsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_projects_agent_pools_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    storagetransfer_projects_agent_pools_patch_execute(builder)
 }
 
 /// GET v1/transferJobs
@@ -1035,11 +372,11 @@ pub fn storagetransfer_transfer_jobs_create_builder(
     body: &TransferJob,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1071,7 +408,12 @@ pub fn storagetransfer_transfer_jobs_create_builder(
 pub fn storagetransfer_transfer_jobs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferJob>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1176,501 +518,6 @@ pub fn storagetransfer_transfer_jobs_create(
 }
 
 /// GET v1/transferJobs/{transferJobsId}
-/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_transfer_jobs_delete_execute()` to send, or `storagetransfer_transfer_jobs_delete` for simplest API.
-
-pub fn storagetransfer_transfer_jobs_delete_builder(
-    client: &SimpleHttpClient,
-    jobName: &str,
-    projectId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
-        jobName, projectId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_transfer_jobs_delete_execute()` or `storagetransfer_transfer_jobs_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_transfer_jobs_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_transfer_jobs_delete_task()`.
-/// For the simplest API, use `storagetransfer_transfer_jobs_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_transfer_jobs_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_transfer_jobs_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_transfer_jobs_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferTransferJobsDeleteArgs {
-    /// Path parameter: jobName
-    pub jobName: String,
-    /// Path parameter: projectId
-    pub projectId: String,
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_transfer_jobs_delete_builder()` + `storagetransfer_transfer_jobs_delete_execute()`.
-/// For task-level control, use `storagetransfer_transfer_jobs_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_delete(
-    client: &SimpleHttpClient,
-    args: &StoragetransferTransferJobsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        storagetransfer_transfer_jobs_delete_builder(client, &args.jobName, &args.projectId)?;
-    storagetransfer_transfer_jobs_delete_execute(builder)
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Gets a transfer job.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_transfer_jobs_get_execute()` to send, or `storagetransfer_transfer_jobs_get` for simplest API.
-
-pub fn storagetransfer_transfer_jobs_get_builder(
-    client: &SimpleHttpClient,
-    jobName: &str,
-    projectId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
-        jobName, projectId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Gets a transfer job.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_transfer_jobs_get_execute()` or `storagetransfer_transfer_jobs_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransferJob = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Gets a transfer job.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_transfer_jobs_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_transfer_jobs_get_task()`.
-/// For the simplest API, use `storagetransfer_transfer_jobs_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_transfer_jobs_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_transfer_jobs_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_transfer_jobs_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferTransferJobsGetArgs {
-    /// Path parameter: jobName
-    pub jobName: String,
-    /// Path parameter: projectId
-    pub projectId: String,
-}
-
-/// GET v1/transferJobs/{transferJobsId}
-/// Gets a transfer job.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_transfer_jobs_get_builder()` + `storagetransfer_transfer_jobs_get_execute()`.
-/// For task-level control, use `storagetransfer_transfer_jobs_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_get(
-    client: &SimpleHttpClient,
-    args: &StoragetransferTransferJobsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        storagetransfer_transfer_jobs_get_builder(client, &args.jobName, &args.projectId)?;
-    storagetransfer_transfer_jobs_get_execute(builder)
-}
-
-/// GET v1/transferJobs
-/// Lists transfer jobs.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_transfer_jobs_list_execute()` to send, or `storagetransfer_transfer_jobs_list` for simplest API.
-
-pub fn storagetransfer_transfer_jobs_list_builder(
-    client: &SimpleHttpClient,
-    filter: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferJobs",
-        filter,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/transferJobs
-/// Lists transfer jobs.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_transfer_jobs_list_execute()` or `storagetransfer_transfer_jobs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListTransferJobsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/transferJobs
-/// Lists transfer jobs.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_transfer_jobs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_transfer_jobs_list_task()`.
-/// For the simplest API, use `storagetransfer_transfer_jobs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_transfer_jobs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_transfer_jobs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_transfer_jobs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferTransferJobsListArgs {
-    /// Path parameter: filter
-    pub filter: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/transferJobs
-/// Lists transfer jobs.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_transfer_jobs_list_builder()` + `storagetransfer_transfer_jobs_list_execute()`.
-/// For task-level control, use `storagetransfer_transfer_jobs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_jobs_list(
-    client: &SimpleHttpClient,
-    args: &StoragetransferTransferJobsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_transfer_jobs_list_builder(
-        client,
-        &args.filter,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    storagetransfer_transfer_jobs_list_execute(builder)
-}
-
-/// GET v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1678,18 +525,15 @@ pub fn storagetransfer_transfer_jobs_list(
 
 pub fn storagetransfer_transfer_jobs_patch_builder(
     client: &SimpleHttpClient,
-    jobName: &str,
+    jobName: String,
     body: &UpdateTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
-        jobName,
-    );
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1721,7 +565,12 @@ pub fn storagetransfer_transfer_jobs_patch_builder(
 pub fn storagetransfer_transfer_jobs_patch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferJob>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1823,7 +672,8 @@ pub fn storagetransfer_transfer_jobs_patch(
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_patch_builder(client, &args.jobName, &args.body)?;
+    let builder =
+        storagetransfer_transfer_jobs_patch_builder(client, args.jobName.clone(), &args.body)?;
     storagetransfer_transfer_jobs_patch_execute(builder)
 }
 
@@ -1835,18 +685,15 @@ pub fn storagetransfer_transfer_jobs_patch(
 
 pub fn storagetransfer_transfer_jobs_run_builder(
     client: &SimpleHttpClient,
-    jobName: &str,
+    jobName: String,
     body: &RunTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferJobs/{}:run",
-        jobName,
-    );
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs/{}:run",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1878,7 +725,12 @@ pub fn storagetransfer_transfer_jobs_run_builder(
 pub fn storagetransfer_transfer_jobs_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1980,7 +832,8 @@ pub fn storagetransfer_transfer_jobs_run(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_run_builder(client, &args.jobName, &args.body)?;
+    let builder =
+        storagetransfer_transfer_jobs_run_builder(client, args.jobName.clone(), &args.body)?;
     storagetransfer_transfer_jobs_run_execute(builder)
 }
 
@@ -1992,18 +845,16 @@ pub fn storagetransfer_transfer_jobs_run(
 
 pub fn storagetransfer_transfer_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:cancel",
-        name,
-    );
+    let endpoint_url =
+        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:cancel",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2035,7 +886,12 @@ pub fn storagetransfer_transfer_operations_cancel_builder(
 pub fn storagetransfer_transfer_operations_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2138,7 +994,7 @@ pub fn storagetransfer_transfer_operations_cancel(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_cancel_builder(client, &args.name, &args.body)?;
+        storagetransfer_transfer_operations_cancel_builder(client, args.name.clone(), &args.body)?;
     storagetransfer_transfer_operations_cancel_execute(builder)
 }
 
@@ -2150,17 +1006,14 @@ pub fn storagetransfer_transfer_operations_cancel(
 
 pub fn storagetransfer_transfer_operations_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferOperations/{}",
-        name,
-    );
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2190,7 +1043,12 @@ pub fn storagetransfer_transfer_operations_get_builder(
 pub fn storagetransfer_transfer_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2290,202 +1148,8 @@ pub fn storagetransfer_transfer_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_get_builder(client, &args.name)?;
+    let builder = storagetransfer_transfer_operations_get_builder(client, args.name.clone())?;
     storagetransfer_transfer_operations_get_execute(builder)
-}
-
-/// GET v1/transferOperations
-/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `storagetransfer_transfer_operations_list_execute()` to send, or `storagetransfer_transfer_operations_list` for simplest API.
-
-pub fn storagetransfer_transfer_operations_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferOperations",
-        name, filter,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = returnPartialSuccess {
-        query_parts.push(format!("returnPartialSuccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/transferOperations
-/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `storagetransfer_transfer_operations_list_execute()` or `storagetransfer_transfer_operations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_operations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListOperationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/transferOperations
-/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `storagetransfer_transfer_operations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `storagetransfer_transfer_operations_list_task()`.
-/// For the simplest API, use `storagetransfer_transfer_operations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn storagetransfer_transfer_operations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = storagetransfer_transfer_operations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`storagetransfer_transfer_operations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferTransferOperationsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Path parameter: filter
-    pub filter: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
-}
-
-/// GET v1/transferOperations
-/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `storagetransfer_transfer_operations_list_builder()` + `storagetransfer_transfer_operations_list_execute()`.
-/// For task-level control, use `storagetransfer_transfer_operations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn storagetransfer_transfer_operations_list(
-    client: &SimpleHttpClient,
-    args: &StoragetransferTransferOperationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = storagetransfer_transfer_operations_list_builder(
-        client,
-        &args.name,
-        &args.filter,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
-    )?;
-    storagetransfer_transfer_operations_list_execute(builder)
 }
 
 /// GET v1/transferOperations/{transferOperationsId}:pause
@@ -2496,18 +1160,16 @@ pub fn storagetransfer_transfer_operations_list(
 
 pub fn storagetransfer_transfer_operations_pause_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &PauseTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:pause",
-        name,
-    );
+    let endpoint_url =
+        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:pause",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2539,7 +1201,12 @@ pub fn storagetransfer_transfer_operations_pause_builder(
 pub fn storagetransfer_transfer_operations_pause_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2642,7 +1309,7 @@ pub fn storagetransfer_transfer_operations_pause(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_pause_builder(client, &args.name, &args.body)?;
+        storagetransfer_transfer_operations_pause_builder(client, args.name.clone(), &args.body)?;
     storagetransfer_transfer_operations_pause_execute(builder)
 }
 
@@ -2654,18 +1321,16 @@ pub fn storagetransfer_transfer_operations_pause(
 
 pub fn storagetransfer_transfer_operations_resume_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &ResumeTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:resume",
-        name,
-    );
+    let endpoint_url =
+        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:resume",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2697,7 +1362,12 @@ pub fn storagetransfer_transfer_operations_resume_builder(
 pub fn storagetransfer_transfer_operations_resume_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2800,6 +1470,6 @@ pub fn storagetransfer_transfer_operations_resume(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_resume_builder(client, &args.name, &args.body)?;
+        storagetransfer_transfer_operations_resume_builder(client, args.name.clone(), &args.body)?;
     storagetransfer_transfer_operations_resume_execute(builder)
 }

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn classroom_courses_create_builder(
     body: &Course,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses",);
+    let endpoint_url = format!("https://classroom.googleapis.com/v1/courses",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,7 +68,12 @@ pub fn classroom_courses_create_builder(
 pub fn classroom_courses_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Course>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,14 +185,17 @@ pub fn classroom_courses_create(
 
 pub fn classroom_courses_delete_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
+    let endpoint_url = format!(
+        "https://classroom.googleapis.com/v1/courses/{}",
+        id.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -216,7 +225,12 @@ pub fn classroom_courses_delete_builder(
 pub fn classroom_courses_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -316,157 +330,8 @@ pub fn classroom_courses_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_delete_builder(client, &args.id)?;
+    let builder = classroom_courses_delete_builder(client, args.id.clone())?;
     classroom_courses_delete_execute(builder)
-}
-
-/// GET v1/courses/{id}
-/// Returns a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_get_execute()` to send, or `classroom_courses_get` for simplest API.
-
-pub fn classroom_courses_get_builder(
-    client: &SimpleHttpClient,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{id}
-/// Returns a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_get_execute()` or `classroom_courses_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Course = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{id}
-/// Returns a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_get_task()`.
-/// For the simplest API, use `classroom_courses_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesGetArgs {
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{id}
-/// Returns a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_get_builder()` + `classroom_courses_get_execute()`.
-/// For task-level control, use `classroom_courses_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_get_builder(client, &args.id)?;
-    classroom_courses_get_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/gradingPeriodSettings
@@ -477,17 +342,17 @@ pub fn classroom_courses_get(
 
 pub fn classroom_courses_get_grading_period_settings_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/gradingPeriodSettings",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -517,8 +382,11 @@ pub fn classroom_courses_get_grading_period_settings_builder(
 pub fn classroom_courses_get_grading_period_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GradingPeriodSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -623,710 +491,9 @@ pub fn classroom_courses_get_grading_period_settings(
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_get_grading_period_settings_builder(client, &args.courseId)?;
-    classroom_courses_get_grading_period_settings_execute(builder)
-}
-
-/// GET v1/courses
-/// Returns a list of courses that the requesting user is permitted to view, restricted to those that match the request. Returned courses are ordered by creation time, with the most recently created coming first. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the query argument is malformed. * NOT_FOUND if any users specified in the query arguments do not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_list_execute()` to send, or `classroom_courses_list` for simplest API.
-
-pub fn classroom_courses_list_builder(
-    client: &SimpleHttpClient,
-    courseStates: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    studentId: Option<&str>,
-    teacherId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = courseStates {
-        query_parts.push(format!("courseStates={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = studentId {
-        query_parts.push(format!("studentId={}", val));
-    }
-    if let Some(val) = teacherId {
-        query_parts.push(format!("teacherId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses
-/// Returns a list of courses that the requesting user is permitted to view, restricted to those that match the request. Returned courses are ordered by creation time, with the most recently created coming first. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the query argument is malformed. * NOT_FOUND if any users specified in the query arguments do not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_list_execute()` or `classroom_courses_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCoursesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCoursesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses
-/// Returns a list of courses that the requesting user is permitted to view, restricted to those that match the request. Returned courses are ordered by creation time, with the most recently created coming first. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the query argument is malformed. * NOT_FOUND if any users specified in the query arguments do not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_list_task()`.
-/// For the simplest API, use `classroom_courses_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCoursesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesListArgs {
-    /// Query parameter: courseStates
-    pub courseStates: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: studentId
-    pub studentId: Option<String>,
-    /// Query parameter: teacherId
-    pub teacherId: Option<String>,
-}
-
-/// GET v1/courses
-/// Returns a list of courses that the requesting user is permitted to view, restricted to those that match the request. Returned courses are ordered by creation time, with the most recently created coming first. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the query argument is malformed. * NOT_FOUND if any users specified in the query arguments do not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_list_builder()` + `classroom_courses_list_execute()`.
-/// For task-level control, use `classroom_courses_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCoursesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_list_builder(
-        client,
-        args.courseStates.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.studentId.as_deref(),
-        args.teacherId.as_deref(),
-    )?;
-    classroom_courses_list_execute(builder)
-}
-
-/// GET v1/courses/{id}
-/// Updates one or more fields in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * InactiveCourseOwner * IneligibleOwner * CourseTitleCannotContainUrl
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_patch_execute()` to send, or `classroom_courses_patch` for simplest API.
-
-pub fn classroom_courses_patch_builder(
-    client: &SimpleHttpClient,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Course,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{id}
-/// Updates one or more fields in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * InactiveCourseOwner * IneligibleOwner * CourseTitleCannotContainUrl
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_patch_execute()` or `classroom_courses_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Course = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{id}
-/// Updates one or more fields in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * InactiveCourseOwner * IneligibleOwner * CourseTitleCannotContainUrl
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_patch_task()`.
-/// For the simplest API, use `classroom_courses_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesPatchArgs {
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Course,
-}
-
-/// GET v1/courses/{id}
-/// Updates one or more fields in a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * InactiveCourseOwner * IneligibleOwner * CourseTitleCannotContainUrl
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_patch_builder()` + `classroom_courses_patch_execute()`.
-/// For task-level control, use `classroom_courses_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        classroom_courses_patch_builder(client, &args.id, args.updateMask.as_deref(), &args.body)?;
-    classroom_courses_patch_execute(builder)
-}
-
-/// GET v1/courses/{id}
-/// Updates a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_update_execute()` to send, or `classroom_courses_update` for simplest API.
-
-pub fn classroom_courses_update_builder(
-    client: &SimpleHttpClient,
-    id: &str,
-    body: &Course,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{id}
-/// Updates a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_update_execute()` or `classroom_courses_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Course = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{id}
-/// Updates a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_update_task()`.
-/// For the simplest API, use `classroom_courses_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesUpdateArgs {
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Course,
-}
-
-/// GET v1/courses/{id}
-/// Updates a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested course or for access errors. * NOT_FOUND if no course exists with the requested ID. * FAILED_PRECONDITION for the following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_update_builder()` + `classroom_courses_update_execute()`.
-/// For task-level control, use `classroom_courses_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_update(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Course>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_update_builder(client, &args.id, &args.body)?;
-    classroom_courses_update_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/gradingPeriodSettings
-/// Updates grading period settings of a course. Individual grading periods can be added, removed, or modified using this method. The requesting user and course owner must be eligible to modify Grading Periods. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/grading-periods/manage-grading-periods`#licensing_requirements>). This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the grading period settings in a course or for access errors: * UserIneligibleToUpdateGradingPeriodSettings * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_update_grading_period_settings_execute()` to send, or `classroom_courses_update_grading_period_settings` for simplest API.
-
-pub fn classroom_courses_update_grading_period_settings_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    updateMask: Option<&str>,
-    body: &GradingPeriodSettings,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/gradingPeriodSettings",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/gradingPeriodSettings
-/// Updates grading period settings of a course. Individual grading periods can be added, removed, or modified using this method. The requesting user and course owner must be eligible to modify Grading Periods. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/grading-periods/manage-grading-periods`#licensing_requirements>). This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the grading period settings in a course or for access errors: * UserIneligibleToUpdateGradingPeriodSettings * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_update_grading_period_settings_execute()` or `classroom_courses_update_grading_period_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_update_grading_period_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_update_grading_period_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GradingPeriodSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/gradingPeriodSettings
-/// Updates grading period settings of a course. Individual grading periods can be added, removed, or modified using this method. The requesting user and course owner must be eligible to modify Grading Periods. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/grading-periods/manage-grading-periods`#licensing_requirements>). This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the grading period settings in a course or for access errors: * UserIneligibleToUpdateGradingPeriodSettings * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_update_grading_period_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_update_grading_period_settings_task()`.
-/// For the simplest API, use `classroom_courses_update_grading_period_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_update_grading_period_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_update_grading_period_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_update_grading_period_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_update_grading_period_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesUpdateGradingPeriodSettingsArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: GradingPeriodSettings,
-}
-
-/// GET v1/courses/{courseId}/gradingPeriodSettings
-/// Updates grading period settings of a course. Individual grading periods can be added, removed, or modified using this method. The requesting user and course owner must be eligible to modify Grading Periods. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/grading-periods/manage-grading-periods`#licensing_requirements>). This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the grading period settings in a course or for access errors: * UserIneligibleToUpdateGradingPeriodSettings * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_update_grading_period_settings_builder()` + `classroom_courses_update_grading_period_settings_execute()`.
-/// For task-level control, use `classroom_courses_update_grading_period_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_update_grading_period_settings(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesUpdateGradingPeriodSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GradingPeriodSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_update_grading_period_settings_builder(
-        client,
-        &args.courseId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_update_grading_period_settings_execute(builder)
+        classroom_courses_get_grading_period_settings_builder(client, args.courseId.clone())?;
+    classroom_courses_get_grading_period_settings_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/aliases
@@ -1337,18 +504,18 @@ pub fn classroom_courses_update_grading_period_settings(
 
 pub fn classroom_courses_aliases_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &CourseAlias,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1380,7 +547,12 @@ pub fn classroom_courses_aliases_create_builder(
 pub fn classroom_courses_aliases_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseAlias>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CourseAlias>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1482,7 +654,8 @@ pub fn classroom_courses_aliases_create(
     impl StreamIterator<D = Result<ApiResponse<CourseAlias>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_create_builder(client, &args.courseId, &args.body)?;
+    let builder =
+        classroom_courses_aliases_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_aliases_create_execute(builder)
 }
 
@@ -1494,18 +667,19 @@ pub fn classroom_courses_aliases_create(
 
 pub fn classroom_courses_aliases_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    alias: &str,
+    courseId: String,
+    alias: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases/{}",
-        courseId, alias,
+        courseId.as_str(),
+        alias.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1535,7 +709,12 @@ pub fn classroom_courses_aliases_delete_builder(
 pub fn classroom_courses_aliases_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1637,191 +816,12 @@ pub fn classroom_courses_aliases_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_delete_builder(client, &args.courseId, &args.alias)?;
-    classroom_courses_aliases_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/aliases
-/// Returns a list of aliases for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the course or for access errors. * NOT_FOUND if the course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_aliases_list_execute()` to send, or `classroom_courses_aliases_list` for simplest API.
-
-pub fn classroom_courses_aliases_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/aliases",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/aliases
-/// Returns a list of aliases for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the course or for access errors. * NOT_FOUND if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_aliases_list_execute()` or `classroom_courses_aliases_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_aliases_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_aliases_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCourseAliasesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCourseAliasesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/aliases
-/// Returns a list of aliases for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the course or for access errors. * NOT_FOUND if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_aliases_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_aliases_list_task()`.
-/// For the simplest API, use `classroom_courses_aliases_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_aliases_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_aliases_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCourseAliasesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_aliases_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_aliases_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAliasesListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/aliases
-/// Returns a list of aliases for a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the course or for access errors. * NOT_FOUND if the course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_aliases_list_builder()` + `classroom_courses_aliases_list_execute()`.
-/// For task-level control, use `classroom_courses_aliases_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_aliases_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAliasesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCourseAliasesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_aliases_list_builder(
+    let builder = classroom_courses_aliases_delete_builder(
         client,
-        &args.courseId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.courseId.clone(),
+        args.alias.clone(),
     )?;
-    classroom_courses_aliases_list_execute(builder)
+    classroom_courses_aliases_delete_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/announcements
@@ -1832,18 +832,18 @@ pub fn classroom_courses_aliases_list(
 
 pub fn classroom_courses_announcements_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &Announcement,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1875,7 +875,12 @@ pub fn classroom_courses_announcements_create_builder(
 pub fn classroom_courses_announcements_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Announcement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1982,7 +987,7 @@ pub fn classroom_courses_announcements_create(
     ApiError,
 > {
     let builder =
-        classroom_courses_announcements_create_builder(client, &args.courseId, &args.body)?;
+        classroom_courses_announcements_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_announcements_create_execute(builder)
 }
 
@@ -1994,18 +999,19 @@ pub fn classroom_courses_announcements_create(
 
 pub fn classroom_courses_announcements_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2035,7 +1041,12 @@ pub fn classroom_courses_announcements_delete_builder(
 pub fn classroom_courses_announcements_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2137,167 +1148,12 @@ pub fn classroom_courses_announcements_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_announcements_delete_builder(client, &args.courseId, &args.id)?;
+    let builder = classroom_courses_announcements_delete_builder(
+        client,
+        args.courseId.clone(),
+        args.id.clone(),
+    )?;
     classroom_courses_announcements_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Returns an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or announcement, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or announcement does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_get_execute()` to send, or `classroom_courses_announcements_get` for simplest API.
-
-pub fn classroom_courses_announcements_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Returns an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or announcement, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or announcement does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_get_execute()` or `classroom_courses_announcements_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Announcement = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Returns an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or announcement, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or announcement does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_get_task()`.
-/// For the simplest API, use `classroom_courses_announcements_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Returns an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or announcement, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or announcement does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_get_builder()` + `classroom_courses_announcements_get_execute()`.
-/// For task-level control, use `classroom_courses_announcements_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_get_builder(client, &args.courseId, &args.id)?;
-    classroom_courses_announcements_get_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnContext
@@ -2308,16 +1164,17 @@ pub fn classroom_courses_announcements_get(
 
 pub fn classroom_courses_announcements_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    attachmentId: Option<String>,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnContext",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -2333,9 +1190,9 @@ pub fn classroom_courses_announcements_get_add_on_context_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2369,7 +1226,12 @@ pub fn classroom_courses_announcements_get_add_on_context_builder(
 pub fn classroom_courses_announcements_get_add_on_context_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnContext>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2483,210 +1345,13 @@ pub fn classroom_courses_announcements_get_add_on_context(
 > {
     let builder = classroom_courses_announcements_get_add_on_context_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.attachmentId.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_announcements_get_add_on_context_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements
-/// Returns a list of announcements that the requester is permitted to view. Course students may only view PUBLISHED announcements. Course teachers and domain administrators may view all announcements. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_list_execute()` to send, or `classroom_courses_announcements_list` for simplest API.
-
-pub fn classroom_courses_announcements_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    announcementStates: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = announcementStates {
-        query_parts.push(format!("announcementStates={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements
-/// Returns a list of announcements that the requester is permitted to view. Course students may only view PUBLISHED announcements. Course teachers and domain administrators may view all announcements. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_list_execute()` or `classroom_courses_announcements_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAnnouncementsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements
-/// Returns a list of announcements that the requester is permitted to view. Course students may only view PUBLISHED announcements. Course teachers and domain administrators may view all announcements. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_list_task()`.
-/// For the simplest API, use `classroom_courses_announcements_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: announcementStates
-    pub announcementStates: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/announcements
-/// Returns a list of announcements that the requester is permitted to view. Course students may only view PUBLISHED announcements. Course teachers and domain administrators may view all announcements. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_list_builder()` + `classroom_courses_announcements_list_execute()`.
-/// For task-level control, use `classroom_courses_announcements_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_list_builder(
-        client,
-        &args.courseId,
-        args.announcementStates.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_announcements_list_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/announcements/{id}:modifyAssignees
@@ -2697,19 +1362,20 @@ pub fn classroom_courses_announcements_list(
 
 pub fn classroom_courses_announcements_modify_assignees_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
     body: &ModifyAnnouncementAssigneesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}:modifyAssignees",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2741,7 +1407,12 @@ pub fn classroom_courses_announcements_modify_assignees_builder(
 pub fn classroom_courses_announcements_modify_assignees_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Announcement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2851,195 +1522,11 @@ pub fn classroom_courses_announcements_modify_assignees(
 > {
     let builder = classroom_courses_announcements_modify_assignees_builder(
         client,
-        &args.courseId,
-        &args.id,
+        args.courseId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_announcements_modify_assignees_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Updates one or more fields of an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if the requested course or announcement does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_patch_execute()` to send, or `classroom_courses_announcements_patch` for simplest API.
-
-pub fn classroom_courses_announcements_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Announcement,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Updates one or more fields of an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if the requested course or announcement does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_patch_execute()` or `classroom_courses_announcements_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Announcement = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Updates one or more fields of an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if the requested course or announcement does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_patch_task()`.
-/// For the simplest API, use `classroom_courses_announcements_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Announcement,
-}
-
-/// GET v1/courses/{courseId}/announcements/{id}
-/// Updates one or more fields of an announcement. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding announcement or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested announcement has already been deleted. * NOT_FOUND if the requested course or announcement does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_patch_builder()` + `classroom_courses_announcements_patch_execute()`.
-/// For task-level control, use `classroom_courses_announcements_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_patch_builder(
-        client,
-        &args.courseId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_announcements_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
@@ -3050,16 +1537,17 @@ pub fn classroom_courses_announcements_patch(
 
 pub fn classroom_courses_announcements_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    postId: Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -3072,9 +1560,9 @@ pub fn classroom_courses_announcements_add_on_attachments_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3110,8 +1598,11 @@ pub fn classroom_courses_announcements_add_on_attachments_create_builder(
 pub fn classroom_courses_announcements_add_on_attachments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3226,10 +1717,10 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_create_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.postId.clone(),
         &args.body,
     )?;
     classroom_courses_announcements_add_on_attachments_create_execute(builder)
@@ -3243,15 +1734,17 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
 
 pub fn classroom_courses_announcements_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    attachmentId: String,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
+        courseId.as_str(),
+        itemId.as_str(),
+        attachmentId.as_str(),
     );
 
     // Build request
@@ -3261,9 +1754,9 @@ pub fn classroom_courses_announcements_add_on_attachments_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3297,7 +1790,12 @@ pub fn classroom_courses_announcements_add_on_attachments_delete_builder(
 pub fn classroom_courses_announcements_add_on_attachments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3405,593 +1903,12 @@ pub fn classroom_courses_announcements_add_on_attachments_delete(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_delete_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_announcements_add_on_attachments_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_add_on_attachments_get_execute()` to send, or `classroom_courses_announcements_add_on_attachments_get` for simplest API.
-
-pub fn classroom_courses_announcements_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_add_on_attachments_get_execute()` or `classroom_courses_announcements_add_on_attachments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_add_on_attachments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_get_task()`.
-/// For the simplest API, use `classroom_courses_announcements_add_on_attachments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_add_on_attachments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_add_on_attachments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_add_on_attachments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_add_on_attachments_get_builder()` + `classroom_courses_announcements_add_on_attachments_get_execute()`.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_add_on_attachments_get_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_announcements_add_on_attachments_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_add_on_attachments_list_execute()` to send, or `classroom_courses_announcements_add_on_attachments_list` for simplest API.
-
-pub fn classroom_courses_announcements_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments",
-        courseId, itemId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_add_on_attachments_list_execute()` or `classroom_courses_announcements_add_on_attachments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAddOnAttachmentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_add_on_attachments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_list_task()`.
-/// For the simplest API, use `classroom_courses_announcements_add_on_attachments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_add_on_attachments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_add_on_attachments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_add_on_attachments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_add_on_attachments_list_builder()` + `classroom_courses_announcements_add_on_attachments_list_execute()`.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_add_on_attachments_list_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_announcements_add_on_attachments_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_announcements_add_on_attachments_patch_execute()` to send, or `classroom_courses_announcements_add_on_attachments_patch` for simplest API.
-
-pub fn classroom_courses_announcements_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_announcements_add_on_attachments_patch_execute()` or `classroom_courses_announcements_add_on_attachments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_announcements_add_on_attachments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_patch_task()`.
-/// For the simplest API, use `classroom_courses_announcements_add_on_attachments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_announcements_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_announcements_add_on_attachments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_announcements_add_on_attachments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_announcements_add_on_attachments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachment,
-}
-
-/// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_announcements_add_on_attachments_patch_builder()` + `classroom_courses_announcements_add_on_attachments_patch_execute()`.
-/// For task-level control, use `classroom_courses_announcements_add_on_attachments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_announcements_add_on_attachments_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesAnnouncementsAddOnAttachmentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_announcements_add_on_attachments_patch_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_announcements_add_on_attachments_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork
@@ -4002,18 +1919,18 @@ pub fn classroom_courses_announcements_add_on_attachments_patch(
 
 pub fn classroom_courses_course_work_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &CourseWork,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4045,7 +1962,12 @@ pub fn classroom_courses_course_work_create_builder(
 pub fn classroom_courses_course_work_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CourseWork>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4147,7 +2069,8 @@ pub fn classroom_courses_course_work_create(
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_create_builder(client, &args.courseId, &args.body)?;
+    let builder =
+        classroom_courses_course_work_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_course_work_create_execute(builder)
 }
 
@@ -4159,18 +2082,19 @@ pub fn classroom_courses_course_work_create(
 
 pub fn classroom_courses_course_work_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4200,7 +2124,12 @@ pub fn classroom_courses_course_work_delete_builder(
 pub fn classroom_courses_course_work_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4302,163 +2231,12 @@ pub fn classroom_courses_course_work_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_delete_builder(client, &args.courseId, &args.id)?;
+    let builder = classroom_courses_course_work_delete_builder(
+        client,
+        args.courseId.clone(),
+        args.id.clone(),
+    )?;
     classroom_courses_course_work_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Returns course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_get_execute()` to send, or `classroom_courses_course_work_get` for simplest API.
-
-pub fn classroom_courses_course_work_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Returns course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_get_execute()` or `classroom_courses_course_work_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CourseWork = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Returns course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_get_task()`.
-/// For the simplest API, use `classroom_courses_course_work_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Returns course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_get_builder()` + `classroom_courses_course_work_get_execute()`.
-/// For task-level control, use `classroom_courses_course_work_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_get_builder(client, &args.courseId, &args.id)?;
-    classroom_courses_course_work_get_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnContext
@@ -4469,16 +2247,17 @@ pub fn classroom_courses_course_work_get(
 
 pub fn classroom_courses_course_work_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    attachmentId: Option<String>,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnContext",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -4494,9 +2273,9 @@ pub fn classroom_courses_course_work_get_add_on_context_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4530,7 +2309,12 @@ pub fn classroom_courses_course_work_get_add_on_context_builder(
 pub fn classroom_courses_course_work_get_add_on_context_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnContext>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4644,210 +2428,13 @@ pub fn classroom_courses_course_work_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_get_add_on_context_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.attachmentId.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_course_work_get_add_on_context_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork
-/// Returns a list of course work that the requester is permitted to view. Course students may only view PUBLISHED course work. Course teachers and domain administrators may view all course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_list_execute()` to send, or `classroom_courses_course_work_list` for simplest API.
-
-pub fn classroom_courses_course_work_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkStates: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = courseWorkStates {
-        query_parts.push(format!("courseWorkStates={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork
-/// Returns a list of course work that the requester is permitted to view. Course students may only view PUBLISHED course work. Course teachers and domain administrators may view all course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_list_execute()` or `classroom_courses_course_work_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCourseWorkResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCourseWorkResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork
-/// Returns a list of course work that the requester is permitted to view. Course students may only view PUBLISHED course work. Course teachers and domain administrators may view all course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_list_task()`.
-/// For the simplest API, use `classroom_courses_course_work_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCourseWorkResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: courseWorkStates
-    pub courseWorkStates: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWork
-/// Returns a list of course work that the requester is permitted to view. Course students may only view PUBLISHED course work. Course teachers and domain administrators may view all course work. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_list_builder()` + `classroom_courses_course_work_list_execute()`.
-/// For task-level control, use `classroom_courses_course_work_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCourseWorkResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_list_builder(
-        client,
-        &args.courseId,
-        args.courseWorkStates.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_course_work_list_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{id}:modifyAssignees
@@ -4858,19 +2445,20 @@ pub fn classroom_courses_course_work_list(
 
 pub fn classroom_courses_course_work_modify_assignees_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
     body: &ModifyCourseWorkAssigneesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}:modifyAssignees",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4902,7 +2490,12 @@ pub fn classroom_courses_course_work_modify_assignees_builder(
 pub fn classroom_courses_course_work_modify_assignees_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CourseWork>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5008,191 +2601,11 @@ pub fn classroom_courses_course_work_modify_assignees(
 > {
     let builder = classroom_courses_course_work_modify_assignees_builder(
         client,
-        &args.courseId,
-        &args.id,
+        args.courseId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_modify_assignees_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Updates one or more fields of a course work. See google.classroom.v1.CourseWork for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_patch_execute()` to send, or `classroom_courses_course_work_patch` for simplest API.
-
-pub fn classroom_courses_course_work_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &CourseWork,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Updates one or more fields of a course work. See google.classroom.v1.CourseWork for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_patch_execute()` or `classroom_courses_course_work_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CourseWork = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Updates one or more fields of a course work. See google.classroom.v1.CourseWork for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: CourseWork,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{id}
-/// Updates one or more fields of a course work. See google.classroom.v1.CourseWork for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work has already been deleted. * NOT_FOUND if the requested course or course work does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_patch_builder()` + `classroom_courses_course_work_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_patch_builder(
-        client,
-        &args.courseId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubric
@@ -5203,16 +2616,17 @@ pub fn classroom_courses_course_work_patch(
 
 pub fn classroom_courses_course_work_update_rubric_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: Option<&str>,
-    updateMask: Option<&str>,
+    courseId: String,
+    courseWorkId: String,
+    id: Option<String>,
+    updateMask: Option<String>,
     body: &Rubric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubric",
-        courseId, courseWorkId,
+        courseId.as_str(),
+        courseWorkId.as_str(),
     );
 
     // Build request
@@ -5225,9 +2639,9 @@ pub fn classroom_courses_course_work_update_rubric_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5263,7 +2677,12 @@ pub fn classroom_courses_course_work_update_rubric_builder(
 pub fn classroom_courses_course_work_update_rubric_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rubric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5373,10 +2792,10 @@ pub fn classroom_courses_course_work_update_rubric(
 > {
     let builder = classroom_courses_course_work_update_rubric_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        args.id.as_deref(),
-        args.updateMask.as_deref(),
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
+        args.updateMask.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_update_rubric_execute(builder)
@@ -5390,16 +2809,17 @@ pub fn classroom_courses_course_work_update_rubric(
 
 pub fn classroom_courses_course_work_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    postId: Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -5412,9 +2832,9 @@ pub fn classroom_courses_course_work_add_on_attachments_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5450,8 +2870,11 @@ pub fn classroom_courses_course_work_add_on_attachments_create_builder(
 pub fn classroom_courses_course_work_add_on_attachments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5566,10 +2989,10 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_create_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.postId.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_add_on_attachments_create_execute(builder)
@@ -5583,15 +3006,17 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
 
 pub fn classroom_courses_course_work_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    attachmentId: String,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
+        courseId.as_str(),
+        itemId.as_str(),
+        attachmentId.as_str(),
     );
 
     // Build request
@@ -5601,9 +3026,9 @@ pub fn classroom_courses_course_work_add_on_attachments_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5637,7 +3062,12 @@ pub fn classroom_courses_course_work_add_on_attachments_delete_builder(
 pub fn classroom_courses_course_work_add_on_attachments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5745,593 +3175,12 @@ pub fn classroom_courses_course_work_add_on_attachments_delete(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_delete_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_course_work_add_on_attachments_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_add_on_attachments_get_execute()` to send, or `classroom_courses_course_work_add_on_attachments_get` for simplest API.
-
-pub fn classroom_courses_course_work_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_add_on_attachments_get_execute()` or `classroom_courses_course_work_add_on_attachments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_add_on_attachments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_get_task()`.
-/// For the simplest API, use `classroom_courses_course_work_add_on_attachments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_add_on_attachments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_add_on_attachments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_add_on_attachments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkAddOnAttachmentsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_add_on_attachments_get_builder()` + `classroom_courses_course_work_add_on_attachments_get_execute()`.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkAddOnAttachmentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_add_on_attachments_get_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_course_work_add_on_attachments_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_add_on_attachments_list_execute()` to send, or `classroom_courses_course_work_add_on_attachments_list` for simplest API.
-
-pub fn classroom_courses_course_work_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments",
-        courseId, itemId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_add_on_attachments_list_execute()` or `classroom_courses_course_work_add_on_attachments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAddOnAttachmentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_add_on_attachments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_list_task()`.
-/// For the simplest API, use `classroom_courses_course_work_add_on_attachments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_add_on_attachments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_add_on_attachments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_add_on_attachments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkAddOnAttachmentsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_add_on_attachments_list_builder()` + `classroom_courses_course_work_add_on_attachments_list_execute()`.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkAddOnAttachmentsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_add_on_attachments_list_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_course_work_add_on_attachments_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_add_on_attachments_patch_execute()` to send, or `classroom_courses_course_work_add_on_attachments_patch` for simplest API.
-
-pub fn classroom_courses_course_work_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_add_on_attachments_patch_execute()` or `classroom_courses_course_work_add_on_attachments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_add_on_attachments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_add_on_attachments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_add_on_attachments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_add_on_attachments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_add_on_attachments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkAddOnAttachmentsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachment,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_add_on_attachments_patch_builder()` + `classroom_courses_course_work_add_on_attachments_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkAddOnAttachmentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_add_on_attachments_patch_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_add_on_attachments_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -6342,19 +3191,19 @@ pub fn classroom_courses_course_work_add_on_attachments_patch(
 
 pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    attachmentId: String,
+    submissionId: String,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId,
-        itemId,
-        attachmentId,
-        submissionId,
+        courseId.as_str(),
+        itemId.as_str(),
+        attachmentId.as_str(),
+        submissionId.as_str(),
     );
 
     // Build request
@@ -6364,9 +3213,9 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6401,8 +3250,9 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6523,225 +3373,13 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        &args.submissionId,
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.attachmentId.clone(),
+        args.submissionId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_course_work_add_on_attachments_student_submissions_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute()` to send, or `classroom_courses_course_work_add_on_attachments_student_submissions_patch` for simplest API.
-
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachmentStudentSubmission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId,
-        itemId,
-        attachmentId,
-        submissionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute()` or `classroom_courses_course_work_add_on_attachments_student_submissions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachmentStudentSubmission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        classroom_courses_course_work_add_on_attachments_student_submissions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_add_on_attachments_student_submissions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Path parameter: submissionId
-    pub submissionId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachmentStudentSubmission,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder()` + `classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_add_on_attachments_student_submissions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsPatchArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        classroom_courses_course_work_add_on_attachments_student_submissions_patch_builder(
-            client,
-            &args.courseId,
-            &args.itemId,
-            &args.attachmentId,
-            &args.submissionId,
-            args.postId.as_deref(),
-            args.updateMask.as_deref(),
-            &args.body,
-        )?;
-    classroom_courses_course_work_add_on_attachments_student_submissions_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
@@ -6752,19 +3390,20 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
 
 pub fn classroom_courses_course_work_rubrics_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
+    courseId: String,
+    courseWorkId: String,
     body: &Rubric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics",
-        courseId, courseWorkId,
+        courseId.as_str(),
+        courseWorkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6796,7 +3435,12 @@ pub fn classroom_courses_course_work_rubrics_create_builder(
 pub fn classroom_courses_course_work_rubrics_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rubric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6902,8 +3546,8 @@ pub fn classroom_courses_course_work_rubrics_create(
 > {
     let builder = classroom_courses_course_work_rubrics_create_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_rubrics_create_execute(builder)
@@ -6917,19 +3561,21 @@ pub fn classroom_courses_course_work_rubrics_create(
 
 pub fn classroom_courses_course_work_rubrics_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
-        courseId, courseWorkId, id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6959,7 +3605,12 @@ pub fn classroom_courses_course_work_rubrics_delete_builder(
 pub fn classroom_courses_course_work_rubrics_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7065,545 +3716,11 @@ pub fn classroom_courses_course_work_rubrics_delete(
 > {
     let builder = classroom_courses_course_work_rubrics_delete_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
     )?;
     classroom_courses_course_work_rubrics_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Returns a rubric. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_rubrics_get_execute()` to send, or `classroom_courses_course_work_rubrics_get` for simplest API.
-
-pub fn classroom_courses_course_work_rubrics_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
-        courseId, courseWorkId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Returns a rubric. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_rubrics_get_execute()` or `classroom_courses_course_work_rubrics_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Rubric = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Returns a rubric. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_rubrics_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_rubrics_get_task()`.
-/// For the simplest API, use `classroom_courses_course_work_rubrics_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_rubrics_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_rubrics_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_rubrics_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkRubricsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: courseWorkId
-    pub courseWorkId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Returns a rubric. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_rubrics_get_builder()` + `classroom_courses_course_work_rubrics_get_execute()`.
-/// For task-level control, use `classroom_courses_course_work_rubrics_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkRubricsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_rubrics_get_builder(
-        client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
-    )?;
-    classroom_courses_course_work_rubrics_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
-/// Returns a list of rubrics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_rubrics_list_execute()` to send, or `classroom_courses_course_work_rubrics_list` for simplest API.
-
-pub fn classroom_courses_course_work_rubrics_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics",
-        courseId, courseWorkId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
-/// Returns a list of rubrics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_rubrics_list_execute()` or `classroom_courses_course_work_rubrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListRubricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListRubricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
-/// Returns a list of rubrics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_rubrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_rubrics_list_task()`.
-/// For the simplest API, use `classroom_courses_course_work_rubrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_rubrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListRubricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_rubrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_rubrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkRubricsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: courseWorkId
-    pub courseWorkId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
-/// Returns a list of rubrics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work doesn't exist or if the user doesn't have access to the corresponding course work.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_rubrics_list_builder()` + `classroom_courses_course_work_rubrics_list_execute()`.
-/// For task-level control, use `classroom_courses_course_work_rubrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkRubricsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListRubricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_rubrics_list_builder(
-        client,
-        &args.courseId,
-        &args.courseWorkId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_course_work_rubrics_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_rubrics_patch_execute()` to send, or `classroom_courses_course_work_rubrics_patch` for simplest API.
-
-pub fn classroom_courses_course_work_rubrics_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Rubric,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
-        courseId, courseWorkId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_rubrics_patch_execute()` or `classroom_courses_course_work_rubrics_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Rubric = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_rubrics_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_rubrics_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_rubrics_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_rubrics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_rubrics_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_rubrics_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_rubrics_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkRubricsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: courseWorkId
-    pub courseWorkId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Rubric,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
-/// Updates a rubric. See google.classroom.v1.Rubric for details of which fields can be updated. Rubric update capabilities are [limited](/`classroom/rubrics/limitations`) once grading has started. The requesting user and course owner must have rubrics creation capabilities. For details, see [licensing requirements](<https://developers.google.`com/workspace/classroom/rubrics/limitations`#license-requirements>). This request must be made by the Google Cloud console of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the parent course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project didn't create the corresponding course work, if the user isn't permitted to make the requested modification to the rubric, or for access errors. This error code is also returned if grading has already started on the rubric. * INVALID_ARGUMENT if the request is malformed and for the following request error: * RubricCriteriaInvalidFormat * NOT_FOUND if the requested course, course work, or rubric doesn't exist or if the user doesn't have access to the corresponding course work. * INTERNAL if grading has already started on the rubric.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_rubrics_patch_builder()` + `classroom_courses_course_work_rubrics_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_rubrics_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_rubrics_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkRubricsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Rubric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_rubrics_patch_builder(
-        client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_rubrics_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
@@ -7614,19 +3731,21 @@ pub fn classroom_courses_course_work_rubrics_patch(
 
 pub fn classroom_courses_course_work_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}",
-        courseId, courseWorkId, id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7656,8 +3775,11 @@ pub fn classroom_courses_course_work_student_submissions_get_builder(
 pub fn classroom_courses_course_work_student_submissions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudentSubmission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7768,9 +3890,9 @@ pub fn classroom_courses_course_work_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_student_submissions_get_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
     )?;
     classroom_courses_course_work_student_submissions_get_execute(builder)
 }
@@ -7783,18 +3905,19 @@ pub fn classroom_courses_course_work_student_submissions_get(
 
 pub fn classroom_courses_course_work_student_submissions_list_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    late: Option<&str>,
+    courseId: String,
+    courseWorkId: String,
+    late: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    states: Option<&str>,
-    userId: Option<&str>,
+    pageToken: Option<String>,
+    states: Option<String>,
+    userId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions",
-        courseId, courseWorkId,
+        courseId.as_str(),
+        courseWorkId.as_str(),
     );
 
     // Build request
@@ -7816,9 +3939,9 @@ pub fn classroom_courses_course_work_student_submissions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7853,8 +3976,9 @@ pub fn classroom_courses_course_work_student_submissions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListStudentSubmissionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListStudentSubmissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -7978,13 +4102,13 @@ pub fn classroom_courses_course_work_student_submissions_list(
 > {
     let builder = classroom_courses_course_work_student_submissions_list_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        args.late.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.states.as_deref(),
-        args.userId.as_deref(),
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.late.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.states.clone(),
+        args.userId.clone(),
     )?;
     classroom_courses_course_work_student_submissions_list_execute(builder)
 }
@@ -7997,22 +4121,22 @@ pub fn classroom_courses_course_work_student_submissions_list(
 
 pub fn classroom_courses_course_work_student_submissions_modify_attachments_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
     body: &ModifyAttachmentsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:modifyAttachments",
-        courseId,
-        courseWorkId,
-        id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8044,8 +4168,11 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments_buil
 pub fn classroom_courses_course_work_student_submissions_modify_attachments_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudentSubmission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8158,202 +4285,12 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments(
 > {
     let builder = classroom_courses_course_work_student_submissions_modify_attachments_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_modify_attachments_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
-/// Updates one or more fields of a student submission. See google.classroom.v1.StudentSubmission for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_student_submissions_patch_execute()` to send, or `classroom_courses_course_work_student_submissions_patch` for simplest API.
-
-pub fn classroom_courses_course_work_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &StudentSubmission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}",
-        courseId, courseWorkId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
-/// Updates one or more fields of a student submission. See google.classroom.v1.StudentSubmission for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_student_submissions_patch_execute()` or `classroom_courses_course_work_student_submissions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_student_submissions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: StudentSubmission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
-/// Updates one or more fields of a student submission. See google.classroom.v1.StudentSubmission for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_student_submissions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_student_submissions_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_student_submissions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_student_submissions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_student_submissions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_student_submissions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkStudentSubmissionsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: courseWorkId
-    pub courseWorkId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: StudentSubmission,
-}
-
-/// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
-/// Updates one or more fields of a student submission. See google.classroom.v1.StudentSubmission for details of which fields may be updated and who may change them. This request must be made by the Developer Console project of the [OAuth client ID](<https://support.google.`com/cloud/answer/6158849`>) used to create the corresponding course work item. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding course work, if the user is not permitted to make the requested modification to the student submission, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course, course work, or student submission does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_student_submissions_patch_builder()` + `classroom_courses_course_work_student_submissions_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_student_submissions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_student_submissions_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkStudentSubmissionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<StudentSubmission>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_student_submissions_patch_builder(
-        client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_student_submissions_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}:reclaim
@@ -8364,22 +4301,22 @@ pub fn classroom_courses_course_work_student_submissions_patch(
 
 pub fn classroom_courses_course_work_student_submissions_reclaim_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
     body: &ReclaimStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:reclaim",
-        courseId,
-        courseWorkId,
-        id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8411,7 +4348,12 @@ pub fn classroom_courses_course_work_student_submissions_reclaim_builder(
 pub fn classroom_courses_course_work_student_submissions_reclaim_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8519,9 +4461,9 @@ pub fn classroom_courses_course_work_student_submissions_reclaim(
 > {
     let builder = classroom_courses_course_work_student_submissions_reclaim_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_reclaim_execute(builder)
@@ -8535,20 +4477,22 @@ pub fn classroom_courses_course_work_student_submissions_reclaim(
 
 pub fn classroom_courses_course_work_student_submissions_return_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
     body: &ReturnStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:return",
-        courseId, courseWorkId, id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8580,7 +4524,12 @@ pub fn classroom_courses_course_work_student_submissions_return_builder(
 pub fn classroom_courses_course_work_student_submissions_return_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8688,9 +4637,9 @@ pub fn classroom_courses_course_work_student_submissions_return(
 > {
     let builder = classroom_courses_course_work_student_submissions_return_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_return_execute(builder)
@@ -8704,20 +4653,22 @@ pub fn classroom_courses_course_work_student_submissions_return(
 
 pub fn classroom_courses_course_work_student_submissions_turn_in_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkId: &str,
-    id: &str,
+    courseId: String,
+    courseWorkId: String,
+    id: String,
     body: &TurnInStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:turnIn",
-        courseId, courseWorkId, id,
+        courseId.as_str(),
+        courseWorkId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8749,7 +4700,12 @@ pub fn classroom_courses_course_work_student_submissions_turn_in_builder(
 pub fn classroom_courses_course_work_student_submissions_turn_in_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8857,9 +4813,9 @@ pub fn classroom_courses_course_work_student_submissions_turn_in(
 > {
     let builder = classroom_courses_course_work_student_submissions_turn_in_builder(
         client,
-        &args.courseId,
-        &args.courseWorkId,
-        &args.id,
+        args.courseId.clone(),
+        args.courseWorkId.clone(),
+        args.id.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_turn_in_execute(builder)
@@ -8873,18 +4829,18 @@ pub fn classroom_courses_course_work_student_submissions_turn_in(
 
 pub fn classroom_courses_course_work_materials_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &CourseWorkMaterial,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8916,8 +4872,11 @@ pub fn classroom_courses_course_work_materials_create_builder(
 pub fn classroom_courses_course_work_materials_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CourseWorkMaterial>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9024,8 +4983,11 @@ pub fn classroom_courses_course_work_materials_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_materials_create_builder(client, &args.courseId, &args.body)?;
+    let builder = classroom_courses_course_work_materials_create_builder(
+        client,
+        args.courseId.clone(),
+        &args.body,
+    )?;
     classroom_courses_course_work_materials_create_execute(builder)
 }
 
@@ -9037,18 +4999,19 @@ pub fn classroom_courses_course_work_materials_create(
 
 pub fn classroom_courses_course_work_materials_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9078,7 +5041,12 @@ pub fn classroom_courses_course_work_materials_delete_builder(
 pub fn classroom_courses_course_work_materials_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9180,171 +5148,12 @@ pub fn classroom_courses_course_work_materials_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_materials_delete_builder(client, &args.courseId, &args.id)?;
+    let builder = classroom_courses_course_work_materials_delete_builder(
+        client,
+        args.courseId.clone(),
+        args.id.clone(),
+    )?;
     classroom_courses_course_work_materials_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Returns a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work material, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work material does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_get_execute()` to send, or `classroom_courses_course_work_materials_get` for simplest API.
-
-pub fn classroom_courses_course_work_materials_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Returns a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work material, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work material does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_get_execute()` or `classroom_courses_course_work_materials_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CourseWorkMaterial = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Returns a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work material, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work material does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_get_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Returns a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or course work material, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or course work material does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_get_builder()` + `classroom_courses_course_work_materials_get_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        classroom_courses_course_work_materials_get_builder(client, &args.courseId, &args.id)?;
-    classroom_courses_course_work_materials_get_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnContext
@@ -9355,16 +5164,17 @@ pub fn classroom_courses_course_work_materials_get(
 
 pub fn classroom_courses_course_work_materials_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    attachmentId: Option<String>,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnContext",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -9380,9 +5190,9 @@ pub fn classroom_courses_course_work_materials_get_add_on_context_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9416,7 +5226,12 @@ pub fn classroom_courses_course_work_materials_get_add_on_context_builder(
 pub fn classroom_courses_course_work_materials_get_add_on_context_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnContext>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9530,416 +5345,13 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_materials_get_add_on_context_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.attachmentId.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_course_work_materials_get_add_on_context_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials
-/// Returns a list of course work material that the requester is permitted to view. Course students may only view PUBLISHED course work material. Course teachers and domain administrators may view all course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_list_execute()` to send, or `classroom_courses_course_work_materials_list` for simplest API.
-
-pub fn classroom_courses_course_work_materials_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    courseWorkMaterialStates: Option<&str>,
-    materialDriveId: Option<&str>,
-    materialLink: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = courseWorkMaterialStates {
-        query_parts.push(format!("courseWorkMaterialStates={}", val));
-    }
-    if let Some(val) = materialDriveId {
-        query_parts.push(format!("materialDriveId={}", val));
-    }
-    if let Some(val) = materialLink {
-        query_parts.push(format!("materialLink={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials
-/// Returns a list of course work material that the requester is permitted to view. Course students may only view PUBLISHED course work material. Course teachers and domain administrators may view all course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_list_execute()` or `classroom_courses_course_work_materials_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCourseWorkMaterialResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCourseWorkMaterialResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials
-/// Returns a list of course work material that the requester is permitted to view. Course students may only view PUBLISHED course work material. Course teachers and domain administrators may view all course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_list_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCourseWorkMaterialResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: courseWorkMaterialStates
-    pub courseWorkMaterialStates: Option<String>,
-    /// Query parameter: materialDriveId
-    pub materialDriveId: Option<String>,
-    /// Query parameter: materialLink
-    pub materialLink: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials
-/// Returns a list of course work material that the requester is permitted to view. Course students may only view PUBLISHED course work material. Course teachers and domain administrators may view all course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_list_builder()` + `classroom_courses_course_work_materials_list_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCourseWorkMaterialResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_materials_list_builder(
-        client,
-        &args.courseId,
-        args.courseWorkMaterialStates.as_deref(),
-        args.materialDriveId.as_deref(),
-        args.materialLink.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_course_work_materials_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Updates one or more fields of a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if the requested course or course work material does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_patch_execute()` to send, or `classroom_courses_course_work_materials_patch` for simplest API.
-
-pub fn classroom_courses_course_work_materials_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &CourseWorkMaterial,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Updates one or more fields of a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if the requested course or course work material does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_patch_execute()` or `classroom_courses_course_work_materials_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CourseWorkMaterial = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Updates one or more fields of a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if the requested course or course work material does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: CourseWorkMaterial,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{id}
-/// Updates one or more fields of a course work material. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if the requested course work material has already been deleted. * NOT_FOUND if the requested course or course work material does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_patch_builder()` + `classroom_courses_course_work_materials_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CourseWorkMaterial>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_materials_patch_builder(
-        client,
-        &args.courseId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_materials_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
@@ -9950,16 +5362,17 @@ pub fn classroom_courses_course_work_materials_patch(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    addOnToken: Option<&str>,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    addOnToken: Option<String>,
+    postId: Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments",
-        courseId, itemId,
+        courseId.as_str(),
+        itemId.as_str(),
     );
 
     // Build request
@@ -9972,9 +5385,9 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -10010,8 +5423,11 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder
 pub fn classroom_courses_course_work_materials_add_on_attachments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -10126,10 +5542,10 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_create_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        args.addOnToken.as_deref(),
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.addOnToken.clone(),
+        args.postId.clone(),
         &args.body,
     )?;
     classroom_courses_course_work_materials_add_on_attachments_create_execute(builder)
@@ -10143,15 +5559,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
+    courseId: String,
+    itemId: String,
+    attachmentId: String,
+    postId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
+        courseId.as_str(),
+        itemId.as_str(),
+        attachmentId.as_str(),
     );
 
     // Build request
@@ -10161,9 +5579,9 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -10197,7 +5615,12 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder
 pub fn classroom_courses_course_work_materials_add_on_attachments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10305,593 +5728,12 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_delete_builder(
         client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
+        args.courseId.clone(),
+        args.itemId.clone(),
+        args.attachmentId.clone(),
+        args.postId.clone(),
     )?;
     classroom_courses_course_work_materials_add_on_attachments_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_add_on_attachments_get_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_get` for simplest API.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_add_on_attachments_get_execute()` or `classroom_courses_course_work_materials_add_on_attachments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_add_on_attachments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_get_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_add_on_attachments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_add_on_attachments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_add_on_attachments_get_builder()` + `classroom_courses_course_work_materials_add_on_attachments_get_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_materials_add_on_attachments_get_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_course_work_materials_add_on_attachments_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_add_on_attachments_list_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_list` for simplest API.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments",
-        courseId, itemId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_add_on_attachments_list_execute()` or `classroom_courses_course_work_materials_add_on_attachments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAddOnAttachmentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_add_on_attachments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_list_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_add_on_attachments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_add_on_attachments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_add_on_attachments_list_builder()` + `classroom_courses_course_work_materials_add_on_attachments_list_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_materials_add_on_attachments_list_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.postId.as_deref(),
-    )?;
-    classroom_courses_course_work_materials_add_on_attachments_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_course_work_materials_add_on_attachments_patch_execute()` to send, or `classroom_courses_course_work_materials_add_on_attachments_patch` for simplest API.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    itemId: &str,
-    attachmentId: &str,
-    postId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
-        courseId, itemId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = postId {
-        query_parts.push(format!("postId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_course_work_materials_add_on_attachments_patch_execute()` or `classroom_courses_course_work_materials_add_on_attachments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_course_work_materials_add_on_attachments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_patch_task()`.
-/// For the simplest API, use `classroom_courses_course_work_materials_add_on_attachments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_course_work_materials_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_course_work_materials_add_on_attachments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_course_work_materials_add_on_attachments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: itemId
-    pub itemId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: postId
-    pub postId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachment,
-}
-
-/// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_course_work_materials_add_on_attachments_patch_builder()` + `classroom_courses_course_work_materials_add_on_attachments_patch_execute()`.
-/// For task-level control, use `classroom_courses_course_work_materials_add_on_attachments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_course_work_materials_add_on_attachments_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_course_work_materials_add_on_attachments_patch_builder(
-        client,
-        &args.courseId,
-        &args.itemId,
-        &args.attachmentId,
-        args.postId.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_course_work_materials_add_on_attachments_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnContext
@@ -10902,16 +5744,17 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch(
 
 pub fn classroom_courses_posts_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    addOnToken: Option<&str>,
-    attachmentId: Option<&str>,
-    itemId: Option<&str>,
+    courseId: String,
+    postId: String,
+    addOnToken: Option<String>,
+    attachmentId: Option<String>,
+    itemId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnContext",
-        courseId, postId,
+        courseId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -10927,9 +5770,9 @@ pub fn classroom_courses_posts_get_add_on_context_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -10963,7 +5806,12 @@ pub fn classroom_courses_posts_get_add_on_context_builder(
 pub fn classroom_courses_posts_get_add_on_context_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnContext>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnContext>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11077,11 +5925,11 @@ pub fn classroom_courses_posts_get_add_on_context(
 > {
     let builder = classroom_courses_posts_get_add_on_context_builder(
         client,
-        &args.courseId,
-        &args.postId,
-        args.addOnToken.as_deref(),
-        args.attachmentId.as_deref(),
-        args.itemId.as_deref(),
+        args.courseId.clone(),
+        args.postId.clone(),
+        args.addOnToken.clone(),
+        args.attachmentId.clone(),
+        args.itemId.clone(),
     )?;
     classroom_courses_posts_get_add_on_context_execute(builder)
 }
@@ -11094,16 +5942,17 @@ pub fn classroom_courses_posts_get_add_on_context(
 
 pub fn classroom_courses_posts_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    addOnToken: Option<&str>,
-    itemId: Option<&str>,
+    courseId: String,
+    postId: String,
+    addOnToken: Option<String>,
+    itemId: Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments",
-        courseId, postId,
+        courseId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -11116,9 +5965,9 @@ pub fn classroom_courses_posts_add_on_attachments_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11154,8 +6003,11 @@ pub fn classroom_courses_posts_add_on_attachments_create_builder(
 pub fn classroom_courses_posts_add_on_attachments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddOnAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11270,10 +6122,10 @@ pub fn classroom_courses_posts_add_on_attachments_create(
 > {
     let builder = classroom_courses_posts_add_on_attachments_create_builder(
         client,
-        &args.courseId,
-        &args.postId,
-        args.addOnToken.as_deref(),
-        args.itemId.as_deref(),
+        args.courseId.clone(),
+        args.postId.clone(),
+        args.addOnToken.clone(),
+        args.itemId.clone(),
         &args.body,
     )?;
     classroom_courses_posts_add_on_attachments_create_execute(builder)
@@ -11287,15 +6139,17 @@ pub fn classroom_courses_posts_add_on_attachments_create(
 
 pub fn classroom_courses_posts_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
+    courseId: String,
+    postId: String,
+    attachmentId: String,
+    itemId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
-        courseId, postId, attachmentId,
+        courseId.as_str(),
+        postId.as_str(),
+        attachmentId.as_str(),
     );
 
     // Build request
@@ -11305,9 +6159,9 @@ pub fn classroom_courses_posts_add_on_attachments_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11341,7 +6195,12 @@ pub fn classroom_courses_posts_add_on_attachments_delete_builder(
 pub fn classroom_courses_posts_add_on_attachments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11449,593 +6308,12 @@ pub fn classroom_courses_posts_add_on_attachments_delete(
 > {
     let builder = classroom_courses_posts_add_on_attachments_delete_builder(
         client,
-        &args.courseId,
-        &args.postId,
-        &args.attachmentId,
-        args.itemId.as_deref(),
+        args.courseId.clone(),
+        args.postId.clone(),
+        args.attachmentId.clone(),
+        args.itemId.clone(),
     )?;
     classroom_courses_posts_add_on_attachments_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_posts_add_on_attachments_get_execute()` to send, or `classroom_courses_posts_add_on_attachments_get` for simplest API.
-
-pub fn classroom_courses_posts_add_on_attachments_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
-        courseId, postId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
-        query_parts.push(format!("itemId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_posts_add_on_attachments_get_execute()` or `classroom_courses_posts_add_on_attachments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_posts_add_on_attachments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_get_task()`.
-/// For the simplest API, use `classroom_courses_posts_add_on_attachments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_posts_add_on_attachments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_posts_add_on_attachments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_posts_add_on_attachments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesPostsAddOnAttachmentsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: itemId
-    pub itemId: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Returns an add-on attachment. Requires the add-on requesting the attachment to be the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_posts_add_on_attachments_get_builder()` + `classroom_courses_posts_add_on_attachments_get_execute()`.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesPostsAddOnAttachmentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_posts_add_on_attachments_get_builder(
-        client,
-        &args.courseId,
-        &args.postId,
-        &args.attachmentId,
-        args.itemId.as_deref(),
-    )?;
-    classroom_courses_posts_add_on_attachments_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_posts_add_on_attachments_list_execute()` to send, or `classroom_courses_posts_add_on_attachments_list` for simplest API.
-
-pub fn classroom_courses_posts_add_on_attachments_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    itemId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments",
-        courseId, postId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
-        query_parts.push(format!("itemId={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_posts_add_on_attachments_list_execute()` or `classroom_courses_posts_add_on_attachments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAddOnAttachmentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_posts_add_on_attachments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_list_task()`.
-/// For the simplest API, use `classroom_courses_posts_add_on_attachments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_posts_add_on_attachments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_posts_add_on_attachments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_posts_add_on_attachments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesPostsAddOnAttachmentsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Query parameter: itemId
-    pub itemId: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
-/// Returns all attachments created by an add-on under the post. Requires the add-on to have active attachments on the post or have permission to create new attachments on the post. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_posts_add_on_attachments_list_builder()` + `classroom_courses_posts_add_on_attachments_list_execute()`.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesPostsAddOnAttachmentsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAddOnAttachmentsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_posts_add_on_attachments_list_builder(
-        client,
-        &args.courseId,
-        &args.postId,
-        args.itemId.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_posts_add_on_attachments_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_posts_add_on_attachments_patch_execute()` to send, or `classroom_courses_posts_add_on_attachments_patch` for simplest API.
-
-pub fn classroom_courses_posts_add_on_attachments_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    itemId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
-        courseId, postId, attachmentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
-        query_parts.push(format!("itemId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_posts_add_on_attachments_patch_execute()` or `classroom_courses_posts_add_on_attachments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_posts_add_on_attachments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_patch_task()`.
-/// For the simplest API, use `classroom_courses_posts_add_on_attachments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_posts_add_on_attachments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_posts_add_on_attachments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_posts_add_on_attachments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesPostsAddOnAttachmentsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Query parameter: itemId
-    pub itemId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachment,
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
-/// Updates an add-on attachment. Requires the add-on to have been the original creator of the attachment. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_posts_add_on_attachments_patch_builder()` + `classroom_courses_posts_add_on_attachments_patch_execute()`.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesPostsAddOnAttachmentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AddOnAttachment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_posts_add_on_attachments_patch_builder(
-        client,
-        &args.courseId,
-        &args.postId,
-        &args.attachmentId,
-        args.itemId.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_posts_add_on_attachments_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -12046,19 +6324,19 @@ pub fn classroom_courses_posts_add_on_attachments_patch(
 
 pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    itemId: Option<&str>,
+    courseId: String,
+    postId: String,
+    attachmentId: String,
+    submissionId: String,
+    itemId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId,
-        postId,
-        attachmentId,
-        submissionId,
+        courseId.as_str(),
+        postId.as_str(),
+        attachmentId.as_str(),
+        submissionId.as_str(),
     );
 
     // Build request
@@ -12068,9 +6346,9 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builde
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -12105,8 +6383,9 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -12226,223 +6505,13 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
         client,
-        &args.courseId,
-        &args.postId,
-        &args.attachmentId,
-        &args.submissionId,
-        args.itemId.as_deref(),
+        args.courseId.clone(),
+        args.postId.clone(),
+        args.attachmentId.clone(),
+        args.submissionId.clone(),
+        args.itemId.clone(),
     )?;
     classroom_courses_posts_add_on_attachments_student_submissions_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_posts_add_on_attachments_student_submissions_patch_execute()` to send, or `classroom_courses_posts_add_on_attachments_student_submissions_patch` for simplest API.
-
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    postId: &str,
-    attachmentId: &str,
-    submissionId: &str,
-    itemId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AddOnAttachmentStudentSubmission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId,
-        postId,
-        attachmentId,
-        submissionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
-        query_parts.push(format!("itemId={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_posts_add_on_attachments_student_submissions_patch_execute()` or `classroom_courses_posts_add_on_attachments_student_submissions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AddOnAttachmentStudentSubmission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_posts_add_on_attachments_student_submissions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_student_submissions_patch_task()`.
-/// For the simplest API, use `classroom_courses_posts_add_on_attachments_student_submissions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_posts_add_on_attachments_student_submissions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_posts_add_on_attachments_student_submissions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_posts_add_on_attachments_student_submissions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Path parameter: attachmentId
-    pub attachmentId: String,
-    /// Path parameter: submissionId
-    pub submissionId: String,
-    /// Query parameter: itemId
-    pub itemId: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AddOnAttachmentStudentSubmission,
-}
-
-/// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
-/// Updates data associated with an add-on attachment submission. Requires the add-on to have been the original creator of the attachment and the attachment to have a positive max_points value set. This method returns the following error codes: * PERMISSION_DENIED for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if one of the identified resources does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_posts_add_on_attachments_student_submissions_patch_builder()` + `classroom_courses_posts_add_on_attachments_student_submissions_patch_execute()`.
-/// For task-level control, use `classroom_courses_posts_add_on_attachments_student_submissions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsPatchArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AddOnAttachmentStudentSubmission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_posts_add_on_attachments_student_submissions_patch_builder(
-        client,
-        &args.courseId,
-        &args.postId,
-        &args.attachmentId,
-        &args.submissionId,
-        args.itemId.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_posts_add_on_attachments_student_submissions_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/studentGroups
@@ -12453,18 +6522,18 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch(
 
 pub fn classroom_courses_student_groups_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &StudentGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12496,7 +6565,12 @@ pub fn classroom_courses_student_groups_create_builder(
 pub fn classroom_courses_student_groups_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudentGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12603,7 +6677,7 @@ pub fn classroom_courses_student_groups_create(
     ApiError,
 > {
     let builder =
-        classroom_courses_student_groups_create_builder(client, &args.courseId, &args.body)?;
+        classroom_courses_student_groups_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_student_groups_create_execute(builder)
 }
 
@@ -12615,18 +6689,19 @@ pub fn classroom_courses_student_groups_create(
 
 pub fn classroom_courses_student_groups_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12656,7 +6731,12 @@ pub fn classroom_courses_student_groups_delete_builder(
 pub fn classroom_courses_student_groups_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12758,376 +6838,12 @@ pub fn classroom_courses_student_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_student_groups_delete_builder(client, &args.courseId, &args.id)?;
+    let builder = classroom_courses_student_groups_delete_builder(
+        client,
+        args.courseId.clone(),
+        args.id.clone(),
+    )?;
     classroom_courses_student_groups_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/studentGroups
-/// Returns a list of groups in a course. This method returns the following error codes: * NOT_FOUND if the course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_student_groups_list_execute()` to send, or `classroom_courses_student_groups_list` for simplest API.
-
-pub fn classroom_courses_student_groups_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/studentGroups",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/studentGroups
-/// Returns a list of groups in a course. This method returns the following error codes: * NOT_FOUND if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_student_groups_list_execute()` or `classroom_courses_student_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListStudentGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListStudentGroupsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/studentGroups
-/// Returns a list of groups in a course. This method returns the following error codes: * NOT_FOUND if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_student_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_student_groups_list_task()`.
-/// For the simplest API, use `classroom_courses_student_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_student_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStudentGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_student_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_student_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesStudentGroupsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/studentGroups
-/// Returns a list of groups in a course. This method returns the following error codes: * NOT_FOUND if the course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_student_groups_list_builder()` + `classroom_courses_student_groups_list_execute()`.
-/// For task-level control, use `classroom_courses_student_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesStudentGroupsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStudentGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_student_groups_list_builder(
-        client,
-        &args.courseId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_student_groups_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{id}
-/// Updates one or more fields in a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_student_groups_patch_execute()` to send, or `classroom_courses_student_groups_patch` for simplest API.
-
-pub fn classroom_courses_student_groups_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &StudentGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{id}
-/// Updates one or more fields in a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_student_groups_patch_execute()` or `classroom_courses_student_groups_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: StudentGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{id}
-/// Updates one or more fields in a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_student_groups_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_student_groups_patch_task()`.
-/// For the simplest API, use `classroom_courses_student_groups_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_student_groups_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_student_groups_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_student_groups_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesStudentGroupsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: StudentGroup,
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{id}
-/// Updates one or more fields in a student group. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to modify the requested student group or for access errors. * NOT_FOUND if the student group does not exist or the user does not have access to the student group. * INVALID_ARGUMENT if invalid fields are specified in the update mask or if no update mask is supplied.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_student_groups_patch_builder()` + `classroom_courses_student_groups_patch_execute()`.
-/// For task-level control, use `classroom_courses_student_groups_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesStudentGroupsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<StudentGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_student_groups_patch_builder(
-        client,
-        &args.courseId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_student_groups_patch_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
@@ -13138,19 +6854,20 @@ pub fn classroom_courses_student_groups_patch(
 
 pub fn classroom_courses_student_groups_student_group_members_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
+    courseId: String,
+    studentGroupId: String,
     body: &StudentGroupMember,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers",
-        courseId, studentGroupId,
+        courseId.as_str(),
+        studentGroupId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13182,8 +6899,11 @@ pub fn classroom_courses_student_groups_student_group_members_create_builder(
 pub fn classroom_courses_student_groups_student_group_members_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudentGroupMember>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudentGroupMember>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -13294,8 +7014,8 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 > {
     let builder = classroom_courses_student_groups_student_group_members_create_builder(
         client,
-        &args.courseId,
-        &args.studentGroupId,
+        args.courseId.clone(),
+        args.studentGroupId.clone(),
         &args.body,
     )?;
     classroom_courses_student_groups_student_group_members_create_execute(builder)
@@ -13309,19 +7029,21 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 
 pub fn classroom_courses_student_groups_student_group_members_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
-    userId: &str,
+    courseId: String,
+    studentGroupId: String,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers/{}",
-        courseId, studentGroupId, userId,
+        courseId.as_str(),
+        studentGroupId.as_str(),
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13351,7 +7073,12 @@ pub fn classroom_courses_student_groups_student_group_members_delete_builder(
 pub fn classroom_courses_student_groups_student_group_members_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13457,204 +7184,11 @@ pub fn classroom_courses_student_groups_student_group_members_delete(
 > {
     let builder = classroom_courses_student_groups_student_group_members_delete_builder(
         client,
-        &args.courseId,
-        &args.studentGroupId,
-        &args.userId,
+        args.courseId.clone(),
+        args.studentGroupId.clone(),
+        args.userId.clone(),
     )?;
     classroom_courses_student_groups_student_group_members_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
-/// Returns a list of students in a group. This method returns the following error codes: * NOT_FOUND if the course or student group does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_student_groups_student_group_members_list_execute()` to send, or `classroom_courses_student_groups_student_group_members_list` for simplest API.
-
-pub fn classroom_courses_student_groups_student_group_members_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    studentGroupId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers",
-        courseId, studentGroupId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
-/// Returns a list of students in a group. This method returns the following error codes: * NOT_FOUND if the course or student group does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_student_groups_student_group_members_list_execute()` or `classroom_courses_student_groups_student_group_members_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_student_group_members_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_student_group_members_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListStudentGroupMembersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListStudentGroupMembersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
-/// Returns a list of students in a group. This method returns the following error codes: * NOT_FOUND if the course or student group does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_student_groups_student_group_members_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_student_groups_student_group_members_list_task()`.
-/// For the simplest API, use `classroom_courses_student_groups_student_group_members_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_student_groups_student_group_members_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_student_groups_student_group_members_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListStudentGroupMembersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_student_groups_student_group_members_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_student_groups_student_group_members_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesStudentGroupsStudentGroupMembersListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: studentGroupId
-    pub studentGroupId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
-/// Returns a list of students in a group. This method returns the following error codes: * NOT_FOUND if the course or student group does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_student_groups_student_group_members_list_builder()` + `classroom_courses_student_groups_student_group_members_list_execute()`.
-/// For task-level control, use `classroom_courses_student_groups_student_group_members_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_student_groups_student_group_members_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesStudentGroupsStudentGroupMembersListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListStudentGroupMembersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_student_groups_student_group_members_list_builder(
-        client,
-        &args.courseId,
-        &args.studentGroupId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_student_groups_student_group_members_list_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/students
@@ -13665,14 +7199,14 @@ pub fn classroom_courses_student_groups_student_group_members_list(
 
 pub fn classroom_courses_students_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    enrollmentCode: Option<&str>,
+    courseId: String,
+    enrollmentCode: Option<String>,
     body: &Student,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
@@ -13682,9 +7216,9 @@ pub fn classroom_courses_students_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -13720,7 +7254,12 @@ pub fn classroom_courses_students_create_builder(
 pub fn classroom_courses_students_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Student>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13826,8 +7365,8 @@ pub fn classroom_courses_students_create(
 > {
     let builder = classroom_courses_students_create_builder(
         client,
-        &args.courseId,
-        args.enrollmentCode.as_deref(),
+        args.courseId.clone(),
+        args.enrollmentCode.clone(),
         &args.body,
     )?;
     classroom_courses_students_create_execute(builder)
@@ -13841,18 +7380,19 @@ pub fn classroom_courses_students_create(
 
 pub fn classroom_courses_students_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    courseId: String,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students/{}",
-        courseId, userId,
+        courseId.as_str(),
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13882,7 +7422,12 @@ pub fn classroom_courses_students_delete_builder(
 pub fn classroom_courses_students_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13984,346 +7529,12 @@ pub fn classroom_courses_students_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_students_delete_builder(client, &args.courseId, &args.userId)?;
-    classroom_courses_students_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/students/{userId}
-/// Returns a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_students_get_execute()` to send, or `classroom_courses_students_get` for simplest API.
-
-pub fn classroom_courses_students_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/students/{}",
-        courseId, userId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/students/{userId}
-/// Returns a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_students_get_execute()` or `classroom_courses_students_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_students_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_students_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Student = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/students/{userId}
-/// Returns a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_students_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_students_get_task()`.
-/// For the simplest API, use `classroom_courses_students_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_students_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_students_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_students_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_students_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesStudentsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: userId
-    pub userId: String,
-}
-
-/// GET v1/courses/{courseId}/students/{userId}
-/// Returns a student of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view students of this course or for access errors. * NOT_FOUND if no student of this course has the requested ID or if the course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_students_get_builder()` + `classroom_courses_students_get_execute()`.
-/// For task-level control, use `classroom_courses_students_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_students_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesStudentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Student>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_students_get_builder(client, &args.courseId, &args.userId)?;
-    classroom_courses_students_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/students
-/// Returns a list of students of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_students_list_execute()` to send, or `classroom_courses_students_list` for simplest API.
-
-pub fn classroom_courses_students_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/students",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/students
-/// Returns a list of students of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_students_list_execute()` or `classroom_courses_students_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_students_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_students_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListStudentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListStudentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/students
-/// Returns a list of students of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_students_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_students_list_task()`.
-/// For the simplest API, use `classroom_courses_students_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_students_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_students_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStudentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_students_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_students_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesStudentsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/students
-/// Returns a list of students of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_students_list_builder()` + `classroom_courses_students_list_execute()`.
-/// For task-level control, use `classroom_courses_students_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_students_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesStudentsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStudentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_students_list_builder(
+    let builder = classroom_courses_students_delete_builder(
         client,
-        &args.courseId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.courseId.clone(),
+        args.userId.clone(),
     )?;
-    classroom_courses_students_list_execute(builder)
+    classroom_courses_students_delete_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/teachers
@@ -14334,18 +7545,18 @@ pub fn classroom_courses_students_list(
 
 pub fn classroom_courses_teachers_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &Teacher,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14377,7 +7588,12 @@ pub fn classroom_courses_teachers_create_builder(
 pub fn classroom_courses_teachers_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Teacher>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14479,7 +7695,8 @@ pub fn classroom_courses_teachers_create(
     impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_create_builder(client, &args.courseId, &args.body)?;
+    let builder =
+        classroom_courses_teachers_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_teachers_create_execute(builder)
 }
 
@@ -14491,18 +7708,19 @@ pub fn classroom_courses_teachers_create(
 
 pub fn classroom_courses_teachers_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
+    courseId: String,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers/{}",
-        courseId, userId,
+        courseId.as_str(),
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14532,7 +7750,12 @@ pub fn classroom_courses_teachers_delete_builder(
 pub fn classroom_courses_teachers_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14634,346 +7857,12 @@ pub fn classroom_courses_teachers_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_delete_builder(client, &args.courseId, &args.userId)?;
-    classroom_courses_teachers_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/teachers/{userId}
-/// Returns a teacher of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_teachers_get_execute()` to send, or `classroom_courses_teachers_get` for simplest API.
-
-pub fn classroom_courses_teachers_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    userId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/teachers/{}",
-        courseId, userId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/teachers/{userId}
-/// Returns a teacher of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_teachers_get_execute()` or `classroom_courses_teachers_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_teachers_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_teachers_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Teacher = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/teachers/{userId}
-/// Returns a teacher of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_teachers_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_teachers_get_task()`.
-/// For the simplest API, use `classroom_courses_teachers_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_teachers_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_teachers_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_teachers_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_teachers_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesTeachersGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: userId
-    pub userId: String,
-}
-
-/// GET v1/courses/{courseId}/teachers/{userId}
-/// Returns a teacher of a course. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view teachers of this course or for access errors. * NOT_FOUND if no teacher of this course has the requested ID or if the course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_teachers_get_builder()` + `classroom_courses_teachers_get_execute()`.
-/// For task-level control, use `classroom_courses_teachers_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_teachers_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesTeachersGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_teachers_get_builder(client, &args.courseId, &args.userId)?;
-    classroom_courses_teachers_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/teachers
-/// Returns a list of teachers of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_teachers_list_execute()` to send, or `classroom_courses_teachers_list` for simplest API.
-
-pub fn classroom_courses_teachers_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/teachers",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/teachers
-/// Returns a list of teachers of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_teachers_list_execute()` or `classroom_courses_teachers_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_teachers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_teachers_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTeachersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListTeachersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/teachers
-/// Returns a list of teachers of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_teachers_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_teachers_list_task()`.
-/// For the simplest API, use `classroom_courses_teachers_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_teachers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_teachers_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTeachersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_teachers_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_teachers_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesTeachersListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/teachers
-/// Returns a list of teachers of this course that the requester is permitted to view. This method returns the following error codes: * NOT_FOUND if the course does not exist. * PERMISSION_DENIED for access errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_teachers_list_builder()` + `classroom_courses_teachers_list_execute()`.
-/// For task-level control, use `classroom_courses_teachers_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_teachers_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesTeachersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTeachersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_teachers_list_builder(
+    let builder = classroom_courses_teachers_delete_builder(
         client,
-        &args.courseId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.courseId.clone(),
+        args.userId.clone(),
     )?;
-    classroom_courses_teachers_list_execute(builder)
+    classroom_courses_teachers_delete_execute(builder)
 }
 
 /// GET v1/courses/{courseId}/topics
@@ -14984,18 +7873,18 @@ pub fn classroom_courses_teachers_list(
 
 pub fn classroom_courses_topics_create_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
+    courseId: String,
     body: &Topic,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics",
-        courseId,
+        courseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15027,7 +7916,12 @@ pub fn classroom_courses_topics_create_builder(
 pub fn classroom_courses_topics_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Topic>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15129,7 +8023,8 @@ pub fn classroom_courses_topics_create(
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_create_builder(client, &args.courseId, &args.body)?;
+    let builder =
+        classroom_courses_topics_create_builder(client, args.courseId.clone(), &args.body)?;
     classroom_courses_topics_create_execute(builder)
 }
 
@@ -15141,18 +8036,19 @@ pub fn classroom_courses_topics_create(
 
 pub fn classroom_courses_topics_delete_builder(
     client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
+    courseId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
-        courseId, id,
+        courseId.as_str(),
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15182,7 +8078,12 @@ pub fn classroom_courses_topics_delete_builder(
 pub fn classroom_courses_topics_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15284,526 +8185,9 @@ pub fn classroom_courses_topics_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_topics_delete_builder(client, &args.courseId, &args.id)?;
+    let builder =
+        classroom_courses_topics_delete_builder(client, args.courseId.clone(), args.id.clone())?;
     classroom_courses_topics_delete_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Returns a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or topic, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or topic does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_topics_get_execute()` to send, or `classroom_courses_topics_get` for simplest API.
-
-pub fn classroom_courses_topics_get_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Returns a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or topic, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or topic does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_topics_get_execute()` or `classroom_courses_topics_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Topic = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Returns a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or topic, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or topic does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_topics_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_topics_get_task()`.
-/// For the simplest API, use `classroom_courses_topics_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_topics_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_topics_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_topics_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesTopicsGetArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Returns a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or topic, or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course or topic does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_topics_get_builder()` + `classroom_courses_topics_get_execute()`.
-/// For task-level control, use `classroom_courses_topics_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesTopicsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_topics_get_builder(client, &args.courseId, &args.id)?;
-    classroom_courses_topics_get_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/topics
-/// Returns the list of topics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_topics_list_execute()` to send, or `classroom_courses_topics_list` for simplest API.
-
-pub fn classroom_courses_topics_list_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/topics",
-        courseId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/courses/{courseId}/topics
-/// Returns the list of topics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_topics_list_execute()` or `classroom_courses_topics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTopicResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListTopicResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/topics
-/// Returns the list of topics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_topics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_topics_list_task()`.
-/// For the simplest API, use `classroom_courses_topics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_topics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTopicResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_topics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_topics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesTopicsListArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/courses/{courseId}/topics
-/// Returns the list of topics that the requester is permitted to view. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to access the requested course or for access errors. * INVALID_ARGUMENT if the request is malformed. * NOT_FOUND if the requested course does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_topics_list_builder()` + `classroom_courses_topics_list_execute()`.
-/// For task-level control, use `classroom_courses_topics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesTopicsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTopicResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_topics_list_builder(
-        client,
-        &args.courseId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    classroom_courses_topics_list_execute(builder)
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Updates one or more fields of a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding topic or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if there exists a topic in the course with the same name. * NOT_FOUND if the requested course or topic does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_courses_topics_patch_execute()` to send, or `classroom_courses_topics_patch` for simplest API.
-
-pub fn classroom_courses_topics_patch_builder(
-    client: &SimpleHttpClient,
-    courseId: &str,
-    id: &str,
-    updateMask: Option<&str>,
-    body: &Topic,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
-        courseId, id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Updates one or more fields of a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding topic or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if there exists a topic in the course with the same name. * NOT_FOUND if the requested course or topic does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_courses_topics_patch_execute()` or `classroom_courses_topics_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Topic = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Updates one or more fields of a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding topic or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if there exists a topic in the course with the same name. * NOT_FOUND if the requested course or topic does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_courses_topics_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_courses_topics_patch_task()`.
-/// For the simplest API, use `classroom_courses_topics_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_courses_topics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_courses_topics_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_courses_topics_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_courses_topics_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomCoursesTopicsPatchArgs {
-    /// Path parameter: courseId
-    pub courseId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Topic,
-}
-
-/// GET v1/courses/{courseId}/topics/{id}
-/// Updates one or more fields of a topic. This method returns the following error codes: * PERMISSION_DENIED if the requesting developer project did not create the corresponding topic or for access errors. * INVALID_ARGUMENT if the request is malformed. * FAILED_PRECONDITION if there exists a topic in the course with the same name. * NOT_FOUND if the requested course or topic does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_courses_topics_patch_builder()` + `classroom_courses_topics_patch_execute()`.
-/// For task-level control, use `classroom_courses_topics_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_courses_topics_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomCoursesTopicsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_courses_topics_patch_builder(
-        client,
-        &args.courseId,
-        &args.id,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_courses_topics_patch_execute(builder)
 }
 
 /// GET v1/invitations/{id}:accept
@@ -15814,17 +8198,17 @@ pub fn classroom_courses_topics_patch(
 
 pub fn classroom_invitations_accept_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/invitations/{}:accept",
-        id,
+        id.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15854,7 +8238,12 @@ pub fn classroom_invitations_accept_builder(
 pub fn classroom_invitations_accept_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15954,7 +8343,7 @@ pub fn classroom_invitations_accept(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_accept_builder(client, &args.id)?;
+    let builder = classroom_invitations_accept_builder(client, args.id.clone())?;
     classroom_invitations_accept_execute(builder)
 }
 
@@ -15969,11 +8358,11 @@ pub fn classroom_invitations_create_builder(
     body: &Invitation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/invitations",);
+    let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16005,7 +8394,12 @@ pub fn classroom_invitations_create_builder(
 pub fn classroom_invitations_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Invitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16117,14 +8511,17 @@ pub fn classroom_invitations_create(
 
 pub fn classroom_invitations_delete_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/invitations/{}", id,);
+    let endpoint_url = format!(
+        "https://classroom.googleapis.com/v1/invitations/{}",
+        id.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16154,7 +8551,12 @@ pub fn classroom_invitations_delete_builder(
 pub fn classroom_invitations_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16254,347 +8656,8 @@ pub fn classroom_invitations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_delete_builder(client, &args.id)?;
+    let builder = classroom_invitations_delete_builder(client, args.id.clone())?;
     classroom_invitations_delete_execute(builder)
-}
-
-/// GET v1/invitations/{id}
-/// Returns an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_invitations_get_execute()` to send, or `classroom_invitations_get` for simplest API.
-
-pub fn classroom_invitations_get_builder(
-    client: &SimpleHttpClient,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/invitations/{}", id,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/invitations/{id}
-/// Returns an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_invitations_get_execute()` or `classroom_invitations_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_invitations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_invitations_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Invitation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/invitations/{id}
-/// Returns an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_invitations_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_invitations_get_task()`.
-/// For the simplest API, use `classroom_invitations_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_invitations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_invitations_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_invitations_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_invitations_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomInvitationsGetArgs {
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET v1/invitations/{id}
-/// Returns an invitation. This method returns the following error codes: * PERMISSION_DENIED if the requesting user is not permitted to view the requested invitation or for access errors. * NOT_FOUND if no invitation exists with the requested ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_invitations_get_builder()` + `classroom_invitations_get_execute()`.
-/// For task-level control, use `classroom_invitations_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_invitations_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomInvitationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Invitation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = classroom_invitations_get_builder(client, &args.id)?;
-    classroom_invitations_get_execute(builder)
-}
-
-/// GET v1/invitations
-/// Returns a list of invitations that the requesting user is permitted to view, restricted to those that match the list request. *Note:* At least one of user_id or course_id must be supplied. Both fields can be supplied. This method returns the following error codes: * PERMISSION_DENIED for access errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_invitations_list_execute()` to send, or `classroom_invitations_list` for simplest API.
-
-pub fn classroom_invitations_list_builder(
-    client: &SimpleHttpClient,
-    courseId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    userId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/invitations",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = courseId {
-        query_parts.push(format!("courseId={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = userId {
-        query_parts.push(format!("userId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/invitations
-/// Returns a list of invitations that the requesting user is permitted to view, restricted to those that match the list request. *Note:* At least one of user_id or course_id must be supplied. Both fields can be supplied. This method returns the following error codes: * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_invitations_list_execute()` or `classroom_invitations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_invitations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListInvitationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListInvitationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/invitations
-/// Returns a list of invitations that the requesting user is permitted to view, restricted to those that match the list request. *Note:* At least one of user_id or course_id must be supplied. Both fields can be supplied. This method returns the following error codes: * PERMISSION_DENIED for access errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_invitations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_invitations_list_task()`.
-/// For the simplest API, use `classroom_invitations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_invitations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListInvitationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_invitations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_invitations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomInvitationsListArgs {
-    /// Query parameter: courseId
-    pub courseId: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: userId
-    pub userId: Option<String>,
-}
-
-/// GET v1/invitations
-/// Returns a list of invitations that the requesting user is permitted to view, restricted to those that match the list request. *Note:* At least one of user_id or course_id must be supplied. Both fields can be supplied. This method returns the following error codes: * PERMISSION_DENIED for access errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_invitations_list_builder()` + `classroom_invitations_list_execute()`.
-/// For task-level control, use `classroom_invitations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_invitations_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomInvitationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListInvitationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_invitations_list_builder(
-        client,
-        args.courseId.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.userId.as_deref(),
-    )?;
-    classroom_invitations_list_execute(builder)
 }
 
 /// GET v1/registrations
@@ -16608,11 +8671,11 @@ pub fn classroom_registrations_create_builder(
     body: &Registration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://classroom.googleapis.com/v1/registrations",);
+    let endpoint_url = format!("https://classroom.googleapis.com/v1/registrations",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16644,7 +8707,12 @@ pub fn classroom_registrations_create_builder(
 pub fn classroom_registrations_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Registration>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Registration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16760,17 +8828,17 @@ pub fn classroom_registrations_create(
 
 pub fn classroom_registrations_delete_builder(
     client: &SimpleHttpClient,
-    registrationId: &str,
+    registrationId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/registrations/{}",
-        registrationId,
+        registrationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16800,7 +8868,12 @@ pub fn classroom_registrations_delete_builder(
 pub fn classroom_registrations_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16900,7 +8973,7 @@ pub fn classroom_registrations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_registrations_delete_builder(client, &args.registrationId)?;
+    let builder = classroom_registrations_delete_builder(client, args.registrationId.clone())?;
     classroom_registrations_delete_execute(builder)
 }
 
@@ -16912,17 +8985,17 @@ pub fn classroom_registrations_delete(
 
 pub fn classroom_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}",
-        userId,
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16952,7 +9025,12 @@ pub fn classroom_user_profiles_get_builder(
 pub fn classroom_user_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -17052,7 +9130,7 @@ pub fn classroom_user_profiles_get(
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_user_profiles_get_builder(client, &args.userId)?;
+    let builder = classroom_user_profiles_get_builder(client, args.userId.clone())?;
     classroom_user_profiles_get_execute(builder)
 }
 
@@ -17064,18 +9142,18 @@ pub fn classroom_user_profiles_get(
 
 pub fn classroom_user_profiles_guardian_invitations_create_builder(
     client: &SimpleHttpClient,
-    studentId: &str,
+    studentId: String,
     body: &GuardianInvitation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations",
-        studentId,
+        studentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17107,8 +9185,11 @@ pub fn classroom_user_profiles_guardian_invitations_create_builder(
 pub fn classroom_user_profiles_guardian_invitations_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GuardianInvitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17217,7 +9298,7 @@ pub fn classroom_user_profiles_guardian_invitations_create(
 > {
     let builder = classroom_user_profiles_guardian_invitations_create_builder(
         client,
-        &args.studentId,
+        args.studentId.clone(),
         &args.body,
     )?;
     classroom_user_profiles_guardian_invitations_create_execute(builder)
@@ -17231,18 +9312,19 @@ pub fn classroom_user_profiles_guardian_invitations_create(
 
 pub fn classroom_user_profiles_guardian_invitations_get_builder(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitationId: &str,
+    studentId: String,
+    invitationId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations/{}",
-        studentId, invitationId,
+        studentId.as_str(),
+        invitationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17272,8 +9354,11 @@ pub fn classroom_user_profiles_guardian_invitations_get_builder(
 pub fn classroom_user_profiles_guardian_invitations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GuardianInvitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17382,399 +9467,10 @@ pub fn classroom_user_profiles_guardian_invitations_get(
 > {
     let builder = classroom_user_profiles_guardian_invitations_get_builder(
         client,
-        &args.studentId,
-        &args.invitationId,
+        args.studentId.clone(),
+        args.invitationId.clone(),
     )?;
     classroom_user_profiles_guardian_invitations_get_execute(builder)
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations
-/// Returns a list of guardian invitations that the requesting user is permitted to view, filtered by the parameters provided. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian invitations for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token or state is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_user_profiles_guardian_invitations_list_execute()` to send, or `classroom_user_profiles_guardian_invitations_list` for simplest API.
-
-pub fn classroom_user_profiles_guardian_invitations_list_builder(
-    client: &SimpleHttpClient,
-    studentId: &str,
-    invitedEmailAddress: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    states: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations",
-        studentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = invitedEmailAddress {
-        query_parts.push(format!("invitedEmailAddress={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = states {
-        query_parts.push(format!("states={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations
-/// Returns a list of guardian invitations that the requesting user is permitted to view, filtered by the parameters provided. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian invitations for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token or state is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_user_profiles_guardian_invitations_list_execute()` or `classroom_user_profiles_guardian_invitations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardian_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardian_invitations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListGuardianInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListGuardianInvitationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations
-/// Returns a list of guardian invitations that the requesting user is permitted to view, filtered by the parameters provided. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian invitations for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token or state is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_user_profiles_guardian_invitations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_user_profiles_guardian_invitations_list_task()`.
-/// For the simplest API, use `classroom_user_profiles_guardian_invitations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardian_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_user_profiles_guardian_invitations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListGuardianInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_user_profiles_guardian_invitations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_user_profiles_guardian_invitations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomUserProfilesGuardianInvitationsListArgs {
-    /// Path parameter: studentId
-    pub studentId: String,
-    /// Query parameter: invitedEmailAddress
-    pub invitedEmailAddress: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: states
-    pub states: Option<String>,
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations
-/// Returns a list of guardian invitations that the requesting user is permitted to view, filtered by the parameters provided. This method returns the following error codes: * PERMISSION_DENIED if a student_id is specified, and the requesting user is not permitted to view guardian invitations for that student, if "-" is specified as the student_id and the user is not a domain administrator, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). May also be returned if an invalid page_token or state is provided. * NOT_FOUND if a student_id is specified, and its format can be recognized, but Classroom has no record of that student.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_user_profiles_guardian_invitations_list_builder()` + `classroom_user_profiles_guardian_invitations_list_execute()`.
-/// For task-level control, use `classroom_user_profiles_guardian_invitations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardian_invitations_list(
-    client: &SimpleHttpClient,
-    args: &ClassroomUserProfilesGuardianInvitationsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListGuardianInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_user_profiles_guardian_invitations_list_builder(
-        client,
-        &args.studentId,
-        args.invitedEmailAddress.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.states.as_deref(),
-    )?;
-    classroom_user_profiles_guardian_invitations_list_execute(builder)
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
-/// Modifies a guardian invitation. Currently, the only valid modification is to change the state from `PENDING` to COMPLETE. This has the effect of withdrawing the invitation. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if guardians are not enabled for the domain in question or for other access errors. * FAILED_PRECONDITION if the guardian link is not in the `PENDING` state. * INVALID_ARGUMENT if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API), or if the passed GuardianInvitation has a state other than COMPLETE, or if it modifies fields other than state. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student, or if the id field does not refer to a guardian invitation known to Classroom.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_user_profiles_guardian_invitations_patch_execute()` to send, or `classroom_user_profiles_guardian_invitations_patch` for simplest API.
-
-pub fn classroom_user_profiles_guardian_invitations_patch_builder(
-    client: &SimpleHttpClient,
-    studentId: &str,
-    invitationId: &str,
-    updateMask: Option<&str>,
-    body: &GuardianInvitation,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations/{}",
-        studentId, invitationId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
-/// Modifies a guardian invitation. Currently, the only valid modification is to change the state from `PENDING` to COMPLETE. This has the effect of withdrawing the invitation. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if guardians are not enabled for the domain in question or for other access errors. * FAILED_PRECONDITION if the guardian link is not in the `PENDING` state. * INVALID_ARGUMENT if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API), or if the passed GuardianInvitation has a state other than COMPLETE, or if it modifies fields other than state. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student, or if the id field does not refer to a guardian invitation known to Classroom.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_user_profiles_guardian_invitations_patch_execute()` or `classroom_user_profiles_guardian_invitations_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardian_invitations_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardian_invitations_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GuardianInvitation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
-/// Modifies a guardian invitation. Currently, the only valid modification is to change the state from `PENDING` to COMPLETE. This has the effect of withdrawing the invitation. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if guardians are not enabled for the domain in question or for other access errors. * FAILED_PRECONDITION if the guardian link is not in the `PENDING` state. * INVALID_ARGUMENT if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API), or if the passed GuardianInvitation has a state other than COMPLETE, or if it modifies fields other than state. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student, or if the id field does not refer to a guardian invitation known to Classroom.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_user_profiles_guardian_invitations_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_user_profiles_guardian_invitations_patch_task()`.
-/// For the simplest API, use `classroom_user_profiles_guardian_invitations_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardian_invitations_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_user_profiles_guardian_invitations_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = classroom_user_profiles_guardian_invitations_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_user_profiles_guardian_invitations_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomUserProfilesGuardianInvitationsPatchArgs {
-    /// Path parameter: studentId
-    pub studentId: String,
-    /// Path parameter: invitationId
-    pub invitationId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: GuardianInvitation,
-}
-
-/// GET v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
-/// Modifies a guardian invitation. Currently, the only valid modification is to change the state from `PENDING` to COMPLETE. This has the effect of withdrawing the invitation. This method returns the following error codes: * PERMISSION_DENIED if the current user does not have permission to manage guardians, if guardians are not enabled for the domain in question or for other access errors. * FAILED_PRECONDITION if the guardian link is not in the `PENDING` state. * INVALID_ARGUMENT if the format of the student ID provided cannot be recognized (it is not an email address, nor a user_id from this API), or if the passed GuardianInvitation has a state other than COMPLETE, or if it modifies fields other than state. * NOT_FOUND if the student ID provided is a valid student ID, but Classroom has no record of that student, or if the id field does not refer to a guardian invitation known to Classroom.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_user_profiles_guardian_invitations_patch_builder()` + `classroom_user_profiles_guardian_invitations_patch_execute()`.
-/// For task-level control, use `classroom_user_profiles_guardian_invitations_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardian_invitations_patch(
-    client: &SimpleHttpClient,
-    args: &ClassroomUserProfilesGuardianInvitationsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GuardianInvitation>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = classroom_user_profiles_guardian_invitations_patch_builder(
-        client,
-        &args.studentId,
-        &args.invitationId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    classroom_user_profiles_guardian_invitations_patch_execute(builder)
 }
 
 /// GET v1/userProfiles/{studentId}/guardians/{guardianId}
@@ -17785,18 +9481,19 @@ pub fn classroom_user_profiles_guardian_invitations_patch(
 
 pub fn classroom_user_profiles_guardians_delete_builder(
     client: &SimpleHttpClient,
-    studentId: &str,
-    guardianId: &str,
+    studentId: String,
+    guardianId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians/{}",
-        studentId, guardianId,
+        studentId.as_str(),
+        guardianId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17826,7 +9523,12 @@ pub fn classroom_user_profiles_guardians_delete_builder(
 pub fn classroom_user_profiles_guardians_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -17930,166 +9632,10 @@ pub fn classroom_user_profiles_guardians_delete(
 > {
     let builder = classroom_user_profiles_guardians_delete_builder(
         client,
-        &args.studentId,
-        &args.guardianId,
+        args.studentId.clone(),
+        args.guardianId.clone(),
     )?;
     classroom_user_profiles_guardians_delete_execute(builder)
-}
-
-/// GET v1/userProfiles/{studentId}/guardians/{guardianId}
-/// Returns a specific guardian. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to view guardian information for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if the requesting user is permitted to view guardians for the requested student_id, but no Guardian record exists for that student that matches the provided guardian_id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `classroom_user_profiles_guardians_get_execute()` to send, or `classroom_user_profiles_guardians_get` for simplest API.
-
-pub fn classroom_user_profiles_guardians_get_builder(
-    client: &SimpleHttpClient,
-    studentId: &str,
-    guardianId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://classroom.googleapis.com/v1/userProfiles/{}/guardians/{}",
-        studentId, guardianId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/userProfiles/{studentId}/guardians/{guardianId}
-/// Returns a specific guardian. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to view guardian information for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if the requesting user is permitted to view guardians for the requested student_id, but no Guardian record exists for that student that matches the provided guardian_id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `classroom_user_profiles_guardians_get_execute()` or `classroom_user_profiles_guardians_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardians_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardians_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Guardian>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Guardian = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/userProfiles/{studentId}/guardians/{guardianId}
-/// Returns a specific guardian. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to view guardian information for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if the requesting user is permitted to view guardians for the requested student_id, but no Guardian record exists for that student that matches the provided guardian_id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `classroom_user_profiles_guardians_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `classroom_user_profiles_guardians_get_task()`.
-/// For the simplest API, use `classroom_user_profiles_guardians_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `classroom_user_profiles_guardians_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn classroom_user_profiles_guardians_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Guardian>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = classroom_user_profiles_guardians_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`classroom_user_profiles_guardians_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ClassroomUserProfilesGuardiansGetArgs {
-    /// Path parameter: studentId
-    pub studentId: String,
-    /// Path parameter: guardianId
-    pub guardianId: String,
-}
-
-/// GET v1/userProfiles/{studentId}/guardians/{guardianId}
-/// Returns a specific guardian. This method returns the following error codes: * PERMISSION_DENIED if no user that matches the provided student_id is visible to the requesting user, if the requesting user is not permitted to view guardian information for the student identified by the student_id, if guardians are not enabled for the domain in question, or for other access errors. * INVALID_ARGUMENT if a student_id is specified, but its format cannot be recognized (it is not an email address, nor a student_id from the API, nor the literal string me). * NOT_FOUND if the requesting user is permitted to view guardians for the requested student_id, but no Guardian record exists for that student that matches the provided guardian_id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `classroom_user_profiles_guardians_get_builder()` + `classroom_user_profiles_guardians_get_execute()`.
-/// For task-level control, use `classroom_user_profiles_guardians_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn classroom_user_profiles_guardians_get(
-    client: &SimpleHttpClient,
-    args: &ClassroomUserProfilesGuardiansGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Guardian>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        classroom_user_profiles_guardians_get_builder(client, &args.studentId, &args.guardianId)?;
-    classroom_user_profiles_guardians_get_execute(builder)
 }
 
 /// GET v1/userProfiles/{studentId}/guardians
@@ -18100,15 +9646,15 @@ pub fn classroom_user_profiles_guardians_get(
 
 pub fn classroom_user_profiles_guardians_list_builder(
     client: &SimpleHttpClient,
-    studentId: &str,
-    invitedEmailAddress: Option<&str>,
+    studentId: String,
+    invitedEmailAddress: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians",
-        studentId,
+        studentId.as_str(),
     );
 
     // Build request
@@ -18124,9 +9670,9 @@ pub fn classroom_user_profiles_guardians_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -18160,8 +9706,11 @@ pub fn classroom_user_profiles_guardians_list_builder(
 pub fn classroom_user_profiles_guardians_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListGuardiansResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGuardiansResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -18274,10 +9823,10 @@ pub fn classroom_user_profiles_guardians_list(
 > {
     let builder = classroom_user_profiles_guardians_list_builder(
         client,
-        &args.studentId,
-        args.invitedEmailAddress.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.studentId.clone(),
+        args.invitedEmailAddress.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     classroom_user_profiles_guardians_list_execute(builder)
 }

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,15 @@ use serde::Serialize;
 
 pub fn factchecktools_claims_image_search_builder(
     client: &SimpleHttpClient,
-    imageUri: Option<&str>,
-    languageCode: Option<&str>,
+    imageUri: Option<String>,
+    languageCode: Option<String>,
     offset: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch",);
+    let endpoint_url =
+        format!("https://factchecktools.googleapis.com/v1alpha1/claims:imageSearch",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -56,9 +58,9 @@ pub fn factchecktools_claims_image_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -93,13 +95,14 @@ pub fn factchecktools_claims_image_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<
                     GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse,
                 >,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -224,11 +227,11 @@ pub fn factchecktools_claims_image_search(
 > {
     let builder = factchecktools_claims_image_search_builder(
         client,
-        args.imageUri.as_deref(),
-        args.languageCode.as_deref(),
-        args.offset,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.imageUri.clone(),
+        args.languageCode.clone(),
+        args.offset.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     factchecktools_claims_image_search_execute(builder)
 }
@@ -241,16 +244,16 @@ pub fn factchecktools_claims_image_search(
 
 pub fn factchecktools_claims_search_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
+    languageCode: Option<String>,
     maxAgeDays: Option<i32>,
     offset: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    reviewPublisherSiteFilter: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
+    reviewPublisherSiteFilter: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://factchecktools.googleapis.com/v1alpha1/claims:search",);
+    let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/claims:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -277,9 +280,9 @@ pub fn factchecktools_claims_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -314,11 +317,12 @@ pub fn factchecktools_claims_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -448,13 +452,13 @@ pub fn factchecktools_claims_search(
 > {
     let builder = factchecktools_claims_search_builder(
         client,
-        args.languageCode.as_deref(),
-        args.maxAgeDays,
-        args.offset,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
-        args.reviewPublisherSiteFilter.as_deref(),
+        args.languageCode.clone(),
+        args.maxAgeDays.clone(),
+        args.offset.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
+        args.reviewPublisherSiteFilter.clone(),
     )?;
     factchecktools_claims_search_execute(builder)
 }
@@ -470,11 +474,11 @@ pub fn factchecktools_pages_create_builder(
     body: &GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://factchecktools.googleapis.com/v1alpha1/pages",);
+    let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/pages",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -507,11 +511,12 @@ pub fn factchecktools_pages_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -640,17 +645,14 @@ pub fn factchecktools_pages_create(
 
 pub fn factchecktools_pages_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://factchecktools.googleapis.com/v1alpha1/pages/{}",
-        name,
-    );
+    let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/pages/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -680,8 +682,11 @@ pub fn factchecktools_pages_delete_builder(
 pub fn factchecktools_pages_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -786,572 +791,6 @@ pub fn factchecktools_pages_delete(
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_delete_builder(client, &args.name)?;
+    let builder = factchecktools_pages_delete_builder(client, args.name.clone())?;
     factchecktools_pages_delete_execute(builder)
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Get all ClaimReview markup on a page.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `factchecktools_pages_get_execute()` to send, or `factchecktools_pages_get` for simplest API.
-
-pub fn factchecktools_pages_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://factchecktools.googleapis.com/v1alpha1/pages/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Get all ClaimReview markup on a page.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `factchecktools_pages_get_execute()` or `factchecktools_pages_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Get all ClaimReview markup on a page.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `factchecktools_pages_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `factchecktools_pages_get_task()`.
-/// For the simplest API, use `factchecktools_pages_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn factchecktools_pages_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = factchecktools_pages_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`factchecktools_pages_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FactchecktoolsPagesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Get all ClaimReview markup on a page.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `factchecktools_pages_get_builder()` + `factchecktools_pages_get_execute()`.
-/// For task-level control, use `factchecktools_pages_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_get(
-    client: &SimpleHttpClient,
-    args: &FactchecktoolsPagesGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = factchecktools_pages_get_builder(client, &args.name)?;
-    factchecktools_pages_get_execute(builder)
-}
-
-/// GET v1alpha1/pages
-/// List the ClaimReview markup pages for a specific URL or for an organization.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `factchecktools_pages_list_execute()` to send, or `factchecktools_pages_list` for simplest API.
-
-pub fn factchecktools_pages_list_builder(
-    client: &SimpleHttpClient,
-    offset: Option<i32>,
-    organization: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    url: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://factchecktools.googleapis.com/v1alpha1/pages",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = offset {
-        query_parts.push(format!("offset={}", val));
-    }
-    if let Some(val) = organization {
-        query_parts.push(format!("organization={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = url {
-        query_parts.push(format!("url={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1alpha1/pages
-/// List the ClaimReview markup pages for a specific URL or for an organization.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `factchecktools_pages_list_execute()` or `factchecktools_pages_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<
-                ApiResponse<
-                    GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse,
-                >,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha1/pages
-/// List the ClaimReview markup pages for a specific URL or for an organization.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `factchecktools_pages_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `factchecktools_pages_list_task()`.
-/// For the simplest API, use `factchecktools_pages_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn factchecktools_pages_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<
-                    GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse,
-                >,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = factchecktools_pages_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`factchecktools_pages_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FactchecktoolsPagesListArgs {
-    /// Query parameter: offset
-    pub offset: Option<i32>,
-    /// Query parameter: organization
-    pub organization: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: url
-    pub url: Option<String>,
-}
-
-/// GET v1alpha1/pages
-/// List the ClaimReview markup pages for a specific URL or for an organization.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `factchecktools_pages_list_builder()` + `factchecktools_pages_list_execute()`.
-/// For task-level control, use `factchecktools_pages_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_list(
-    client: &SimpleHttpClient,
-    args: &FactchecktoolsPagesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<
-                    GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse,
-                >,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = factchecktools_pages_list_builder(
-        client,
-        args.offset,
-        args.organization.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.url.as_deref(),
-    )?;
-    factchecktools_pages_list_execute(builder)
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Update for all ClaimReview markup on a page Note that this is a full update. To retain the existing ClaimReview markup on a page, first perform a Get operation, then modify the returned markup, and finally call Update with the entire ClaimReview markup as the body.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `factchecktools_pages_update_execute()` to send, or `factchecktools_pages_update` for simplest API.
-
-pub fn factchecktools_pages_update_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://factchecktools.googleapis.com/v1alpha1/pages/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Update for all ClaimReview markup on a page Note that this is a full update. To retain the existing ClaimReview markup on a page, first perform a Get operation, then modify the returned markup, and finally call Update with the entire ClaimReview markup as the body.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `factchecktools_pages_update_execute()` or `factchecktools_pages_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Update for all ClaimReview markup on a page Note that this is a full update. To retain the existing ClaimReview markup on a page, first perform a Get operation, then modify the returned markup, and finally call Update with the entire ClaimReview markup as the body.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `factchecktools_pages_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `factchecktools_pages_update_task()`.
-/// For the simplest API, use `factchecktools_pages_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `factchecktools_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn factchecktools_pages_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = factchecktools_pages_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`factchecktools_pages_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FactchecktoolsPagesUpdateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
-}
-
-/// GET v1alpha1/pages/{pagesId}
-/// Update for all ClaimReview markup on a page Note that this is a full update. To retain the existing ClaimReview markup on a page, first perform a Get operation, then modify the returned markup, and finally call Update with the entire ClaimReview markup as the body.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `factchecktools_pages_update_builder()` + `factchecktools_pages_update_execute()`.
-/// For task-level control, use `factchecktools_pages_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn factchecktools_pages_update(
-    client: &SimpleHttpClient,
-    args: &FactchecktoolsPagesUpdateArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = factchecktools_pages_update_builder(client, &args.name, &args.body)?;
-    factchecktools_pages_update_execute(builder)
 }

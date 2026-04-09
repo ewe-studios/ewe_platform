@@ -21,7 +21,9 @@ pub struct GoogleCloudMlV1AddTrialMeasurementRequest {
 
 /// Request message for the CancelJob method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMlV1CancelJobRequest {}
+pub struct GoogleCloudMlV1CancelJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// This message will be placed in the metadata field of a google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -39,7 +41,9 @@ pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateMetatdata {
 
 /// The request message for the CheckTrialEarlyStoppingState service method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateRequest {}
+pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateRequest {
+    pub value: serde_json::Value,
+}
 
 /// The message will be placed in the response field of a completed google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -125,7 +129,9 @@ pub struct GoogleCloudMlV1ListModelsResponse {
 
 /// The request message for the ListTrials service method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMlV1ListOptimalTrialsRequest {}
+pub struct GoogleCloudMlV1ListOptimalTrialsRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for the ListOptimalTrials method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -204,11 +210,15 @@ pub struct GoogleCloudMlV1PredictRequest {
 
 /// Request message for the SetDefaultVersion request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMlV1SetDefaultVersionRequest {}
+pub struct GoogleCloudMlV1SetDefaultVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudMlV1StopTrialRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudMlV1StopTrialRequest {}
+pub struct GoogleCloudMlV1StopTrialRequest {
+    pub value: serde_json::Value,
+}
 
 /// Metadata field of a google.longrunning.Operation associated with a SuggestTrialsRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -298,7 +308,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudMlV1Config resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

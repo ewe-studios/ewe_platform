@@ -12,323 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Deletes merchant review.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `merchantapi_accounts_merchant_reviews_delete_execute()` to send, or `merchantapi_accounts_merchant_reviews_delete` for simplest API.
-
-pub fn merchantapi_accounts_merchant_reviews_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Deletes merchant review.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `merchantapi_accounts_merchant_reviews_delete_execute()` or `merchantapi_accounts_merchant_reviews_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_merchant_reviews_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_merchant_reviews_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Deletes merchant review.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `merchantapi_accounts_merchant_reviews_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `merchantapi_accounts_merchant_reviews_delete_task()`.
-/// For the simplest API, use `merchantapi_accounts_merchant_reviews_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_merchant_reviews_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn merchantapi_accounts_merchant_reviews_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = merchantapi_accounts_merchant_reviews_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`merchantapi_accounts_merchant_reviews_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MerchantapiAccountsMerchantReviewsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Deletes merchant review.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `merchantapi_accounts_merchant_reviews_delete_builder()` + `merchantapi_accounts_merchant_reviews_delete_execute()`.
-/// For task-level control, use `merchantapi_accounts_merchant_reviews_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_merchant_reviews_delete(
-    client: &SimpleHttpClient,
-    args: &MerchantapiAccountsMerchantReviewsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = merchantapi_accounts_merchant_reviews_delete_builder(client, &args.name)?;
-    merchantapi_accounts_merchant_reviews_delete_execute(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Gets a merchant review.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `merchantapi_accounts_merchant_reviews_get_execute()` to send, or `merchantapi_accounts_merchant_reviews_get` for simplest API.
-
-pub fn merchantapi_accounts_merchant_reviews_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Gets a merchant review.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `merchantapi_accounts_merchant_reviews_get_execute()` or `merchantapi_accounts_merchant_reviews_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_merchant_reviews_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_merchant_reviews_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: MerchantReview = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Gets a merchant review.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `merchantapi_accounts_merchant_reviews_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `merchantapi_accounts_merchant_reviews_get_task()`.
-/// For the simplest API, use `merchantapi_accounts_merchant_reviews_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_merchant_reviews_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn merchantapi_accounts_merchant_reviews_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = merchantapi_accounts_merchant_reviews_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`merchantapi_accounts_merchant_reviews_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MerchantapiAccountsMerchantReviewsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
-/// Gets a merchant review.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `merchantapi_accounts_merchant_reviews_get_builder()` + `merchantapi_accounts_merchant_reviews_get_execute()`.
-/// For task-level control, use `merchantapi_accounts_merchant_reviews_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_merchant_reviews_get(
-    client: &SimpleHttpClient,
-    args: &MerchantapiAccountsMerchantReviewsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = merchantapi_accounts_merchant_reviews_get_builder(client, &args.name)?;
-    merchantapi_accounts_merchant_reviews_get_execute(builder)
-}
 
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews:insert
 /// Inserts a review for your Merchant Center account. If the review already exists, then the review is replaced with the new instance.
@@ -338,14 +29,13 @@ pub fn merchantapi_accounts_merchant_reviews_get(
 
 pub fn merchantapi_accounts_merchant_reviews_insert_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSource: Option<&str>,
+    parent: String,
+    dataSource: Option<String>,
     body: &MerchantReview,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews:insert",
-        parent,
     );
 
     // Build request
@@ -355,9 +45,9 @@ pub fn merchantapi_accounts_merchant_reviews_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -393,8 +83,11 @@ pub fn merchantapi_accounts_merchant_reviews_insert_builder(
 pub fn merchantapi_accounts_merchant_reviews_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MerchantReview>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -505,8 +198,8 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 > {
     let builder = merchantapi_accounts_merchant_reviews_insert_builder(
         client,
-        &args.parent,
-        args.dataSource.as_deref(),
+        args.parent.clone(),
+        args.dataSource.clone(),
         &args.body,
     )?;
     merchantapi_accounts_merchant_reviews_insert_execute(builder)
@@ -520,15 +213,13 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 
 pub fn merchantapi_accounts_merchant_reviews_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/merchantReviews",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -540,9 +231,9 @@ pub fn merchantapi_accounts_merchant_reviews_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -576,8 +267,11 @@ pub fn merchantapi_accounts_merchant_reviews_list_builder(
 pub fn merchantapi_accounts_merchant_reviews_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListMerchantReviewsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMerchantReviewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -692,319 +386,11 @@ pub fn merchantapi_accounts_merchant_reviews_list(
 > {
     let builder = merchantapi_accounts_merchant_reviews_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     merchantapi_accounts_merchant_reviews_list_execute(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Deletes a product review.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `merchantapi_accounts_product_reviews_delete_execute()` to send, or `merchantapi_accounts_product_reviews_delete` for simplest API.
-
-pub fn merchantapi_accounts_product_reviews_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Deletes a product review.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `merchantapi_accounts_product_reviews_delete_execute()` or `merchantapi_accounts_product_reviews_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_product_reviews_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_product_reviews_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Deletes a product review.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `merchantapi_accounts_product_reviews_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `merchantapi_accounts_product_reviews_delete_task()`.
-/// For the simplest API, use `merchantapi_accounts_product_reviews_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_product_reviews_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn merchantapi_accounts_product_reviews_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = merchantapi_accounts_product_reviews_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`merchantapi_accounts_product_reviews_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MerchantapiAccountsProductReviewsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Deletes a product review.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `merchantapi_accounts_product_reviews_delete_builder()` + `merchantapi_accounts_product_reviews_delete_execute()`.
-/// For task-level control, use `merchantapi_accounts_product_reviews_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_product_reviews_delete(
-    client: &SimpleHttpClient,
-    args: &MerchantapiAccountsProductReviewsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = merchantapi_accounts_product_reviews_delete_builder(client, &args.name)?;
-    merchantapi_accounts_product_reviews_delete_execute(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Gets a product review.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `merchantapi_accounts_product_reviews_get_execute()` to send, or `merchantapi_accounts_product_reviews_get` for simplest API.
-
-pub fn merchantapi_accounts_product_reviews_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Gets a product review.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `merchantapi_accounts_product_reviews_get_execute()` or `merchantapi_accounts_product_reviews_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_product_reviews_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_product_reviews_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ProductReview = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Gets a product review.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `merchantapi_accounts_product_reviews_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `merchantapi_accounts_product_reviews_get_task()`.
-/// For the simplest API, use `merchantapi_accounts_product_reviews_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `merchantapi_accounts_product_reviews_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn merchantapi_accounts_product_reviews_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = merchantapi_accounts_product_reviews_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`merchantapi_accounts_product_reviews_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MerchantapiAccountsProductReviewsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
-/// Gets a product review.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `merchantapi_accounts_product_reviews_get_builder()` + `merchantapi_accounts_product_reviews_get_execute()`.
-/// For task-level control, use `merchantapi_accounts_product_reviews_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn merchantapi_accounts_product_reviews_get(
-    client: &SimpleHttpClient,
-    args: &MerchantapiAccountsProductReviewsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = merchantapi_accounts_product_reviews_get_builder(client, &args.name)?;
-    merchantapi_accounts_product_reviews_get_execute(builder)
 }
 
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews:insert
@@ -1015,14 +401,13 @@ pub fn merchantapi_accounts_product_reviews_get(
 
 pub fn merchantapi_accounts_product_reviews_insert_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSource: Option<&str>,
+    parent: String,
+    dataSource: Option<String>,
     body: &ProductReview,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews:insert",
-        parent,
     );
 
     // Build request
@@ -1032,9 +417,9 @@ pub fn merchantapi_accounts_product_reviews_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1070,7 +455,12 @@ pub fn merchantapi_accounts_product_reviews_insert_builder(
 pub fn merchantapi_accounts_product_reviews_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductReview>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1180,8 +570,8 @@ pub fn merchantapi_accounts_product_reviews_insert(
 > {
     let builder = merchantapi_accounts_product_reviews_insert_builder(
         client,
-        &args.parent,
-        args.dataSource.as_deref(),
+        args.parent.clone(),
+        args.dataSource.clone(),
         &args.body,
     )?;
     merchantapi_accounts_product_reviews_insert_execute(builder)
@@ -1195,15 +585,13 @@ pub fn merchantapi_accounts_product_reviews_insert(
 
 pub fn merchantapi_accounts_product_reviews_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://merchantapi.googleapis.com/reviews/v1beta/accounts/{}/productReviews",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1215,9 +603,9 @@ pub fn merchantapi_accounts_product_reviews_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1251,8 +639,11 @@ pub fn merchantapi_accounts_product_reviews_list_builder(
 pub fn merchantapi_accounts_product_reviews_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProductReviewsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductReviewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1367,9 +758,9 @@ pub fn merchantapi_accounts_product_reviews_list(
 > {
     let builder = merchantapi_accounts_product_reviews_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     merchantapi_accounts_product_reviews_list_execute(builder)
 }

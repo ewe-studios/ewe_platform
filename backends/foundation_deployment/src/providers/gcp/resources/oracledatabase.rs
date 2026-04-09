@@ -50,7 +50,9 @@ pub struct AutonomousDatabaseConnectionStrings {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The connection string profile to allow clients to group. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DatabaseConnectionStringProfile
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -94,7 +96,9 @@ pub struct DefinedTagValue {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The request for OracleDatabase.FailoverAutonomousDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -467,7 +471,9 @@ pub struct RemoveVirtualMachineExadbVmClusterRequest {
 
 /// The request for AutonomousDatabase.Restart.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestartAutonomousDatabaseRequest {}
+pub struct RestartAutonomousDatabaseRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request for AutonomousDatabase.Restore.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -479,11 +485,15 @@ pub struct RestoreAutonomousDatabaseRequest {
 
 /// The request for AutonomousDatabase.Start.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartAutonomousDatabaseRequest {}
+pub struct StartAutonomousDatabaseRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request for AutonomousDatabase.Stop.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopAutonomousDatabaseRequest {}
+pub struct StopAutonomousDatabaseRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request for OracleDatabase.SwitchoverAutonomousDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

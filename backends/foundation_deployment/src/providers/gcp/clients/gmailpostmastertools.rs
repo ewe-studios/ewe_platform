@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,12 @@ pub fn gmailpostmastertools_domain_stats_batch_query_builder(
     body: &BatchQueryDomainStatsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://gmailpostmastertools.googleapis.com/v2/domainStats:batchQuery",);
+    let endpoint_url =
+        format!("https://gmailpostmastertools.googleapis.com/v2/domainStats:batchQuery",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -68,8 +70,9 @@ pub fn gmailpostmastertools_domain_stats_batch_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchQueryDomainStatsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchQueryDomainStatsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -191,17 +194,14 @@ pub fn gmailpostmastertools_domain_stats_batch_query(
 
 pub fn gmailpostmastertools_domains_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://gmailpostmastertools.googleapis.com/v2/domains/{}",
-        name,
-    );
+    let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -231,7 +231,12 @@ pub fn gmailpostmastertools_domains_get_builder(
 pub fn gmailpostmastertools_domains_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Domain>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -331,7 +336,7 @@ pub fn gmailpostmastertools_domains_get(
     impl StreamIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_get_builder(client, &args.name)?;
+    let builder = gmailpostmastertools_domains_get_builder(client, args.name.clone())?;
     gmailpostmastertools_domains_get_execute(builder)
 }
 
@@ -343,17 +348,15 @@ pub fn gmailpostmastertools_domains_get(
 
 pub fn gmailpostmastertools_domains_get_compliance_status_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://gmailpostmastertools.googleapis.com/v2/domains/{}/complianceStatus",
-        name,
-    );
+    let endpoint_url =
+        format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}/complianceStatus",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -383,8 +386,11 @@ pub fn gmailpostmastertools_domains_get_compliance_status_builder(
 pub fn gmailpostmastertools_domains_get_compliance_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DomainComplianceStatus>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DomainComplianceStatus>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -489,7 +495,8 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_get_compliance_status_builder(client, &args.name)?;
+    let builder =
+        gmailpostmastertools_domains_get_compliance_status_builder(client, args.name.clone())?;
     gmailpostmastertools_domains_get_compliance_status_execute(builder)
 }
 
@@ -502,10 +509,10 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
 pub fn gmailpostmastertools_domains_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://gmailpostmastertools.googleapis.com/v2/domains",);
+    let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -517,9 +524,9 @@ pub fn gmailpostmastertools_domains_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -553,8 +560,11 @@ pub fn gmailpostmastertools_domains_list_builder(
 pub fn gmailpostmastertools_domains_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDomainsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDomainsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -663,8 +673,8 @@ pub fn gmailpostmastertools_domains_list(
 > {
     let builder = gmailpostmastertools_domains_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     gmailpostmastertools_domains_list_execute(builder)
 }
@@ -677,18 +687,16 @@ pub fn gmailpostmastertools_domains_list(
 
 pub fn gmailpostmastertools_domains_domain_stats_query_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &QueryDomainStatsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://gmailpostmastertools.googleapis.com/v2/domains/{}/domainStats:query",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}/domainStats:query",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -720,8 +728,11 @@ pub fn gmailpostmastertools_domains_domain_stats_query_builder(
 pub fn gmailpostmastertools_domains_domain_stats_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<QueryDomainStatsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QueryDomainStatsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -828,7 +839,10 @@ pub fn gmailpostmastertools_domains_domain_stats_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent, &args.body)?;
+    let builder = gmailpostmastertools_domains_domain_stats_query_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     gmailpostmastertools_domains_domain_stats_query_execute(builder)
 }

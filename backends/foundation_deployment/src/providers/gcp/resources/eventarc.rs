@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// A GoogleChannelConfig is a resource that stores the custom settings respected by Eventarc first-party triggers in the matching region. Once configured, first-party event data will be protected using the specified custom managed encryption key instead of Google-managed encryption keys.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -32,13 +34,11 @@ pub struct GoogleChannelConfig {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The format of a JSON message payload.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {}
-
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -836,7 +836,7 @@ pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormat {
     pub avro: ::core::option::Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat>,
     /// Optional. JSON format.
     #[serde(default)]
-    pub json: ::core::option::Option<serde_json::Value>,
+    pub json: ::core::option::Option<GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat>,
     /// Optional. Protobuf format.
     #[serde(default)]
     pub protobuf:
@@ -985,6 +985,12 @@ pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat {
     /// Optional. The entire schema definition is stored in this field.
     #[serde(default, rename = "schemaDefinition")]
     pub schema_definition: ::core::option::Option<String>,
+}
+
+/// The format of a JSON message payload.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {
+    pub value: serde_json::Value,
 }
 
 /// The format of a Protobuf message payload.

@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request sent to the DisableDatabaseInstance method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableDatabaseInstanceRequest {}
+pub struct DisableDatabaseInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response from the ListDatabaseInstances method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -28,11 +30,15 @@ pub struct ListDatabaseInstancesResponse {
 
 /// The request sent to the ReenableDatabaseInstance method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReenableDatabaseInstanceRequest {}
+pub struct ReenableDatabaseInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request sent to UndeleteDatabaseInstance method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteDatabaseInstanceRequest {}
+pub struct UndeleteDatabaseInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Representation of a Realtime Database instance. Details on interacting with contents of a DatabaseInstance can be found at: https://firebase.google.com/docs/database/rest/start.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn fitness_users_data_sources_create_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
     body: &DataSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources",
-        userId,
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +72,12 @@ pub fn fitness_users_data_sources_create_builder(
 pub fn fitness_users_data_sources_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,7 +179,8 @@ pub fn fitness_users_data_sources_create(
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fitness_users_data_sources_create_builder(client, &args.userId, &args.body)?;
+    let builder =
+        fitness_users_data_sources_create_builder(client, args.userId.clone(), &args.body)?;
     fitness_users_data_sources_create_execute(builder)
 }
 
@@ -185,18 +192,19 @@ pub fn fitness_users_data_sources_create(
 
 pub fn fitness_users_data_sources_delete_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
+    userId: String,
+    dataSourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
-        userId, dataSourceId,
+        userId.as_str(),
+        dataSourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -226,7 +234,12 @@ pub fn fitness_users_data_sources_delete_builder(
 pub fn fitness_users_data_sources_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DataSource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -328,505 +341,12 @@ pub fn fitness_users_data_sources_delete(
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        fitness_users_data_sources_delete_builder(client, &args.userId, &args.dataSourceId)?;
+    let builder = fitness_users_data_sources_delete_builder(
+        client,
+        args.userId.clone(),
+        args.dataSourceId.clone(),
+    )?;
     fitness_users_data_sources_delete_execute(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Returns the specified data source.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_data_sources_get_execute()` to send, or `fitness_users_data_sources_get` for simplest API.
-
-pub fn fitness_users_data_sources_get_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
-        userId, dataSourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Returns the specified data source.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_data_sources_get_execute()` or `fitness_users_data_sources_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DataSource = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Returns the specified data source.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_data_sources_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_data_sources_get_task()`.
-/// For the simplest API, use `fitness_users_data_sources_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_data_sources_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = fitness_users_data_sources_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_data_sources_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersDataSourcesGetArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Path parameter: dataSourceId
-    pub dataSourceId: String,
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Returns the specified data source.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_data_sources_get_builder()` + `fitness_users_data_sources_get_execute()`.
-/// For task-level control, use `fitness_users_data_sources_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_get(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersDataSourcesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = fitness_users_data_sources_get_builder(client, &args.userId, &args.dataSourceId)?;
-    fitness_users_data_sources_get_execute(builder)
-}
-
-/// GET {userId}/dataSources
-/// Lists all data sources that are visible to the developer, using the OAuth scopes provided. The list is not exhaustive; the user may have private data sources that are only visible to other developers, or calls using other scopes.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_data_sources_list_execute()` to send, or `fitness_users_data_sources_list` for simplest API.
-
-pub fn fitness_users_data_sources_list_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    dataTypeName: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources",
-        userId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = dataTypeName {
-        query_parts.push(format!("dataTypeName={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET {userId}/dataSources
-/// Lists all data sources that are visible to the developer, using the OAuth scopes provided. The list is not exhaustive; the user may have private data sources that are only visible to other developers, or calls using other scopes.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_data_sources_list_execute()` or `fitness_users_data_sources_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDataSourcesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/dataSources
-/// Lists all data sources that are visible to the developer, using the OAuth scopes provided. The list is not exhaustive; the user may have private data sources that are only visible to other developers, or calls using other scopes.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_data_sources_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_data_sources_list_task()`.
-/// For the simplest API, use `fitness_users_data_sources_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_data_sources_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = fitness_users_data_sources_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_data_sources_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersDataSourcesListArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Query parameter: dataTypeName
-    pub dataTypeName: Option<String>,
-}
-
-/// GET {userId}/dataSources
-/// Lists all data sources that are visible to the developer, using the OAuth scopes provided. The list is not exhaustive; the user may have private data sources that are only visible to other developers, or calls using other scopes.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_data_sources_list_builder()` + `fitness_users_data_sources_list_execute()`.
-/// For task-level control, use `fitness_users_data_sources_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_list(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersDataSourcesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = fitness_users_data_sources_list_builder(
-        client,
-        &args.userId,
-        args.dataTypeName.as_deref(),
-    )?;
-    fitness_users_data_sources_list_execute(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Updates the specified data source. The `dataStreamId`, `dataType`, type, `dataStreamName`, and device properties with the exception of version, cannot be modified. Data sources are identified by their `dataStreamId`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_data_sources_update_execute()` to send, or `fitness_users_data_sources_update` for simplest API.
-
-pub fn fitness_users_data_sources_update_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
-    body: &DataSource,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
-        userId, dataSourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Updates the specified data source. The `dataStreamId`, `dataType`, type, `dataStreamName`, and device properties with the exception of version, cannot be modified. Data sources are identified by their `dataStreamId`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_data_sources_update_execute()` or `fitness_users_data_sources_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DataSource = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Updates the specified data source. The `dataStreamId`, `dataType`, type, `dataStreamName`, and device properties with the exception of version, cannot be modified. Data sources are identified by their `dataStreamId`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_data_sources_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_data_sources_update_task()`.
-/// For the simplest API, use `fitness_users_data_sources_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_data_sources_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = fitness_users_data_sources_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_data_sources_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersDataSourcesUpdateArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Path parameter: dataSourceId
-    pub dataSourceId: String,
-    /// Request body.
-    pub body: DataSource,
-}
-
-/// GET {userId}/dataSources/{dataSourceId}
-/// Updates the specified data source. The `dataStreamId`, `dataType`, type, `dataStreamName`, and device properties with the exception of version, cannot be modified. Data sources are identified by their `dataStreamId`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_data_sources_update_builder()` + `fitness_users_data_sources_update_execute()`.
-/// For task-level control, use `fitness_users_data_sources_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_update(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersDataSourcesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = fitness_users_data_sources_update_builder(
-        client,
-        &args.userId,
-        &args.dataSourceId,
-        &args.body,
-    )?;
-    fitness_users_data_sources_update_execute(builder)
 }
 
 /// GET {userId}/dataSources/{dataSourceId}/dataPointChanges
@@ -837,15 +357,16 @@ pub fn fitness_users_data_sources_update(
 
 pub fn fitness_users_data_sources_data_point_changes_list_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
+    userId: String,
+    dataSourceId: String,
     limit: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/dataPointChanges",
-        userId, dataSourceId,
+        userId.as_str(),
+        dataSourceId.as_str(),
     );
 
     // Build request
@@ -858,9 +379,9 @@ pub fn fitness_users_data_sources_data_point_changes_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -895,8 +416,9 @@ pub fn fitness_users_data_sources_data_point_changes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListDataPointChangesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListDataPointChangesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1014,10 +536,10 @@ pub fn fitness_users_data_sources_data_point_changes_list(
 > {
     let builder = fitness_users_data_sources_data_point_changes_list_builder(
         client,
-        &args.userId,
-        &args.dataSourceId,
-        args.limit,
-        args.pageToken.as_deref(),
+        args.userId.clone(),
+        args.dataSourceId.clone(),
+        args.limit.clone(),
+        args.pageToken.clone(),
     )?;
     fitness_users_data_sources_data_point_changes_list_execute(builder)
 }
@@ -1030,19 +552,21 @@ pub fn fitness_users_data_sources_data_point_changes_list(
 
 pub fn fitness_users_data_sources_datasets_delete_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
-    datasetId: &str,
+    userId: String,
+    dataSourceId: String,
+    datasetId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
-        userId, dataSourceId, datasetId,
+        userId.as_str(),
+        dataSourceId.as_str(),
+        datasetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1072,7 +596,12 @@ pub fn fitness_users_data_sources_datasets_delete_builder(
 pub fn fitness_users_data_sources_datasets_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1175,365 +704,11 @@ pub fn fitness_users_data_sources_datasets_delete(
 > {
     let builder = fitness_users_data_sources_datasets_delete_builder(
         client,
-        &args.userId,
-        &args.dataSourceId,
-        &args.datasetId,
+        args.userId.clone(),
+        args.dataSourceId.clone(),
+        args.datasetId.clone(),
     )?;
     fitness_users_data_sources_datasets_delete_execute(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Returns a dataset containing all data points whose start and end times overlap with the specified range of the dataset minimum start time and maximum end time. Specifically, any data point whose start time is less than or equal to the dataset end time and whose end time is greater than or equal to the dataset start time.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_data_sources_datasets_get_execute()` to send, or `fitness_users_data_sources_datasets_get` for simplest API.
-
-pub fn fitness_users_data_sources_datasets_get_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
-    datasetId: &str,
-    limit: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
-        userId, dataSourceId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = limit {
-        query_parts.push(format!("limit={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Returns a dataset containing all data points whose start and end times overlap with the specified range of the dataset minimum start time and maximum end time. Specifically, any data point whose start time is less than or equal to the dataset end time and whose end time is greater than or equal to the dataset start time.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_data_sources_datasets_get_execute()` or `fitness_users_data_sources_datasets_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_datasets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_datasets_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Dataset = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Returns a dataset containing all data points whose start and end times overlap with the specified range of the dataset minimum start time and maximum end time. Specifically, any data point whose start time is less than or equal to the dataset end time and whose end time is greater than or equal to the dataset start time.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_data_sources_datasets_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_data_sources_datasets_get_task()`.
-/// For the simplest API, use `fitness_users_data_sources_datasets_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_datasets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_data_sources_datasets_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = fitness_users_data_sources_datasets_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_data_sources_datasets_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersDataSourcesDatasetsGetArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Path parameter: dataSourceId
-    pub dataSourceId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: limit
-    pub limit: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Returns a dataset containing all data points whose start and end times overlap with the specified range of the dataset minimum start time and maximum end time. Specifically, any data point whose start time is less than or equal to the dataset end time and whose end time is greater than or equal to the dataset start time.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_data_sources_datasets_get_builder()` + `fitness_users_data_sources_datasets_get_execute()`.
-/// For task-level control, use `fitness_users_data_sources_datasets_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_datasets_get(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersDataSourcesDatasetsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = fitness_users_data_sources_datasets_get_builder(
-        client,
-        &args.userId,
-        &args.dataSourceId,
-        &args.datasetId,
-        args.limit,
-        args.pageToken.as_deref(),
-    )?;
-    fitness_users_data_sources_datasets_get_execute(builder)
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Adds data points to a dataset. The dataset need not be previously created. All points within the given dataset will be returned with subsquent calls to retrieve this dataset. Data points can belong to more than one dataset. This method does not use patch semantics: the data points provided are merely inserted, with no existing data replaced.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_data_sources_datasets_patch_execute()` to send, or `fitness_users_data_sources_datasets_patch` for simplest API.
-
-pub fn fitness_users_data_sources_datasets_patch_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    dataSourceId: &str,
-    datasetId: &str,
-    body: &Dataset,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
-        userId, dataSourceId, datasetId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Adds data points to a dataset. The dataset need not be previously created. All points within the given dataset will be returned with subsquent calls to retrieve this dataset. Data points can belong to more than one dataset. This method does not use patch semantics: the data points provided are merely inserted, with no existing data replaced.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_data_sources_datasets_patch_execute()` or `fitness_users_data_sources_datasets_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_datasets_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_datasets_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Dataset = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Adds data points to a dataset. The dataset need not be previously created. All points within the given dataset will be returned with subsquent calls to retrieve this dataset. Data points can belong to more than one dataset. This method does not use patch semantics: the data points provided are merely inserted, with no existing data replaced.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_data_sources_datasets_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_data_sources_datasets_patch_task()`.
-/// For the simplest API, use `fitness_users_data_sources_datasets_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_data_sources_datasets_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_data_sources_datasets_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = fitness_users_data_sources_datasets_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_data_sources_datasets_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersDataSourcesDatasetsPatchArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Path parameter: dataSourceId
-    pub dataSourceId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Request body.
-    pub body: Dataset,
-}
-
-/// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
-/// Adds data points to a dataset. The dataset need not be previously created. All points within the given dataset will be returned with subsquent calls to retrieve this dataset. Data points can belong to more than one dataset. This method does not use patch semantics: the data points provided are merely inserted, with no existing data replaced.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_data_sources_datasets_patch_builder()` + `fitness_users_data_sources_datasets_patch_execute()`.
-/// For task-level control, use `fitness_users_data_sources_datasets_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_data_sources_datasets_patch(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersDataSourcesDatasetsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = fitness_users_data_sources_datasets_patch_builder(
-        client,
-        &args.userId,
-        &args.dataSourceId,
-        &args.datasetId,
-        &args.body,
-    )?;
-    fitness_users_data_sources_datasets_patch_execute(builder)
 }
 
 /// GET {userId}/dataset:aggregate
@@ -1544,18 +719,18 @@ pub fn fitness_users_data_sources_datasets_patch(
 
 pub fn fitness_users_dataset_aggregate_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
     body: &AggregateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataset:aggregate",
-        userId,
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1587,8 +762,11 @@ pub fn fitness_users_dataset_aggregate_builder(
 pub fn fitness_users_dataset_aggregate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AggregateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AggregateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1695,7 +873,7 @@ pub fn fitness_users_dataset_aggregate(
         + 'static,
     ApiError,
 > {
-    let builder = fitness_users_dataset_aggregate_builder(client, &args.userId, &args.body)?;
+    let builder = fitness_users_dataset_aggregate_builder(client, args.userId.clone(), &args.body)?;
     fitness_users_dataset_aggregate_execute(builder)
 }
 
@@ -1707,18 +885,19 @@ pub fn fitness_users_dataset_aggregate(
 
 pub fn fitness_users_sessions_delete_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    sessionId: &str,
+    userId: String,
+    sessionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions/{}",
-        userId, sessionId,
+        userId.as_str(),
+        sessionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1748,7 +927,12 @@ pub fn fitness_users_sessions_delete_builder(
 pub fn fitness_users_sessions_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1847,7 +1031,8 @@ pub fn fitness_users_sessions_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fitness_users_sessions_delete_builder(client, &args.userId, &args.sessionId)?;
+    let builder =
+        fitness_users_sessions_delete_builder(client, args.userId.clone(), args.sessionId.clone())?;
     fitness_users_sessions_delete_execute(builder)
 }
 
@@ -1859,17 +1044,17 @@ pub fn fitness_users_sessions_delete(
 
 pub fn fitness_users_sessions_list_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
     activityType: Option<i32>,
-    endTime: Option<&str>,
+    endTime: Option<String>,
     includeDeleted: Option<bool>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    pageToken: Option<String>,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions",
-        userId,
+        userId.as_str(),
     );
 
     // Build request
@@ -1891,9 +1076,9 @@ pub fn fitness_users_sessions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1927,8 +1112,11 @@ pub fn fitness_users_sessions_list_builder(
 pub fn fitness_users_sessions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSessionsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSessionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2045,173 +1233,12 @@ pub fn fitness_users_sessions_list(
 > {
     let builder = fitness_users_sessions_list_builder(
         client,
-        &args.userId,
-        args.activityType,
-        args.endTime.as_deref(),
-        args.includeDeleted,
-        args.pageToken.as_deref(),
-        args.startTime.as_deref(),
+        args.userId.clone(),
+        args.activityType.clone(),
+        args.endTime.clone(),
+        args.includeDeleted.clone(),
+        args.pageToken.clone(),
+        args.startTime.clone(),
     )?;
     fitness_users_sessions_list_execute(builder)
-}
-
-/// GET {userId}/sessions/{sessionId}
-/// Updates or insert a given session.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `fitness_users_sessions_update_execute()` to send, or `fitness_users_sessions_update` for simplest API.
-
-pub fn fitness_users_sessions_update_builder(
-    client: &SimpleHttpClient,
-    userId: &str,
-    sessionId: &str,
-    body: &Session,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://fitness.googleapis.com/fitness/v1/users/{}/sessions/{}",
-        userId, sessionId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET {userId}/sessions/{sessionId}
-/// Updates or insert a given session.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `fitness_users_sessions_update_execute()` or `fitness_users_sessions_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_sessions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_sessions_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Session = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET {userId}/sessions/{sessionId}
-/// Updates or insert a given session.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `fitness_users_sessions_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `fitness_users_sessions_update_task()`.
-/// For the simplest API, use `fitness_users_sessions_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `fitness_users_sessions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn fitness_users_sessions_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = fitness_users_sessions_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`fitness_users_sessions_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FitnessUsersSessionsUpdateArgs {
-    /// Path parameter: userId
-    pub userId: String,
-    /// Path parameter: sessionId
-    pub sessionId: String,
-    /// Request body.
-    pub body: Session,
-}
-
-/// GET {userId}/sessions/{sessionId}
-/// Updates or insert a given session.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `fitness_users_sessions_update_builder()` + `fitness_users_sessions_update_execute()`.
-/// For task-level control, use `fitness_users_sessions_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn fitness_users_sessions_update(
-    client: &SimpleHttpClient,
-    args: &FitnessUsersSessionsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        fitness_users_sessions_update_builder(client, &args.userId, &args.sessionId, &args.body)?;
-    fitness_users_sessions_update_execute(builder)
 }

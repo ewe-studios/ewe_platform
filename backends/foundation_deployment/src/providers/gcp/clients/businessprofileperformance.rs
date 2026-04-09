@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,8 +29,8 @@ use serde::Serialize;
 
 pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
-    location: &str,
-    dailyMetrics: Option<&str>,
+    location: String,
+    dailyMetrics: Option<String>,
     dailyRange_endDate_day: Option<i32>,
     dailyRange_endDate_month: Option<i32>,
     dailyRange_endDate_year: Option<i32>,
@@ -38,9 +39,8 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     dailyRange_startDate_year: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:fetchMultiDailyMetricsTimeSeries",
-        location,
     );
 
     // Build request
@@ -49,28 +49,28 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
         query_parts.push(format!("dailyMetrics={}", val));
     }
     if let Some(val) = dailyRange_endDate_day {
-        query_parts.push(format!("dailyRange_endDate_day={}", val));
+        query_parts.push(format!("dailyRange.endDate.day={}", val));
     }
     if let Some(val) = dailyRange_endDate_month {
-        query_parts.push(format!("dailyRange_endDate_month={}", val));
+        query_parts.push(format!("dailyRange.endDate.month={}", val));
     }
     if let Some(val) = dailyRange_endDate_year {
-        query_parts.push(format!("dailyRange_endDate_year={}", val));
+        query_parts.push(format!("dailyRange.endDate.year={}", val));
     }
     if let Some(val) = dailyRange_startDate_day {
-        query_parts.push(format!("dailyRange_startDate_day={}", val));
+        query_parts.push(format!("dailyRange.startDate.day={}", val));
     }
     if let Some(val) = dailyRange_startDate_month {
-        query_parts.push(format!("dailyRange_startDate_month={}", val));
+        query_parts.push(format!("dailyRange.startDate.month={}", val));
     }
     if let Some(val) = dailyRange_startDate_year {
-        query_parts.push(format!("dailyRange_startDate_year={}", val));
+        query_parts.push(format!("dailyRange.startDate.year={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -105,8 +105,9 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FetchMultiDailyMetricsTimeSeriesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FetchMultiDailyMetricsTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -234,14 +235,14 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     let builder =
         businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
             client,
-            &args.location,
-            args.dailyMetrics.as_deref(),
-            args.dailyRange_endDate_day,
-            args.dailyRange_endDate_month,
-            args.dailyRange_endDate_year,
-            args.dailyRange_startDate_day,
-            args.dailyRange_startDate_month,
-            args.dailyRange_startDate_year,
+            args.location.clone(),
+            args.dailyMetrics.clone(),
+            args.dailyRange_endDate_day.clone(),
+            args.dailyRange_endDate_month.clone(),
+            args.dailyRange_endDate_year.clone(),
+            args.dailyRange_startDate_day.clone(),
+            args.dailyRange_startDate_month.clone(),
+            args.dailyRange_startDate_year.clone(),
         )?;
     businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_execute(builder)
 }
@@ -254,24 +255,23 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 
 pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    dailyMetric: Option<&str>,
+    name: String,
+    dailyMetric: Option<String>,
     dailyRange_endDate_day: Option<i32>,
     dailyRange_endDate_month: Option<i32>,
     dailyRange_endDate_year: Option<i32>,
     dailyRange_startDate_day: Option<i32>,
     dailyRange_startDate_month: Option<i32>,
     dailyRange_startDate_year: Option<i32>,
-    dailySubEntityType_dayOfWeek: Option<&str>,
+    dailySubEntityType_dayOfWeek: Option<String>,
     dailySubEntityType_timeOfDay_hours: Option<i32>,
     dailySubEntityType_timeOfDay_minutes: Option<i32>,
     dailySubEntityType_timeOfDay_nanos: Option<i32>,
     dailySubEntityType_timeOfDay_seconds: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:getDailyMetricsTimeSeries",
-        name,
     );
 
     // Build request
@@ -280,43 +280,43 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builde
         query_parts.push(format!("dailyMetric={}", val));
     }
     if let Some(val) = dailyRange_endDate_day {
-        query_parts.push(format!("dailyRange_endDate_day={}", val));
+        query_parts.push(format!("dailyRange.endDate.day={}", val));
     }
     if let Some(val) = dailyRange_endDate_month {
-        query_parts.push(format!("dailyRange_endDate_month={}", val));
+        query_parts.push(format!("dailyRange.endDate.month={}", val));
     }
     if let Some(val) = dailyRange_endDate_year {
-        query_parts.push(format!("dailyRange_endDate_year={}", val));
+        query_parts.push(format!("dailyRange.endDate.year={}", val));
     }
     if let Some(val) = dailyRange_startDate_day {
-        query_parts.push(format!("dailyRange_startDate_day={}", val));
+        query_parts.push(format!("dailyRange.startDate.day={}", val));
     }
     if let Some(val) = dailyRange_startDate_month {
-        query_parts.push(format!("dailyRange_startDate_month={}", val));
+        query_parts.push(format!("dailyRange.startDate.month={}", val));
     }
     if let Some(val) = dailyRange_startDate_year {
-        query_parts.push(format!("dailyRange_startDate_year={}", val));
+        query_parts.push(format!("dailyRange.startDate.year={}", val));
     }
     if let Some(val) = dailySubEntityType_dayOfWeek {
-        query_parts.push(format!("dailySubEntityType_dayOfWeek={}", val));
+        query_parts.push(format!("dailySubEntityType.dayOfWeek={}", val));
     }
     if let Some(val) = dailySubEntityType_timeOfDay_hours {
-        query_parts.push(format!("dailySubEntityType_timeOfDay_hours={}", val));
+        query_parts.push(format!("dailySubEntityType.timeOfDay.hours={}", val));
     }
     if let Some(val) = dailySubEntityType_timeOfDay_minutes {
-        query_parts.push(format!("dailySubEntityType_timeOfDay_minutes={}", val));
+        query_parts.push(format!("dailySubEntityType.timeOfDay.minutes={}", val));
     }
     if let Some(val) = dailySubEntityType_timeOfDay_nanos {
-        query_parts.push(format!("dailySubEntityType_timeOfDay_nanos={}", val));
+        query_parts.push(format!("dailySubEntityType.timeOfDay.nanos={}", val));
     }
     if let Some(val) = dailySubEntityType_timeOfDay_seconds {
-        query_parts.push(format!("dailySubEntityType_timeOfDay_seconds={}", val));
+        query_parts.push(format!("dailySubEntityType.timeOfDay.seconds={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -351,8 +351,9 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetDailyMetricsTimeSeriesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetDailyMetricsTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -488,19 +489,19 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 > {
     let builder = businessprofileperformance_locations_get_daily_metrics_time_series_builder(
         client,
-        &args.name,
-        args.dailyMetric.as_deref(),
-        args.dailyRange_endDate_day,
-        args.dailyRange_endDate_month,
-        args.dailyRange_endDate_year,
-        args.dailyRange_startDate_day,
-        args.dailyRange_startDate_month,
-        args.dailyRange_startDate_year,
-        args.dailySubEntityType_dayOfWeek.as_deref(),
-        args.dailySubEntityType_timeOfDay_hours,
-        args.dailySubEntityType_timeOfDay_minutes,
-        args.dailySubEntityType_timeOfDay_nanos,
-        args.dailySubEntityType_timeOfDay_seconds,
+        args.name.clone(),
+        args.dailyMetric.clone(),
+        args.dailyRange_endDate_day.clone(),
+        args.dailyRange_endDate_month.clone(),
+        args.dailyRange_endDate_year.clone(),
+        args.dailyRange_startDate_day.clone(),
+        args.dailyRange_startDate_month.clone(),
+        args.dailyRange_startDate_year.clone(),
+        args.dailySubEntityType_dayOfWeek.clone(),
+        args.dailySubEntityType_timeOfDay_hours.clone(),
+        args.dailySubEntityType_timeOfDay_minutes.clone(),
+        args.dailySubEntityType_timeOfDay_nanos.clone(),
+        args.dailySubEntityType_timeOfDay_seconds.clone(),
     )?;
     businessprofileperformance_locations_get_daily_metrics_time_series_execute(builder)
 }
@@ -513,7 +514,7 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 
 pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     monthlyRange_endMonth_day: Option<i32>,
     monthlyRange_endMonth_month: Option<i32>,
     monthlyRange_endMonth_year: Option<i32>,
@@ -521,33 +522,32 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     monthlyRange_startMonth_month: Option<i32>,
     monthlyRange_startMonth_year: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}/searchkeywords/impressions/monthly",
-        parent,
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = monthlyRange_endMonth_day {
-        query_parts.push(format!("monthlyRange_endMonth_day={}", val));
+        query_parts.push(format!("monthlyRange.endMonth.day={}", val));
     }
     if let Some(val) = monthlyRange_endMonth_month {
-        query_parts.push(format!("monthlyRange_endMonth_month={}", val));
+        query_parts.push(format!("monthlyRange.endMonth.month={}", val));
     }
     if let Some(val) = monthlyRange_endMonth_year {
-        query_parts.push(format!("monthlyRange_endMonth_year={}", val));
+        query_parts.push(format!("monthlyRange.endMonth.year={}", val));
     }
     if let Some(val) = monthlyRange_startMonth_day {
-        query_parts.push(format!("monthlyRange_startMonth_day={}", val));
+        query_parts.push(format!("monthlyRange.startMonth.day={}", val));
     }
     if let Some(val) = monthlyRange_startMonth_month {
-        query_parts.push(format!("monthlyRange_startMonth_month={}", val));
+        query_parts.push(format!("monthlyRange.startMonth.month={}", val));
     }
     if let Some(val) = monthlyRange_startMonth_year {
-        query_parts.push(format!("monthlyRange_startMonth_year={}", val));
+        query_parts.push(format!("monthlyRange.startMonth.year={}", val));
     }
     if let Some(val) = pageSize {
         query_parts.push(format!("pageSize={}", val));
@@ -557,9 +557,9 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -594,8 +594,9 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListSearchKeywordImpressionsMonthlyResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListSearchKeywordImpressionsMonthlyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -726,15 +727,15 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     let builder =
         businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
             client,
-            &args.parent,
-            args.monthlyRange_endMonth_day,
-            args.monthlyRange_endMonth_month,
-            args.monthlyRange_endMonth_year,
-            args.monthlyRange_startMonth_day,
-            args.monthlyRange_startMonth_month,
-            args.monthlyRange_startMonth_year,
-            args.pageSize,
-            args.pageToken.as_deref(),
+            args.parent.clone(),
+            args.monthlyRange_endMonth_day.clone(),
+            args.monthlyRange_endMonth_month.clone(),
+            args.monthlyRange_endMonth_year.clone(),
+            args.monthlyRange_startMonth_day.clone(),
+            args.monthlyRange_startMonth_month.clone(),
+            args.monthlyRange_startMonth_year.clone(),
+            args.pageSize.clone(),
+            args.pageToken.clone(),
         )?;
     businessprofileperformance_locations_searchkeywords_impressions_monthly_list_execute(builder)
 }

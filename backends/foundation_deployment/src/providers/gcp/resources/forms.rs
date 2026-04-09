@@ -69,7 +69,9 @@ pub struct CreateWatchRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response to a ListFormResponsesRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,13 +92,11 @@ pub struct ListWatchesResponse {
     pub watches: ::core::option::Option<::std::vec::Vec<Watch>>,
 }
 
-/// A page break. The title and description of this item are shown at the top of the new page.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PageBreakItem {}
-
 /// Renew an existing Watch for seven days.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RenewWatchRequest {}
+pub struct RenewWatchRequest {
+    pub value: serde_json::Value,
+}
 
 /// Updates the publish settings of a Form.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -119,10 +119,6 @@ pub struct SetPublishSettingsResponse {
     #[serde(default, rename = "publishSettings")]
     pub publish_settings: ::core::option::Option<PublishSettings>,
 }
-
-/// A text item.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextItem {}
 
 /// All submitted files for a FileUpload question.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -420,7 +416,7 @@ pub struct Item {
     pub item_id: ::core::option::Option<String>,
     /// Starts a new page with a title.
     #[serde(default, rename = "pageBreakItem")]
-    pub page_break_item: ::core::option::Option<serde_json::Value>,
+    pub page_break_item: ::core::option::Option<PageBreakItem>,
     /// Poses one or more questions to the user with a single major prompt.
     #[serde(default, rename = "questionGroupItem")]
     pub question_group_item: ::core::option::Option<QuestionGroupItem>,
@@ -429,7 +425,7 @@ pub struct Item {
     pub question_item: ::core::option::Option<QuestionItem>,
     /// Displays a title and description on the page.
     #[serde(default, rename = "textItem")]
-    pub text_item: ::core::option::Option<serde_json::Value>,
+    pub text_item: ::core::option::Option<TextItem>,
     /// The title of the item.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
@@ -484,6 +480,12 @@ pub struct ImageItem {
     pub image: ::core::option::Option<Image>,
 }
 
+/// A page break. The title and description of this item are shown at the top of the new page.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PageBreakItem {
+    pub value: serde_json::Value,
+}
+
 /// Defines a question that comprises multiple questions grouped together.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuestionGroupItem {
@@ -507,6 +509,12 @@ pub struct QuestionItem {
     /// Required. The displayed question.
     #[serde(default)]
     pub question: ::core::option::Option<Question>,
+}
+
+/// A text item.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextItem {
+    pub value: serde_json::Value,
 }
 
 /// An item containing a video.

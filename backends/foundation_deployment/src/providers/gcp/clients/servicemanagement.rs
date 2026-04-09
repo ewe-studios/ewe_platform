@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,14 @@ use serde::Serialize;
 
 pub fn servicemanagement_operations_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/operations/{}",
-        name,
-    );
+    let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,7 +66,12 @@ pub fn servicemanagement_operations_get_builder(
 pub fn servicemanagement_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -168,7 +171,7 @@ pub fn servicemanagement_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_operations_get_builder(client, &args.name)?;
+    let builder = servicemanagement_operations_get_builder(client, args.name.clone())?;
     servicemanagement_operations_get_execute(builder)
 }
 
@@ -180,14 +183,14 @@ pub fn servicemanagement_operations_get(
 
 pub fn servicemanagement_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    name: Option<&str>,
+    filter: Option<String>,
+    name: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     returnPartialSuccess: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://servicemanagement.googleapis.com/v1/operations",);
+    let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -208,9 +211,9 @@ pub fn servicemanagement_operations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -244,8 +247,11 @@ pub fn servicemanagement_operations_list_builder(
 pub fn servicemanagement_operations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -360,11 +366,11 @@ pub fn servicemanagement_operations_list(
 > {
     let builder = servicemanagement_operations_list_builder(
         client,
-        args.filter.as_deref(),
-        args.name.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
+        args.filter.clone(),
+        args.name.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.returnPartialSuccess.clone(),
     )?;
     servicemanagement_operations_list_execute(builder)
 }
@@ -380,11 +386,11 @@ pub fn servicemanagement_services_create_builder(
     body: &ManagedService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://servicemanagement.googleapis.com/v1/services",);
+    let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/services",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -416,7 +422,12 @@ pub fn servicemanagement_services_create_builder(
 pub fn servicemanagement_services_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -528,17 +539,17 @@ pub fn servicemanagement_services_create(
 
 pub fn servicemanagement_services_delete_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -568,7 +579,12 @@ pub fn servicemanagement_services_delete_builder(
 pub fn servicemanagement_services_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -668,7 +684,7 @@ pub fn servicemanagement_services_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_delete_builder(client, &args.serviceName)?;
+    let builder = servicemanagement_services_delete_builder(client, args.serviceName.clone())?;
     servicemanagement_services_delete_execute(builder)
 }
 
@@ -683,11 +699,12 @@ pub fn servicemanagement_services_generate_config_report_builder(
     body: &GenerateConfigReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://servicemanagement.googleapis.com/v1/services:generateConfigReport",);
+    let endpoint_url =
+        format!("https://servicemanagement.googleapis.com/v1/services:generateConfigReport",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -720,8 +737,9 @@ pub fn servicemanagement_services_generate_config_report_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateConfigReportResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateConfigReportResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -835,164 +853,6 @@ pub fn servicemanagement_services_generate_config_report(
     servicemanagement_services_generate_config_report_execute(builder)
 }
 
-/// GET v1/services/{serviceName}
-/// Gets a managed service. Authentication is required unless the service is public.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_get_execute()` to send, or `servicemanagement_services_get` for simplest API.
-
-pub fn servicemanagement_services_get_builder(
-    client: &SimpleHttpClient,
-    serviceName: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}",
-        serviceName,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{serviceName}
-/// Gets a managed service. Authentication is required unless the service is public.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_get_execute()` or `servicemanagement_services_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ManagedService = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{serviceName}
-/// Gets a managed service. Authentication is required unless the service is public.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_get_task()`.
-/// For the simplest API, use `servicemanagement_services_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesGetArgs {
-    /// Path parameter: serviceName
-    pub serviceName: String,
-}
-
-/// GET v1/services/{serviceName}
-/// Gets a managed service. Authentication is required unless the service is public.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_get_builder()` + `servicemanagement_services_get_execute()`.
-/// For task-level control, use `servicemanagement_services_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_get(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_get_builder(client, &args.serviceName)?;
-    servicemanagement_services_get_execute(builder)
-}
-
 /// GET v1/services/{serviceName}/config
 /// Gets a service configuration (version) for a managed service.
 ///
@@ -1001,14 +861,14 @@ pub fn servicemanagement_services_get(
 
 pub fn servicemanagement_services_get_config_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    configId: Option<&str>,
-    view: Option<&str>,
+    serviceName: String,
+    configId: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/config",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
@@ -1021,9 +881,9 @@ pub fn servicemanagement_services_get_config_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1057,7 +917,12 @@ pub fn servicemanagement_services_get_config_builder(
 pub fn servicemanagement_services_get_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1163,9 +1028,9 @@ pub fn servicemanagement_services_get_config(
 > {
     let builder = servicemanagement_services_get_config_builder(
         client,
-        &args.serviceName,
-        args.configId.as_deref(),
-        args.view.as_deref(),
+        args.serviceName.clone(),
+        args.configId.clone(),
+        args.view.clone(),
     )?;
     servicemanagement_services_get_config_execute(builder)
 }
@@ -1178,18 +1043,16 @@ pub fn servicemanagement_services_get_config(
 
 pub fn servicemanagement_services_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}:getIamPolicy",
-        resource,
-    );
+    let endpoint_url =
+        format!("https://servicemanagement.googleapis.com/v1/services/{}:getIamPolicy",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1221,7 +1084,12 @@ pub fn servicemanagement_services_get_iam_policy_builder(
 pub fn servicemanagement_services_get_iam_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1323,199 +1191,12 @@ pub fn servicemanagement_services_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_get_iam_policy_builder(client, &args.resource, &args.body)?;
-    servicemanagement_services_get_iam_policy_execute(builder)
-}
-
-/// GET v1/services
-/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_list_execute()` to send, or `servicemanagement_services_list` for simplest API.
-
-pub fn servicemanagement_services_list_builder(
-    client: &SimpleHttpClient,
-    consumerId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    producerProjectId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://servicemanagement.googleapis.com/v1/services",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = consumerId {
-        query_parts.push(format!("consumerId={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = producerProjectId {
-        query_parts.push(format!("producerProjectId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services
-/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_list_execute()` or `servicemanagement_services_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServicesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services
-/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_list_task()`.
-/// For the simplest API, use `servicemanagement_services_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesListArgs {
-    /// Query parameter: consumerId
-    pub consumerId: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: producerProjectId
-    pub producerProjectId: Option<String>,
-}
-
-/// GET v1/services
-/// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_list_builder()` + `servicemanagement_services_list_execute()`.
-/// For task-level control, use `servicemanagement_services_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_list(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_list_builder(
+    let builder = servicemanagement_services_get_iam_policy_builder(
         client,
-        args.consumerId.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.producerProjectId.as_deref(),
+        args.resource.clone(),
+        &args.body,
     )?;
-    servicemanagement_services_list_execute(builder)
+    servicemanagement_services_get_iam_policy_execute(builder)
 }
 
 /// GET v1/services/{servicesId}:setIamPolicy
@@ -1526,18 +1207,16 @@ pub fn servicemanagement_services_list(
 
 pub fn servicemanagement_services_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}:setIamPolicy",
-        resource,
-    );
+    let endpoint_url =
+        format!("https://servicemanagement.googleapis.com/v1/services/{}:setIamPolicy",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1569,7 +1248,12 @@ pub fn servicemanagement_services_set_iam_policy_builder(
 pub fn servicemanagement_services_set_iam_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1671,8 +1355,11 @@ pub fn servicemanagement_services_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = servicemanagement_services_set_iam_policy_builder(
+        client,
+        args.resource.clone(),
+        &args.body,
+    )?;
     servicemanagement_services_set_iam_policy_execute(builder)
 }
 
@@ -1684,18 +1371,16 @@ pub fn servicemanagement_services_set_iam_policy(
 
 pub fn servicemanagement_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}:testIamPermissions",
-        resource,
-    );
+    let endpoint_url =
+        format!("https://servicemanagement.googleapis.com/v1/services/{}:testIamPermissions",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1727,8 +1412,11 @@ pub fn servicemanagement_services_test_iam_permissions_builder(
 pub fn servicemanagement_services_test_iam_permissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1841,7 +1529,7 @@ pub fn servicemanagement_services_test_iam_permissions(
 > {
     let builder = servicemanagement_services_test_iam_permissions_builder(
         client,
-        &args.resource,
+        args.resource.clone(),
         &args.body,
     )?;
     servicemanagement_services_test_iam_permissions_execute(builder)
@@ -1855,17 +1543,17 @@ pub fn servicemanagement_services_test_iam_permissions(
 
 pub fn servicemanagement_services_undelete_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:undelete",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1895,7 +1583,12 @@ pub fn servicemanagement_services_undelete_builder(
 pub fn servicemanagement_services_undelete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1995,7 +1688,7 @@ pub fn servicemanagement_services_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_undelete_builder(client, &args.serviceName)?;
+    let builder = servicemanagement_services_undelete_builder(client, args.serviceName.clone())?;
     servicemanagement_services_undelete_execute(builder)
 }
 
@@ -2007,18 +1700,18 @@ pub fn servicemanagement_services_undelete(
 
 pub fn servicemanagement_services_configs_create_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
     body: &Service,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2050,7 +1743,12 @@ pub fn servicemanagement_services_configs_create_builder(
 pub fn servicemanagement_services_configs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2152,8 +1850,11 @@ pub fn servicemanagement_services_configs_create(
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_create_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_configs_create_builder(
+        client,
+        args.serviceName.clone(),
+        &args.body,
+    )?;
     servicemanagement_services_configs_create_execute(builder)
 }
 
@@ -2165,14 +1866,15 @@ pub fn servicemanagement_services_configs_create(
 
 pub fn servicemanagement_services_configs_get_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    configId: &str,
-    view: Option<&str>,
+    serviceName: String,
+    configId: String,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs/{}",
-        serviceName, configId,
+        serviceName.as_str(),
+        configId.as_str(),
     );
 
     // Build request
@@ -2182,9 +1884,9 @@ pub fn servicemanagement_services_configs_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2218,7 +1920,12 @@ pub fn servicemanagement_services_configs_get_builder(
 pub fn servicemanagement_services_configs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2324,198 +2031,11 @@ pub fn servicemanagement_services_configs_get(
 > {
     let builder = servicemanagement_services_configs_get_builder(
         client,
-        &args.serviceName,
-        &args.configId,
-        args.view.as_deref(),
+        args.serviceName.clone(),
+        args.configId.clone(),
+        args.view.clone(),
     )?;
     servicemanagement_services_configs_get_execute(builder)
-}
-
-/// GET v1/services/{serviceName}/configs
-/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_configs_list_execute()` to send, or `servicemanagement_services_configs_list` for simplest API.
-
-pub fn servicemanagement_services_configs_list_builder(
-    client: &SimpleHttpClient,
-    serviceName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}/configs",
-        serviceName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{serviceName}/configs
-/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_configs_list_execute()` or `servicemanagement_services_configs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_configs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServiceConfigsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{serviceName}/configs
-/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_configs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_configs_list_task()`.
-/// For the simplest API, use `servicemanagement_services_configs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_configs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_configs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_configs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesConfigsListArgs {
-    /// Path parameter: serviceName
-    pub serviceName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/services/{serviceName}/configs
-/// Lists the history of the service configuration for a managed service, from the newest to the oldest.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_configs_list_builder()` + `servicemanagement_services_configs_list_execute()`.
-/// For task-level control, use `servicemanagement_services_configs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_configs_list(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesConfigsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_configs_list_builder(
-        client,
-        &args.serviceName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    servicemanagement_services_configs_list_execute(builder)
 }
 
 /// GET v1/services/{serviceName}/configs:submit
@@ -2526,18 +2046,18 @@ pub fn servicemanagement_services_configs_list(
 
 pub fn servicemanagement_services_configs_submit_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
     body: &SubmitConfigSourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs:submit",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2569,7 +2089,12 @@ pub fn servicemanagement_services_configs_submit_builder(
 pub fn servicemanagement_services_configs_submit_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2671,502 +2196,12 @@ pub fn servicemanagement_services_configs_submit(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_submit_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_configs_submit_builder(
+        client,
+        args.serviceName.clone(),
+        &args.body,
+    )?;
     servicemanagement_services_configs_submit_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_consumers_get_iam_policy_execute()` to send, or `servicemanagement_services_consumers_get_iam_policy` for simplest API.
-
-pub fn servicemanagement_services_consumers_get_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{}:getIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_consumers_get_iam_policy_execute()` or `servicemanagement_services_consumers_get_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_get_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_consumers_get_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_consumers_get_iam_policy_task()`.
-/// For the simplest API, use `servicemanagement_services_consumers_get_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_consumers_get_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_consumers_get_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_consumers_get_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesConsumersGetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_consumers_get_iam_policy_builder()` + `servicemanagement_services_consumers_get_iam_policy_execute()`.
-/// For task-level control, use `servicemanagement_services_consumers_get_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_get_iam_policy(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesConsumersGetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_consumers_get_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
-    servicemanagement_services_consumers_get_iam_policy_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_consumers_set_iam_policy_execute()` to send, or `servicemanagement_services_consumers_set_iam_policy` for simplest API.
-
-pub fn servicemanagement_services_consumers_set_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{}:setIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_consumers_set_iam_policy_execute()` or `servicemanagement_services_consumers_set_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_set_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_consumers_set_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_consumers_set_iam_policy_task()`.
-/// For the simplest API, use `servicemanagement_services_consumers_set_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_consumers_set_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_consumers_set_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_consumers_set_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesConsumersSetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_consumers_set_iam_policy_builder()` + `servicemanagement_services_consumers_set_iam_policy_execute()`.
-/// For task-level control, use `servicemanagement_services_consumers_set_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_set_iam_policy(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesConsumersSetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_consumers_set_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
-    servicemanagement_services_consumers_set_iam_policy_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_consumers_test_iam_permissions_execute()` to send, or `servicemanagement_services_consumers_test_iam_permissions` for simplest API.
-
-pub fn servicemanagement_services_consumers_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}/consumers/{}:testIamPermissions",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_consumers_test_iam_permissions_execute()` or `servicemanagement_services_consumers_test_iam_permissions`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_test_iam_permissions_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_consumers_test_iam_permissions_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_consumers_test_iam_permissions_task()`.
-/// For the simplest API, use `servicemanagement_services_consumers_test_iam_permissions()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_consumers_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_consumers_test_iam_permissions_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_consumers_test_iam_permissions_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_consumers_test_iam_permissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesConsumersTestIamPermissionsArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
-}
-
-/// GET v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_consumers_test_iam_permissions_builder()` + `servicemanagement_services_consumers_test_iam_permissions_execute()`.
-/// For task-level control, use `servicemanagement_services_consumers_test_iam_permissions_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_consumers_test_iam_permissions(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesConsumersTestIamPermissionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_consumers_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
-    servicemanagement_services_consumers_test_iam_permissions_execute(builder)
 }
 
 /// GET v1/services/{serviceName}/rollouts
@@ -3177,18 +2212,18 @@ pub fn servicemanagement_services_consumers_test_iam_permissions(
 
 pub fn servicemanagement_services_rollouts_create_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
     body: &Rollout,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3220,7 +2255,12 @@ pub fn servicemanagement_services_rollouts_create_builder(
 pub fn servicemanagement_services_rollouts_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3322,8 +2362,11 @@ pub fn servicemanagement_services_rollouts_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_rollouts_create_builder(client, &args.serviceName, &args.body)?;
+    let builder = servicemanagement_services_rollouts_create_builder(
+        client,
+        args.serviceName.clone(),
+        &args.body,
+    )?;
     servicemanagement_services_rollouts_create_execute(builder)
 }
 
@@ -3335,18 +2378,19 @@ pub fn servicemanagement_services_rollouts_create(
 
 pub fn servicemanagement_services_rollouts_get_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    rolloutId: &str,
+    serviceName: String,
+    rolloutId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts/{}",
-        serviceName, rolloutId,
+        serviceName.as_str(),
+        rolloutId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3376,7 +2420,12 @@ pub fn servicemanagement_services_rollouts_get_builder(
 pub fn servicemanagement_services_rollouts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Rollout>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3480,202 +2529,8 @@ pub fn servicemanagement_services_rollouts_get(
 > {
     let builder = servicemanagement_services_rollouts_get_builder(
         client,
-        &args.serviceName,
-        &args.rolloutId,
+        args.serviceName.clone(),
+        args.rolloutId.clone(),
     )?;
     servicemanagement_services_rollouts_get_execute(builder)
-}
-
-/// GET v1/services/{serviceName}/rollouts
-/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicemanagement_services_rollouts_list_execute()` to send, or `servicemanagement_services_rollouts_list` for simplest API.
-
-pub fn servicemanagement_services_rollouts_list_builder(
-    client: &SimpleHttpClient,
-    serviceName: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",
-        serviceName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{serviceName}/rollouts
-/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicemanagement_services_rollouts_list_execute()` or `servicemanagement_services_rollouts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_rollouts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_rollouts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServiceRolloutsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{serviceName}/rollouts
-/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicemanagement_services_rollouts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicemanagement_services_rollouts_list_task()`.
-/// For the simplest API, use `servicemanagement_services_rollouts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicemanagement_services_rollouts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicemanagement_services_rollouts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicemanagement_services_rollouts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicemanagement_services_rollouts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicemanagementServicesRolloutsListArgs {
-    /// Path parameter: serviceName
-    pub serviceName: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/services/{serviceName}/rollouts
-/// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicemanagement_services_rollouts_list_builder()` + `servicemanagement_services_rollouts_list_execute()`.
-/// For task-level control, use `servicemanagement_services_rollouts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicemanagement_services_rollouts_list(
-    client: &SimpleHttpClient,
-    args: &ServicemanagementServicesRolloutsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicemanagement_services_rollouts_list_builder(
-        client,
-        &args.serviceName,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    servicemanagement_services_rollouts_list_execute(builder)
 }

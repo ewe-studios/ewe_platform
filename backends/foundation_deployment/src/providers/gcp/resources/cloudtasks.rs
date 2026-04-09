@@ -51,7 +51,9 @@ pub struct CreateTaskRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -96,15 +98,21 @@ pub struct ListTasksResponse {
 
 /// Request message for PauseQueue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PauseQueueRequest {}
+pub struct PauseQueueRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for PurgeQueue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PurgeQueueRequest {}
+pub struct PurgeQueueRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ResumeQueue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeQueueRequest {}
+pub struct ResumeQueueRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for forcing a task to run now using RunTask.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

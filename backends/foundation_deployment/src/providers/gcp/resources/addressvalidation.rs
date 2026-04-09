@@ -24,7 +24,9 @@ pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
 
 /// The response for validation feedback. The response is empty if the feedback is sent successfully.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse {}
+pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for validating an address.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

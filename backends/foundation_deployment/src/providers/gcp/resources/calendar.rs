@@ -162,7 +162,9 @@ pub struct Colors {
 
 /// EventLabel resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EventLabel {}
+pub struct EventLabel {
+    pub value: serde_json::Value,
+}
 
 /// Events resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -269,7 +271,9 @@ pub struct FreeBusyResponse {
 
 /// LabelProperties resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LabelProperties {}
+pub struct LabelProperties {
+    pub value: serde_json::Value,
+}
 
 /// Settings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

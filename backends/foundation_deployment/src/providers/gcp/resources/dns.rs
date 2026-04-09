@@ -148,7 +148,9 @@ pub struct Project {
 
 /// ResourceRecordSetsDeleteResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceRecordSetsDeleteResponse {}
+pub struct ResourceRecordSetsDeleteResponse {
+    pub value: serde_json::Value,
+}
 
 /// ResourceRecordSetsListResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

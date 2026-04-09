@@ -47,30 +47,6 @@ pub struct AggregateAssetsValuesResponse {
     pub results: ::core::option::Option<::std::vec::Vec<AggregationResult>>,
 }
 
-/// Object count.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationCount {}
-
-/// Frequency distribution of all field values.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationFrequency {}
-
-/// Sum of field values.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AggregationSum {}
-
-/// Configuration for asset inventory details exports.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetsExportJobInventory {}
-
-/// Configuration for network dependencies exports.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetsExportJobNetworkDependencies {}
-
-/// Specific details for an AWS RDS database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AwsRds {}
-
 /// A request to delete a list of asset.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteAssetsRequest {
@@ -103,15 +79,15 @@ pub struct BatchUpdateAssetsResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
-
-/// Cascading rule for related logical DBs.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CascadeLogicalDBsRule {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Collection of frame data.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -350,7 +326,9 @@ pub struct RemoveAssetsFromGroupRequest {
 
 /// A response to a call to ReportAssetFrame.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportAssetFramesResponse {}
+pub struct ReportAssetFramesResponse {
+    pub value: serde_json::Value,
+}
 
 /// A request to run an assets export job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -414,19 +392,19 @@ pub struct ValidateImportJobRequest {
 pub struct Aggregation {
     /// Count the number of matching objects.
     #[serde(default)]
-    pub count: ::core::option::Option<serde_json::Value>,
+    pub count: ::core::option::Option<AggregationCount>,
     /// The name of the field on which to aggregate.
     #[serde(default)]
     pub field: ::core::option::Option<String>,
     /// Creates a frequency distribution of all field values.
     #[serde(default)]
-    pub frequency: ::core::option::Option<serde_json::Value>,
+    pub frequency: ::core::option::Option<AggregationFrequency>,
     /// Creates a bucketed histogram of field values.
     #[serde(default)]
     pub histogram: ::core::option::Option<AggregationHistogram>,
     /// Sum over a numeric field.
     #[serde(default)]
-    pub sum: ::core::option::Option<serde_json::Value>,
+    pub sum: ::core::option::Option<AggregationSum>,
 }
 
 /// Message describing a result of an aggregation.
@@ -449,7 +427,7 @@ pub struct AggregationResult {
 pub struct CascadingRule {
     /// Cascading rule for related logical DBs.
     #[serde(default, rename = "cascadeLogicalDbs")]
-    pub cascade_logical_dbs: ::core::option::Option<serde_json::Value>,
+    pub cascade_logical_dbs: ::core::option::Option<CascadeLogicalDBsRule>,
 }
 
 /// A request to update an asset.
@@ -477,7 +455,7 @@ pub struct AssetsExportJob {
     pub create_time: ::core::option::Option<String>,
     /// Export asset inventory details.
     #[serde(default)]
-    pub inventory: ::core::option::Option<serde_json::Value>,
+    pub inventory: ::core::option::Option<AssetsExportJobInventory>,
     /// Optional. Labels as key value pairs. Labels must meet the following constraints: * Keys and values can contain only lowercase letters, numeric characters, underscores, and dashes. * All characters must use UTF-8 encoding, and international characters are allowed. * Keys must start with a lowercase letter or international character. * Each resource is limited to a maximum of 64 labels. Both keys and values are additionally constrained to be &lt;= 128 bytes.
     #[serde(default)]
     pub labels: ::core::option::Option<serde_json::Value>,
@@ -486,7 +464,7 @@ pub struct AssetsExportJob {
     pub name: ::core::option::Option<String>,
     /// Export data regarding asset network dependencies.
     #[serde(default, rename = "networkDependencies")]
-    pub network_dependencies: ::core::option::Option<serde_json::Value>,
+    pub network_dependencies: ::core::option::Option<AssetsExportJobNetworkDependencies>,
     /// Export asset with performance data.
     #[serde(default, rename = "performanceData")]
     pub performance_data: ::core::option::Option<AssetsExportJobPerformanceData>,
@@ -834,12 +812,30 @@ pub struct AssetList {
     pub asset_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Object count.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationCount {
+    pub value: serde_json::Value,
+}
+
+/// Frequency distribution of all field values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationFrequency {
+    pub value: serde_json::Value,
+}
+
 /// Histogram of bucketed assets counts by field value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationHistogram {
     /// Lower bounds of buckets. The response will contain n+1 buckets for n bounds. The first bucket will count all assets for which the field value is smaller than the first bound. Subsequent buckets will count assets for which the field value is greater or equal to a lower bound and smaller than the next one. The last bucket will count assets for which the field value is greater or equal to the final lower bound. You can define up to 20 lower bounds.
     #[serde(default, rename = "lowerBounds")]
     pub lower_bounds: ::core::option::Option<::std::vec::Vec<f64>>,
+}
+
+/// Sum of field values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AggregationSum {
+    pub value: serde_json::Value,
 }
 
 /// The result of a count aggregation.
@@ -869,6 +865,12 @@ pub struct AggregationResultHistogram {
 pub struct AggregationResultSum {
     #[serde(default)]
     pub value: ::core::option::Option<f64>,
+}
+
+/// Cascading rule for related logical DBs.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CascadeLogicalDBsRule {
+    pub value: serde_json::Value,
 }
 
 /// An asset represents a resource in your environment. Asset types include virtual machines and databases.
@@ -930,6 +932,18 @@ pub struct AssetsExportJobExportCondition {
     /// Optional. Assets filter, supports the same syntax as asset listing.
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
+}
+
+/// Configuration for asset inventory details exports.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetsExportJobInventory {
+    pub value: serde_json::Value,
+}
+
+/// Configuration for network dependencies exports.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssetsExportJobNetworkDependencies {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for performance data exports.
@@ -1120,7 +1134,7 @@ pub struct DatabaseDeploymentDetails {
     pub aggregated_stats: ::core::option::Option<DatabaseDeploymentDetailsAggregatedStats>,
     /// Optional. Details of an AWS RDS instance.
     #[serde(default, rename = "awsRds")]
-    pub aws_rds: ::core::option::Option<serde_json::Value>,
+    pub aws_rds: ::core::option::Option<AwsRds>,
     /// Optional. The database deployment edition.
     #[serde(default)]
     pub edition: ::core::option::Option<String>,
@@ -1324,6 +1338,12 @@ pub struct DatabaseDeploymentDetailsAggregatedStats {
     /// Output only. The number of databases in the deployment.
     #[serde(default, rename = "databaseCount")]
     pub database_count: ::core::option::Option<i32>,
+}
+
+/// Specific details for an AWS RDS database deployment.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AwsRds {
+    pub value: serde_json::Value,
 }
 
 /// Specific details for a Mysql database deployment.

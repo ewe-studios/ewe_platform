@@ -19,13 +19,11 @@ pub struct ConfigRef {
     pub name: ::core::option::Option<String>,
 }
 
-/// Strategy used to delete a service. This strategy is a placeholder only used by the system generated rollout to delete a service.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteServiceStrategy {}
-
 /// Operation payload for EnableService method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableServiceResponse {}
+pub struct EnableServiceResponse {
+    pub value: serde_json::Value,
+}
 
 /// Encapsulation of flow-specific error details for debugging. Used as a details field on an error Status, not intended for external use.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -275,7 +273,7 @@ pub struct Rollout {
     pub created_by: ::core::option::Option<String>,
     /// The strategy associated with a rollout to delete a ManagedService. Readonly.
     #[serde(default, rename = "deleteServiceStrategy")]
-    pub delete_service_strategy: ::core::option::Option<serde_json::Value>,
+    pub delete_service_strategy: ::core::option::Option<DeleteServiceStrategy>,
     /// Optional. Unique identifier of this Rollout. Must be no longer than 63 characters and only lower case letters, digits, ''.'', ''_'' and ''-'' are allowed. If not specified by client, the server will generate one. The generated id will have the form of , where "date" is the create date in ISO 8601 format. "revision number" is a monotonically increasing positive number that is reset every day for each service. An example of the generated rollout_id is ''2016-02-16r1''
     #[serde(default, rename = "rolloutId")]
     pub rollout_id: ::core::option::Option<String>,
@@ -464,6 +462,12 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Strategy used to delete a service. This strategy is a placeholder only used by the system generated rollout to delete a service.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteServiceStrategy {
+    pub value: serde_json::Value,
 }
 
 /// Strategy that specifies how clients of Google Service Controller want to send traffic to use different config versions. This is generally used by API proxy to split traffic based on your configured percentage for each config version. One example of how to gradually rollout a new service configuration using this strategy: Day 1 Rollout { id: "example.googleapis.com/rollout_20160206" traffic_percent_strategy { percentages: { "example.googleapis.com/20160201": 70.00 "example.googleapis.com/20160206": 30.00 } } } Day 2 Rollout { id: "example.googleapis.com/rollout_20160207" traffic_percent_strategy: { percentages: { "example.googleapis.com/20160206": 100.00 } } }

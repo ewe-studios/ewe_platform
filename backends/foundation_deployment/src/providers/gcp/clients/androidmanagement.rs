@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -29,13 +30,13 @@ use serde::Serialize;
 pub fn androidmanagement_enterprises_create_builder(
     client: &SimpleHttpClient,
     agreementAccepted: Option<bool>,
-    enterpriseToken: Option<&str>,
-    projectId: Option<&str>,
-    signupUrlName: Option<&str>,
+    enterpriseToken: Option<String>,
+    projectId: Option<String>,
+    signupUrlName: Option<String>,
     body: &Enterprise,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://androidmanagement.googleapis.com/v1/enterprises",);
+    let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/enterprises",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -53,9 +54,9 @@ pub fn androidmanagement_enterprises_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -91,7 +92,12 @@ pub fn androidmanagement_enterprises_create_builder(
 pub fn androidmanagement_enterprises_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Enterprise>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -201,10 +207,10 @@ pub fn androidmanagement_enterprises_create(
 > {
     let builder = androidmanagement_enterprises_create_builder(
         client,
-        args.agreementAccepted,
-        args.enterpriseToken.as_deref(),
-        args.projectId.as_deref(),
-        args.signupUrlName.as_deref(),
+        args.agreementAccepted.clone(),
+        args.enterpriseToken.clone(),
+        args.projectId.clone(),
+        args.signupUrlName.clone(),
         &args.body,
     )?;
     androidmanagement_enterprises_create_execute(builder)
@@ -218,17 +224,14 @@ pub fn androidmanagement_enterprises_create(
 
 pub fn androidmanagement_enterprises_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}",
-        name,
-    );
+    let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/enterprises/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -258,7 +261,12 @@ pub fn androidmanagement_enterprises_delete_builder(
 pub fn androidmanagement_enterprises_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -358,7 +366,7 @@ pub fn androidmanagement_enterprises_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_delete_builder(client, &args.name)?;
+    let builder = androidmanagement_enterprises_delete_builder(client, args.name.clone())?;
     androidmanagement_enterprises_delete_execute(builder)
 }
 
@@ -370,18 +378,17 @@ pub fn androidmanagement_enterprises_delete(
 
 pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GenerateEnterpriseUpgradeUrlRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidmanagement.googleapis.com/v1/enterprises/{}:generateEnterpriseUpgradeUrl",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -414,8 +421,9 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateEnterpriseUpgradeUrlResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateEnterpriseUpgradeUrlResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -528,1185 +536,11 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
-        client, &args.name, &args.body,
-    )?;
-    androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Gets an enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_get_execute()` to send, or `androidmanagement_enterprises_get` for simplest API.
-
-pub fn androidmanagement_enterprises_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Gets an enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_get_execute()` or `androidmanagement_enterprises_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Enterprise = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Gets an enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Gets an enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_get_builder()` + `androidmanagement_enterprises_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_get_execute(builder)
-}
-
-/// GET v1/enterprises
-/// Lists EMM-managed enterprises. Only BASIC fields are returned.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_list_execute()` to send, or `androidmanagement_enterprises_list` for simplest API.
-
-pub fn androidmanagement_enterprises_list_builder(
-    client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    projectId: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://androidmanagement.googleapis.com/v1/enterprises",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = projectId {
-        query_parts.push(format!("projectId={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises
-/// Lists EMM-managed enterprises. Only BASIC fields are returned.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_list_execute()` or `androidmanagement_enterprises_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListEnterprisesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListEnterprisesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises
-/// Lists EMM-managed enterprises. Only BASIC fields are returned.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_list_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListEnterprisesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesListArgs {
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: projectId
-    pub projectId: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/enterprises
-/// Lists EMM-managed enterprises. Only BASIC fields are returned.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_list_builder()` + `androidmanagement_enterprises_list_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_list(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListEnterprisesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.projectId.as_deref(),
-        args.view.as_deref(),
-    )?;
-    androidmanagement_enterprises_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Updates an enterprise. See also: SigninDetail
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_patch_execute()` to send, or `androidmanagement_enterprises_patch` for simplest API.
-
-pub fn androidmanagement_enterprises_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Enterprise,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Updates an enterprise. See also: SigninDetail
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_patch_execute()` or `androidmanagement_enterprises_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Enterprise = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Updates an enterprise. See also: SigninDetail
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_patch_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Enterprise,
-}
-
-/// GET v1/enterprises/{enterprisesId}
-/// Updates an enterprise. See also: SigninDetail
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_patch_builder()` + `androidmanagement_enterprises_patch_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.name.clone(),
         &args.body,
     )?;
-    androidmanagement_enterprises_patch_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
-/// Gets info about an application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_applications_get_execute()` to send, or `androidmanagement_enterprises_applications_get` for simplest API.
-
-pub fn androidmanagement_enterprises_applications_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/applications/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
-        query_parts.push(format!("languageCode={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
-/// Gets info about an application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_applications_get_execute()` or `androidmanagement_enterprises_applications_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_applications_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_applications_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Application = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
-/// Gets info about an application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_applications_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_applications_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_applications_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_applications_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_applications_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_applications_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_applications_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesApplicationsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: languageCode
-    pub languageCode: Option<String>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
-/// Gets info about an application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_applications_get_builder()` + `androidmanagement_enterprises_applications_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_applications_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_applications_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesApplicationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_applications_get_builder(
-        client,
-        &args.name,
-        args.languageCode.as_deref(),
-    )?;
-    androidmanagement_enterprises_applications_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Deletes a device. This operation attempts to wipe the device but this is not guaranteed to succeed if the device is offline for an extended period. Deleted devices do not show up in enterprises.devices.list calls and a 404 is returned from enterprises.devices.get.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_delete_execute()` to send, or `androidmanagement_enterprises_devices_delete` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    wipeDataFlags: Option<&str>,
-    wipeReasonMessage: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = wipeDataFlags {
-        query_parts.push(format!("wipeDataFlags={}", val));
-    }
-    if let Some(val) = wipeReasonMessage {
-        query_parts.push(format!("wipeReasonMessage={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Deletes a device. This operation attempts to wipe the device but this is not guaranteed to succeed if the device is offline for an extended period. Deleted devices do not show up in enterprises.devices.list calls and a 404 is returned from enterprises.devices.get.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_delete_execute()` or `androidmanagement_enterprises_devices_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Deletes a device. This operation attempts to wipe the device but this is not guaranteed to succeed if the device is offline for an extended period. Deleted devices do not show up in enterprises.devices.list calls and a 404 is returned from enterprises.devices.get.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_delete_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: wipeDataFlags
-    pub wipeDataFlags: Option<String>,
-    /// Query parameter: wipeReasonMessage
-    pub wipeReasonMessage: Option<String>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Deletes a device. This operation attempts to wipe the device but this is not guaranteed to succeed if the device is offline for an extended period. Deleted devices do not show up in enterprises.devices.list calls and a 404 is returned from enterprises.devices.get.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_delete_builder()` + `androidmanagement_enterprises_devices_delete_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_delete_builder(
-        client,
-        &args.name,
-        args.wipeDataFlags.as_deref(),
-        args.wipeReasonMessage.as_deref(),
-    )?;
-    androidmanagement_enterprises_devices_delete_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device. Deleted devices will respond with a 404 error.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_get_execute()` to send, or `androidmanagement_enterprises_devices_get` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device. Deleted devices will respond with a 404 error.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_get_execute()` or `androidmanagement_enterprises_devices_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Device = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device. Deleted devices will respond with a 404 error.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device. Deleted devices will respond with a 404 error.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_get_builder()` + `androidmanagement_enterprises_devices_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_devices_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:issueCommand
-/// Issues a command to a device. The Operation resource returned contains a Command in its metadata field. Use the get operation method to get the status of the command.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_issue_command_execute()` to send, or `androidmanagement_enterprises_devices_issue_command` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_issue_command_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &Command,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}:issueCommand",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:issueCommand
-/// Issues a command to a device. The Operation resource returned contains a Command in its metadata field. Use the get operation method to get the status of the command.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_issue_command_execute()` or `androidmanagement_enterprises_devices_issue_command`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_issue_command_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_issue_command_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:issueCommand
-/// Issues a command to a device. The Operation resource returned contains a Command in its metadata field. Use the get operation method to get the status of the command.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_issue_command_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_issue_command_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_issue_command()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_issue_command_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_issue_command_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_issue_command_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_issue_command`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesIssueCommandArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: Command,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:issueCommand
-/// Issues a command to a device. The Operation resource returned contains a Command in its metadata field. Use the get operation method to get the status of the command.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_issue_command_builder()` + `androidmanagement_enterprises_devices_issue_command_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_issue_command_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_issue_command(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesIssueCommandArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_issue_command_builder(
-        client, &args.name, &args.body,
-    )?;
-    androidmanagement_enterprises_devices_issue_command_execute(builder)
+    androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices
@@ -1717,15 +551,13 @@ pub fn androidmanagement_enterprises_devices_issue_command(
 
 pub fn androidmanagement_enterprises_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/devices",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1737,9 +569,9 @@ pub fn androidmanagement_enterprises_devices_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1773,8 +605,11 @@ pub fn androidmanagement_enterprises_devices_list_builder(
 pub fn androidmanagement_enterprises_devices_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDevicesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1885,689 +720,11 @@ pub fn androidmanagement_enterprises_devices_list(
 > {
     let builder = androidmanagement_enterprises_devices_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     androidmanagement_enterprises_devices_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Updates a device.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_patch_execute()` to send, or `androidmanagement_enterprises_devices_patch` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Device,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Updates a device.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_patch_execute()` or `androidmanagement_enterprises_devices_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Device = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Updates a device.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_patch_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Device,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Updates a device.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_patch_builder()` + `androidmanagement_enterprises_devices_patch_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    androidmanagement_enterprises_devices_patch_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_operations_cancel_execute()` to send, or `androidmanagement_enterprises_devices_operations_cancel` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_operations_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}/operations/{}:cancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_operations_cancel_execute()` or `androidmanagement_enterprises_devices_operations_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_operations_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_cancel_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_operations_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_operations_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_operations_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_operations_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesOperationsCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}:cancel
-/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_operations_cancel_builder()` + `androidmanagement_enterprises_devices_operations_cancel_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_cancel(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesOperationsCancelArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        androidmanagement_enterprises_devices_operations_cancel_builder(client, &args.name)?;
-    androidmanagement_enterprises_devices_operations_cancel_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_operations_get_execute()` to send, or `androidmanagement_enterprises_devices_operations_get` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_operations_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}/operations/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_operations_get_execute()` or `androidmanagement_enterprises_devices_operations_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_operations_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_operations_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_operations_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_operations_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_operations_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesOperationsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_operations_get_builder()` + `androidmanagement_enterprises_devices_operations_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesOperationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_operations_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_devices_operations_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_devices_operations_list_execute()` to send, or `androidmanagement_enterprises_devices_operations_list` for simplest API.
-
-pub fn androidmanagement_enterprises_devices_operations_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/devices/{}/operations",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = returnPartialSuccess {
-        query_parts.push(format!("returnPartialSuccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_devices_operations_list_execute()` or `androidmanagement_enterprises_devices_operations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListOperationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_devices_operations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_list_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_devices_operations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_devices_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_devices_operations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_devices_operations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_devices_operations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesDevicesOperationsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_devices_operations_list_builder()` + `androidmanagement_enterprises_devices_operations_list_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_devices_operations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_devices_operations_list(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesDevicesOperationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_devices_operations_list_builder(
-        client,
-        &args.name,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
-    )?;
-    androidmanagement_enterprises_devices_operations_list_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
@@ -2578,18 +735,16 @@ pub fn androidmanagement_enterprises_devices_operations_list(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &EnrollmentToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2621,8 +776,11 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create_builder(
 pub fn androidmanagement_enterprises_enrollment_tokens_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EnrollmentToken>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2731,510 +889,10 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create(
 > {
     let builder = androidmanagement_enterprises_enrollment_tokens_create_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     androidmanagement_enterprises_enrollment_tokens_create_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Deletes an enrollment token. This operation invalidates the token, preventing its future use.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_enrollment_tokens_delete_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_delete` for simplest API.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Deletes an enrollment token. This operation invalidates the token, preventing its future use.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_enrollment_tokens_delete_execute()` or `androidmanagement_enterprises_enrollment_tokens_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Deletes an enrollment token. This operation invalidates the token, preventing its future use.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_enrollment_tokens_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_delete_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_enrollment_tokens_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_enrollment_tokens_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesEnrollmentTokensDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Deletes an enrollment token. This operation invalidates the token, preventing its future use.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_enrollment_tokens_delete_builder()` + `androidmanagement_enterprises_enrollment_tokens_delete_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesEnrollmentTokensDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        androidmanagement_enterprises_enrollment_tokens_delete_builder(client, &args.name)?;
-    androidmanagement_enterprises_enrollment_tokens_delete_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_enrollment_tokens_get_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_get` for simplest API.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_enrollment_tokens_get_execute()` or `androidmanagement_enterprises_enrollment_tokens_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EnrollmentToken = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_enrollment_tokens_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_enrollment_tokens_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_enrollment_tokens_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesEnrollmentTokensGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens/{enrollmentTokensId}
-/// Gets an active, unexpired enrollment token. A partial view of the enrollment token is returned. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_enrollment_tokens_get_builder()` + `androidmanagement_enterprises_enrollment_tokens_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesEnrollmentTokensGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EnrollmentToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_enrollment_tokens_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_enrollment_tokens_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_enrollment_tokens_list_execute()` to send, or `androidmanagement_enterprises_enrollment_tokens_list` for simplest API.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/enrollmentTokens",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_enrollment_tokens_list_execute()` or `androidmanagement_enterprises_enrollment_tokens_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListEnrollmentTokensResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListEnrollmentTokensResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_enrollment_tokens_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_list_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_enrollment_tokens_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_enrollment_tokens_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListEnrollmentTokensResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_enrollment_tokens_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_enrollment_tokens_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesEnrollmentTokensListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/enrollmentTokens
-/// Lists active, unexpired enrollment tokens for a given enterprise. The list items contain only a partial view of EnrollmentToken object. Only the following fields are populated: name, `expirationTimestamp`, `allowPersonalUsage`, value, `qrCode`. This method is meant to help manage active enrollment tokens lifecycle. For security reasons, it's recommended to delete active enrollment tokens as soon as they're not intended to be used anymore.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_enrollment_tokens_list_builder()` + `androidmanagement_enterprises_enrollment_tokens_list_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_enrollment_tokens_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_enrollment_tokens_list(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesEnrollmentTokensListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListEnrollmentTokensResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_enrollment_tokens_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidmanagement_enterprises_enrollment_tokens_list_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/migrationTokens
@@ -3245,18 +903,16 @@ pub fn androidmanagement_enterprises_enrollment_tokens_list(
 
 pub fn androidmanagement_enterprises_migration_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &MigrationToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3288,8 +944,11 @@ pub fn androidmanagement_enterprises_migration_tokens_create_builder(
 pub fn androidmanagement_enterprises_migration_tokens_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MigrationToken>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3398,659 +1057,10 @@ pub fn androidmanagement_enterprises_migration_tokens_create(
 > {
     let builder = androidmanagement_enterprises_migration_tokens_create_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     androidmanagement_enterprises_migration_tokens_create_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens/{migrationTokensId}
-/// Gets a migration token.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_migration_tokens_get_execute()` to send, or `androidmanagement_enterprises_migration_tokens_get` for simplest API.
-
-pub fn androidmanagement_enterprises_migration_tokens_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens/{migrationTokensId}
-/// Gets a migration token.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_migration_tokens_get_execute()` or `androidmanagement_enterprises_migration_tokens_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_migration_tokens_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_migration_tokens_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: MigrationToken = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens/{migrationTokensId}
-/// Gets a migration token.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_migration_tokens_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_migration_tokens_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_migration_tokens_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_migration_tokens_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_migration_tokens_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_migration_tokens_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_migration_tokens_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesMigrationTokensGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens/{migrationTokensId}
-/// Gets a migration token.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_migration_tokens_get_builder()` + `androidmanagement_enterprises_migration_tokens_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_migration_tokens_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_migration_tokens_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesMigrationTokensGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MigrationToken>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_migration_tokens_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_migration_tokens_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens
-/// Lists migration tokens.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_migration_tokens_list_execute()` to send, or `androidmanagement_enterprises_migration_tokens_list` for simplest API.
-
-pub fn androidmanagement_enterprises_migration_tokens_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/migrationTokens",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens
-/// Lists migration tokens.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_migration_tokens_list_execute()` or `androidmanagement_enterprises_migration_tokens_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_migration_tokens_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_migration_tokens_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListMigrationTokensResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListMigrationTokensResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens
-/// Lists migration tokens.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_migration_tokens_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_migration_tokens_list_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_migration_tokens_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_migration_tokens_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_migration_tokens_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListMigrationTokensResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_migration_tokens_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_migration_tokens_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesMigrationTokensListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/migrationTokens
-/// Lists migration tokens.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_migration_tokens_list_builder()` + `androidmanagement_enterprises_migration_tokens_list_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_migration_tokens_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_migration_tokens_list(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesMigrationTokensListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListMigrationTokensResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_migration_tokens_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidmanagement_enterprises_migration_tokens_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Deletes a policy. This operation is only permitted if no devices are currently referencing the policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_policies_delete_execute()` to send, or `androidmanagement_enterprises_policies_delete` for simplest API.
-
-pub fn androidmanagement_enterprises_policies_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Deletes a policy. This operation is only permitted if no devices are currently referencing the policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_policies_delete_execute()` or `androidmanagement_enterprises_policies_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Deletes a policy. This operation is only permitted if no devices are currently referencing the policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_policies_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_policies_delete_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_policies_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_policies_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_policies_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_policies_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPoliciesDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Deletes a policy. This operation is only permitted if no devices are currently referencing the policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_policies_delete_builder()` + `androidmanagement_enterprises_policies_delete_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_policies_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPoliciesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_policies_delete_builder(client, &args.name)?;
-    androidmanagement_enterprises_policies_delete_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Gets a policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_policies_get_execute()` to send, or `androidmanagement_enterprises_policies_get` for simplest API.
-
-pub fn androidmanagement_enterprises_policies_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Gets a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_policies_get_execute()` or `androidmanagement_enterprises_policies_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Gets a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_policies_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_policies_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_policies_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_policies_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_policies_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_policies_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPoliciesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Gets a policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_policies_get_builder()` + `androidmanagement_enterprises_policies_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_policies_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPoliciesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_policies_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_policies_get_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/policies
@@ -4061,15 +1071,13 @@ pub fn androidmanagement_enterprises_policies_get(
 
 pub fn androidmanagement_enterprises_policies_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/policies",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4081,9 +1089,9 @@ pub fn androidmanagement_enterprises_policies_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4117,8 +1125,11 @@ pub fn androidmanagement_enterprises_policies_list_builder(
 pub fn androidmanagement_enterprises_policies_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListPoliciesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4229,529 +1240,11 @@ pub fn androidmanagement_enterprises_policies_list(
 > {
     let builder = androidmanagement_enterprises_policies_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     androidmanagement_enterprises_policies_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:modifyPolicyApplications
-/// Updates or creates applications in a policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_policies_modify_policy_applications_execute()` to send, or `androidmanagement_enterprises_policies_modify_policy_applications` for simplest API.
-
-pub fn androidmanagement_enterprises_policies_modify_policy_applications_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ModifyPolicyApplicationsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{}:modifyPolicyApplications",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:modifyPolicyApplications
-/// Updates or creates applications in a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_policies_modify_policy_applications_execute()` or `androidmanagement_enterprises_policies_modify_policy_applications`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_modify_policy_applications_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_modify_policy_applications_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ModifyPolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ModifyPolicyApplicationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:modifyPolicyApplications
-/// Updates or creates applications in a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_policies_modify_policy_applications_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_policies_modify_policy_applications_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_policies_modify_policy_applications()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_modify_policy_applications_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_policies_modify_policy_applications_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ModifyPolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_policies_modify_policy_applications_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_policies_modify_policy_applications`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ModifyPolicyApplicationsRequest,
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:modifyPolicyApplications
-/// Updates or creates applications in a policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_policies_modify_policy_applications_builder()` + `androidmanagement_enterprises_policies_modify_policy_applications_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_policies_modify_policy_applications_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_modify_policy_applications(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ModifyPolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_policies_modify_policy_applications_builder(
-        client, &args.name, &args.body,
-    )?;
-    androidmanagement_enterprises_policies_modify_policy_applications_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Updates or creates a policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_policies_patch_execute()` to send, or `androidmanagement_enterprises_policies_patch` for simplest API.
-
-pub fn androidmanagement_enterprises_policies_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Policy,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Updates or creates a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_policies_patch_execute()` or `androidmanagement_enterprises_policies_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Updates or creates a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_policies_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_policies_patch_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_policies_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_policies_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_policies_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_policies_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPoliciesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Policy,
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}
-/// Updates or creates a policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_policies_patch_builder()` + `androidmanagement_enterprises_policies_patch_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_policies_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPoliciesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_policies_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    androidmanagement_enterprises_policies_patch_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:removePolicyApplications
-/// Removes applications in a policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_policies_remove_policy_applications_execute()` to send, or `androidmanagement_enterprises_policies_remove_policy_applications` for simplest API.
-
-pub fn androidmanagement_enterprises_policies_remove_policy_applications_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RemovePolicyApplicationsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/policies/{}:removePolicyApplications",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:removePolicyApplications
-/// Removes applications in a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_policies_remove_policy_applications_execute()` or `androidmanagement_enterprises_policies_remove_policy_applications`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_remove_policy_applications_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_remove_policy_applications_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<RemovePolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemovePolicyApplicationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:removePolicyApplications
-/// Removes applications in a policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_policies_remove_policy_applications_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_policies_remove_policy_applications_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_policies_remove_policy_applications()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_policies_remove_policy_applications_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_policies_remove_policy_applications_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<RemovePolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_policies_remove_policy_applications_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_policies_remove_policy_applications`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RemovePolicyApplicationsRequest,
-}
-
-/// GET v1/enterprises/{enterprisesId}/policies/{policiesId}:removePolicyApplications
-/// Removes applications in a policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_policies_remove_policy_applications_builder()` + `androidmanagement_enterprises_policies_remove_policy_applications_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_policies_remove_policy_applications_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_policies_remove_policy_applications(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<RemovePolicyApplicationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_policies_remove_policy_applications_builder(
-        client, &args.name, &args.body,
-    )?;
-    androidmanagement_enterprises_policies_remove_policy_applications_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/webApps
@@ -4762,18 +1255,16 @@ pub fn androidmanagement_enterprises_policies_remove_policy_applications(
 
 pub fn androidmanagement_enterprises_web_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4805,7 +1296,12 @@ pub fn androidmanagement_enterprises_web_apps_create_builder(
 pub fn androidmanagement_enterprises_web_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WebApp>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4907,672 +1403,12 @@ pub fn androidmanagement_enterprises_web_apps_create(
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_web_apps_create_builder(client, &args.parent, &args.body)?;
-    androidmanagement_enterprises_web_apps_create_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Deletes a web app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_web_apps_delete_execute()` to send, or `androidmanagement_enterprises_web_apps_delete` for simplest API.
-
-pub fn androidmanagement_enterprises_web_apps_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Deletes a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_web_apps_delete_execute()` or `androidmanagement_enterprises_web_apps_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Deletes a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_web_apps_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_delete_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_web_apps_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_web_apps_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_web_apps_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_web_apps_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesWebAppsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Deletes a web app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_web_apps_delete_builder()` + `androidmanagement_enterprises_web_apps_delete_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesWebAppsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_web_apps_delete_builder(client, &args.name)?;
-    androidmanagement_enterprises_web_apps_delete_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Gets a web app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_web_apps_get_execute()` to send, or `androidmanagement_enterprises_web_apps_get` for simplest API.
-
-pub fn androidmanagement_enterprises_web_apps_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Gets a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_web_apps_get_execute()` or `androidmanagement_enterprises_web_apps_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WebApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Gets a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_web_apps_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_get_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_web_apps_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_web_apps_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_web_apps_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_web_apps_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesWebAppsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Gets a web app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_web_apps_get_builder()` + `androidmanagement_enterprises_web_apps_get_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_get(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesWebAppsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_web_apps_get_builder(client, &args.name)?;
-    androidmanagement_enterprises_web_apps_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps
-/// Lists web apps for a given enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_web_apps_list_execute()` to send, or `androidmanagement_enterprises_web_apps_list` for simplest API.
-
-pub fn androidmanagement_enterprises_web_apps_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps
-/// Lists web apps for a given enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_web_apps_list_execute()` or `androidmanagement_enterprises_web_apps_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListWebAppsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps
-/// Lists web apps for a given enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_web_apps_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_list_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_web_apps_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_web_apps_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_web_apps_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_web_apps_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesWebAppsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps
-/// Lists web apps for a given enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_web_apps_list_builder()` + `androidmanagement_enterprises_web_apps_list_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_list(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesWebAppsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_web_apps_list_builder(
+    let builder = androidmanagement_enterprises_web_apps_create_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidmanagement_enterprises_web_apps_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Updates a web app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidmanagement_enterprises_web_apps_patch_execute()` to send, or `androidmanagement_enterprises_web_apps_patch` for simplest API.
-
-pub fn androidmanagement_enterprises_web_apps_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &WebApp,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webApps/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Updates a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidmanagement_enterprises_web_apps_patch_execute()` or `androidmanagement_enterprises_web_apps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WebApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Updates a web app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidmanagement_enterprises_web_apps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_patch_task()`.
-/// For the simplest API, use `androidmanagement_enterprises_web_apps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidmanagement_enterprises_web_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidmanagement_enterprises_web_apps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidmanagement_enterprises_web_apps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidmanagement_enterprises_web_apps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidmanagementEnterprisesWebAppsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: WebApp,
-}
-
-/// GET v1/enterprises/{enterprisesId}/webApps/{webAppsId}
-/// Updates a web app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidmanagement_enterprises_web_apps_patch_builder()` + `androidmanagement_enterprises_web_apps_patch_execute()`.
-/// For task-level control, use `androidmanagement_enterprises_web_apps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidmanagement_enterprises_web_apps_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidmanagementEnterprisesWebAppsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidmanagement_enterprises_web_apps_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.parent.clone(),
         &args.body,
     )?;
-    androidmanagement_enterprises_web_apps_patch_execute(builder)
+    androidmanagement_enterprises_web_apps_create_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/webTokens
@@ -5583,18 +1419,16 @@ pub fn androidmanagement_enterprises_web_apps_patch(
 
 pub fn androidmanagement_enterprises_web_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &WebToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/enterprises/{}/webTokens",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidmanagement.googleapis.com/v1/enterprises/{}/webTokens",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5626,7 +1460,12 @@ pub fn androidmanagement_enterprises_web_tokens_create_builder(
 pub fn androidmanagement_enterprises_web_tokens_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebToken>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WebToken>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5728,8 +1567,11 @@ pub fn androidmanagement_enterprises_web_tokens_create(
     impl StreamIterator<D = Result<ApiResponse<WebToken>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidmanagement_enterprises_web_tokens_create_builder(client, &args.parent, &args.body)?;
+    let builder = androidmanagement_enterprises_web_tokens_create_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     androidmanagement_enterprises_web_tokens_create_execute(builder)
 }
 
@@ -5741,17 +1583,14 @@ pub fn androidmanagement_enterprises_web_tokens_create(
 
 pub fn androidmanagement_provisioning_info_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidmanagement.googleapis.com/v1/provisioningInfo/{}",
-        name,
-    );
+    let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/provisioningInfo/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5781,8 +1620,11 @@ pub fn androidmanagement_provisioning_info_get_builder(
 pub fn androidmanagement_provisioning_info_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProvisioningInfo>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProvisioningInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5887,7 +1729,7 @@ pub fn androidmanagement_provisioning_info_get(
         + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_provisioning_info_get_builder(client, &args.name)?;
+    let builder = androidmanagement_provisioning_info_get_builder(client, args.name.clone())?;
     androidmanagement_provisioning_info_get_execute(builder)
 }
 
@@ -5899,13 +1741,13 @@ pub fn androidmanagement_provisioning_info_get(
 
 pub fn androidmanagement_signup_urls_create_builder(
     client: &SimpleHttpClient,
-    adminEmail: Option<&str>,
-    allowedDomains: Option<&str>,
-    callbackUrl: Option<&str>,
-    projectId: Option<&str>,
+    adminEmail: Option<String>,
+    allowedDomains: Option<String>,
+    callbackUrl: Option<String>,
+    projectId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://androidmanagement.googleapis.com/v1/signupUrls",);
+    let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/signupUrls",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5923,9 +1765,9 @@ pub fn androidmanagement_signup_urls_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5959,7 +1801,12 @@ pub fn androidmanagement_signup_urls_create_builder(
 pub fn androidmanagement_signup_urls_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SignupUrl>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SignupUrl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6067,10 +1914,10 @@ pub fn androidmanagement_signup_urls_create(
 > {
     let builder = androidmanagement_signup_urls_create_builder(
         client,
-        args.adminEmail.as_deref(),
-        args.allowedDomains.as_deref(),
-        args.callbackUrl.as_deref(),
-        args.projectId.as_deref(),
+        args.adminEmail.clone(),
+        args.allowedDomains.clone(),
+        args.callbackUrl.clone(),
+        args.projectId.clone(),
     )?;
     androidmanagement_signup_urls_create_execute(builder)
 }

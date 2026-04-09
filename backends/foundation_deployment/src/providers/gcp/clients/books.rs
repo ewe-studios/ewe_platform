@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,15 @@ use serde::Serialize;
 
 pub fn books_bookshelves_get_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    shelf: &str,
-    source: Option<&str>,
+    userId: String,
+    shelf: String,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}",
-        userId, shelf,
+        userId.as_str(),
+        shelf.as_str(),
     );
 
     // Build request
@@ -45,9 +47,9 @@ pub fn books_bookshelves_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -81,7 +83,12 @@ pub fn books_bookshelves_get_builder(
 pub fn books_bookshelves_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bookshelf>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -185,8 +192,12 @@ pub fn books_bookshelves_get(
     impl StreamIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        books_bookshelves_get_builder(client, &args.userId, &args.shelf, args.source.as_deref())?;
+    let builder = books_bookshelves_get_builder(
+        client,
+        args.userId.clone(),
+        args.shelf.clone(),
+        args.source.clone(),
+    )?;
     books_bookshelves_get_execute(builder)
 }
 
@@ -198,13 +209,13 @@ pub fn books_bookshelves_get(
 
 pub fn books_bookshelves_list_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    source: Option<&str>,
+    userId: String,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves",
-        userId,
+        userId.as_str(),
     );
 
     // Build request
@@ -214,9 +225,9 @@ pub fn books_bookshelves_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -250,7 +261,12 @@ pub fn books_bookshelves_list_builder(
 pub fn books_bookshelves_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bookshelves>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -352,7 +368,7 @@ pub fn books_bookshelves_list(
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_bookshelves_list_builder(client, &args.userId, args.source.as_deref())?;
+    let builder = books_bookshelves_list_builder(client, args.userId.clone(), args.source.clone())?;
     books_bookshelves_list_execute(builder)
 }
 
@@ -364,17 +380,18 @@ pub fn books_bookshelves_list(
 
 pub fn books_bookshelves_volumes_list_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    shelf: &str,
+    userId: String,
+    shelf: String,
     maxResults: Option<i32>,
     showPreorders: Option<bool>,
-    source: Option<&str>,
+    source: Option<String>,
     startIndex: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}/volumes",
-        userId, shelf,
+        userId.as_str(),
+        shelf.as_str(),
     );
 
     // Build request
@@ -393,9 +410,9 @@ pub fn books_bookshelves_volumes_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -429,7 +446,12 @@ pub fn books_bookshelves_volumes_list_builder(
 pub fn books_bookshelves_volumes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -541,12 +563,12 @@ pub fn books_bookshelves_volumes_list(
 > {
     let builder = books_bookshelves_volumes_list_builder(
         client,
-        &args.userId,
-        &args.shelf,
-        args.maxResults,
-        args.showPreorders,
-        args.source.as_deref(),
-        args.startIndex,
+        args.userId.clone(),
+        args.shelf.clone(),
+        args.maxResults.clone(),
+        args.showPreorders.clone(),
+        args.source.clone(),
+        args.startIndex.clone(),
     )?;
     books_bookshelves_volumes_list_execute(builder)
 }
@@ -559,13 +581,13 @@ pub fn books_bookshelves_volumes_list(
 
 pub fn books_cloudloading_add_book_builder(
     client: &SimpleHttpClient,
-    drive_document_id: Option<&str>,
-    mime_type: Option<&str>,
-    name: Option<&str>,
-    upload_client_token: Option<&str>,
+    drive_document_id: Option<String>,
+    mime_type: Option<String>,
+    name: Option<String>,
+    upload_client_token: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/cloudloading/addBook",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/addBook",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -583,9 +605,9 @@ pub fn books_cloudloading_add_book_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -619,8 +641,11 @@ pub fn books_cloudloading_add_book_builder(
 pub fn books_cloudloading_add_book_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BooksCloudloadingResource>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BooksCloudloadingResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -733,164 +758,12 @@ pub fn books_cloudloading_add_book(
 > {
     let builder = books_cloudloading_add_book_builder(
         client,
-        args.drive_document_id.as_deref(),
-        args.mime_type.as_deref(),
-        args.name.as_deref(),
-        args.upload_client_token.as_deref(),
+        args.drive_document_id.clone(),
+        args.mime_type.clone(),
+        args.name.clone(),
+        args.upload_client_token.clone(),
     )?;
     books_cloudloading_add_book_execute(builder)
-}
-
-/// GET books/v1/cloudloading/deleteBook
-/// Remove the book and its contents
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_cloudloading_delete_book_execute()` to send, or `books_cloudloading_delete_book` for simplest API.
-
-pub fn books_cloudloading_delete_book_builder(
-    client: &SimpleHttpClient,
-    volumeId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/cloudloading/deleteBook",
-        volumeId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/cloudloading/deleteBook
-/// Remove the book and its contents
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_cloudloading_delete_book_execute()` or `books_cloudloading_delete_book`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_cloudloading_delete_book_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_cloudloading_delete_book_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/cloudloading/deleteBook
-/// Remove the book and its contents
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_cloudloading_delete_book_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_cloudloading_delete_book_task()`.
-/// For the simplest API, use `books_cloudloading_delete_book()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_cloudloading_delete_book_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_cloudloading_delete_book_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_cloudloading_delete_book_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_cloudloading_delete_book`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksCloudloadingDeleteBookArgs {
-    /// Path parameter: volumeId
-    pub volumeId: String,
-}
-
-/// GET books/v1/cloudloading/deleteBook
-/// Remove the book and its contents
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_cloudloading_delete_book_builder()` + `books_cloudloading_delete_book_execute()`.
-/// For task-level control, use `books_cloudloading_delete_book_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_cloudloading_delete_book(
-    client: &SimpleHttpClient,
-    args: &BooksCloudloadingDeleteBookArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_cloudloading_delete_book_builder(client, &args.volumeId)?;
-    books_cloudloading_delete_book_execute(builder)
 }
 
 /// GET books/v1/cloudloading/updateBook
@@ -904,11 +777,11 @@ pub fn books_cloudloading_update_book_builder(
     body: &BooksCloudloadingResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/cloudloading/updateBook",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/updateBook",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -940,8 +813,11 @@ pub fn books_cloudloading_update_book_builder(
 pub fn books_cloudloading_update_book_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BooksCloudloadingResource>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BooksCloudloadingResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1050,158 +926,6 @@ pub fn books_cloudloading_update_book(
     books_cloudloading_update_book_execute(builder)
 }
 
-/// GET books/v1/dictionary/listOfflineMetadata
-/// Returns a list of offline dictionary metadata available
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_dictionary_list_offline_metadata_execute()` to send, or `books_dictionary_list_offline_metadata` for simplest API.
-
-pub fn books_dictionary_list_offline_metadata_builder(
-    client: &SimpleHttpClient,
-    cpksver: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/dictionary/listOfflineMetadata",
-        cpksver,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/dictionary/listOfflineMetadata
-/// Returns a list of offline dictionary metadata available
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_dictionary_list_offline_metadata_execute()` or `books_dictionary_list_offline_metadata`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_dictionary_list_offline_metadata_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_dictionary_list_offline_metadata_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Metadata>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Metadata = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/dictionary/listOfflineMetadata
-/// Returns a list of offline dictionary metadata available
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_dictionary_list_offline_metadata_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_dictionary_list_offline_metadata_task()`.
-/// For the simplest API, use `books_dictionary_list_offline_metadata()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_dictionary_list_offline_metadata_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_dictionary_list_offline_metadata_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Metadata>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_dictionary_list_offline_metadata_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_dictionary_list_offline_metadata`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksDictionaryListOfflineMetadataArgs {
-    /// Path parameter: cpksver
-    pub cpksver: String,
-}
-
-/// GET books/v1/dictionary/listOfflineMetadata
-/// Returns a list of offline dictionary metadata available
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_dictionary_list_offline_metadata_builder()` + `books_dictionary_list_offline_metadata_execute()`.
-/// For task-level control, use `books_dictionary_list_offline_metadata_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_dictionary_list_offline_metadata(
-    client: &SimpleHttpClient,
-    args: &BooksDictionaryListOfflineMetadataArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Metadata>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_dictionary_list_offline_metadata_builder(client, &args.cpksver)?;
-    books_dictionary_list_offline_metadata_execute(builder)
-}
-
 /// GET books/v1/familysharing/getFamilyInfo
 /// Gets information regarding the family that the user is part of.
 ///
@@ -1210,10 +934,11 @@ pub fn books_dictionary_list_offline_metadata(
 
 pub fn books_familysharing_get_family_info_builder(
     client: &SimpleHttpClient,
-    source: Option<&str>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/familysharing/getFamilyInfo",);
+    let endpoint_url =
+        format!("https://books.googleapis.com/books/v1/familysharing/getFamilyInfo",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1222,9 +947,9 @@ pub fn books_familysharing_get_family_info_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1258,7 +983,12 @@ pub fn books_familysharing_get_family_info_builder(
 pub fn books_familysharing_get_family_info_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FamilyInfo>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FamilyInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1358,7 +1088,7 @@ pub fn books_familysharing_get_family_info(
     impl StreamIterator<D = Result<ApiResponse<FamilyInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_get_family_info_builder(client, args.source.as_deref())?;
+    let builder = books_familysharing_get_family_info_builder(client, args.source.clone())?;
     books_familysharing_get_family_info_execute(builder)
 }
 
@@ -1370,12 +1100,12 @@ pub fn books_familysharing_get_family_info(
 
 pub fn books_familysharing_share_builder(
     client: &SimpleHttpClient,
-    docId: Option<&str>,
-    source: Option<&str>,
-    volumeId: Option<&str>,
+    docId: Option<String>,
+    source: Option<String>,
+    volumeId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/familysharing/share",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/share",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1390,9 +1120,9 @@ pub fn books_familysharing_share_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1426,7 +1156,12 @@ pub fn books_familysharing_share_builder(
 pub fn books_familysharing_share_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1532,9 +1267,9 @@ pub fn books_familysharing_share(
 > {
     let builder = books_familysharing_share_builder(
         client,
-        args.docId.as_deref(),
-        args.source.as_deref(),
-        args.volumeId.as_deref(),
+        args.docId.clone(),
+        args.source.clone(),
+        args.volumeId.clone(),
     )?;
     books_familysharing_share_execute(builder)
 }
@@ -1547,12 +1282,12 @@ pub fn books_familysharing_share(
 
 pub fn books_familysharing_unshare_builder(
     client: &SimpleHttpClient,
-    docId: Option<&str>,
-    source: Option<&str>,
-    volumeId: Option<&str>,
+    docId: Option<String>,
+    source: Option<String>,
+    volumeId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/familysharing/unshare",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/unshare",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1567,9 +1302,9 @@ pub fn books_familysharing_unshare_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1603,7 +1338,12 @@ pub fn books_familysharing_unshare_builder(
 pub fn books_familysharing_unshare_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1709,9 +1449,9 @@ pub fn books_familysharing_unshare(
 > {
     let builder = books_familysharing_unshare_builder(
         client,
-        args.docId.as_deref(),
-        args.source.as_deref(),
-        args.volumeId.as_deref(),
+        args.docId.clone(),
+        args.source.clone(),
+        args.volumeId.clone(),
     )?;
     books_familysharing_unshare_execute(builder)
 }
@@ -1724,15 +1464,16 @@ pub fn books_familysharing_unshare(
 
 pub fn books_layers_get_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    summaryId: &str,
-    contentVersion: Option<&str>,
-    source: Option<&str>,
+    volumeId: String,
+    summaryId: String,
+    contentVersion: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary/{}",
-        volumeId, summaryId,
+        volumeId.as_str(),
+        summaryId.as_str(),
     );
 
     // Build request
@@ -1745,9 +1486,9 @@ pub fn books_layers_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1781,7 +1522,12 @@ pub fn books_layers_get_builder(
 pub fn books_layers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Layersummary>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Layersummary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1893,10 +1639,10 @@ pub fn books_layers_get(
 > {
     let builder = books_layers_get_builder(
         client,
-        &args.volumeId,
-        &args.summaryId,
-        args.contentVersion.as_deref(),
-        args.source.as_deref(),
+        args.volumeId.clone(),
+        args.summaryId.clone(),
+        args.contentVersion.clone(),
+        args.source.clone(),
     )?;
     books_layers_get_execute(builder)
 }
@@ -1909,16 +1655,16 @@ pub fn books_layers_get(
 
 pub fn books_layers_list_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    contentVersion: Option<&str>,
+    volumeId: String,
+    contentVersion: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    source: Option<&str>,
+    pageToken: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary",
-        volumeId,
+        volumeId.as_str(),
     );
 
     // Build request
@@ -1937,9 +1683,9 @@ pub fn books_layers_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1973,8 +1719,11 @@ pub fn books_layers_list_builder(
 pub fn books_layers_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Layersummaries>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Layersummaries>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2089,483 +1838,13 @@ pub fn books_layers_list(
 > {
     let builder = books_layers_list_builder(
         client,
-        &args.volumeId,
-        args.contentVersion.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.source.as_deref(),
+        args.volumeId.clone(),
+        args.contentVersion.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.source.clone(),
     )?;
     books_layers_list_execute(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
-/// Gets the annotation data.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_layers_annotation_data_get_execute()` to send, or `books_layers_annotation_data_get` for simplest API.
-
-pub fn books_layers_annotation_data_get_builder(
-    client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    annotationDataId: &str,
-    contentVersion: &str,
-    allowWebDefinitions: Option<bool>,
-    h: Option<i32>,
-    locale: Option<&str>,
-    scale: Option<i32>,
-    source: Option<&str>,
-    w: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/data/{}",
-        volumeId, layerId, annotationDataId, contentVersion,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = allowWebDefinitions {
-        query_parts.push(format!("allowWebDefinitions={}", val));
-    }
-    if let Some(val) = h {
-        query_parts.push(format!("h={}", val));
-    }
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = scale {
-        query_parts.push(format!("scale={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-    if let Some(val) = w {
-        query_parts.push(format!("w={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
-/// Gets the annotation data.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_layers_annotation_data_get_execute()` or `books_layers_annotation_data_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_annotation_data_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_annotation_data_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DictionaryAnnotationdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DictionaryAnnotationdata = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
-/// Gets the annotation data.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_layers_annotation_data_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_layers_annotation_data_get_task()`.
-/// For the simplest API, use `books_layers_annotation_data_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_annotation_data_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_layers_annotation_data_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DictionaryAnnotationdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_layers_annotation_data_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_layers_annotation_data_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksLayersAnnotationDataGetArgs {
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Path parameter: layerId
-    pub layerId: String,
-    /// Path parameter: annotationDataId
-    pub annotationDataId: String,
-    /// Path parameter: contentVersion
-    pub contentVersion: String,
-    /// Query parameter: allowWebDefinitions
-    pub allowWebDefinitions: Option<bool>,
-    /// Query parameter: h
-    pub h: Option<i32>,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: scale
-    pub scale: Option<i32>,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Query parameter: w
-    pub w: Option<i32>,
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
-/// Gets the annotation data.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_layers_annotation_data_get_builder()` + `books_layers_annotation_data_get_execute()`.
-/// For task-level control, use `books_layers_annotation_data_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_annotation_data_get(
-    client: &SimpleHttpClient,
-    args: &BooksLayersAnnotationDataGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DictionaryAnnotationdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_layers_annotation_data_get_builder(
-        client,
-        &args.volumeId,
-        &args.layerId,
-        &args.annotationDataId,
-        &args.contentVersion,
-        args.allowWebDefinitions,
-        args.h,
-        args.locale.as_deref(),
-        args.scale,
-        args.source.as_deref(),
-        args.w,
-    )?;
-    books_layers_annotation_data_get_execute(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
-/// Gets the annotation data for a volume and layer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_layers_annotation_data_list_execute()` to send, or `books_layers_annotation_data_list` for simplest API.
-
-pub fn books_layers_annotation_data_list_builder(
-    client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    contentVersion: &str,
-    annotationDataId: Option<&str>,
-    h: Option<i32>,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scale: Option<i32>,
-    source: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    w: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/data",
-        volumeId, layerId, contentVersion,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = annotationDataId {
-        query_parts.push(format!("annotationDataId={}", val));
-    }
-    if let Some(val) = h {
-        query_parts.push(format!("h={}", val));
-    }
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = scale {
-        query_parts.push(format!("scale={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-    if let Some(val) = updatedMax {
-        query_parts.push(format!("updatedMax={}", val));
-    }
-    if let Some(val) = updatedMin {
-        query_parts.push(format!("updatedMin={}", val));
-    }
-    if let Some(val) = w {
-        query_parts.push(format!("w={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
-/// Gets the annotation data for a volume and layer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_layers_annotation_data_list_execute()` or `books_layers_annotation_data_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_annotation_data_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_annotation_data_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Annotationsdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Annotationsdata = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
-/// Gets the annotation data for a volume and layer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_layers_annotation_data_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_layers_annotation_data_list_task()`.
-/// For the simplest API, use `books_layers_annotation_data_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_annotation_data_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_layers_annotation_data_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotationsdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_layers_annotation_data_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_layers_annotation_data_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksLayersAnnotationDataListArgs {
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Path parameter: layerId
-    pub layerId: String,
-    /// Path parameter: contentVersion
-    pub contentVersion: String,
-    /// Query parameter: annotationDataId
-    pub annotationDataId: Option<String>,
-    /// Query parameter: h
-    pub h: Option<i32>,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: scale
-    pub scale: Option<i32>,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Query parameter: updatedMax
-    pub updatedMax: Option<String>,
-    /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-    /// Query parameter: w
-    pub w: Option<i32>,
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
-/// Gets the annotation data for a volume and layer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_layers_annotation_data_list_builder()` + `books_layers_annotation_data_list_execute()`.
-/// For task-level control, use `books_layers_annotation_data_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_annotation_data_list(
-    client: &SimpleHttpClient,
-    args: &BooksLayersAnnotationDataListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotationsdata>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_layers_annotation_data_list_builder(
-        client,
-        &args.volumeId,
-        &args.layerId,
-        &args.contentVersion,
-        args.annotationDataId.as_deref(),
-        args.h,
-        args.locale.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.scale,
-        args.source.as_deref(),
-        args.updatedMax.as_deref(),
-        args.updatedMin.as_deref(),
-        args.w,
-    )?;
-    books_layers_annotation_data_list_execute(builder)
 }
 
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/annotations/{annotationId}
@@ -2576,16 +1855,18 @@ pub fn books_layers_annotation_data_list(
 
 pub fn books_layers_volume_annotations_get_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    annotationId: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
+    volumeId: String,
+    layerId: String,
+    annotationId: String,
+    locale: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/annotations/{}",
-        volumeId, layerId, annotationId,
+        volumeId.as_str(),
+        layerId.as_str(),
+        annotationId.as_str(),
     );
 
     // Build request
@@ -2598,9 +1879,9 @@ pub fn books_layers_volume_annotations_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2634,8 +1915,11 @@ pub fn books_layers_volume_annotations_get_builder(
 pub fn books_layers_volume_annotations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumeannotation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumeannotation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2750,274 +2034,13 @@ pub fn books_layers_volume_annotations_get(
 > {
     let builder = books_layers_volume_annotations_get_builder(
         client,
-        &args.volumeId,
-        &args.layerId,
-        &args.annotationId,
-        args.locale.as_deref(),
-        args.source.as_deref(),
+        args.volumeId.clone(),
+        args.layerId.clone(),
+        args.annotationId.clone(),
+        args.locale.clone(),
+        args.source.clone(),
     )?;
     books_layers_volume_annotations_get_execute(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}
-/// Gets the volume annotations for a volume and layer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_layers_volume_annotations_list_execute()` to send, or `books_layers_volume_annotations_list` for simplest API.
-
-pub fn books_layers_volume_annotations_list_builder(
-    client: &SimpleHttpClient,
-    volumeId: &str,
-    layerId: &str,
-    contentVersion: &str,
-    endOffset: Option<&str>,
-    endPosition: Option<&str>,
-    locale: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    source: Option<&str>,
-    startOffset: Option<&str>,
-    startPosition: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    volumeAnnotationsVersion: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/volumes/{}/layers/{}",
-        volumeId, layerId, contentVersion,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = endOffset {
-        query_parts.push(format!("endOffset={}", val));
-    }
-    if let Some(val) = endPosition {
-        query_parts.push(format!("endPosition={}", val));
-    }
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-    if let Some(val) = startOffset {
-        query_parts.push(format!("startOffset={}", val));
-    }
-    if let Some(val) = startPosition {
-        query_parts.push(format!("startPosition={}", val));
-    }
-    if let Some(val) = updatedMax {
-        query_parts.push(format!("updatedMax={}", val));
-    }
-    if let Some(val) = updatedMin {
-        query_parts.push(format!("updatedMin={}", val));
-    }
-    if let Some(val) = volumeAnnotationsVersion {
-        query_parts.push(format!("volumeAnnotationsVersion={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}
-/// Gets the volume annotations for a volume and layer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_layers_volume_annotations_list_execute()` or `books_layers_volume_annotations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_volume_annotations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_volume_annotations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumeannotations>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Volumeannotations = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}
-/// Gets the volume annotations for a volume and layer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_layers_volume_annotations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_layers_volume_annotations_list_task()`.
-/// For the simplest API, use `books_layers_volume_annotations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_layers_volume_annotations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_layers_volume_annotations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumeannotations>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_layers_volume_annotations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_layers_volume_annotations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksLayersVolumeAnnotationsListArgs {
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Path parameter: layerId
-    pub layerId: String,
-    /// Path parameter: contentVersion
-    pub contentVersion: String,
-    /// Query parameter: endOffset
-    pub endOffset: Option<String>,
-    /// Query parameter: endPosition
-    pub endPosition: Option<String>,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Query parameter: startOffset
-    pub startOffset: Option<String>,
-    /// Query parameter: startPosition
-    pub startPosition: Option<String>,
-    /// Query parameter: updatedMax
-    pub updatedMax: Option<String>,
-    /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-    /// Query parameter: volumeAnnotationsVersion
-    pub volumeAnnotationsVersion: Option<String>,
-}
-
-/// GET books/v1/volumes/{volumeId}/layers/{layerId}
-/// Gets the volume annotations for a volume and layer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_layers_volume_annotations_list_builder()` + `books_layers_volume_annotations_list_execute()`.
-/// For task-level control, use `books_layers_volume_annotations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_layers_volume_annotations_list(
-    client: &SimpleHttpClient,
-    args: &BooksLayersVolumeAnnotationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumeannotations>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_layers_volume_annotations_list_builder(
-        client,
-        &args.volumeId,
-        &args.layerId,
-        &args.contentVersion,
-        args.endOffset.as_deref(),
-        args.endPosition.as_deref(),
-        args.locale.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.source.as_deref(),
-        args.startOffset.as_deref(),
-        args.startPosition.as_deref(),
-        args.updatedMax.as_deref(),
-        args.updatedMin.as_deref(),
-        args.volumeAnnotationsVersion.as_deref(),
-    )?;
-    books_layers_volume_annotations_list_execute(builder)
 }
 
 /// GET books/v1/myconfig/getUserSettings
@@ -3028,10 +2051,10 @@ pub fn books_layers_volume_annotations_list(
 
 pub fn books_myconfig_get_user_settings_builder(
     client: &SimpleHttpClient,
-    country: Option<&str>,
+    country: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/myconfig/getUserSettings",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/myconfig/getUserSettings",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3040,9 +2063,9 @@ pub fn books_myconfig_get_user_settings_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3076,7 +2099,12 @@ pub fn books_myconfig_get_user_settings_builder(
 pub fn books_myconfig_get_user_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Usersettings>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Usersettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3180,596 +2208,8 @@ pub fn books_myconfig_get_user_settings(
         + 'static,
     ApiError,
 > {
-    let builder = books_myconfig_get_user_settings_builder(client, args.country.as_deref())?;
+    let builder = books_myconfig_get_user_settings_builder(client, args.country.clone())?;
     books_myconfig_get_user_settings_execute(builder)
-}
-
-/// GET books/v1/myconfig/releaseDownloadAccess
-/// Release downloaded content access restriction.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_myconfig_release_download_access_execute()` to send, or `books_myconfig_release_download_access` for simplest API.
-
-pub fn books_myconfig_release_download_access_builder(
-    client: &SimpleHttpClient,
-    cpksver: &str,
-    volumeIds: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/myconfig/releaseDownloadAccess",
-        cpksver, volumeIds,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/myconfig/releaseDownloadAccess
-/// Release downloaded content access restriction.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_myconfig_release_download_access_execute()` or `books_myconfig_release_download_access`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_release_download_access_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_release_download_access_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DownloadAccesses>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DownloadAccesses = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/myconfig/releaseDownloadAccess
-/// Release downloaded content access restriction.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_myconfig_release_download_access_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_myconfig_release_download_access_task()`.
-/// For the simplest API, use `books_myconfig_release_download_access()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_release_download_access_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_myconfig_release_download_access_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DownloadAccesses>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_myconfig_release_download_access_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_myconfig_release_download_access`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMyconfigReleaseDownloadAccessArgs {
-    /// Path parameter: cpksver
-    pub cpksver: String,
-    /// Path parameter: volumeIds
-    pub volumeIds: String,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/myconfig/releaseDownloadAccess
-/// Release downloaded content access restriction.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_myconfig_release_download_access_builder()` + `books_myconfig_release_download_access_execute()`.
-/// For task-level control, use `books_myconfig_release_download_access_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_release_download_access(
-    client: &SimpleHttpClient,
-    args: &BooksMyconfigReleaseDownloadAccessArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DownloadAccesses>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_myconfig_release_download_access_builder(
-        client,
-        &args.cpksver,
-        &args.volumeIds,
-        args.locale.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_myconfig_release_download_access_execute(builder)
-}
-
-/// GET books/v1/myconfig/requestAccess
-/// Request concurrent and download access restrictions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_myconfig_request_access_execute()` to send, or `books_myconfig_request_access` for simplest API.
-
-pub fn books_myconfig_request_access_builder(
-    client: &SimpleHttpClient,
-    cpksver: &str,
-    nonce: &str,
-    source: &str,
-    volumeId: &str,
-    licenseTypes: Option<&str>,
-    locale: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/myconfig/requestAccess",
-        cpksver, nonce, source, volumeId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = licenseTypes {
-        query_parts.push(format!("licenseTypes={}", val));
-    }
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/myconfig/requestAccess
-/// Request concurrent and download access restrictions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_myconfig_request_access_execute()` or `books_myconfig_request_access`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_request_access_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_request_access_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RequestAccessData>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RequestAccessData = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/myconfig/requestAccess
-/// Request concurrent and download access restrictions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_myconfig_request_access_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_myconfig_request_access_task()`.
-/// For the simplest API, use `books_myconfig_request_access()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_request_access_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_myconfig_request_access_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RequestAccessData>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_myconfig_request_access_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_myconfig_request_access`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMyconfigRequestAccessArgs {
-    /// Path parameter: cpksver
-    pub cpksver: String,
-    /// Path parameter: nonce
-    pub nonce: String,
-    /// Path parameter: source
-    pub source: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Query parameter: licenseTypes
-    pub licenseTypes: Option<String>,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-}
-
-/// GET books/v1/myconfig/requestAccess
-/// Request concurrent and download access restrictions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_myconfig_request_access_builder()` + `books_myconfig_request_access_execute()`.
-/// For task-level control, use `books_myconfig_request_access_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_request_access(
-    client: &SimpleHttpClient,
-    args: &BooksMyconfigRequestAccessArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RequestAccessData>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_myconfig_request_access_builder(
-        client,
-        &args.cpksver,
-        &args.nonce,
-        &args.source,
-        &args.volumeId,
-        args.licenseTypes.as_deref(),
-        args.locale.as_deref(),
-    )?;
-    books_myconfig_request_access_execute(builder)
-}
-
-/// GET books/v1/myconfig/syncVolumeLicenses
-/// Request downloaded content access for specified volumes on the My eBooks shelf.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_myconfig_sync_volume_licenses_execute()` to send, or `books_myconfig_sync_volume_licenses` for simplest API.
-
-pub fn books_myconfig_sync_volume_licenses_builder(
-    client: &SimpleHttpClient,
-    cpksver: &str,
-    nonce: &str,
-    source: &str,
-    features: Option<&str>,
-    includeNonComicsSeries: Option<bool>,
-    locale: Option<&str>,
-    showPreorders: Option<bool>,
-    volumeIds: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/myconfig/syncVolumeLicenses",
-        cpksver, nonce, source,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = features {
-        query_parts.push(format!("features={}", val));
-    }
-    if let Some(val) = includeNonComicsSeries {
-        query_parts.push(format!("includeNonComicsSeries={}", val));
-    }
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = showPreorders {
-        query_parts.push(format!("showPreorders={}", val));
-    }
-    if let Some(val) = volumeIds {
-        query_parts.push(format!("volumeIds={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/myconfig/syncVolumeLicenses
-/// Request downloaded content access for specified volumes on the My eBooks shelf.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_myconfig_sync_volume_licenses_execute()` or `books_myconfig_sync_volume_licenses`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_sync_volume_licenses_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_sync_volume_licenses_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Volumes = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/myconfig/syncVolumeLicenses
-/// Request downloaded content access for specified volumes on the My eBooks shelf.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_myconfig_sync_volume_licenses_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_myconfig_sync_volume_licenses_task()`.
-/// For the simplest API, use `books_myconfig_sync_volume_licenses()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_myconfig_sync_volume_licenses_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_myconfig_sync_volume_licenses_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_myconfig_sync_volume_licenses_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_myconfig_sync_volume_licenses`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMyconfigSyncVolumeLicensesArgs {
-    /// Path parameter: cpksver
-    pub cpksver: String,
-    /// Path parameter: nonce
-    pub nonce: String,
-    /// Path parameter: source
-    pub source: String,
-    /// Query parameter: features
-    pub features: Option<String>,
-    /// Query parameter: includeNonComicsSeries
-    pub includeNonComicsSeries: Option<bool>,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: showPreorders
-    pub showPreorders: Option<bool>,
-    /// Query parameter: volumeIds
-    pub volumeIds: Option<String>,
-}
-
-/// GET books/v1/myconfig/syncVolumeLicenses
-/// Request downloaded content access for specified volumes on the My eBooks shelf.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_myconfig_sync_volume_licenses_builder()` + `books_myconfig_sync_volume_licenses_execute()`.
-/// For task-level control, use `books_myconfig_sync_volume_licenses_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_myconfig_sync_volume_licenses(
-    client: &SimpleHttpClient,
-    args: &BooksMyconfigSyncVolumeLicensesArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_myconfig_sync_volume_licenses_builder(
-        client,
-        &args.cpksver,
-        &args.nonce,
-        &args.source,
-        args.features.as_deref(),
-        args.includeNonComicsSeries,
-        args.locale.as_deref(),
-        args.showPreorders,
-        args.volumeIds.as_deref(),
-    )?;
-    books_myconfig_sync_volume_licenses_execute(builder)
 }
 
 /// GET books/v1/myconfig/updateUserSettings
@@ -3783,11 +2223,12 @@ pub fn books_myconfig_update_user_settings_builder(
     body: &Usersettings,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/myconfig/updateUserSettings",);
+    let endpoint_url =
+        format!("https://books.googleapis.com/books/v1/myconfig/updateUserSettings",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3819,7 +2260,12 @@ pub fn books_myconfig_update_user_settings_builder(
 pub fn books_myconfig_update_user_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Usersettings>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Usersettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3935,13 +2381,13 @@ pub fn books_myconfig_update_user_settings(
 
 pub fn books_mylibrary_annotations_delete_builder(
     client: &SimpleHttpClient,
-    annotationId: &str,
-    source: Option<&str>,
+    annotationId: String,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/annotations/{}",
-        annotationId,
+        annotationId.as_str(),
     );
 
     // Build request
@@ -3951,9 +2397,9 @@ pub fn books_mylibrary_annotations_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3987,7 +2433,12 @@ pub fn books_mylibrary_annotations_delete_builder(
 pub fn books_mylibrary_annotations_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4091,8 +2542,8 @@ pub fn books_mylibrary_annotations_delete(
 > {
     let builder = books_mylibrary_annotations_delete_builder(
         client,
-        &args.annotationId,
-        args.source.as_deref(),
+        args.annotationId.clone(),
+        args.source.clone(),
     )?;
     books_mylibrary_annotations_delete_execute(builder)
 }
@@ -4105,14 +2556,14 @@ pub fn books_mylibrary_annotations_delete(
 
 pub fn books_mylibrary_annotations_insert_builder(
     client: &SimpleHttpClient,
-    annotationId: Option<&str>,
-    country: Option<&str>,
+    annotationId: Option<String>,
+    country: Option<String>,
     showOnlySummaryInResponse: Option<bool>,
-    source: Option<&str>,
+    source: Option<String>,
     body: &Annotation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/mylibrary/annotations",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/annotations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4130,9 +2581,9 @@ pub fn books_mylibrary_annotations_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4168,7 +2619,12 @@ pub fn books_mylibrary_annotations_insert_builder(
 pub fn books_mylibrary_annotations_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Annotation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4278,776 +2734,13 @@ pub fn books_mylibrary_annotations_insert(
 > {
     let builder = books_mylibrary_annotations_insert_builder(
         client,
-        args.annotationId.as_deref(),
-        args.country.as_deref(),
-        args.showOnlySummaryInResponse,
-        args.source.as_deref(),
+        args.annotationId.clone(),
+        args.country.clone(),
+        args.showOnlySummaryInResponse.clone(),
+        args.source.clone(),
         &args.body,
     )?;
     books_mylibrary_annotations_insert_execute(builder)
-}
-
-/// GET books/v1/mylibrary/annotations
-/// Retrieves a list of annotations, possibly filtered.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_annotations_list_execute()` to send, or `books_mylibrary_annotations_list` for simplest API.
-
-pub fn books_mylibrary_annotations_list_builder(
-    client: &SimpleHttpClient,
-    contentVersion: Option<&str>,
-    layerId: Option<&str>,
-    layerIds: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    source: Option<&str>,
-    updatedMax: Option<&str>,
-    updatedMin: Option<&str>,
-    volumeId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/mylibrary/annotations",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = contentVersion {
-        query_parts.push(format!("contentVersion={}", val));
-    }
-    if let Some(val) = layerId {
-        query_parts.push(format!("layerId={}", val));
-    }
-    if let Some(val) = layerIds {
-        query_parts.push(format!("layerIds={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-    if let Some(val) = updatedMax {
-        query_parts.push(format!("updatedMax={}", val));
-    }
-    if let Some(val) = updatedMin {
-        query_parts.push(format!("updatedMin={}", val));
-    }
-    if let Some(val) = volumeId {
-        query_parts.push(format!("volumeId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/annotations
-/// Retrieves a list of annotations, possibly filtered.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_annotations_list_execute()` or `books_mylibrary_annotations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Annotations>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Annotations = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/annotations
-/// Retrieves a list of annotations, possibly filtered.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_annotations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_annotations_list_task()`.
-/// For the simplest API, use `books_mylibrary_annotations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_annotations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotations>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_annotations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_annotations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryAnnotationsListArgs {
-    /// Query parameter: contentVersion
-    pub contentVersion: Option<String>,
-    /// Query parameter: layerId
-    pub layerId: Option<String>,
-    /// Query parameter: layerIds
-    pub layerIds: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Query parameter: updatedMax
-    pub updatedMax: Option<String>,
-    /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-    /// Query parameter: volumeId
-    pub volumeId: Option<String>,
-}
-
-/// GET books/v1/mylibrary/annotations
-/// Retrieves a list of annotations, possibly filtered.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_annotations_list_builder()` + `books_mylibrary_annotations_list_execute()`.
-/// For task-level control, use `books_mylibrary_annotations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_list(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryAnnotationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotations>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_annotations_list_builder(
-        client,
-        args.contentVersion.as_deref(),
-        args.layerId.as_deref(),
-        args.layerIds.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-        args.source.as_deref(),
-        args.updatedMax.as_deref(),
-        args.updatedMin.as_deref(),
-        args.volumeId.as_deref(),
-    )?;
-    books_mylibrary_annotations_list_execute(builder)
-}
-
-/// GET books/v1/mylibrary/annotations/summary
-/// Gets the summary of specified layers.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_annotations_summary_execute()` to send, or `books_mylibrary_annotations_summary` for simplest API.
-
-pub fn books_mylibrary_annotations_summary_builder(
-    client: &SimpleHttpClient,
-    layerIds: &str,
-    volumeId: &str,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/annotations/summary",
-        layerIds, volumeId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/annotations/summary
-/// Gets the summary of specified layers.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_annotations_summary_execute()` or `books_mylibrary_annotations_summary`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_summary_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_summary_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AnnotationsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AnnotationsSummary = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/annotations/summary
-/// Gets the summary of specified layers.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_annotations_summary_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_annotations_summary_task()`.
-/// For the simplest API, use `books_mylibrary_annotations_summary()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_summary_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_annotations_summary_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AnnotationsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_annotations_summary_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_annotations_summary`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryAnnotationsSummaryArgs {
-    /// Path parameter: layerIds
-    pub layerIds: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/mylibrary/annotations/summary
-/// Gets the summary of specified layers.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_annotations_summary_builder()` + `books_mylibrary_annotations_summary_execute()`.
-/// For task-level control, use `books_mylibrary_annotations_summary_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_summary(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryAnnotationsSummaryArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AnnotationsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_annotations_summary_builder(
-        client,
-        &args.layerIds,
-        &args.volumeId,
-        args.source.as_deref(),
-    )?;
-    books_mylibrary_annotations_summary_execute(builder)
-}
-
-/// GET books/v1/mylibrary/annotations/{annotationId}
-/// Updates an existing annotation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_annotations_update_execute()` to send, or `books_mylibrary_annotations_update` for simplest API.
-
-pub fn books_mylibrary_annotations_update_builder(
-    client: &SimpleHttpClient,
-    annotationId: &str,
-    source: Option<&str>,
-    body: &Annotation,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/annotations/{}",
-        annotationId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET books/v1/mylibrary/annotations/{annotationId}
-/// Updates an existing annotation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_annotations_update_execute()` or `books_mylibrary_annotations_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Annotation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/annotations/{annotationId}
-/// Updates an existing annotation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_annotations_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_annotations_update_task()`.
-/// For the simplest API, use `books_mylibrary_annotations_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_annotations_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_annotations_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_annotations_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_annotations_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryAnnotationsUpdateArgs {
-    /// Path parameter: annotationId
-    pub annotationId: String,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Request body.
-    pub body: Annotation,
-}
-
-/// GET books/v1/mylibrary/annotations/{annotationId}
-/// Updates an existing annotation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_annotations_update_builder()` + `books_mylibrary_annotations_update_execute()`.
-/// For task-level control, use `books_mylibrary_annotations_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_annotations_update(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryAnnotationsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Annotation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_annotations_update_builder(
-        client,
-        &args.annotationId,
-        args.source.as_deref(),
-        &args.body,
-    )?;
-    books_mylibrary_annotations_update_execute(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/addVolume
-/// Adds a volume to a bookshelf.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_bookshelves_add_volume_execute()` to send, or `books_mylibrary_bookshelves_add_volume` for simplest API.
-
-pub fn books_mylibrary_bookshelves_add_volume_builder(
-    client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    reason: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/addVolume",
-        shelf, volumeId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = reason {
-        query_parts.push(format!("reason={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/addVolume
-/// Adds a volume to a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_bookshelves_add_volume_execute()` or `books_mylibrary_bookshelves_add_volume`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_add_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_add_volume_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/addVolume
-/// Adds a volume to a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_bookshelves_add_volume_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_bookshelves_add_volume_task()`.
-/// For the simplest API, use `books_mylibrary_bookshelves_add_volume()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_add_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_bookshelves_add_volume_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_bookshelves_add_volume_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_bookshelves_add_volume`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryBookshelvesAddVolumeArgs {
-    /// Path parameter: shelf
-    pub shelf: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Query parameter: reason
-    pub reason: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/addVolume
-/// Adds a volume to a bookshelf.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_bookshelves_add_volume_builder()` + `books_mylibrary_bookshelves_add_volume_execute()`.
-/// For task-level control, use `books_mylibrary_bookshelves_add_volume_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_add_volume(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryBookshelvesAddVolumeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_bookshelves_add_volume_builder(
-        client,
-        &args.shelf,
-        &args.volumeId,
-        args.reason.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_mylibrary_bookshelves_add_volume_execute(builder)
 }
 
 /// GET books/v1/mylibrary/bookshelves/{shelf}/clearVolumes
@@ -5058,13 +2751,13 @@ pub fn books_mylibrary_bookshelves_add_volume(
 
 pub fn books_mylibrary_bookshelves_clear_volumes_builder(
     client: &SimpleHttpClient,
-    shelf: &str,
-    source: Option<&str>,
+    shelf: String,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/clearVolumes",
-        shelf,
+        shelf.as_str(),
     );
 
     // Build request
@@ -5074,9 +2767,9 @@ pub fn books_mylibrary_bookshelves_clear_volumes_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5110,7 +2803,12 @@ pub fn books_mylibrary_bookshelves_clear_volumes_builder(
 pub fn books_mylibrary_bookshelves_clear_volumes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5214,8 +2912,8 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
 > {
     let builder = books_mylibrary_bookshelves_clear_volumes_builder(
         client,
-        &args.shelf,
-        args.source.as_deref(),
+        args.shelf.clone(),
+        args.source.clone(),
     )?;
     books_mylibrary_bookshelves_clear_volumes_execute(builder)
 }
@@ -5228,13 +2926,13 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
 
 pub fn books_mylibrary_bookshelves_get_builder(
     client: &SimpleHttpClient,
-    shelf: &str,
-    source: Option<&str>,
+    shelf: String,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}",
-        shelf,
+        shelf.as_str(),
     );
 
     // Build request
@@ -5244,9 +2942,9 @@ pub fn books_mylibrary_bookshelves_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5280,7 +2978,12 @@ pub fn books_mylibrary_bookshelves_get_builder(
 pub fn books_mylibrary_bookshelves_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bookshelf>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5383,7 +3086,7 @@ pub fn books_mylibrary_bookshelves_get(
     ApiError,
 > {
     let builder =
-        books_mylibrary_bookshelves_get_builder(client, &args.shelf, args.source.as_deref())?;
+        books_mylibrary_bookshelves_get_builder(client, args.shelf.clone(), args.source.clone())?;
     books_mylibrary_bookshelves_get_execute(builder)
 }
 
@@ -5395,10 +3098,10 @@ pub fn books_mylibrary_bookshelves_get(
 
 pub fn books_mylibrary_bookshelves_list_builder(
     client: &SimpleHttpClient,
-    source: Option<&str>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/mylibrary/bookshelves",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/bookshelves",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5407,9 +3110,9 @@ pub fn books_mylibrary_bookshelves_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5443,7 +3146,12 @@ pub fn books_mylibrary_bookshelves_list_builder(
 pub fn books_mylibrary_bookshelves_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bookshelves>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5543,367 +3251,8 @@ pub fn books_mylibrary_bookshelves_list(
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_list_builder(client, args.source.as_deref())?;
+    let builder = books_mylibrary_bookshelves_list_builder(client, args.source.clone())?;
     books_mylibrary_bookshelves_list_execute(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/moveVolume
-/// Moves a volume within a bookshelf.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_bookshelves_move_volume_execute()` to send, or `books_mylibrary_bookshelves_move_volume` for simplest API.
-
-pub fn books_mylibrary_bookshelves_move_volume_builder(
-    client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    volumePosition: &str,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/moveVolume",
-        shelf, volumeId, volumePosition,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/moveVolume
-/// Moves a volume within a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_bookshelves_move_volume_execute()` or `books_mylibrary_bookshelves_move_volume`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_move_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_move_volume_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/moveVolume
-/// Moves a volume within a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_bookshelves_move_volume_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_bookshelves_move_volume_task()`.
-/// For the simplest API, use `books_mylibrary_bookshelves_move_volume()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_move_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_bookshelves_move_volume_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_bookshelves_move_volume_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_bookshelves_move_volume`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryBookshelvesMoveVolumeArgs {
-    /// Path parameter: shelf
-    pub shelf: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Path parameter: volumePosition
-    pub volumePosition: String,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/moveVolume
-/// Moves a volume within a bookshelf.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_bookshelves_move_volume_builder()` + `books_mylibrary_bookshelves_move_volume_execute()`.
-/// For task-level control, use `books_mylibrary_bookshelves_move_volume_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_move_volume(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryBookshelvesMoveVolumeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_bookshelves_move_volume_builder(
-        client,
-        &args.shelf,
-        &args.volumeId,
-        &args.volumePosition,
-        args.source.as_deref(),
-    )?;
-    books_mylibrary_bookshelves_move_volume_execute(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/removeVolume
-/// Removes a volume from a bookshelf.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_bookshelves_remove_volume_execute()` to send, or `books_mylibrary_bookshelves_remove_volume` for simplest API.
-
-pub fn books_mylibrary_bookshelves_remove_volume_builder(
-    client: &SimpleHttpClient,
-    shelf: &str,
-    volumeId: &str,
-    reason: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/removeVolume",
-        shelf, volumeId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = reason {
-        query_parts.push(format!("reason={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/removeVolume
-/// Removes a volume from a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_bookshelves_remove_volume_execute()` or `books_mylibrary_bookshelves_remove_volume`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_remove_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_remove_volume_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/removeVolume
-/// Removes a volume from a bookshelf.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_bookshelves_remove_volume_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_bookshelves_remove_volume_task()`.
-/// For the simplest API, use `books_mylibrary_bookshelves_remove_volume()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_bookshelves_remove_volume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_bookshelves_remove_volume_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_bookshelves_remove_volume_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_bookshelves_remove_volume`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryBookshelvesRemoveVolumeArgs {
-    /// Path parameter: shelf
-    pub shelf: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Query parameter: reason
-    pub reason: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/mylibrary/bookshelves/{shelf}/removeVolume
-/// Removes a volume from a bookshelf.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_bookshelves_remove_volume_builder()` + `books_mylibrary_bookshelves_remove_volume_execute()`.
-/// For task-level control, use `books_mylibrary_bookshelves_remove_volume_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_bookshelves_remove_volume(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryBookshelvesRemoveVolumeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_bookshelves_remove_volume_builder(
-        client,
-        &args.shelf,
-        &args.volumeId,
-        args.reason.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_mylibrary_bookshelves_remove_volume_execute(builder)
 }
 
 /// GET books/v1/mylibrary/bookshelves/{shelf}/volumes
@@ -5914,19 +3263,19 @@ pub fn books_mylibrary_bookshelves_remove_volume(
 
 pub fn books_mylibrary_bookshelves_volumes_list_builder(
     client: &SimpleHttpClient,
-    shelf: &str,
-    country: Option<&str>,
+    shelf: String,
+    country: Option<String>,
     maxResults: Option<i32>,
-    projection: Option<&str>,
-    q: Option<&str>,
+    projection: Option<String>,
+    q: Option<String>,
     showPreorders: Option<bool>,
-    source: Option<&str>,
+    source: Option<String>,
     startIndex: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/volumes",
-        shelf,
+        shelf.as_str(),
     );
 
     // Build request
@@ -5954,9 +3303,9 @@ pub fn books_mylibrary_bookshelves_volumes_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5990,7 +3339,12 @@ pub fn books_mylibrary_bookshelves_volumes_list_builder(
 pub fn books_mylibrary_bookshelves_volumes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6106,14 +3460,14 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 > {
     let builder = books_mylibrary_bookshelves_volumes_list_builder(
         client,
-        &args.shelf,
-        args.country.as_deref(),
-        args.maxResults,
-        args.projection.as_deref(),
-        args.q.as_deref(),
-        args.showPreorders,
-        args.source.as_deref(),
-        args.startIndex,
+        args.shelf.clone(),
+        args.country.clone(),
+        args.maxResults.clone(),
+        args.projection.clone(),
+        args.q.clone(),
+        args.showPreorders.clone(),
+        args.source.clone(),
+        args.startIndex.clone(),
     )?;
     books_mylibrary_bookshelves_volumes_list_execute(builder)
 }
@@ -6126,14 +3480,14 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 
 pub fn books_mylibrary_readingpositions_get_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    contentVersion: Option<&str>,
-    source: Option<&str>,
+    volumeId: String,
+    contentVersion: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/readingpositions/{}",
-        volumeId,
+        volumeId.as_str(),
     );
 
     // Build request
@@ -6146,9 +3500,9 @@ pub fn books_mylibrary_readingpositions_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6182,8 +3536,11 @@ pub fn books_mylibrary_readingpositions_get_builder(
 pub fn books_mylibrary_readingpositions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReadingPosition>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReadingPosition>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6294,391 +3651,11 @@ pub fn books_mylibrary_readingpositions_get(
 > {
     let builder = books_mylibrary_readingpositions_get_builder(
         client,
-        &args.volumeId,
-        args.contentVersion.as_deref(),
-        args.source.as_deref(),
+        args.volumeId.clone(),
+        args.contentVersion.clone(),
+        args.source.clone(),
     )?;
     books_mylibrary_readingpositions_get_execute(builder)
-}
-
-/// GET books/v1/mylibrary/readingpositions/{volumeId}/setPosition
-/// Sets my reading position information for a volume.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_mylibrary_readingpositions_set_position_execute()` to send, or `books_mylibrary_readingpositions_set_position` for simplest API.
-
-pub fn books_mylibrary_readingpositions_set_position_builder(
-    client: &SimpleHttpClient,
-    volumeId: &str,
-    position: &str,
-    timestamp: &str,
-    action: Option<&str>,
-    contentVersion: Option<&str>,
-    deviceCookie: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/mylibrary/readingpositions/{}/setPosition",
-        volumeId, position, timestamp,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = action {
-        query_parts.push(format!("action={}", val));
-    }
-    if let Some(val) = contentVersion {
-        query_parts.push(format!("contentVersion={}", val));
-    }
-    if let Some(val) = deviceCookie {
-        query_parts.push(format!("deviceCookie={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/mylibrary/readingpositions/{volumeId}/setPosition
-/// Sets my reading position information for a volume.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_mylibrary_readingpositions_set_position_execute()` or `books_mylibrary_readingpositions_set_position`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_readingpositions_set_position_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_readingpositions_set_position_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/mylibrary/readingpositions/{volumeId}/setPosition
-/// Sets my reading position information for a volume.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_mylibrary_readingpositions_set_position_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_mylibrary_readingpositions_set_position_task()`.
-/// For the simplest API, use `books_mylibrary_readingpositions_set_position()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_mylibrary_readingpositions_set_position_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_mylibrary_readingpositions_set_position_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_mylibrary_readingpositions_set_position_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_mylibrary_readingpositions_set_position`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksMylibraryReadingpositionsSetPositionArgs {
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Path parameter: position
-    pub position: String,
-    /// Path parameter: timestamp
-    pub timestamp: String,
-    /// Query parameter: action
-    pub action: Option<String>,
-    /// Query parameter: contentVersion
-    pub contentVersion: Option<String>,
-    /// Query parameter: deviceCookie
-    pub deviceCookie: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/mylibrary/readingpositions/{volumeId}/setPosition
-/// Sets my reading position information for a volume.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_mylibrary_readingpositions_set_position_builder()` + `books_mylibrary_readingpositions_set_position_execute()`.
-/// For task-level control, use `books_mylibrary_readingpositions_set_position_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_mylibrary_readingpositions_set_position(
-    client: &SimpleHttpClient,
-    args: &BooksMylibraryReadingpositionsSetPositionArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_mylibrary_readingpositions_set_position_builder(
-        client,
-        &args.volumeId,
-        &args.position,
-        &args.timestamp,
-        args.action.as_deref(),
-        args.contentVersion.as_deref(),
-        args.deviceCookie.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_mylibrary_readingpositions_set_position_execute(builder)
-}
-
-/// GET books/v1/notification/get
-/// Returns notification details for a given notification id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_notification_get_execute()` to send, or `books_notification_get` for simplest API.
-
-pub fn books_notification_get_builder(
-    client: &SimpleHttpClient,
-    notification_id: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/notification/get",
-        notification_id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/notification/get
-/// Returns notification details for a given notification id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_notification_get_execute()` or `books_notification_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_notification_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_notification_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Notification = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/notification/get
-/// Returns notification details for a given notification id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_notification_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_notification_get_task()`.
-/// For the simplest API, use `books_notification_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_notification_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_notification_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_notification_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_notification_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksNotificationGetArgs {
-    /// Path parameter: notification_id
-    pub notification_id: String,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/notification/get
-/// Returns notification details for a given notification id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_notification_get_builder()` + `books_notification_get_execute()`.
-/// For task-level control, use `books_notification_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_notification_get(
-    client: &SimpleHttpClient,
-    args: &BooksNotificationGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Notification>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_notification_get_builder(
-        client,
-        &args.notification_id,
-        args.locale.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_notification_get_execute(builder)
 }
 
 /// GET books/v1/onboarding/listCategories
@@ -6689,10 +3666,10 @@ pub fn books_notification_get(
 
 pub fn books_onboarding_list_categories_builder(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
+    locale: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/onboarding/listCategories",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/onboarding/listCategories",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6701,9 +3678,9 @@ pub fn books_onboarding_list_categories_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6737,7 +3714,12 @@ pub fn books_onboarding_list_categories_builder(
 pub fn books_onboarding_list_categories_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Category>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Category>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6837,7 +3819,7 @@ pub fn books_onboarding_list_categories(
     impl StreamIterator<D = Result<ApiResponse<Category>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_onboarding_list_categories_builder(client, args.locale.as_deref())?;
+    let builder = books_onboarding_list_categories_builder(client, args.locale.clone())?;
     books_onboarding_list_categories_execute(builder)
 }
 
@@ -6849,14 +3831,15 @@ pub fn books_onboarding_list_categories(
 
 pub fn books_onboarding_list_category_volumes_builder(
     client: &SimpleHttpClient,
-    categoryId: Option<&str>,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
+    categoryId: Option<String>,
+    locale: Option<String>,
+    maxAllowedMaturityRating: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/onboarding/listCategoryVolumes",);
+    let endpoint_url =
+        format!("https://books.googleapis.com/books/v1/onboarding/listCategoryVolumes",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6877,9 +3860,9 @@ pub fn books_onboarding_list_category_volumes_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6913,7 +3896,12 @@ pub fn books_onboarding_list_category_volumes_builder(
 pub fn books_onboarding_list_category_volumes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volume2>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volume2>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7023,11 +4011,11 @@ pub fn books_onboarding_list_category_volumes(
 > {
     let builder = books_onboarding_list_category_volumes_builder(
         client,
-        args.categoryId.as_deref(),
-        args.locale.as_deref(),
-        args.maxAllowedMaturityRating.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.categoryId.clone(),
+        args.locale.clone(),
+        args.maxAllowedMaturityRating.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     books_onboarding_list_category_volumes_execute(builder)
 }
@@ -7040,12 +4028,12 @@ pub fn books_onboarding_list_category_volumes(
 
 pub fn books_personalizedstream_get_builder(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    locale: Option<String>,
+    maxAllowedMaturityRating: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/personalizedstream/get",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/personalizedstream/get",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7060,9 +4048,9 @@ pub fn books_personalizedstream_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7096,8 +4084,11 @@ pub fn books_personalizedstream_get_builder(
 pub fn books_personalizedstream_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Discoveryclusters>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Discoveryclusters>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7208,9 +4199,9 @@ pub fn books_personalizedstream_get(
 > {
     let builder = books_personalizedstream_get_builder(
         client,
-        args.locale.as_deref(),
-        args.maxAllowedMaturityRating.as_deref(),
-        args.source.as_deref(),
+        args.locale.clone(),
+        args.maxAllowedMaturityRating.clone(),
+        args.source.clone(),
     )?;
     books_personalizedstream_get_execute(builder)
 }
@@ -7223,17 +4214,17 @@ pub fn books_personalizedstream_get(
 
 pub fn books_promooffer_accept_builder(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    offerId: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
-    volumeId: Option<&str>,
+    androidId: Option<String>,
+    device: Option<String>,
+    manufacturer: Option<String>,
+    model: Option<String>,
+    offerId: Option<String>,
+    product: Option<String>,
+    serial: Option<String>,
+    volumeId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/promooffer/accept",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/accept",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7263,9 +4254,9 @@ pub fn books_promooffer_accept_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7299,7 +4290,12 @@ pub fn books_promooffer_accept_builder(
 pub fn books_promooffer_accept_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7415,14 +4411,14 @@ pub fn books_promooffer_accept(
 > {
     let builder = books_promooffer_accept_builder(
         client,
-        args.androidId.as_deref(),
-        args.device.as_deref(),
-        args.manufacturer.as_deref(),
-        args.model.as_deref(),
-        args.offerId.as_deref(),
-        args.product.as_deref(),
-        args.serial.as_deref(),
-        args.volumeId.as_deref(),
+        args.androidId.clone(),
+        args.device.clone(),
+        args.manufacturer.clone(),
+        args.model.clone(),
+        args.offerId.clone(),
+        args.product.clone(),
+        args.serial.clone(),
+        args.volumeId.clone(),
     )?;
     books_promooffer_accept_execute(builder)
 }
@@ -7435,16 +4431,16 @@ pub fn books_promooffer_accept(
 
 pub fn books_promooffer_dismiss_builder(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    offerId: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
+    androidId: Option<String>,
+    device: Option<String>,
+    manufacturer: Option<String>,
+    model: Option<String>,
+    offerId: Option<String>,
+    product: Option<String>,
+    serial: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/promooffer/dismiss",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/dismiss",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7471,9 +4467,9 @@ pub fn books_promooffer_dismiss_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7507,7 +4503,12 @@ pub fn books_promooffer_dismiss_builder(
 pub fn books_promooffer_dismiss_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7621,13 +4622,13 @@ pub fn books_promooffer_dismiss(
 > {
     let builder = books_promooffer_dismiss_builder(
         client,
-        args.androidId.as_deref(),
-        args.device.as_deref(),
-        args.manufacturer.as_deref(),
-        args.model.as_deref(),
-        args.offerId.as_deref(),
-        args.product.as_deref(),
-        args.serial.as_deref(),
+        args.androidId.clone(),
+        args.device.clone(),
+        args.manufacturer.clone(),
+        args.model.clone(),
+        args.offerId.clone(),
+        args.product.clone(),
+        args.serial.clone(),
     )?;
     books_promooffer_dismiss_execute(builder)
 }
@@ -7640,15 +4641,15 @@ pub fn books_promooffer_dismiss(
 
 pub fn books_promooffer_get_builder(
     client: &SimpleHttpClient,
-    androidId: Option<&str>,
-    device: Option<&str>,
-    manufacturer: Option<&str>,
-    model: Option<&str>,
-    product: Option<&str>,
-    serial: Option<&str>,
+    androidId: Option<String>,
+    device: Option<String>,
+    manufacturer: Option<String>,
+    model: Option<String>,
+    product: Option<String>,
+    serial: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/promooffer/get",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/get",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7672,9 +4673,9 @@ pub fn books_promooffer_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7708,7 +4709,12 @@ pub fn books_promooffer_get_builder(
 pub fn books_promooffer_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Offers>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Offers>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7820,349 +4826,14 @@ pub fn books_promooffer_get(
 > {
     let builder = books_promooffer_get_builder(
         client,
-        args.androidId.as_deref(),
-        args.device.as_deref(),
-        args.manufacturer.as_deref(),
-        args.model.as_deref(),
-        args.product.as_deref(),
-        args.serial.as_deref(),
+        args.androidId.clone(),
+        args.device.clone(),
+        args.manufacturer.clone(),
+        args.model.clone(),
+        args.product.clone(),
+        args.serial.clone(),
     )?;
     books_promooffer_get_execute(builder)
-}
-
-/// GET books/v1/series/get
-/// Returns Series metadata for the given series ids.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_series_get_execute()` to send, or `books_series_get` for simplest API.
-
-pub fn books_series_get_builder(
-    client: &SimpleHttpClient,
-    series_id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/series/get",
-        series_id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/series/get
-/// Returns Series metadata for the given series ids.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_series_get_execute()` or `books_series_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_series_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_series_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Series>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Series = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/series/get
-/// Returns Series metadata for the given series ids.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_series_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_series_get_task()`.
-/// For the simplest API, use `books_series_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_series_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_series_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Series>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_series_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_series_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksSeriesGetArgs {
-    /// Path parameter: series_id
-    pub series_id: String,
-}
-
-/// GET books/v1/series/get
-/// Returns Series metadata for the given series ids.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_series_get_builder()` + `books_series_get_execute()`.
-/// For task-level control, use `books_series_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_series_get(
-    client: &SimpleHttpClient,
-    args: &BooksSeriesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Series>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_series_get_builder(client, &args.series_id)?;
-    books_series_get_execute(builder)
-}
-
-/// GET books/v1/series/membership/get
-/// Returns Series membership data given the series id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_series_membership_get_execute()` to send, or `books_series_membership_get` for simplest API.
-
-pub fn books_series_membership_get_builder(
-    client: &SimpleHttpClient,
-    series_id: &str,
-    page_size: Option<i32>,
-    page_token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/series/membership/get",
-        series_id,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = page_size {
-        query_parts.push(format!("page_size={}", val));
-    }
-    if let Some(val) = page_token {
-        query_parts.push(format!("page_token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/series/membership/get
-/// Returns Series membership data given the series id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_series_membership_get_execute()` or `books_series_membership_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_series_membership_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_series_membership_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Seriesmembership>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Seriesmembership = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/series/membership/get
-/// Returns Series membership data given the series id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_series_membership_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_series_membership_get_task()`.
-/// For the simplest API, use `books_series_membership_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_series_membership_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_series_membership_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Seriesmembership>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_series_membership_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_series_membership_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksSeriesMembershipGetArgs {
-    /// Path parameter: series_id
-    pub series_id: String,
-    /// Query parameter: page_size
-    pub page_size: Option<i32>,
-    /// Query parameter: page_token
-    pub page_token: Option<String>,
-}
-
-/// GET books/v1/series/membership/get
-/// Returns Series membership data given the series id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_series_membership_get_builder()` + `books_series_membership_get_execute()`.
-/// For task-level control, use `books_series_membership_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_series_membership_get(
-    client: &SimpleHttpClient,
-    args: &BooksSeriesMembershipGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Seriesmembership>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_series_membership_get_builder(
-        client,
-        &args.series_id,
-        args.page_size,
-        args.page_token.as_deref(),
-    )?;
-    books_series_membership_get_execute(builder)
 }
 
 /// GET books/v1/volumes/{volumeId}
@@ -8173,16 +4844,19 @@ pub fn books_series_membership_get(
 
 pub fn books_volumes_get_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    country: Option<&str>,
+    volumeId: String,
+    country: Option<String>,
     includeNonComicsSeries: Option<bool>,
-    partner: Option<&str>,
-    projection: Option<&str>,
-    source: Option<&str>,
+    partner: Option<String>,
+    projection: Option<String>,
+    source: Option<String>,
     user_library_consistent_read: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/volumes/{}", volumeId,);
+    let endpoint_url = format!(
+        "https://books.googleapis.com/books/v1/volumes/{}",
+        volumeId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -8206,9 +4880,9 @@ pub fn books_volumes_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8242,7 +4916,12 @@ pub fn books_volumes_get_builder(
 pub fn books_volumes_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volume>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8356,266 +5035,15 @@ pub fn books_volumes_get(
 > {
     let builder = books_volumes_get_builder(
         client,
-        &args.volumeId,
-        args.country.as_deref(),
-        args.includeNonComicsSeries,
-        args.partner.as_deref(),
-        args.projection.as_deref(),
-        args.source.as_deref(),
-        args.user_library_consistent_read,
+        args.volumeId.clone(),
+        args.country.clone(),
+        args.includeNonComicsSeries.clone(),
+        args.partner.clone(),
+        args.projection.clone(),
+        args.source.clone(),
+        args.user_library_consistent_read.clone(),
     )?;
     books_volumes_get_execute(builder)
-}
-
-/// GET books/v1/volumes
-/// Performs a book search.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_volumes_list_execute()` to send, or `books_volumes_list` for simplest API.
-
-pub fn books_volumes_list_builder(
-    client: &SimpleHttpClient,
-    q: &str,
-    download: Option<&str>,
-    filter: Option<&str>,
-    langRestrict: Option<&str>,
-    libraryRestrict: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    partner: Option<&str>,
-    printType: Option<&str>,
-    projection: Option<&str>,
-    showPreorders: Option<bool>,
-    source: Option<&str>,
-    startIndex: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/volumes", q,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = download {
-        query_parts.push(format!("download={}", val));
-    }
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = langRestrict {
-        query_parts.push(format!("langRestrict={}", val));
-    }
-    if let Some(val) = libraryRestrict {
-        query_parts.push(format!("libraryRestrict={}", val));
-    }
-    if let Some(val) = maxAllowedMaturityRating {
-        query_parts.push(format!("maxAllowedMaturityRating={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = partner {
-        query_parts.push(format!("partner={}", val));
-    }
-    if let Some(val) = printType {
-        query_parts.push(format!("printType={}", val));
-    }
-    if let Some(val) = projection {
-        query_parts.push(format!("projection={}", val));
-    }
-    if let Some(val) = showPreorders {
-        query_parts.push(format!("showPreorders={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-    if let Some(val) = startIndex {
-        query_parts.push(format!("startIndex={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/volumes
-/// Performs a book search.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_volumes_list_execute()` or `books_volumes_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_volumes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_volumes_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Volumes = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/volumes
-/// Performs a book search.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_volumes_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_volumes_list_task()`.
-/// For the simplest API, use `books_volumes_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_volumes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_volumes_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = books_volumes_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_volumes_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksVolumesListArgs {
-    /// Path parameter: q
-    pub q: String,
-    /// Query parameter: download
-    pub download: Option<String>,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: langRestrict
-    pub langRestrict: Option<String>,
-    /// Query parameter: libraryRestrict
-    pub libraryRestrict: Option<String>,
-    /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: partner
-    pub partner: Option<String>,
-    /// Query parameter: printType
-    pub printType: Option<String>,
-    /// Query parameter: projection
-    pub projection: Option<String>,
-    /// Query parameter: showPreorders
-    pub showPreorders: Option<bool>,
-    /// Query parameter: source
-    pub source: Option<String>,
-    /// Query parameter: startIndex
-    pub startIndex: Option<i32>,
-}
-
-/// GET books/v1/volumes
-/// Performs a book search.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_volumes_list_builder()` + `books_volumes_list_execute()`.
-/// For task-level control, use `books_volumes_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_volumes_list(
-    client: &SimpleHttpClient,
-    args: &BooksVolumesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = books_volumes_list_builder(
-        client,
-        &args.q,
-        args.download.as_deref(),
-        args.filter.as_deref(),
-        args.langRestrict.as_deref(),
-        args.libraryRestrict.as_deref(),
-        args.maxAllowedMaturityRating.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.partner.as_deref(),
-        args.printType.as_deref(),
-        args.projection.as_deref(),
-        args.showPreorders,
-        args.source.as_deref(),
-        args.startIndex,
-    )?;
-    books_volumes_list_execute(builder)
 }
 
 /// GET books/v1/volumes/{volumeId}/associated
@@ -8626,16 +5054,16 @@ pub fn books_volumes_list(
 
 pub fn books_volumes_associated_list_builder(
     client: &SimpleHttpClient,
-    volumeId: &str,
-    association: Option<&str>,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    volumeId: String,
+    association: Option<String>,
+    locale: Option<String>,
+    maxAllowedMaturityRating: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/associated",
-        volumeId,
+        volumeId.as_str(),
     );
 
     // Build request
@@ -8654,9 +5082,9 @@ pub fn books_volumes_associated_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8690,7 +5118,12 @@ pub fn books_volumes_associated_list_builder(
 pub fn books_volumes_associated_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8800,11 +5233,11 @@ pub fn books_volumes_associated_list(
 > {
     let builder = books_volumes_associated_list_builder(
         client,
-        &args.volumeId,
-        args.association.as_deref(),
-        args.locale.as_deref(),
-        args.maxAllowedMaturityRating.as_deref(),
-        args.source.as_deref(),
+        args.volumeId.clone(),
+        args.association.clone(),
+        args.locale.clone(),
+        args.maxAllowedMaturityRating.clone(),
+        args.source.clone(),
     )?;
     books_volumes_associated_list_execute(builder)
 }
@@ -8817,16 +5250,16 @@ pub fn books_volumes_associated_list(
 
 pub fn books_volumes_mybooks_list_builder(
     client: &SimpleHttpClient,
-    acquireMethod: Option<&str>,
-    country: Option<&str>,
-    locale: Option<&str>,
+    acquireMethod: Option<String>,
+    country: Option<String>,
+    locale: Option<String>,
     maxResults: Option<i32>,
-    processingState: Option<&str>,
-    source: Option<&str>,
+    processingState: Option<String>,
+    source: Option<String>,
     startIndex: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/volumes/mybooks",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/mybooks",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -8853,9 +5286,9 @@ pub fn books_volumes_mybooks_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8889,7 +5322,12 @@ pub fn books_volumes_mybooks_list_builder(
 pub fn books_volumes_mybooks_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9003,13 +5441,13 @@ pub fn books_volumes_mybooks_list(
 > {
     let builder = books_volumes_mybooks_list_builder(
         client,
-        args.acquireMethod.as_deref(),
-        args.country.as_deref(),
-        args.locale.as_deref(),
-        args.maxResults,
-        args.processingState.as_deref(),
-        args.source.as_deref(),
-        args.startIndex,
+        args.acquireMethod.clone(),
+        args.country.clone(),
+        args.locale.clone(),
+        args.maxResults.clone(),
+        args.processingState.clone(),
+        args.source.clone(),
+        args.startIndex.clone(),
     )?;
     books_volumes_mybooks_list_execute(builder)
 }
@@ -9022,12 +5460,12 @@ pub fn books_volumes_mybooks_list(
 
 pub fn books_volumes_recommended_list_builder(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
-    maxAllowedMaturityRating: Option<&str>,
-    source: Option<&str>,
+    locale: Option<String>,
+    maxAllowedMaturityRating: Option<String>,
+    source: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/volumes/recommended",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/recommended",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -9042,9 +5480,9 @@ pub fn books_volumes_recommended_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9078,7 +5516,12 @@ pub fn books_volumes_recommended_list_builder(
 pub fn books_volumes_recommended_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9184,204 +5627,11 @@ pub fn books_volumes_recommended_list(
 > {
     let builder = books_volumes_recommended_list_builder(
         client,
-        args.locale.as_deref(),
-        args.maxAllowedMaturityRating.as_deref(),
-        args.source.as_deref(),
+        args.locale.clone(),
+        args.maxAllowedMaturityRating.clone(),
+        args.source.clone(),
     )?;
     books_volumes_recommended_list_execute(builder)
-}
-
-/// GET books/v1/volumes/recommended/rate
-/// Rate a recommended book for the current user.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `books_volumes_recommended_rate_execute()` to send, or `books_volumes_recommended_rate` for simplest API.
-
-pub fn books_volumes_recommended_rate_builder(
-    client: &SimpleHttpClient,
-    rating: &str,
-    volumeId: &str,
-    locale: Option<&str>,
-    source: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://books.googleapis.com/books/v1/volumes/recommended/rate",
-        rating, volumeId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-    if let Some(val) = source {
-        query_parts.push(format!("source={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET books/v1/volumes/recommended/rate
-/// Rate a recommended book for the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `books_volumes_recommended_rate_execute()` or `books_volumes_recommended_rate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_volumes_recommended_rate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_volumes_recommended_rate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<BooksVolumesRecommendedRateResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: BooksVolumesRecommendedRateResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET books/v1/volumes/recommended/rate
-/// Rate a recommended book for the current user.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `books_volumes_recommended_rate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `books_volumes_recommended_rate_task()`.
-/// For the simplest API, use `books_volumes_recommended_rate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `books_volumes_recommended_rate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn books_volumes_recommended_rate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BooksVolumesRecommendedRateResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = books_volumes_recommended_rate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`books_volumes_recommended_rate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BooksVolumesRecommendedRateArgs {
-    /// Path parameter: rating
-    pub rating: String,
-    /// Path parameter: volumeId
-    pub volumeId: String,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-    /// Query parameter: source
-    pub source: Option<String>,
-}
-
-/// GET books/v1/volumes/recommended/rate
-/// Rate a recommended book for the current user.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `books_volumes_recommended_rate_builder()` + `books_volumes_recommended_rate_execute()`.
-/// For task-level control, use `books_volumes_recommended_rate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn books_volumes_recommended_rate(
-    client: &SimpleHttpClient,
-    args: &BooksVolumesRecommendedRateArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BooksVolumesRecommendedRateResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = books_volumes_recommended_rate_builder(
-        client,
-        &args.rating,
-        &args.volumeId,
-        args.locale.as_deref(),
-        args.source.as_deref(),
-    )?;
-    books_volumes_recommended_rate_execute(builder)
 }
 
 /// GET books/v1/volumes/useruploaded
@@ -9392,15 +5642,15 @@ pub fn books_volumes_recommended_rate(
 
 pub fn books_volumes_useruploaded_list_builder(
     client: &SimpleHttpClient,
-    locale: Option<&str>,
+    locale: Option<String>,
     maxResults: Option<i32>,
-    processingState: Option<&str>,
-    source: Option<&str>,
+    processingState: Option<String>,
+    source: Option<String>,
     startIndex: Option<i32>,
-    volumeId: Option<&str>,
+    volumeId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://books.googleapis.com/books/v1/volumes/useruploaded",);
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/useruploaded",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -9424,9 +5674,9 @@ pub fn books_volumes_useruploaded_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9460,7 +5710,12 @@ pub fn books_volumes_useruploaded_list_builder(
 pub fn books_volumes_useruploaded_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Volumes>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volumes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9572,12 +5827,12 @@ pub fn books_volumes_useruploaded_list(
 > {
     let builder = books_volumes_useruploaded_list_builder(
         client,
-        args.locale.as_deref(),
-        args.maxResults,
-        args.processingState.as_deref(),
-        args.source.as_deref(),
-        args.startIndex,
-        args.volumeId.as_deref(),
+        args.locale.clone(),
+        args.maxResults.clone(),
+        args.processingState.clone(),
+        args.source.clone(),
+        args.startIndex.clone(),
+        args.volumeId.clone(),
     )?;
     books_volumes_useruploaded_list_execute(builder)
 }

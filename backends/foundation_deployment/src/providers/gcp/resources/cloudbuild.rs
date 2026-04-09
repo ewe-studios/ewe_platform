@@ -29,15 +29,15 @@ pub struct BatchCreateRepositoriesResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Represents an empty Volume source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmptyDirVolumeSource {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response for fetching git refs
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -63,7 +63,9 @@ pub struct FetchLinkableRepositoriesResponse {
 
 /// Message for fetching SCM read token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadTokenRequest {}
+pub struct FetchReadTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for responding to get read token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -78,7 +80,9 @@ pub struct FetchReadTokenResponse {
 
 /// Message for fetching SCM read/write token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FetchReadWriteTokenRequest {}
+pub struct FetchReadWriteTokenRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for responding to get read/write token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1191,7 +1195,7 @@ pub struct Step {
 pub struct VolumeSource {
     /// A temporary directory that shares a pod''s lifetime.
     #[serde(default, rename = "emptyDir")]
-    pub empty_dir: ::core::option::Option<serde_json::Value>,
+    pub empty_dir: ::core::option::Option<EmptyDirVolumeSource>,
     /// Name of the Volume. Must be a DNS_LABEL and unique within the pod. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1291,6 +1295,12 @@ pub struct VolumeMount {
     /// Expanded path within the volume from which the container''s volume should be mounted. Behaves similarly to SubPath but environment variable references $(VAR_NAME) are expanded using the container''s environment. Defaults to "" (volume''s root).
     #[serde(default, rename = "subPathExpr")]
     pub sub_path_expr: ::core::option::Option<String>,
+}
+
+/// Represents an empty Volume source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmptyDirVolumeSource {
+    pub value: serde_json::Value,
 }
 
 /// ExecAction describes a "run in container" action.

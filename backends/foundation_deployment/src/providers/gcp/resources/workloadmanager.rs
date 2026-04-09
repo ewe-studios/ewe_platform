@@ -13,11 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response object from ListActuations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -222,7 +226,9 @@ pub struct WriteInsightRequest {
 
 /// The response for write insights request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteInsightResponse {}
+pub struct WriteInsightResponse {
+    pub value: serde_json::Value,
+}
 
 /// The Actuation object represents the bootstrap state and output results of deployed infrastructure and software.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

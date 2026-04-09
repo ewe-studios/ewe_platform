@@ -13,35 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// Request message for ActivateJobTrigger.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ActivateJobTriggerRequest {}
-
-/// Apply transformation to all findings.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllInfoTypes {}
-
-/// Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {}
-
-/// Match database resources not covered by any other filter.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {}
-
-/// Match discovery resources not covered by any other filter.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllOtherResources {}
-
-/// Apply to all text.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2AllText {}
+pub struct GooglePrivacyDlpV2ActivateJobTriggerRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request message for canceling a DLP job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CancelDlpJobRequest {}
-
-/// Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
+pub struct GooglePrivacyDlpV2CancelDlpJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for CreateConnection.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -232,25 +212,11 @@ pub struct GooglePrivacyDlpV2DeidentifyContentResponse {
     pub overview: ::core::option::Option<GooglePrivacyDlpV2TransformationOverview>,
 }
 
-/// Do not profile the tables.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Disabled {}
-
-/// Defines a condition where one bounding box encloses another.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Encloses {}
-
 /// The request message for finishing a DLP hybrid job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FinishDlpJobRequest {}
-
-/// Defines a condition where one bounding box is fully inside another.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2FullyInside {}
-
-/// Processing occurs in the global region.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2GlobalProcessing {}
+pub struct GooglePrivacyDlpV2FinishDlpJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to search for potentially sensitive info in a custom location.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -270,7 +236,9 @@ pub struct GooglePrivacyDlpV2HybridInspectJobTriggerRequest {
 
 /// Quota exceeded errors will be thrown once quota has been met.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2HybridInspectResponse {}
+pub struct GooglePrivacyDlpV2HybridInspectResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to search for potentially sensitive info in a ContentItem.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -296,14 +264,6 @@ pub struct GooglePrivacyDlpV2InspectContentResponse {
     #[serde(default)]
     pub result: ::core::option::Option<GooglePrivacyDlpV2InspectResult>,
 }
-
-/// Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2JobNotificationEmails {}
-
-/// Skips the data without modifying it if the requested transformation would cause an error. For example, if a DateShift transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2LeaveUntransformed {}
 
 /// List of profiles generated for a given organization or project.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -442,46 +402,6 @@ pub struct GooglePrivacyDlpV2ListTableDataProfilesResponse {
         ::core::option::Option<::std::vec::Vec<GooglePrivacyDlpV2TableDataProfile>>,
 }
 
-/// Job trigger option for hybrid jobs. Jobs must be manually created and finished.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Manual {}
-
-/// Processing occurs in a multi-region that contains the current region if available.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2MultiRegionProcessing {}
-
-/// Defines a condition for overlapping bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2Overlap {}
-
-/// Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the roles/datacatalog.tagTemplateOwner permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog {}
-
-/// Publish findings of a DlpJob to Dataplex Universal Catalog as a sensitive-data-protection-job-result aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishFindingsToDataplexCatalog {}
-
-/// Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishSummaryToCscc {}
-
-/// Message expressing intention to publish to Google Security Operations.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToChronicle {}
-
-/// If set, a summary finding will be created or updated in Security Command Center for each profile.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {}
-
-/// Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as ''Custom'' under the Stackdriver label ''info_type''.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2PublishToStackdriver {}
-
-/// Redact a given value. For example, if used with an InfoTypeTransformation transforming PHONE_NUMBER, and input ''My phone number is 206-555-0123'', the output would be ''My phone number is ''.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2RedactConfig {}
-
 /// Request to search for potentially sensitive info in an image and redact it by covering it with a colored rectangle.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RedactImageRequest {
@@ -557,10 +477,6 @@ pub struct GooglePrivacyDlpV2ReidentifyContentResponse {
     pub overview: ::core::option::Option<GooglePrivacyDlpV2TransformationOverview>,
 }
 
-/// Replace each matching finding with the name of the info_type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {}
-
 /// Collection of findings saved to a Cloud Storage bucket. This is used as the proto schema for textproto files created when specifying a cloud storage path to save Inspect findings.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SaveToGcsFindingsOutput {
@@ -579,18 +495,6 @@ pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
-
-/// Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {}
-
-/// Message for detecting output from deidentification transformations such as [CryptoReplaceFfxFpeConfig](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as surrogate_info_type. This CustomInfoType does not support the use of detection_rules.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2SurrogateType {}
-
-/// Throw an error and fail the request when a transformation error occurs.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GooglePrivacyDlpV2ThrowError {}
 
 /// Details about a single transformation. This object contains a description of the transformation, information about whether the transformation was successfully applied, and the precise location where the transformation occurred. These details are stored in a user-specified BigQuery table.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -682,14 +586,6 @@ pub struct GooglePrivacyDlpV2UpdateStoredInfoTypeRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
-
-/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2BridgeMessageSet {}
-
 /// Wire-format for a Status object
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UtilStatusProto {
@@ -704,7 +600,7 @@ pub struct UtilStatusProto {
     pub message: ::core::option::Option<String>,
     /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
     #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
+    pub message_set: ::core::option::Option<Proto2BridgeMessageSet>,
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
     pub space: ::core::option::Option<String>,
@@ -1240,6 +1136,12 @@ pub struct GooglePrivacyDlpV2JobTrigger {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Proto2BridgeMessageSet {
+    pub value: serde_json::Value,
+}
+
 /// Location of a finding within a resource that produces a table data profile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileFindingRecordLocation {
@@ -1604,7 +1506,7 @@ pub struct GooglePrivacyDlpV2RecordTransformation {
 pub struct GooglePrivacyDlpV2CloudSqlProperties {
     /// Built-in IAM authentication (must be configured in Cloud SQL).
     #[serde(default, rename = "cloudSqlIam")]
-    pub cloud_sql_iam: ::core::option::Option<serde_json::Value>,
+    pub cloud_sql_iam: ::core::option::Option<GooglePrivacyDlpV2CloudSqlIamCredential>,
     /// Optional. Immutable. The Cloud SQL instance for which the connection is defined. Only one connection per instance is allowed. This can only be set at creation time, and cannot be updated. It is an error to use a connection_name from different project or region than the one that holds the connection. For example, a Connection resource for Cloud SQL connection_name project-id:us-central1:sql-instance must be created under the parent projects/project-id/locations/us-central1
     #[serde(default, rename = "connectionName")]
     pub connection_name: ::core::option::Option<String>,
@@ -1624,7 +1526,7 @@ pub struct GooglePrivacyDlpV2CloudSqlProperties {
 pub struct GooglePrivacyDlpV2Trigger {
     /// For use with hybrid jobs. Jobs must be manually created and finished.
     #[serde(default)]
-    pub manual: ::core::option::Option<serde_json::Value>,
+    pub manual: ::core::option::Option<GooglePrivacyDlpV2Manual>,
     /// Create a job on a repeating basis based on the elapse of time.
     #[serde(default)]
     pub schedule: ::core::option::Option<GooglePrivacyDlpV2Schedule>,
@@ -1940,6 +1842,12 @@ pub struct GooglePrivacyDlpV2SummaryResult {
     pub details: ::core::option::Option<String>,
 }
 
+/// Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2CloudSqlIamCredential {
+    pub value: serde_json::Value,
+}
+
 /// A credential consisting of a username and password, where the password is stored in a Secret Manager resource. Note: Secret Manager [charges apply](https://cloud.google.com/secret-manager/pricing).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SecretManagerCredential {
@@ -1949,6 +1857,12 @@ pub struct GooglePrivacyDlpV2SecretManagerCredential {
     /// Required. The username.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
+}
+
+/// Job trigger option for hybrid jobs. Jobs must be manually created and finished.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Manual {
+    pub value: serde_json::Value,
 }
 
 /// Schedule for inspect job triggers.
@@ -2236,14 +2150,14 @@ pub struct GooglePrivacyDlpV2DataProfileAction {
     pub pub_sub_notification: ::core::option::Option<GooglePrivacyDlpV2PubSubNotification>,
     /// Publishes generated data profiles to Google Security Operations. For more information, see [Use Sensitive Data Protection data in context-aware analytics](https://cloud.google.com/chronicle/docs/detection/usecase-dlp-high-risk-user-download).
     #[serde(default, rename = "publishToChronicle")]
-    pub publish_to_chronicle: ::core::option::Option<serde_json::Value>,
+    pub publish_to_chronicle: ::core::option::Option<GooglePrivacyDlpV2PublishToChronicle>,
     /// Publishes a portion of each profile to Dataplex Universal Catalog with the aspect type Sensitive Data Protection Profile.
     #[serde(default, rename = "publishToDataplexCatalog")]
     pub publish_to_dataplex_catalog:
         ::core::option::Option<GooglePrivacyDlpV2PublishToDataplexCatalog>,
     /// Publishes findings to Security Command Center for each data profile.
     #[serde(default, rename = "publishToScc")]
-    pub publish_to_scc: ::core::option::Option<serde_json::Value>,
+    pub publish_to_scc: ::core::option::Option<GooglePrivacyDlpV2PublishToSecurityCommandCenter>,
     /// Tags the profiled resources with the specified tag values.
     #[serde(default, rename = "tagResources")]
     pub tag_resources: ::core::option::Option<GooglePrivacyDlpV2TagResources>,
@@ -2311,7 +2225,7 @@ pub struct GooglePrivacyDlpV2DiscoveryTarget {
     pub other_cloud_target: ::core::option::Option<GooglePrivacyDlpV2OtherCloudDiscoveryTarget>,
     /// Discovery target that looks for credentials and secrets stored in cloud resource metadata and reports them as vulnerabilities to Security Command Center. Only one target of this type is allowed.
     #[serde(default, rename = "secretsTarget")]
-    pub secrets_target: ::core::option::Option<serde_json::Value>,
+    pub secrets_target: ::core::option::Option<GooglePrivacyDlpV2SecretsDiscoveryTarget>,
     /// Vertex AI dataset target for Discovery. The first target to match a dataset will be the one applied. Note that discovery for Vertex AI can incur Cloud Storage Class B operation charges for storage.objects.get operations and retrieval fees. For more information, see [Cloud Storage pricing](https://cloud.google.com/storage/pricing#price-tables). Note that discovery for Vertex AI dataset will not be able to scan images unless DiscoveryConfig.processing_location.image_fallback_location has multi_region_processing or global_processing configured.
     #[serde(default, rename = "vertexDatasetTarget")]
     pub vertex_dataset_target:
@@ -2534,22 +2448,24 @@ pub struct GooglePrivacyDlpV2Action {
     pub deidentify: ::core::option::Option<GooglePrivacyDlpV2Deidentify>,
     /// Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).
     #[serde(default, rename = "jobNotificationEmails")]
-    pub job_notification_emails: ::core::option::Option<serde_json::Value>,
+    pub job_notification_emails: ::core::option::Option<GooglePrivacyDlpV2JobNotificationEmails>,
     /// Publish a notification to a Pub/Sub topic.
     #[serde(default, rename = "pubSub")]
     pub pub_sub: ::core::option::Option<GooglePrivacyDlpV2PublishToPubSub>,
     /// Deprecated because Data Catalog is being turned down. Use publish_findings_to_dataplex_catalog to publish findings to Dataplex Universal Catalog.
     #[serde(default, rename = "publishFindingsToCloudDataCatalog")]
-    pub publish_findings_to_cloud_data_catalog: ::core::option::Option<serde_json::Value>,
+    pub publish_findings_to_cloud_data_catalog:
+        ::core::option::Option<GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog>,
     /// Publish findings as an aspect to Dataplex Universal Catalog.
     #[serde(default, rename = "publishFindingsToDataplexCatalog")]
-    pub publish_findings_to_dataplex_catalog: ::core::option::Option<serde_json::Value>,
+    pub publish_findings_to_dataplex_catalog:
+        ::core::option::Option<GooglePrivacyDlpV2PublishFindingsToDataplexCatalog>,
     /// Publish summary to Cloud Security Command Center (Alpha).
     #[serde(default, rename = "publishSummaryToCscc")]
-    pub publish_summary_to_cscc: ::core::option::Option<serde_json::Value>,
+    pub publish_summary_to_cscc: ::core::option::Option<GooglePrivacyDlpV2PublishSummaryToCscc>,
     /// Enable Stackdriver metric dlp.googleapis.com/finding_count.
     #[serde(default, rename = "publishToStackdriver")]
-    pub publish_to_stackdriver: ::core::option::Option<serde_json::Value>,
+    pub publish_to_stackdriver: ::core::option::Option<GooglePrivacyDlpV2PublishToStackdriver>,
     /// Save resulting findings in a provided location.
     #[serde(default, rename = "saveFindings")]
     pub save_findings: ::core::option::Option<GooglePrivacyDlpV2SaveFindings>,
@@ -2626,12 +2542,24 @@ pub struct GooglePrivacyDlpV2PubSubNotification {
     pub topic: ::core::option::Option<String>,
 }
 
+/// Message expressing intention to publish to Google Security Operations.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToChronicle {
+    pub value: serde_json::Value,
+}
+
 /// Create Dataplex Universal Catalog aspects for profiled resources with the aspect type Sensitive Data Protection Profile. To learn more about aspects, see https://cloud.google.com/sensitive-data-protection/docs/add-aspects.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToDataplexCatalog {
     /// Whether creating a Dataplex Universal Catalog aspect for a profiled resource should lower the risk of the profile for that resource. This also lowers the data risk of resources at the lower levels of the resource hierarchy. For example, reducing the data risk of a table data profile also reduces the data risk of the constituent column data profiles.
     #[serde(default, rename = "lowerDataRiskToLow")]
     pub lower_data_risk_to_low: ::core::option::Option<bool>,
+}
+
+/// If set, a summary finding will be created or updated in Security Command Center for each profile.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {
+    pub value: serde_json::Value,
 }
 
 /// If set, attaches the [tags] (https://cloud.google.com/resource-manager/docs/tags/tags-overview) provided to profiled resources. Tags support [access control](https://cloud.google.com/iam/docs/tags-access-control). You can conditionally grant or deny access to a resource based on whether the resource has a specific tag.
@@ -2689,10 +2617,10 @@ pub struct GooglePrivacyDlpV2AwsDiscoveryStartingLocation {
 pub struct GooglePrivacyDlpV2DocumentFallbackLocation {
     /// Processing occurs in the global region.
     #[serde(default, rename = "globalProcessing")]
-    pub global_processing: ::core::option::Option<serde_json::Value>,
+    pub global_processing: ::core::option::Option<GooglePrivacyDlpV2GlobalProcessing>,
     /// Processing occurs in a multi-region that contains the current region if available.
     #[serde(default, rename = "multiRegionProcessing")]
-    pub multi_region_processing: ::core::option::Option<serde_json::Value>,
+    pub multi_region_processing: ::core::option::Option<GooglePrivacyDlpV2MultiRegionProcessing>,
 }
 
 /// Configure image processing to fall back to any of the following processing options if image processing is unavailable in the original request location.
@@ -2700,10 +2628,10 @@ pub struct GooglePrivacyDlpV2DocumentFallbackLocation {
 pub struct GooglePrivacyDlpV2ImageFallbackLocation {
     /// Processing occurs in the global region.
     #[serde(default, rename = "globalProcessing")]
-    pub global_processing: ::core::option::Option<serde_json::Value>,
+    pub global_processing: ::core::option::Option<GooglePrivacyDlpV2GlobalProcessing>,
     /// Processing occurs in a multi-region that contains the current region if available.
     #[serde(default, rename = "multiRegionProcessing")]
-    pub multi_region_processing: ::core::option::Option<serde_json::Value>,
+    pub multi_region_processing: ::core::option::Option<GooglePrivacyDlpV2MultiRegionProcessing>,
 }
 
 /// Target used to match against for discovery with BigQuery tables
@@ -2717,7 +2645,7 @@ pub struct GooglePrivacyDlpV2BigQueryDiscoveryTarget {
     pub conditions: ::core::option::Option<GooglePrivacyDlpV2DiscoveryBigQueryConditions>,
     /// Tables that match this filter will not have profiles created.
     #[serde(default)]
-    pub disabled: ::core::option::Option<serde_json::Value>,
+    pub disabled: ::core::option::Option<GooglePrivacyDlpV2Disabled>,
     /// Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.
     #[serde(default)]
     pub filter: ::core::option::Option<GooglePrivacyDlpV2DiscoveryBigQueryFilter>,
@@ -2731,7 +2659,7 @@ pub struct GooglePrivacyDlpV2CloudSqlDiscoveryTarget {
     pub conditions: ::core::option::Option<GooglePrivacyDlpV2DiscoveryCloudSqlConditions>,
     /// Disable profiling for database resources that match this filter.
     #[serde(default)]
-    pub disabled: ::core::option::Option<serde_json::Value>,
+    pub disabled: ::core::option::Option<GooglePrivacyDlpV2Disabled>,
     /// Required. The tables the discovery cadence applies to. The first target with a matching filter will be the one to apply to a table.
     #[serde(default)]
     pub filter: ::core::option::Option<GooglePrivacyDlpV2DiscoveryCloudSqlFilter>,
@@ -2749,7 +2677,7 @@ pub struct GooglePrivacyDlpV2CloudStorageDiscoveryTarget {
     pub conditions: ::core::option::Option<GooglePrivacyDlpV2DiscoveryFileStoreConditions>,
     /// Optional. Disable profiling for buckets that match this filter.
     #[serde(default)]
-    pub disabled: ::core::option::Option<serde_json::Value>,
+    pub disabled: ::core::option::Option<GooglePrivacyDlpV2Disabled>,
     /// Required. The buckets the generation_cadence applies to. The first target with a matching filter will be the one to apply to a bucket.
     #[serde(default)]
     pub filter: ::core::option::Option<GooglePrivacyDlpV2DiscoveryCloudStorageFilter>,
@@ -2770,7 +2698,7 @@ pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
     pub data_source_type: ::core::option::Option<GooglePrivacyDlpV2DataSourceType>,
     /// Disable profiling for resources that match this filter.
     #[serde(default)]
-    pub disabled: ::core::option::Option<serde_json::Value>,
+    pub disabled: ::core::option::Option<GooglePrivacyDlpV2Disabled>,
     /// Required. The resources that the discovery cadence applies to. The first target with a matching filter will be the one to apply to a resource.
     #[serde(default)]
     pub filter: ::core::option::Option<GooglePrivacyDlpV2DiscoveryOtherCloudFilter>,
@@ -2778,6 +2706,12 @@ pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
     #[serde(default, rename = "generationCadence")]
     pub generation_cadence:
         ::core::option::Option<GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence>,
+}
+
+/// Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {
+    pub value: serde_json::Value,
 }
 
 /// Target used to match against for discovery with Vertex AI datasets.
@@ -2788,7 +2722,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetDiscoveryTarget {
     pub conditions: ::core::option::Option<GooglePrivacyDlpV2DiscoveryVertexDatasetConditions>,
     /// Disable profiling for datasets that match this filter.
     #[serde(default)]
-    pub disabled: ::core::option::Option<serde_json::Value>,
+    pub disabled: ::core::option::Option<GooglePrivacyDlpV2Disabled>,
     /// Required. The datasets the discovery cadence applies to. The first target with a matching filter will be the one to apply to a dataset.
     #[serde(default)]
     pub filter: ::core::option::Option<GooglePrivacyDlpV2DiscoveryVertexDatasetFilter>,
@@ -2996,7 +2930,7 @@ pub struct GooglePrivacyDlpV2CustomInfoType {
     pub stored_type: ::core::option::Option<GooglePrivacyDlpV2StoredType>,
     /// Message for detecting output from deidentification transformations that support reversing.
     #[serde(default, rename = "surrogateType")]
-    pub surrogate_type: ::core::option::Option<serde_json::Value>,
+    pub surrogate_type: ::core::option::Option<GooglePrivacyDlpV2SurrogateType>,
 }
 
 /// Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don''t apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don''t include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.
@@ -3065,12 +2999,42 @@ pub struct GooglePrivacyDlpV2Deidentify {
         ::core::option::Option<GooglePrivacyDlpV2TransformationDetailsStorageConfig>,
 }
 
+/// Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2JobNotificationEmails {
+    pub value: serde_json::Value,
+}
+
 /// Publish a message into a given Pub/Sub topic when DlpJob has completed. The message contains a single field, DlpJobName, which is equal to the finished job''s [DlpJob.name](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/projects.dlpJobs#DlpJob). Compatible with: Inspect, Risk
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToPubSub {
     /// Cloud Pub/Sub topic to send notifications to. The topic must have given publishing access rights to the DLP API service account executing the long running DlpJob sending the notifications. Format is projects/{project}/topics/{topic}.
     #[serde(default)]
     pub topic: ::core::option::Option<String>,
+}
+
+/// Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the roles/datacatalog.tagTemplateOwner permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog {
+    pub value: serde_json::Value,
+}
+
+/// Publish findings of a DlpJob to Dataplex Universal Catalog as a sensitive-data-protection-job-result aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishFindingsToDataplexCatalog {
+    pub value: serde_json::Value,
+}
+
+/// Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishSummaryToCscc {
+    pub value: serde_json::Value,
+}
+
+/// Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as ''Custom'' under the Stackdriver label ''info_type''.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2PublishToStackdriver {
+    pub value: serde_json::Value,
 }
 
 /// If set, the detailed findings will be persisted to the specified OutputStorageConfig. Only a single instance of this action can be specified. Compatible with: Inspect, Risk
@@ -3167,6 +3131,18 @@ pub struct GooglePrivacyDlpV2TagCondition {
     pub tag: ::core::option::Option<GooglePrivacyDlpV2TagValue>,
 }
 
+/// Processing occurs in the global region.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2GlobalProcessing {
+    pub value: serde_json::Value,
+}
+
+/// Processing occurs in a multi-region that contains the current region if available.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2MultiRegionProcessing {
+    pub value: serde_json::Value,
+}
+
 /// What must take place for a profile to be updated and how frequently it should occur. New tables are scanned as quickly as possible depending on system capacity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryGenerationCadence {
@@ -3209,7 +3185,7 @@ pub struct GooglePrivacyDlpV2DiscoveryBigQueryConditions {
 pub struct GooglePrivacyDlpV2DiscoveryBigQueryFilter {
     /// Catch-all. This should always be the last filter in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default, rename = "otherTables")]
-    pub other_tables: ::core::option::Option<serde_json::Value>,
+    pub other_tables: ::core::option::Option<GooglePrivacyDlpV2AllOtherBigQueryTables>,
     /// The table to scan. Discovery configurations including this can only include one DiscoveryTarget (the DiscoveryTarget with this TableReference).
     #[serde(default, rename = "tableReference")]
     pub table_reference: ::core::option::Option<GooglePrivacyDlpV2TableReference>,
@@ -3241,7 +3217,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudSqlFilter {
         ::core::option::Option<GooglePrivacyDlpV2DatabaseResourceReference>,
     /// Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default)]
-    pub others: ::core::option::Option<serde_json::Value>,
+    pub others: ::core::option::Option<GooglePrivacyDlpV2AllOtherDatabaseResources>,
 }
 
 /// How often existing tables should have their profiles refreshed. New tables are scanned as quickly as possible depending on system capacity.
@@ -3286,7 +3262,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudStorageFilter {
     pub collection: ::core::option::Option<GooglePrivacyDlpV2FileStoreCollection>,
     /// Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default)]
-    pub others: ::core::option::Option<serde_json::Value>,
+    pub others: ::core::option::Option<GooglePrivacyDlpV2AllOtherResources>,
 }
 
 /// How often existing buckets should have their profiles refreshed. New buckets are scanned as quickly as possible depending on system capacity.
@@ -3329,7 +3305,7 @@ pub struct GooglePrivacyDlpV2DiscoveryOtherCloudFilter {
     pub collection: ::core::option::Option<GooglePrivacyDlpV2OtherCloudResourceCollection>,
     /// Optional. Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default)]
-    pub others: ::core::option::Option<serde_json::Value>,
+    pub others: ::core::option::Option<GooglePrivacyDlpV2AllOtherResources>,
     /// The resource to scan. Configs using this filter can only have one target (the target with this single resource reference).
     #[serde(default, rename = "singleResource")]
     pub single_resource:
@@ -3359,6 +3335,12 @@ pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetConditions {
     pub min_age: ::core::option::Option<String>,
 }
 
+/// Do not profile the tables.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Disabled {
+    pub value: serde_json::Value,
+}
+
 /// Determines what datasets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID or dataset regex.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
@@ -3367,7 +3349,7 @@ pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
     pub collection: ::core::option::Option<GooglePrivacyDlpV2VertexDatasetCollection>,
     /// Catch-all. This should always be the last target in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default)]
-    pub others: ::core::option::Option<serde_json::Value>,
+    pub others: ::core::option::Option<GooglePrivacyDlpV2AllOtherResources>,
     /// The dataset resource to scan. Targets including this can only include one target (the target with this dataset resource reference).
     #[serde(default, rename = "vertexDatasetResourceReference")]
     pub vertex_dataset_resource_reference:
@@ -3467,10 +3449,10 @@ pub struct GooglePrivacyDlpV2RecordTransformations {
 pub struct GooglePrivacyDlpV2TransformationErrorHandling {
     /// Ignore errors
     #[serde(default, rename = "leaveUntransformed")]
-    pub leave_untransformed: ::core::option::Option<serde_json::Value>,
+    pub leave_untransformed: ::core::option::Option<GooglePrivacyDlpV2LeaveUntransformed>,
     /// Throw an error
     #[serde(default, rename = "throwError")]
-    pub throw_error: ::core::option::Option<serde_json::Value>,
+    pub throw_error: ::core::option::Option<GooglePrivacyDlpV2ThrowError>,
 }
 
 /// Set of files to scan.
@@ -3528,6 +3510,12 @@ pub struct GooglePrivacyDlpV2StoredType {
     /// Resource name of the requested StoredInfoType, for example organizations/433245324/storedInfoTypes/432452342 or projects/project-id/storedInfoTypes/432452342.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// Message for detecting output from deidentification transformations such as [CryptoReplaceFfxFpeConfig](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as surrogate_info_type. This CustomInfoType does not support the use of detection_rules.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2SurrogateType {
+    pub value: serde_json::Value,
 }
 
 /// Max findings configuration per infoType, per content item or long running DlpJob.
@@ -3616,7 +3604,7 @@ pub struct GooglePrivacyDlpV2QuasiId {
     pub field: ::core::option::Option<GooglePrivacyDlpV2FieldId>,
     /// If no semantic tag is indicated, we infer the statistical model from the distribution of values in the input data
     #[serde(default)]
-    pub inferred: ::core::option::Option<serde_json::Value>,
+    pub inferred: ::core::option::Option<GoogleProtobufEmpty>,
     /// A column can be tagged with a InfoType to use the relevant public dataset as a statistical model of population, if available. We currently support US ZIP codes, region codes, ages and genders. To programmatically obtain the list of supported InfoTypes, use ListInfoTypes with the supported_by=RISK_ANALYSIS filter.
     #[serde(default, rename = "infoType")]
     pub info_type: ::core::option::Option<GooglePrivacyDlpV2InfoType>,
@@ -3655,7 +3643,7 @@ pub struct GooglePrivacyDlpV2TaggedField {
     pub field: ::core::option::Option<GooglePrivacyDlpV2FieldId>,
     /// If no semantic tag is indicated, we infer the statistical model from the distribution of values in the input data
     #[serde(default)]
-    pub inferred: ::core::option::Option<serde_json::Value>,
+    pub inferred: ::core::option::Option<GoogleProtobufEmpty>,
     /// A column can be tagged with a InfoType to use the relevant public dataset as a statistical model of population, if available. We currently support US ZIP codes, region codes, ages and genders. To programmatically obtain the list of supported InfoTypes, use ListInfoTypes with the supported_by=RISK_ANALYSIS filter.
     #[serde(default, rename = "infoType")]
     pub info_type: ::core::option::Option<GooglePrivacyDlpV2InfoType>,
@@ -3721,6 +3709,12 @@ pub struct GooglePrivacyDlpV2BigQueryTableTypes {
     pub types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {
+    pub value: serde_json::Value,
+}
+
 /// Message defining the location of a BigQuery table with the projectId inferred from the parent project.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TableReference {
@@ -3766,6 +3760,12 @@ pub struct GooglePrivacyDlpV2DatabaseResourceReference {
     /// Required. If within a project-level config, then this must match the config''s project ID.
     #[serde(default, rename = "projectId")]
     pub project_id: ::core::option::Option<String>,
+}
+
+/// Match database resources not covered by any other filter.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {
+    pub value: serde_json::Value,
 }
 
 /// How frequently to modify the profile when the table''s schema is modified.
@@ -3847,6 +3847,12 @@ pub struct GooglePrivacyDlpV2VertexDatasetCollection {
     pub vertex_dataset_regexes: ::core::option::Option<GooglePrivacyDlpV2VertexDatasetRegexes>,
 }
 
+/// Match discovery resources not covered by any other filter.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllOtherResources {
+    pub value: serde_json::Value,
+}
+
 /// Identifies a single Vertex AI resource. Only datasets are supported.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetResourceReference {
@@ -3887,10 +3893,10 @@ pub struct GooglePrivacyDlpV2DatastoreKey {
 pub struct GooglePrivacyDlpV2ImageTransformation {
     /// Apply transformation to all findings not specified in other ImageTransformation''s selected_info_types. Only one instance is allowed within the ImageTransformations message.
     #[serde(default, rename = "allInfoTypes")]
-    pub all_info_types: ::core::option::Option<serde_json::Value>,
+    pub all_info_types: ::core::option::Option<GooglePrivacyDlpV2AllInfoTypes>,
     /// Apply transformation to all text that doesn''t match an infoType. Only one instance is allowed within the ImageTransformations message.
     #[serde(default, rename = "allText")]
-    pub all_text: ::core::option::Option<serde_json::Value>,
+    pub all_text: ::core::option::Option<GooglePrivacyDlpV2AllText>,
     /// The color to use when redacting content from an image. If not specified, the default is black.
     #[serde(default, rename = "redactionColor")]
     pub redaction_color: ::core::option::Option<GooglePrivacyDlpV2Color>,
@@ -3923,6 +3929,18 @@ pub struct GooglePrivacyDlpV2RecordSuppression {
     /// A condition that when it evaluates to true will result in the record being evaluated to be suppressed from the transformed content.
     #[serde(default)]
     pub condition: ::core::option::Option<GooglePrivacyDlpV2RecordCondition>,
+}
+
+/// Skips the data without modifying it if the requested transformation would cause an error. For example, if a DateShift transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2LeaveUntransformed {
+    pub value: serde_json::Value,
+}
+
+/// Throw an error and fail the request when a transformation error occurs.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ThrowError {
+    pub value: serde_json::Value,
 }
 
 /// Message representing a set of files in a Cloud Storage bucket. Regular expressions are used to allow fine-grained control over which files in the bucket to include. Included files are those that match at least one item in include_regex and do not match any items in exclude_regex. Note that a file that matches items from both lists will _not_ be included. For a match to occur, the entire file path (i.e., everything in the url after the bucket name) must match the regular expression. For example, given the input {bucket_name: "mybucket", include_regex: ["directory1/.*"], exclude_regex: ["directory1/excluded.*"]}: * gs://mybucket/directory1/myfile will be included * gs://mybucket/directory1/directory2/myfile will be included (.* matches across /) * gs://mybucket/directory0/directory1/myfile will _not_ be included (the full path doesn''t match any items in include_regex) * gs://mybucket/directory1/excludedfile will _not_ be included (the path matches an item in exclude_regex) If include_regex is left empty, it will match all files by default (this is equivalent to setting include_regex: [".*"]). Some other common use cases: * {bucket_name: "mybucket", exclude_regex: [".*\.pdf"]} will include all files in mybucket except for .pdf files * {bucket_name: "mybucket", include_regex: ["directory/[^/]+"]} will include all files directly under gs://mybucket/directory/, without matching across /
@@ -4011,6 +4029,12 @@ pub struct GooglePrivacyDlpV2QuasiIdField {
     /// Identifies the column.
     #[serde(default)]
     pub field: ::core::option::Option<GooglePrivacyDlpV2FieldId>,
+}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
 }
 
 /// A condition consisting of a value.
@@ -4107,6 +4131,18 @@ pub struct GooglePrivacyDlpV2Key {
     /// The entity path. An entity path consists of one or more elements composed of a kind and a string or numerical identifier, which identify entities. The first element identifies a _root entity_, the second element identifies a _child_ of the root entity, the third element identifies a child of the second entity, and so forth. The entities identified by all prefixes of the path are called the element''s _ancestors_. A path can never be empty, and a path can have at most 100 elements.
     #[serde(default)]
     pub path: ::core::option::Option<::std::vec::Vec<GooglePrivacyDlpV2PathElement>>,
+}
+
+/// Apply transformation to all findings.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllInfoTypes {
+    pub value: serde_json::Value,
+}
+
+/// Apply to all text.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2AllText {
+    pub value: serde_json::Value,
 }
 
 /// Represents a color in the RGB color space.
@@ -4384,13 +4420,13 @@ pub struct GooglePrivacyDlpV2Proximity {
 pub struct GooglePrivacyDlpV2ImageContainmentType {
     /// The context finding''s bounding box must fully contain the target finding''s bounding box.
     #[serde(default)]
-    pub encloses: ::core::option::Option<serde_json::Value>,
+    pub encloses: ::core::option::Option<GooglePrivacyDlpV2Encloses>,
     /// The context finding''s bounding box must be fully inside the target finding''s bounding box.
     #[serde(default, rename = "fullyInside")]
-    pub fully_inside: ::core::option::Option<serde_json::Value>,
+    pub fully_inside: ::core::option::Option<GooglePrivacyDlpV2FullyInside>,
     /// The context finding''s bounding box and the target finding''s bounding box must have a non-zero intersection.
     #[serde(default)]
-    pub overlaps: ::core::option::Option<serde_json::Value>,
+    pub overlaps: ::core::option::Option<GooglePrivacyDlpV2Overlap>,
 }
 
 /// A pattern to match against one or more file stores. At least one pattern must be specified. Regular expressions use RE2 [syntax](https://github.com/google/re2/wiki/Syntax); a guide can be found under the google/re2 repository on GitHub.
@@ -4444,7 +4480,7 @@ pub struct GooglePrivacyDlpV2PrimitiveTransformation {
         ::core::option::Option<GooglePrivacyDlpV2FixedSizeBucketingConfig>,
     /// Redact
     #[serde(default, rename = "redactConfig")]
-    pub redact_config: ::core::option::Option<serde_json::Value>,
+    pub redact_config: ::core::option::Option<GooglePrivacyDlpV2RedactConfig>,
     /// Replace with a specified value.
     #[serde(default, rename = "replaceConfig")]
     pub replace_config: ::core::option::Option<GooglePrivacyDlpV2ReplaceValueConfig>,
@@ -4454,7 +4490,8 @@ pub struct GooglePrivacyDlpV2PrimitiveTransformation {
         ::core::option::Option<GooglePrivacyDlpV2ReplaceDictionaryConfig>,
     /// Replace with infotype
     #[serde(default, rename = "replaceWithInfoTypeConfig")]
-    pub replace_with_info_type_config: ::core::option::Option<serde_json::Value>,
+    pub replace_with_info_type_config:
+        ::core::option::Option<GooglePrivacyDlpV2ReplaceWithInfoTypeConfig>,
     /// Time extraction
     #[serde(default, rename = "timePartConfig")]
     pub time_part_config: ::core::option::Option<GooglePrivacyDlpV2TimePartConfig>,
@@ -4466,6 +4503,24 @@ pub struct GooglePrivacyDlpV2Conditions {
     /// A collection of conditions.
     #[serde(default)]
     pub conditions: ::core::option::Option<::std::vec::Vec<GooglePrivacyDlpV2Condition>>,
+}
+
+/// Defines a condition where one bounding box encloses another.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Encloses {
+    pub value: serde_json::Value,
+}
+
+/// Defines a condition where one bounding box is fully inside another.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2FullyInside {
+    pub value: serde_json::Value,
+}
+
+/// Defines a condition for overlapping bounding boxes.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2Overlap {
+    pub value: serde_json::Value,
 }
 
 /// AWS account regex.
@@ -4578,6 +4633,12 @@ pub struct GooglePrivacyDlpV2FixedSizeBucketingConfig {
     pub upper_bound: ::core::option::Option<GooglePrivacyDlpV2Value>,
 }
 
+/// Redact a given value. For example, if used with an InfoTypeTransformation transforming PHONE_NUMBER, and input ''My phone number is 206-555-0123'', the output would be ''My phone number is ''.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2RedactConfig {
+    pub value: serde_json::Value,
+}
+
 /// Replace each input value with a given Value.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReplaceValueConfig {
@@ -4592,6 +4653,12 @@ pub struct GooglePrivacyDlpV2ReplaceDictionaryConfig {
     /// A list of words to select from for random replacement. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries.
     #[serde(default, rename = "wordList")]
     pub word_list: ::core::option::Option<GooglePrivacyDlpV2WordList>,
+}
+
+/// Replace each matching finding with the name of the info_type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {
+    pub value: serde_json::Value,
 }
 
 /// For use with Date, Timestamp, and TimeOfDay, extract or preserve a portion of the value.

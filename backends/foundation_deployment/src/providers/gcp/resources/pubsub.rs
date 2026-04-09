@@ -19,10 +19,6 @@ pub struct AcknowledgeRequest {
     pub ack_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the data field of a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvroFormat {}
-
 /// Request for CommitSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitSchemaRequest {
@@ -47,11 +43,15 @@ pub struct CreateSnapshotRequest {
 
 /// Response for the DetachSubscription method. Reserved for future use.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetachSubscriptionResponse {}
+pub struct DetachSubscriptionResponse {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response for the ListSchemaRevisions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -149,10 +149,6 @@ pub struct ModifyPushConfigRequest {
     pub push_config: ::core::option::Option<PushConfig>,
 }
 
-/// Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubSubAvroFormat {}
-
 /// Request for the Publish method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishRequest {
@@ -168,10 +164,6 @@ pub struct PublishResponse {
     #[serde(default, rename = "messageIds")]
     pub message_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PubsubWrapper {}
 
 /// Request for the Pull method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -213,7 +205,9 @@ pub struct SeekRequest {
 
 /// Response for the Seek method (this response is empty).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SeekResponse {}
+pub struct SeekResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -238,10 +232,6 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TextConfig {}
 
 /// Request for the UpdateSnapshot method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -295,7 +285,9 @@ pub struct ValidateMessageRequest {
 
 /// Response for the ValidateMessage method. Empty for now.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateMessageResponse {}
+pub struct ValidateMessageResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for the ValidateSchema method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -307,7 +299,9 @@ pub struct ValidateSchemaRequest {
 
 /// Response for the ValidateSchema method. Empty for now.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ValidateSchemaResponse {}
+pub struct ValidateSchemaResponse {
+    pub value: serde_json::Value,
+}
 
 /// A message and its corresponding acknowledgment ID.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -609,7 +603,7 @@ pub struct CloudStorageConfig {
     pub state: ::core::option::Option<String>,
     /// Optional. If set, message data will be written to Cloud Storage in text format.
     #[serde(default, rename = "textConfig")]
-    pub text_config: ::core::option::Option<serde_json::Value>,
+    pub text_config: ::core::option::Option<TextConfig>,
 }
 
 /// Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.
@@ -645,7 +639,7 @@ pub struct PushConfig {
     pub oidc_token: ::core::option::Option<OidcToken>,
     /// Optional. When set, the payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
     #[serde(default, rename = "pubsubWrapper")]
-    pub pubsub_wrapper: ::core::option::Option<serde_json::Value>,
+    pub pubsub_wrapper: ::core::option::Option<PubsubWrapper>,
     /// Optional. A URL locating the endpoint to which messages should be pushed. For example, a Webhook endpoint might use https://example.com/push.
     #[serde(default, rename = "pushEndpoint")]
     pub push_endpoint: ::core::option::Option<String>,
@@ -758,6 +752,12 @@ pub struct AvroConfig {
     pub write_metadata: ::core::option::Option<bool>,
 }
 
+/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TextConfig {
+    pub value: serde_json::Value,
+}
+
 /// Sets the data field as the HTTP body for delivery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NoWrapper {
@@ -775,6 +775,12 @@ pub struct OidcToken {
     /// Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).
     #[serde(default, rename = "serviceAccountEmail")]
     pub service_account_email: ::core::option::Option<String>,
+}
+
+/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubsubWrapper {
+    pub value: serde_json::Value,
 }
 
 /// Ingestion settings for Amazon Kinesis Data Streams.
@@ -851,7 +857,7 @@ pub struct AzureEventHubs {
 pub struct CloudStorage {
     /// Optional. Data from Cloud Storage will be interpreted in Avro format.
     #[serde(default, rename = "avroFormat")]
-    pub avro_format: ::core::option::Option<serde_json::Value>,
+    pub avro_format: ::core::option::Option<AvroFormat>,
     /// Optional. Cloud Storage bucket. The bucket name must be without any prefix like "gs://". See the [bucket naming requirements] (https://cloud.google.com/storage/docs/buckets#naming).
     #[serde(default)]
     pub bucket: ::core::option::Option<String>,
@@ -863,7 +869,7 @@ pub struct CloudStorage {
     pub minimum_object_create_time: ::core::option::Option<String>,
     /// Optional. It will be assumed data from Cloud Storage was written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage).
     #[serde(default, rename = "pubsubAvroFormat")]
-    pub pubsub_avro_format: ::core::option::Option<serde_json::Value>,
+    pub pubsub_avro_format: ::core::option::Option<PubSubAvroFormat>,
     /// Output only. An output-only field that indicates the state of the Cloud Storage ingestion source. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLOUD_STORAGE_PERMISSION_DENIED", "PUBLISH_PERMISSION_DENIED", "BUCKET_NOT_FOUND", "TOO_MANY_OBJECTS", "CONFLICTING_REGION_CONSTRAINTS"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
@@ -926,6 +932,18 @@ pub struct JavaScriptUDF {
     /// Required. Name of the JavasScript function that should applied to Pub/Sub messages.
     #[serde(default, rename = "functionName")]
     pub function_name: ::core::option::Option<String>,
+}
+
+/// Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the data field of a Pub/Sub message.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvroFormat {
+    pub value: serde_json::Value,
+}
+
+/// Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PubSubAvroFormat {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the data field of a Pub/Sub message.

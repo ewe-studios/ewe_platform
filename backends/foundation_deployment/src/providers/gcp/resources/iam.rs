@@ -66,7 +66,9 @@ pub struct GoogleIamV1LoggingAuditData {
 
 /// Metadata for long-running WorkloadIdentityPool operations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleIamV1betaWorkloadIdentityPoolOperationMetadata {}
+pub struct GoogleIamV1betaWorkloadIdentityPoolOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ListPolicies.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

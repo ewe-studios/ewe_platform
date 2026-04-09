@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// This metadata is currently blank.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AudienceListMetadata {}
+pub struct AudienceListMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The batch request containing multiple pivot report requests.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,10 +85,6 @@ pub struct CheckCompatibilityResponse {
     #[serde(default, rename = "metricCompatibilities")]
     pub metric_compatibilities: ::core::option::Option<::std::vec::Vec<MetricCompatibility>>,
 }
-
-/// Filter for empty values.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmptyFilter {}
 
 /// A list of all audience exports for a property.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -953,6 +951,12 @@ pub struct BetweenFilter {
     pub to_value: ::core::option::Option<::std::boxed::Box<NumericValue>>,
 }
 
+/// Filter for empty values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmptyFilter {
+    pub value: serde_json::Value,
+}
+
 /// An expression to filter dimension or metric values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
@@ -961,7 +965,7 @@ pub struct Filter {
     pub between_filter: ::core::option::Option<::std::boxed::Box<BetweenFilter>>,
     /// A filter for empty values such as "(not set)" and "" values.
     #[serde(default, rename = "emptyFilter")]
-    pub empty_filter: ::core::option::Option<serde_json::Value>,
+    pub empty_filter: ::core::option::Option<::std::boxed::Box<EmptyFilter>>,
     /// The dimension name or metric name. In most methods, dimensions & metrics can be used for the first time in this field. However in a RunPivotReportRequest, this field must be additionally specified by name in the RunPivotReportRequest''s dimensions or metrics.
     #[serde(default, rename = "fieldName")]
     pub field_name: ::core::option::Option<String>,

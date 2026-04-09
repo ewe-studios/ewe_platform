@@ -568,21 +568,17 @@ pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Metadata describing the feedback from the operator.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1OperatorFeedbackMetadata {}
-
 /// Request message for PauseEvaluationJob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest {}
-
-/// Metadata describing the feedback from the labeling task requester.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1RequesterFeedbackMetadata {}
+pub struct GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message ResumeEvaluationJob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest {}
+pub struct GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Results of searching evaluations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -968,7 +964,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Statistics about annotation specs.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1352,9 +1350,11 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackMessage {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default, rename = "operatorFeedbackMetadata")]
-    pub operator_feedback_metadata: ::core::option::Option<serde_json::Value>,
+    pub operator_feedback_metadata:
+        ::core::option::Option<GoogleCloudDatalabelingV1beta1OperatorFeedbackMetadata>,
     #[serde(default, rename = "requesterFeedbackMetadata")]
-    pub requester_feedback_metadata: ::core::option::Option<serde_json::Value>,
+    pub requester_feedback_metadata:
+        ::core::option::Option<GoogleCloudDatalabelingV1beta1RequesterFeedbackMetadata>,
 }
 
 /// A feedback thread of a certain labeling task on a certain annotated dataset.
@@ -1888,6 +1888,18 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJobConfig {
     #[serde(default, rename = "textClassificationConfig")]
     pub text_classification_config:
         ::core::option::Option<GoogleCloudDatalabelingV1beta1TextClassificationConfig>,
+}
+
+/// Metadata describing the feedback from the operator.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1beta1OperatorFeedbackMetadata {
+    pub value: serde_json::Value,
+}
+
+/// Metadata describing the feedback from the labeling task requester.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatalabelingV1beta1RequesterFeedbackMetadata {
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata resource type.

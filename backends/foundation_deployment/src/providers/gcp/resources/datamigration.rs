@@ -38,7 +38,9 @@ pub struct BadRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''CommitConversionWorkspace'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -75,7 +77,9 @@ pub struct DebugInfo {
 
 /// Request message for ''DemoteDestination'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DemoteDestinationRequest {}
+pub struct DemoteDestinationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ''DescribeConversionWorkspaceRevisions'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -95,10 +99,6 @@ pub struct DescribeDatabaseEntitiesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
-
-/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
 
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -313,10 +313,6 @@ pub struct ListPrivateConnectionsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Configuration to use LogMiner CDC method.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMiner {}
-
 /// Request for looking up a specific migration job object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupMigrationJobObjectRequest {
@@ -338,10 +334,6 @@ pub struct MigrationJobVerificationError {
     #[serde(default, rename = "errorMessage")]
     pub error_message: ::core::option::Option<String>,
 }
-
-/// Configuration to use Oracle ASM to access the log files.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleAsmLogFileAccess {}
 
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -427,7 +419,9 @@ pub struct RetryInfo {
 
 /// Request message for ''RollbackConversionWorkspace'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackConversionWorkspaceRequest {}
+pub struct RollbackConversionWorkspaceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ''SearchBackgroundJobs'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -478,17 +472,11 @@ pub struct StartMigrationJobRequest {
     pub skip_validation: ::core::option::Option<bool>,
 }
 
-/// The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticIpConnectivity {}
-
-/// Static IP address connectivity configured on service project.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticServiceIpConnectivity {}
-
 /// Request message for ''StopMigrationJob'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopMigrationJobRequest {}
+pub struct StopMigrationJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ''GenerateTcpProxyScript'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1105,7 +1093,7 @@ pub struct MigrationJob {
     pub state: ::core::option::Option<String>,
     /// static ip connectivity data (default, no additional details needed).
     #[serde(default, rename = "staticIpConnectivity")]
-    pub static_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    pub static_ip_connectivity: ::core::option::Option<StaticIpConnectivity>,
     /// Required. The migration job type. // TODO: enum values: ["TYPE_UNSPECIFIED", "ONE_TIME", "CONTINUOUS"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -1449,7 +1437,7 @@ pub struct OracleConnectionProfile {
     pub ssl: ::core::option::Option<SslConfig>,
     /// Static Service IP connectivity.
     #[serde(default, rename = "staticServiceIpConnectivity")]
-    pub static_service_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    pub static_service_ip_connectivity: ::core::option::Option<StaticServiceIpConnectivity>,
     /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
@@ -1500,7 +1488,7 @@ pub struct PostgreSqlConnectionProfile {
     pub ssl: ::core::option::Option<SslConfig>,
     /// Static ip connectivity data (default, no additional details needed).
     #[serde(default, rename = "staticIpConnectivity")]
-    pub static_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    pub static_ip_connectivity: ::core::option::Option<StaticIpConnectivity>,
     /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
@@ -1551,7 +1539,7 @@ pub struct SqlServerConnectionProfile {
     pub ssl: ::core::option::Option<SslConfig>,
     /// Static IP connectivity data (default, no additional details needed).
     #[serde(default, rename = "staticIpConnectivity")]
-    pub static_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    pub static_ip_connectivity: ::core::option::Option<StaticIpConnectivity>,
     /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
@@ -2276,6 +2264,12 @@ pub struct OracleAsmConfig {
     pub username: ::core::option::Option<String>,
 }
 
+/// Static IP address connectivity configured on service project.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticServiceIpConnectivity {
+    pub value: serde_json::Value,
+}
+
 /// Specifies the backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerBackups {
@@ -2323,6 +2317,12 @@ pub struct PrivateServiceConnectConnectivity {
     pub service_attachment: ::core::option::Option<String>,
 }
 
+/// The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticIpConnectivity {
+    pub value: serde_json::Value,
+}
+
 /// Description of data transformation during migration as part of the ConditionalColumnSetValue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueTransformation {
@@ -2331,13 +2331,13 @@ pub struct ValueTransformation {
     pub apply_hash: ::core::option::Option<ApplyHash>,
     /// Optional. Set to max_value - if integer or numeric, will use int.maxvalue, etc
     #[serde(default, rename = "assignMaxValue")]
-    pub assign_max_value: ::core::option::Option<serde_json::Value>,
+    pub assign_max_value: ::core::option::Option<Empty>,
     /// Optional. Set to min_value - if integer or numeric, will use int.minvalue, etc
     #[serde(default, rename = "assignMinValue")]
-    pub assign_min_value: ::core::option::Option<serde_json::Value>,
+    pub assign_min_value: ::core::option::Option<Empty>,
     /// Optional. Set to null
     #[serde(default, rename = "assignNull")]
-    pub assign_null: ::core::option::Option<serde_json::Value>,
+    pub assign_null: ::core::option::Option<Empty>,
     /// Optional. Set to a specific value (value is converted to fit the target data type)
     #[serde(default, rename = "assignSpecificValue")]
     pub assign_specific_value: ::core::option::Option<AssignSpecificValue>,
@@ -2349,7 +2349,7 @@ pub struct ValueTransformation {
     pub int_comparison: ::core::option::Option<IntComparisonFilter>,
     /// Optional. Value is null
     #[serde(default, rename = "isNull")]
-    pub is_null: ::core::option::Option<serde_json::Value>,
+    pub is_null: ::core::option::Option<Empty>,
     /// Optional. Allows the data to change scale
     #[serde(default, rename = "roundScale")]
     pub round_scale: ::core::option::Option<RoundToScale>,
@@ -2450,7 +2450,7 @@ pub struct OracleSourceConfig {
     pub cdc_start_position: ::core::option::Option<String>,
     /// Use LogMiner.
     #[serde(default, rename = "logMiner")]
-    pub log_miner: ::core::option::Option<serde_json::Value>,
+    pub log_miner: ::core::option::Option<LogMiner>,
     /// Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.
     #[serde(default, rename = "maxConcurrentCdcConnections")]
     pub max_concurrent_cdc_connections: ::core::option::Option<i32>,
@@ -2632,7 +2632,7 @@ pub struct SslConfig {
 pub struct ApplyHash {
     /// Optional. Generate UUID from the data''s byte array
     #[serde(default, rename = "uuidFromBytes")]
-    pub uuid_from_bytes: ::core::option::Option<serde_json::Value>,
+    pub uuid_from_bytes: ::core::option::Option<Empty>,
 }
 
 /// Set to a specific value (value is converted to fit the target data type)
@@ -2703,7 +2703,13 @@ pub struct BinaryLogParser {
     pub log_file_directories: ::core::option::Option<LogFileDirectories>,
     /// Use Oracle ASM.
     #[serde(default, rename = "oracleAsmLogFileAccess")]
-    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
+    pub oracle_asm_log_file_access: ::core::option::Option<OracleAsmLogFileAccess>,
+}
+
+/// Configuration to use LogMiner CDC method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogMiner {
+    pub value: serde_json::Value,
 }
 
 /// Encryption settings for the SQL Server database.
@@ -2762,6 +2768,12 @@ pub struct SqlAclEntry {
     pub value: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Empty {
+    pub value: serde_json::Value,
+}
+
 /// An identifier for the Migration Job Object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceObjectIdentifier {
@@ -2788,6 +2800,12 @@ pub struct LogFileDirectories {
     /// Required. Oracle directory for online logs.
     #[serde(default, rename = "onlineLogDirectory")]
     pub online_log_directory: ::core::option::Option<String>,
+}
+
+/// Configuration to use Oracle ASM to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleAsmLogFileAccess {
+    pub value: serde_json::Value,
 }
 
 /// AuthorizedNetwork contains metadata for an authorized network.

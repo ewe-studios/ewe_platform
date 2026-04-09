@@ -290,7 +290,9 @@ pub struct IdentitytoolkitRelyingpartyGetProjectConfigResponse {
 
 /// Respone of getting public keys.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdentitytoolkitRelyingpartyGetPublicKeysResponse {}
+pub struct IdentitytoolkitRelyingpartyGetPublicKeysResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to reset the password.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

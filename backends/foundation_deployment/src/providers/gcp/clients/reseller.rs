@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,17 @@ use serde::Serialize;
 
 pub fn reseller_customers_get_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
+    customerId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
-        customerId,
+        customerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,7 +69,12 @@ pub fn reseller_customers_get_builder(
 pub fn reseller_customers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Customer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -168,7 +174,7 @@ pub fn reseller_customers_get(
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = reseller_customers_get_builder(client, &args.customerId)?;
+    let builder = reseller_customers_get_builder(client, args.customerId.clone())?;
     reseller_customers_get_execute(builder)
 }
 
@@ -180,11 +186,11 @@ pub fn reseller_customers_get(
 
 pub fn reseller_customers_insert_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: Option<&str>,
+    customerAuthToken: Option<String>,
     body: &Customer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://reseller.googleapis.com/apps/reseller/v1/customers",);
+    let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/customers",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -193,9 +199,9 @@ pub fn reseller_customers_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -231,7 +237,12 @@ pub fn reseller_customers_insert_builder(
 pub fn reseller_customers_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Customer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -334,322 +345,8 @@ pub fn reseller_customers_insert(
     ApiError,
 > {
     let builder =
-        reseller_customers_insert_builder(client, args.customerAuthToken.as_deref(), &args.body)?;
+        reseller_customers_insert_builder(client, args.customerAuthToken.clone(), &args.body)?;
     reseller_customers_insert_execute(builder)
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `reseller_customers_patch_execute()` to send, or `reseller_customers_patch` for simplest API.
-
-pub fn reseller_customers_patch_builder(
-    client: &SimpleHttpClient,
-    customerId: &str,
-    body: &Customer,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
-        customerId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `reseller_customers_patch_execute()` or `reseller_customers_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_customers_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Customer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `reseller_customers_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `reseller_customers_patch_task()`.
-/// For the simplest API, use `reseller_customers_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn reseller_customers_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = reseller_customers_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`reseller_customers_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ResellerCustomersPatchArgs {
-    /// Path parameter: customerId
-    pub customerId: String,
-    /// Request body.
-    pub body: Customer,
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. This method supports patch semantics. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [Verify your domain to unlock Essentials features](<https://support.google.`com/a/answer/9122284`>).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `reseller_customers_patch_builder()` + `reseller_customers_patch_execute()`.
-/// For task-level control, use `reseller_customers_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_customers_patch(
-    client: &SimpleHttpClient,
-    args: &ResellerCustomersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = reseller_customers_patch_builder(client, &args.customerId, &args.body)?;
-    reseller_customers_patch_execute(builder)
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `reseller_customers_update_execute()` to send, or `reseller_customers_update` for simplest API.
-
-pub fn reseller_customers_update_builder(
-    client: &SimpleHttpClient,
-    customerId: &str,
-    body: &Customer,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
-        customerId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `reseller_customers_update_execute()` or `reseller_customers_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_customers_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Customer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `reseller_customers_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `reseller_customers_update_task()`.
-/// For the simplest API, use `reseller_customers_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_customers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn reseller_customers_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = reseller_customers_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`reseller_customers_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ResellerCustomersUpdateArgs {
-    /// Path parameter: customerId
-    pub customerId: String,
-    /// Request body.
-    pub body: Customer,
-}
-
-/// GET apps/reseller/v1/customers/{customerId}
-/// Updates a customer account's settings. You cannot update `customerType` via the Reseller API, but a "team" customer can verify their domain and become `customerType` = "domain". For more information, see [update a customer's settings](<https://developers.google.`com/workspace/admin/reseller/v1/how-tos/manage_customers`#update_customer>).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `reseller_customers_update_builder()` + `reseller_customers_update_execute()`.
-/// For task-level control, use `reseller_customers_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_customers_update(
-    client: &SimpleHttpClient,
-    args: &ResellerCustomersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = reseller_customers_update_builder(client, &args.customerId, &args.body)?;
-    reseller_customers_update_execute(builder)
 }
 
 /// GET apps/reseller/v1/resellernotify/getwatchdetails
@@ -662,12 +359,12 @@ pub fn reseller_resellernotify_getwatchdetails_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/getwatchdetails",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -698,8 +395,9 @@ pub fn reseller_resellernotify_getwatchdetails_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ResellernotifyGetwatchdetailsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ResellernotifyGetwatchdetailsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -813,10 +511,11 @@ pub fn reseller_resellernotify_getwatchdetails(
 
 pub fn reseller_resellernotify_register_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: Option<&str>,
+    serviceAccountEmailAddress: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/register",);
+    let endpoint_url =
+        format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/register",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -825,9 +524,9 @@ pub fn reseller_resellernotify_register_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -861,8 +560,11 @@ pub fn reseller_resellernotify_register_builder(
 pub fn reseller_resellernotify_register_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResellernotifyResource>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResellernotifyResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -967,10 +669,8 @@ pub fn reseller_resellernotify_register(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_resellernotify_register_builder(
-        client,
-        args.serviceAccountEmailAddress.as_deref(),
-    )?;
+    let builder =
+        reseller_resellernotify_register_builder(client, args.serviceAccountEmailAddress.clone())?;
     reseller_resellernotify_register_execute(builder)
 }
 
@@ -982,10 +682,10 @@ pub fn reseller_resellernotify_register(
 
 pub fn reseller_resellernotify_unregister_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: Option<&str>,
+    serviceAccountEmailAddress: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://reseller.googleapis.com/apps/reseller/v1/resellernotify/unregister",);
 
     // Build request
@@ -995,9 +695,9 @@ pub fn reseller_resellernotify_unregister_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1031,8 +731,11 @@ pub fn reseller_resellernotify_unregister_builder(
 pub fn reseller_resellernotify_unregister_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResellernotifyResource>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResellernotifyResource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1139,7 +842,7 @@ pub fn reseller_resellernotify_unregister(
 > {
     let builder = reseller_resellernotify_unregister_builder(
         client,
-        args.serviceAccountEmailAddress.as_deref(),
+        args.serviceAccountEmailAddress.clone(),
     )?;
     reseller_resellernotify_unregister_execute(builder)
 }
@@ -1152,18 +855,19 @@ pub fn reseller_resellernotify_unregister(
 
 pub fn reseller_subscriptions_activate_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/activate",
-        customerId, subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1193,7 +897,12 @@ pub fn reseller_subscriptions_activate_builder(
 pub fn reseller_subscriptions_activate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1299,8 +1008,11 @@ pub fn reseller_subscriptions_activate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        reseller_subscriptions_activate_builder(client, &args.customerId, &args.subscriptionId)?;
+    let builder = reseller_subscriptions_activate_builder(
+        client,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
+    )?;
     reseller_subscriptions_activate_execute(builder)
 }
 
@@ -1312,19 +1024,20 @@ pub fn reseller_subscriptions_activate(
 
 pub fn reseller_subscriptions_change_plan_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
     body: &ChangePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changePlan",
-        customerId, subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1356,7 +1069,12 @@ pub fn reseller_subscriptions_change_plan_builder(
 pub fn reseller_subscriptions_change_plan_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1466,8 +1184,8 @@ pub fn reseller_subscriptions_change_plan(
 > {
     let builder = reseller_subscriptions_change_plan_builder(
         client,
-        &args.customerId,
-        &args.subscriptionId,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
         &args.body,
     )?;
     reseller_subscriptions_change_plan_execute(builder)
@@ -1481,20 +1199,20 @@ pub fn reseller_subscriptions_change_plan(
 
 pub fn reseller_subscriptions_change_renewal_settings_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
     body: &RenewalSettings,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeRenewalSettings",
-        customerId,
-        subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1526,7 +1244,12 @@ pub fn reseller_subscriptions_change_renewal_settings_builder(
 pub fn reseller_subscriptions_change_renewal_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1636,8 +1359,8 @@ pub fn reseller_subscriptions_change_renewal_settings(
 > {
     let builder = reseller_subscriptions_change_renewal_settings_builder(
         client,
-        &args.customerId,
-        &args.subscriptionId,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
         &args.body,
     )?;
     reseller_subscriptions_change_renewal_settings_execute(builder)
@@ -1651,20 +1374,20 @@ pub fn reseller_subscriptions_change_renewal_settings(
 
 pub fn reseller_subscriptions_change_seats_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
     body: &Seats,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeSeats",
-        customerId,
-        subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1696,7 +1419,12 @@ pub fn reseller_subscriptions_change_seats_builder(
 pub fn reseller_subscriptions_change_seats_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1806,171 +1534,11 @@ pub fn reseller_subscriptions_change_seats(
 > {
     let builder = reseller_subscriptions_change_seats_builder(
         client,
-        &args.customerId,
-        &args.subscriptionId,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
         &args.body,
     )?;
     reseller_subscriptions_change_seats_execute(builder)
-}
-
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
-/// Cancels, suspends, or transfers a subscription to direct.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `reseller_subscriptions_delete_execute()` to send, or `reseller_subscriptions_delete` for simplest API.
-
-pub fn reseller_subscriptions_delete_builder(
-    client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
-    deletionType: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
-        customerId, subscriptionId, deletionType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
-/// Cancels, suspends, or transfers a subscription to direct.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `reseller_subscriptions_delete_execute()` or `reseller_subscriptions_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_subscriptions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_subscriptions_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
-/// Cancels, suspends, or transfers a subscription to direct.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `reseller_subscriptions_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `reseller_subscriptions_delete_task()`.
-/// For the simplest API, use `reseller_subscriptions_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `reseller_subscriptions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn reseller_subscriptions_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = reseller_subscriptions_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`reseller_subscriptions_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ResellerSubscriptionsDeleteArgs {
-    /// Path parameter: customerId
-    pub customerId: String,
-    /// Path parameter: subscriptionId
-    pub subscriptionId: String,
-    /// Path parameter: deletionType
-    pub deletionType: String,
-}
-
-/// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
-/// Cancels, suspends, or transfers a subscription to direct.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `reseller_subscriptions_delete_builder()` + `reseller_subscriptions_delete_execute()`.
-/// For task-level control, use `reseller_subscriptions_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn reseller_subscriptions_delete(
-    client: &SimpleHttpClient,
-    args: &ResellerSubscriptionsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = reseller_subscriptions_delete_builder(
-        client,
-        &args.customerId,
-        &args.subscriptionId,
-        &args.deletionType,
-    )?;
-    reseller_subscriptions_delete_execute(builder)
 }
 
 /// GET apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
@@ -1981,18 +1549,19 @@ pub fn reseller_subscriptions_delete(
 
 pub fn reseller_subscriptions_get_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
-        customerId, subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2022,7 +1591,12 @@ pub fn reseller_subscriptions_get_builder(
 pub fn reseller_subscriptions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2128,8 +1702,11 @@ pub fn reseller_subscriptions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        reseller_subscriptions_get_builder(client, &args.customerId, &args.subscriptionId)?;
+    let builder = reseller_subscriptions_get_builder(
+        client,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
+    )?;
     reseller_subscriptions_get_execute(builder)
 }
 
@@ -2141,16 +1718,16 @@ pub fn reseller_subscriptions_get(
 
 pub fn reseller_subscriptions_insert_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    action: Option<&str>,
-    customerAuthToken: Option<&str>,
-    sourceSkuId: Option<&str>,
+    customerId: String,
+    action: Option<String>,
+    customerAuthToken: Option<String>,
+    sourceSkuId: Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions",
-        customerId,
+        customerId.as_str(),
     );
 
     // Build request
@@ -2166,9 +1743,9 @@ pub fn reseller_subscriptions_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2204,7 +1781,12 @@ pub fn reseller_subscriptions_insert_builder(
 pub fn reseller_subscriptions_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2318,10 +1900,10 @@ pub fn reseller_subscriptions_insert(
 > {
     let builder = reseller_subscriptions_insert_builder(
         client,
-        &args.customerId,
-        args.action.as_deref(),
-        args.customerAuthToken.as_deref(),
-        args.sourceSkuId.as_deref(),
+        args.customerId.clone(),
+        args.action.clone(),
+        args.customerAuthToken.clone(),
+        args.sourceSkuId.clone(),
         &args.body,
     )?;
     reseller_subscriptions_insert_execute(builder)
@@ -2335,14 +1917,14 @@ pub fn reseller_subscriptions_insert(
 
 pub fn reseller_subscriptions_list_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: Option<&str>,
-    customerId: Option<&str>,
-    customerNamePrefix: Option<&str>,
+    customerAuthToken: Option<String>,
+    customerId: Option<String>,
+    customerNamePrefix: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://reseller.googleapis.com/apps/reseller/v1/subscriptions",);
+    let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/subscriptions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2363,9 +1945,9 @@ pub fn reseller_subscriptions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2399,7 +1981,12 @@ pub fn reseller_subscriptions_list_builder(
 pub fn reseller_subscriptions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscriptions>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscriptions>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2513,11 +2100,11 @@ pub fn reseller_subscriptions_list(
 > {
     let builder = reseller_subscriptions_list_builder(
         client,
-        args.customerAuthToken.as_deref(),
-        args.customerId.as_deref(),
-        args.customerNamePrefix.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.customerAuthToken.clone(),
+        args.customerId.clone(),
+        args.customerNamePrefix.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     reseller_subscriptions_list_execute(builder)
 }
@@ -2530,19 +2117,19 @@ pub fn reseller_subscriptions_list(
 
 pub fn reseller_subscriptions_start_paid_service_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/startPaidService",
-        customerId,
-        subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2572,7 +2159,12 @@ pub fn reseller_subscriptions_start_paid_service_builder(
 pub fn reseller_subscriptions_start_paid_service_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2680,8 +2272,8 @@ pub fn reseller_subscriptions_start_paid_service(
 > {
     let builder = reseller_subscriptions_start_paid_service_builder(
         client,
-        &args.customerId,
-        &args.subscriptionId,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
     )?;
     reseller_subscriptions_start_paid_service_execute(builder)
 }
@@ -2694,18 +2286,19 @@ pub fn reseller_subscriptions_start_paid_service(
 
 pub fn reseller_subscriptions_suspend_builder(
     client: &SimpleHttpClient,
-    customerId: &str,
-    subscriptionId: &str,
+    customerId: String,
+    subscriptionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/suspend",
-        customerId, subscriptionId,
+        customerId.as_str(),
+        subscriptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2735,7 +2328,12 @@ pub fn reseller_subscriptions_suspend_builder(
 pub fn reseller_subscriptions_suspend_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2841,7 +2439,10 @@ pub fn reseller_subscriptions_suspend(
         + 'static,
     ApiError,
 > {
-    let builder =
-        reseller_subscriptions_suspend_builder(client, &args.customerId, &args.subscriptionId)?;
+    let builder = reseller_subscriptions_suspend_builder(
+        client,
+        args.customerId.clone(),
+        args.subscriptionId.clone(),
+    )?;
     reseller_subscriptions_suspend_execute(builder)
 }

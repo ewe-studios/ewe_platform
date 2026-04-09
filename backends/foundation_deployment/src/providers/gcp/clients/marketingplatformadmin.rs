@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,17 @@ use serde::Serialize;
 
 pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
     client: &SimpleHttpClient,
-    organization: &str,
+    organization: String,
     body: &FindSalesPartnerManagedClientsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}:findSalesPartnerManagedClients",
-        organization,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +72,9 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_t
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FindSalesPartnerManagedClientsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FindSalesPartnerManagedClientsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -188,7 +189,7 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 > {
     let builder = marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
         client,
-        &args.organization,
+        args.organization.clone(),
         &args.body,
     )?;
     marketingplatformadmin_organizations_find_sales_partner_managed_clients_execute(builder)
@@ -202,17 +203,15 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 
 pub fn marketingplatformadmin_organizations_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}",
-        name,
-    );
+    let endpoint_url =
+        format!("https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -242,7 +241,12 @@ pub fn marketingplatformadmin_organizations_get_builder(
 pub fn marketingplatformadmin_organizations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Organization>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Organization>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -346,7 +350,7 @@ pub fn marketingplatformadmin_organizations_get(
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_get_builder(client, &args.name)?;
+    let builder = marketingplatformadmin_organizations_get_builder(client, args.name.clone())?;
     marketingplatformadmin_organizations_get_execute(builder)
 }
 
@@ -359,10 +363,11 @@ pub fn marketingplatformadmin_organizations_get(
 pub fn marketingplatformadmin_organizations_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://marketingplatformadmin.googleapis.com/v1alpha/organizations",);
+    let endpoint_url =
+        format!("https://marketingplatformadmin.googleapis.com/v1alpha/organizations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -374,9 +379,9 @@ pub fn marketingplatformadmin_organizations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -410,8 +415,11 @@ pub fn marketingplatformadmin_organizations_list_builder(
 pub fn marketingplatformadmin_organizations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOrganizationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOrganizationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -520,8 +528,8 @@ pub fn marketingplatformadmin_organizations_list(
 > {
     let builder = marketingplatformadmin_organizations_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     marketingplatformadmin_organizations_list_execute(builder)
 }
@@ -534,18 +542,17 @@ pub fn marketingplatformadmin_organizations_list(
 
 pub fn marketingplatformadmin_organizations_report_property_usage_builder(
     client: &SimpleHttpClient,
-    organization: &str,
+    organization: String,
     body: &ReportPropertyUsageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}:reportPropertyUsage",
-        organization,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -577,8 +584,11 @@ pub fn marketingplatformadmin_organizations_report_property_usage_builder(
 pub fn marketingplatformadmin_organizations_report_property_usage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReportPropertyUsageResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReportPropertyUsageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -691,7 +701,7 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 > {
     let builder = marketingplatformadmin_organizations_report_property_usage_builder(
         client,
-        &args.organization,
+        args.organization.clone(),
         &args.body,
     )?;
     marketingplatformadmin_organizations_report_property_usage_execute(builder)
@@ -705,18 +715,17 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AnalyticsAccountLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -748,8 +757,11 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create_build
 pub fn marketingplatformadmin_organizations_analytics_account_links_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AnalyticsAccountLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AnalyticsAccountLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -858,522 +870,8 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create(
 > {
     let builder = marketingplatformadmin_organizations_analytics_account_links_create_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     marketingplatformadmin_organizations_analytics_account_links_create_execute(builder)
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}
-/// Deletes the AnalyticsAccountLink, which detaches the Analytics account from the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account in order to delete the link.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `marketingplatformadmin_organizations_analytics_account_links_delete_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_delete` for simplest API.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}
-/// Deletes the AnalyticsAccountLink, which detaches the Analytics account from the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account in order to delete the link.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `marketingplatformadmin_organizations_analytics_account_links_delete_execute()` or `marketingplatformadmin_organizations_analytics_account_links_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}
-/// Deletes the AnalyticsAccountLink, which detaches the Analytics account from the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account in order to delete the link.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `marketingplatformadmin_organizations_analytics_account_links_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_delete_task()`.
-/// For the simplest API, use `marketingplatformadmin_organizations_analytics_account_links_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = marketingplatformadmin_organizations_analytics_account_links_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}
-/// Deletes the AnalyticsAccountLink, which detaches the Analytics account from the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account in order to delete the link.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `marketingplatformadmin_organizations_analytics_account_links_delete_builder()` + `marketingplatformadmin_organizations_analytics_account_links_delete_execute()`.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_delete(
-    client: &SimpleHttpClient,
-    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = marketingplatformadmin_organizations_analytics_account_links_delete_builder(
-        client, &args.name,
-    )?;
-    marketingplatformadmin_organizations_analytics_account_links_delete_execute(builder)
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
-/// Lists the Google Analytics accounts link to the specified Google Marketing Platform organization.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `marketingplatformadmin_organizations_analytics_account_links_list_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_list` for simplest API.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
-/// Lists the Google Analytics accounts link to the specified Google Marketing Platform organization.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `marketingplatformadmin_organizations_analytics_account_links_list_execute()` or `marketingplatformadmin_organizations_analytics_account_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAnalyticsAccountLinksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAnalyticsAccountLinksResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
-/// Lists the Google Analytics accounts link to the specified Google Marketing Platform organization.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `marketingplatformadmin_organizations_analytics_account_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_list_task()`.
-/// For the simplest API, use `marketingplatformadmin_organizations_analytics_account_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAnalyticsAccountLinksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = marketingplatformadmin_organizations_analytics_account_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
-/// Lists the Google Analytics accounts link to the specified Google Marketing Platform organization.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `marketingplatformadmin_organizations_analytics_account_links_list_builder()` + `marketingplatformadmin_organizations_analytics_account_links_list_execute()`.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_list(
-    client: &SimpleHttpClient,
-    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAnalyticsAccountLinksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = marketingplatformadmin_organizations_analytics_account_links_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    marketingplatformadmin_organizations_analytics_account_links_list_execute(builder)
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel
-/// Updates the service level for an Analytics property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute()` to send, or `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level` for simplest API.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder(
-    client: &SimpleHttpClient,
-    analyticsAccountLink: &str,
-    body: &SetPropertyServiceLevelRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://marketingplatformadmin.googleapis.com/v1alpha/organizations/{}/analyticsAccountLinks/{}:setPropertyServiceLevel",
-        analyticsAccountLink,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel
-/// Updates the service level for an Analytics property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute()` or `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<SetPropertyServiceLevelResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SetPropertyServiceLevelResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel
-/// Updates the service level for an Analytics property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_task()`.
-/// For the simplest API, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<SetPropertyServiceLevelResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_set_property_service_level`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs {
-    /// Path parameter: analyticsAccountLink
-    pub analyticsAccountLink: String,
-    /// Request body.
-    pub body: SetPropertyServiceLevelRequest,
-}
-
-/// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel
-/// Updates the service level for an Analytics property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder()` + `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute()`.
-/// For task-level control, use `marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level(
-    client: &SimpleHttpClient,
-    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<SetPropertyServiceLevelResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder(client, &args.analyticsAccountLink, &args.body)?;
-    marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute(
-        builder,
-    )
 }

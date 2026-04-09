@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,15 @@ use serde::Serialize;
 
 pub fn cloudprofiler_projects_profiles_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &CreateProfileRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles",
-        parent,
-    );
+    let endpoint_url = format!("https://cloudprofiler.googleapis.com/v2/projects/{}/profiles",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +69,12 @@ pub fn cloudprofiler_projects_profiles_create_builder(
 pub fn cloudprofiler_projects_profiles_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Profile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,7 +176,8 @@ pub fn cloudprofiler_projects_profiles_create(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudprofiler_projects_profiles_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        cloudprofiler_projects_profiles_create_builder(client, args.parent.clone(), &args.body)?;
     cloudprofiler_projects_profiles_create_execute(builder)
 }
 
@@ -185,18 +189,16 @@ pub fn cloudprofiler_projects_profiles_create(
 
 pub fn cloudprofiler_projects_profiles_create_offline_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &Profile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles:createOffline",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://cloudprofiler.googleapis.com/v2/projects/{}/profiles:createOffline",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -228,7 +230,12 @@ pub fn cloudprofiler_projects_profiles_create_offline_builder(
 pub fn cloudprofiler_projects_profiles_create_offline_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Profile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -330,366 +337,10 @@ pub fn cloudprofiler_projects_profiles_create_offline(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudprofiler_projects_profiles_create_offline_builder(client, &args.parent, &args.body)?;
-    cloudprofiler_projects_profiles_create_offline_execute(builder)
-}
-
-/// GET v2/projects/{projectsId}/profiles
-/// Lists profiles which have been collected so far and for which the caller has permission to view.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `cloudprofiler_projects_profiles_list_execute()` to send, or `cloudprofiler_projects_profiles_list` for simplest API.
-
-pub fn cloudprofiler_projects_profiles_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/projects/{projectsId}/profiles
-/// Lists profiles which have been collected so far and for which the caller has permission to view.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `cloudprofiler_projects_profiles_list_execute()` or `cloudprofiler_projects_profiles_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudprofiler_projects_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudprofiler_projects_profiles_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProfilesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListProfilesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/projects/{projectsId}/profiles
-/// Lists profiles which have been collected so far and for which the caller has permission to view.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `cloudprofiler_projects_profiles_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `cloudprofiler_projects_profiles_list_task()`.
-/// For the simplest API, use `cloudprofiler_projects_profiles_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudprofiler_projects_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn cloudprofiler_projects_profiles_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListProfilesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = cloudprofiler_projects_profiles_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`cloudprofiler_projects_profiles_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudprofilerProjectsProfilesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2/projects/{projectsId}/profiles
-/// Lists profiles which have been collected so far and for which the caller has permission to view.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `cloudprofiler_projects_profiles_list_builder()` + `cloudprofiler_projects_profiles_list_execute()`.
-/// For task-level control, use `cloudprofiler_projects_profiles_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudprofiler_projects_profiles_list(
-    client: &SimpleHttpClient,
-    args: &CloudprofilerProjectsProfilesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListProfilesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = cloudprofiler_projects_profiles_list_builder(
+    let builder = cloudprofiler_projects_profiles_create_offline_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    cloudprofiler_projects_profiles_list_execute(builder)
-}
-
-/// GET v2/projects/{projectsId}/profiles/{profilesId}
-/// UpdateProfile updates the profile bytes and labels on the profile resource created in the online mode. Updating the bytes for profiles created in the offline mode is currently not supported: the profile content must be provided at the time of the profile creation. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `cloudprofiler_projects_profiles_patch_execute()` to send, or `cloudprofiler_projects_profiles_patch` for simplest API.
-
-pub fn cloudprofiler_projects_profiles_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Profile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://cloudprofiler.googleapis.com/v2/projects/{}/profiles/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/projects/{projectsId}/profiles/{profilesId}
-/// UpdateProfile updates the profile bytes and labels on the profile resource created in the online mode. Updating the bytes for profiles created in the offline mode is currently not supported: the profile content must be provided at the time of the profile creation. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `cloudprofiler_projects_profiles_patch_execute()` or `cloudprofiler_projects_profiles_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudprofiler_projects_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudprofiler_projects_profiles_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Profile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/projects/{projectsId}/profiles/{profilesId}
-/// UpdateProfile updates the profile bytes and labels on the profile resource created in the online mode. Updating the bytes for profiles created in the offline mode is currently not supported: the profile content must be provided at the time of the profile creation. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `cloudprofiler_projects_profiles_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `cloudprofiler_projects_profiles_patch_task()`.
-/// For the simplest API, use `cloudprofiler_projects_profiles_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `cloudprofiler_projects_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn cloudprofiler_projects_profiles_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = cloudprofiler_projects_profiles_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`cloudprofiler_projects_profiles_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudprofilerProjectsProfilesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Profile,
-}
-
-/// GET v2/projects/{projectsId}/profiles/{profilesId}
-/// UpdateProfile updates the profile bytes and labels on the profile resource created in the online mode. Updating the bytes for profiles created in the offline mode is currently not supported: the profile content must be provided at the time of the profile creation. _Direct use of this API is discouraged, please use a [supported profiler agent](<https://cloud.google.`com/profiler/docs/about-profiler`#profiling_agent>) instead for profile collection._
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `cloudprofiler_projects_profiles_patch_builder()` + `cloudprofiler_projects_profiles_patch_execute()`.
-/// For task-level control, use `cloudprofiler_projects_profiles_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn cloudprofiler_projects_profiles_patch(
-    client: &SimpleHttpClient,
-    args: &CloudprofilerProjectsProfilesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = cloudprofiler_projects_profiles_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.parent.clone(),
         &args.body,
     )?;
-    cloudprofiler_projects_profiles_patch_execute(builder)
+    cloudprofiler_projects_profiles_create_offline_execute(builder)
 }

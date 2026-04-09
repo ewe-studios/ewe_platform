@@ -11,13 +11,11 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Deprovision is the unit operation that deprovision the underlying resources represented by a Unit. Can only execute if the Unit is currently provisioned.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Deprovision {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -448,7 +446,7 @@ pub struct UnitOperation {
     #[serde(default, rename = "deleteTime")]
     pub delete_time: ::core::option::Option<String>,
     #[serde(default)]
-    pub deprovision: ::core::option::Option<serde_json::Value>,
+    pub deprovision: ::core::option::Option<Deprovision>,
     /// Optional. Output only. The engine state for on-going deployment engine operation(s). This field is opaque for external usage.
     #[serde(default, rename = "engineState")]
     pub engine_state: ::core::option::Option<String>,
@@ -711,6 +709,12 @@ pub struct UnitOperationCondition {
     /// Required. Type of the condition. // TODO: enum values: ["TYPE_UNSPECIFIED", "TYPE_SCHEDULED", "TYPE_RUNNING", "TYPE_SUCCEEDED", "TYPE_CANCELLED", "TYPE_APP_CREATED", "TYPE_APP_COMPONENTS_REGISTERED"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// Deprovision is the unit operation that deprovision the underlying resources represented by a Unit. Can only execute if the Unit is currently provisioned.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Deprovision {
+    pub value: serde_json::Value,
 }
 
 /// Provision is the unit operation that provision the underlying resources represented by a Unit. Can only execute if the Unit is not currently provisioned.

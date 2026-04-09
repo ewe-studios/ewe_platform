@@ -12,358 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
-/// Executes a command to device managed by the enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `smartdevicemanagement_enterprises_devices_execute_command_execute()` to send, or `smartdevicemanagement_enterprises_devices_execute_command` for simplest API.
-
-pub fn smartdevicemanagement_enterprises_devices_execute_command_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices/{}:executeCommand",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
-/// Executes a command to device managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `smartdevicemanagement_enterprises_devices_execute_command_execute()` or `smartdevicemanagement_enterprises_devices_execute_command`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_devices_execute_command_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_devices_execute_command_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<
-                ApiResponse<GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
-/// Executes a command to device managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `smartdevicemanagement_enterprises_devices_execute_command_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `smartdevicemanagement_enterprises_devices_execute_command_task()`.
-/// For the simplest API, use `smartdevicemanagement_enterprises_devices_execute_command()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_devices_execute_command_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn smartdevicemanagement_enterprises_devices_execute_command_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = smartdevicemanagement_enterprises_devices_execute_command_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`smartdevicemanagement_enterprises_devices_execute_command`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SmartdevicemanagementEnterprisesDevicesExecuteCommandArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
-/// Executes a command to device managed by the enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `smartdevicemanagement_enterprises_devices_execute_command_builder()` + `smartdevicemanagement_enterprises_devices_execute_command_execute()`.
-/// For task-level control, use `smartdevicemanagement_enterprises_devices_execute_command_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_devices_execute_command(
-    client: &SimpleHttpClient,
-    args: &SmartdevicemanagementEnterprisesDevicesExecuteCommandArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = smartdevicemanagement_enterprises_devices_execute_command_builder(
-        client, &args.name, &args.body,
-    )?;
-    smartdevicemanagement_enterprises_devices_execute_command_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device managed by the enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `smartdevicemanagement_enterprises_devices_get_execute()` to send, or `smartdevicemanagement_enterprises_devices_get` for simplest API.
-
-pub fn smartdevicemanagement_enterprises_devices_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `smartdevicemanagement_enterprises_devices_get_execute()` or `smartdevicemanagement_enterprises_devices_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_devices_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_devices_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Device>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleHomeEnterpriseSdmV1Device = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `smartdevicemanagement_enterprises_devices_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `smartdevicemanagement_enterprises_devices_get_task()`.
-/// For the simplest API, use `smartdevicemanagement_enterprises_devices_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_devices_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn smartdevicemanagement_enterprises_devices_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Device>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = smartdevicemanagement_enterprises_devices_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`smartdevicemanagement_enterprises_devices_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SmartdevicemanagementEnterprisesDevicesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
-/// Gets a device managed by the enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `smartdevicemanagement_enterprises_devices_get_builder()` + `smartdevicemanagement_enterprises_devices_get_execute()`.
-/// For task-level control, use `smartdevicemanagement_enterprises_devices_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_devices_get(
-    client: &SimpleHttpClient,
-    args: &SmartdevicemanagementEnterprisesDevicesGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Device>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = smartdevicemanagement_enterprises_devices_get_builder(client, &args.name)?;
-    smartdevicemanagement_enterprises_devices_get_execute(builder)
-}
 
 /// GET v1/enterprises/{enterprisesId}/devices
 /// Lists devices managed by the enterprise.
@@ -373,14 +29,12 @@ pub fn smartdevicemanagement_enterprises_devices_get(
 
 pub fn smartdevicemanagement_enterprises_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/devices",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -389,9 +43,9 @@ pub fn smartdevicemanagement_enterprises_devices_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -426,8 +80,9 @@ pub fn smartdevicemanagement_enterprises_devices_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListDevicesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -542,174 +197,10 @@ pub fn smartdevicemanagement_enterprises_devices_list(
 > {
     let builder = smartdevicemanagement_enterprises_devices_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
     )?;
     smartdevicemanagement_enterprises_devices_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}
-/// Gets a structure managed by the enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `smartdevicemanagement_enterprises_structures_get_execute()` to send, or `smartdevicemanagement_enterprises_structures_get` for simplest API.
-
-pub fn smartdevicemanagement_enterprises_structures_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}
-/// Gets a structure managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `smartdevicemanagement_enterprises_structures_get_execute()` or `smartdevicemanagement_enterprises_structures_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Structure>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleHomeEnterpriseSdmV1Structure = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}
-/// Gets a structure managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `smartdevicemanagement_enterprises_structures_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_get_task()`.
-/// For the simplest API, use `smartdevicemanagement_enterprises_structures_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn smartdevicemanagement_enterprises_structures_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Structure>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = smartdevicemanagement_enterprises_structures_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`smartdevicemanagement_enterprises_structures_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SmartdevicemanagementEnterprisesStructuresGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}
-/// Gets a structure managed by the enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `smartdevicemanagement_enterprises_structures_get_builder()` + `smartdevicemanagement_enterprises_structures_get_execute()`.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_get(
-    client: &SimpleHttpClient,
-    args: &SmartdevicemanagementEnterprisesStructuresGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Structure>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = smartdevicemanagement_enterprises_structures_get_builder(client, &args.name)?;
-    smartdevicemanagement_enterprises_structures_get_execute(builder)
 }
 
 /// GET v1/enterprises/{enterprisesId}/structures
@@ -720,14 +211,12 @@ pub fn smartdevicemanagement_enterprises_structures_get(
 
 pub fn smartdevicemanagement_enterprises_structures_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -736,9 +225,9 @@ pub fn smartdevicemanagement_enterprises_structures_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -773,8 +262,9 @@ pub fn smartdevicemanagement_enterprises_structures_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListStructuresResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListStructuresResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -889,339 +379,8 @@ pub fn smartdevicemanagement_enterprises_structures_list(
 > {
     let builder = smartdevicemanagement_enterprises_structures_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
     )?;
     smartdevicemanagement_enterprises_structures_list_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms/{roomsId}
-/// Gets a room managed by the enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `smartdevicemanagement_enterprises_structures_rooms_get_execute()` to send, or `smartdevicemanagement_enterprises_structures_rooms_get` for simplest API.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{}/rooms/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms/{roomsId}
-/// Gets a room managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `smartdevicemanagement_enterprises_structures_rooms_get_execute()` or `smartdevicemanagement_enterprises_structures_rooms_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_rooms_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Room>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleHomeEnterpriseSdmV1Room = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms/{roomsId}
-/// Gets a room managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `smartdevicemanagement_enterprises_structures_rooms_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_rooms_get_task()`.
-/// For the simplest API, use `smartdevicemanagement_enterprises_structures_rooms_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_rooms_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Room>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = smartdevicemanagement_enterprises_structures_rooms_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`smartdevicemanagement_enterprises_structures_rooms_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SmartdevicemanagementEnterprisesStructuresRoomsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms/{roomsId}
-/// Gets a room managed by the enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `smartdevicemanagement_enterprises_structures_rooms_get_builder()` + `smartdevicemanagement_enterprises_structures_rooms_get_execute()`.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_rooms_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_get(
-    client: &SimpleHttpClient,
-    args: &SmartdevicemanagementEnterprisesStructuresRoomsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Room>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        smartdevicemanagement_enterprises_structures_rooms_get_builder(client, &args.name)?;
-    smartdevicemanagement_enterprises_structures_rooms_get_execute(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms
-/// Lists rooms managed by the enterprise.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `smartdevicemanagement_enterprises_structures_rooms_list_execute()` to send, or `smartdevicemanagement_enterprises_structures_rooms_list` for simplest API.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://smartdevicemanagement.googleapis.com/v1/enterprises/{}/structures/{}/rooms",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms
-/// Lists rooms managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `smartdevicemanagement_enterprises_structures_rooms_list_execute()` or `smartdevicemanagement_enterprises_structures_rooms_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_rooms_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListRoomsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleHomeEnterpriseSdmV1ListRoomsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms
-/// Lists rooms managed by the enterprise.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `smartdevicemanagement_enterprises_structures_rooms_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_rooms_list_task()`.
-/// For the simplest API, use `smartdevicemanagement_enterprises_structures_rooms_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `smartdevicemanagement_enterprises_structures_rooms_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListRoomsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = smartdevicemanagement_enterprises_structures_rooms_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`smartdevicemanagement_enterprises_structures_rooms_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SmartdevicemanagementEnterprisesStructuresRoomsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms
-/// Lists rooms managed by the enterprise.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `smartdevicemanagement_enterprises_structures_rooms_list_builder()` + `smartdevicemanagement_enterprises_structures_rooms_list_execute()`.
-/// For task-level control, use `smartdevicemanagement_enterprises_structures_rooms_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn smartdevicemanagement_enterprises_structures_rooms_list(
-    client: &SimpleHttpClient,
-    args: &SmartdevicemanagementEnterprisesStructuresRoomsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListRoomsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        smartdevicemanagement_enterprises_structures_rooms_list_builder(client, &args.parent)?;
-    smartdevicemanagement_enterprises_structures_rooms_list_execute(builder)
 }

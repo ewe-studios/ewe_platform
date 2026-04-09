@@ -48,7 +48,7 @@ pub struct ActivityListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -111,7 +111,7 @@ pub struct ChannelListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -159,7 +159,7 @@ pub struct CommentListResponse {
     #[serde(default, rename = "pageInfo")]
     pub page_info: ::core::option::Option<PageInfo>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -187,7 +187,7 @@ pub struct CommentThreadListResponse {
     #[serde(default, rename = "pageInfo")]
     pub page_info: ::core::option::Option<PageInfo>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -300,7 +300,7 @@ pub struct LiveBroadcastListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -352,7 +352,7 @@ pub struct LiveChatMessageListResponse {
     #[serde(default, rename = "pollingIntervalMillis")]
     pub polling_interval_millis: ::core::option::Option<i64>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -383,7 +383,7 @@ pub struct LiveChatModeratorListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -413,7 +413,7 @@ pub struct LiveStreamListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -449,7 +449,7 @@ pub struct MemberListResponse {
     #[serde(default, rename = "pageInfo")]
     pub page_info: ::core::option::Option<PageInfo>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -518,7 +518,7 @@ pub struct PlaylistItemListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -549,7 +549,7 @@ pub struct PlaylistListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -582,7 +582,7 @@ pub struct SearchListResponse {
     #[serde(default, rename = "regionCode")]
     pub region_code: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -612,7 +612,7 @@ pub struct SubscriptionListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -639,7 +639,7 @@ pub struct SuperChatEventListResponse {
     #[serde(default, rename = "pageInfo")]
     pub page_info: ::core::option::Option<PageInfo>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -658,12 +658,8 @@ pub struct TestItem {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
     #[serde(default)]
-    pub snippet: ::core::option::Option<serde_json::Value>,
+    pub snippet: ::core::option::Option<TestItemTestItemSnippet>,
 }
-
-/// TestItemTestItemSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TestItemTestItemSnippet {}
 
 /// ThirdPartyLinkListResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -697,10 +693,6 @@ pub struct ThumbnailSetResponse {
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
 }
-
-/// Stub token pagination template to suppress results.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TokenPagination {}
 
 /// VideoAbuseReport resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -767,7 +759,7 @@ pub struct VideoCategoryListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
@@ -817,15 +809,11 @@ pub struct VideoListResponse {
     #[serde(default, rename = "prevPageToken")]
     pub prev_page_token: ::core::option::Option<String>,
     #[serde(default, rename = "tokenPagination")]
-    pub token_pagination: ::core::option::Option<serde_json::Value>,
+    pub token_pagination: ::core::option::Option<TokenPagination>,
     /// The visitorId identifies the visitor.
     #[serde(default, rename = "visitorId")]
     pub visitor_id: ::core::option::Option<String>,
 }
-
-/// DEPRECATED. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VideoProjectDetails {}
 
 /// Specifies who is allowed to train on the video.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1305,6 +1293,12 @@ pub struct SuperChatEvent {
     pub snippet: ::core::option::Option<SuperChatEventSnippet>,
 }
 
+/// TestItemTestItemSnippet resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TestItemTestItemSnippet {
+    pub value: serde_json::Value,
+}
+
 /// A *third party account link* resource represents a link between a YouTube account or a channel and an account on a third-party service.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyLink {
@@ -1410,7 +1404,7 @@ pub struct Video {
     pub processing_details: ::core::option::Option<VideoProcessingDetails>,
     /// The projectDetails object contains information about the project specific video metadata. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
     #[serde(default, rename = "projectDetails")]
-    pub project_details: ::core::option::Option<serde_json::Value>,
+    pub project_details: ::core::option::Option<VideoProjectDetails>,
     /// The recordingDetails object encapsulates information about the location, date and address where the video was recorded.
     #[serde(default, rename = "recordingDetails")]
     pub recording_details: ::core::option::Option<VideoRecordingDetails>,
@@ -1440,6 +1434,12 @@ pub struct PageInfo {
     /// The total number of results in the result set.
     #[serde(default, rename = "totalResults")]
     pub total_results: ::core::option::Option<i32>,
+}
+
+/// Stub token pagination template to suppress results.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TokenPagination {
+    pub value: serde_json::Value,
 }
 
 /// Entity resource type.
@@ -2589,6 +2589,12 @@ pub struct VideoProcessingDetails {
     /// This value indicates whether thumbnail images have been generated for the video.
     #[serde(default, rename = "thumbnailsAvailability")]
     pub thumbnails_availability: ::core::option::Option<String>,
+}
+
+/// DEPRECATED. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VideoProjectDetails {
+    pub value: serde_json::Value,
 }
 
 /// Recording information associated with the video.

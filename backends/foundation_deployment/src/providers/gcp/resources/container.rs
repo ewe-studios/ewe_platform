@@ -84,7 +84,9 @@ pub struct CompleteIPRotationRequest {
 
 /// CompleteNodePoolUpgradeRequest sets the name of target node pool to complete upgrade.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompleteNodePoolUpgradeRequest {}
+pub struct CompleteNodePoolUpgradeRequest {
+    pub value: serde_json::Value,
+}
 
 /// CreateClusterRequest creates a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -125,7 +127,9 @@ pub struct CreateNodePoolRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// GetJSONWebKeysResponse is a valid JSON Web Key Set as specified in rfc 7517
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -256,10 +260,6 @@ pub struct RollbackNodePoolUpgradeRequest {
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
 }
-
-/// SecondaryBootDiskUpdateStrategy is a placeholder which will be extended in the future to define different options for updating secondary boot disks.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryBootDiskUpdateStrategy {}
 
 /// SecurityBulletinEvent is a notification sent to customers when a security bulletin has been posted that they are vulnerable to.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2752,7 +2752,8 @@ pub struct NodeConfig {
     pub sandbox_config: ::core::option::Option<SandboxConfig>,
     /// Secondary boot disk update strategy.
     #[serde(default, rename = "secondaryBootDiskUpdateStrategy")]
-    pub secondary_boot_disk_update_strategy: ::core::option::Option<serde_json::Value>,
+    pub secondary_boot_disk_update_strategy:
+        ::core::option::Option<SecondaryBootDiskUpdateStrategy>,
     /// List of secondary boot disks attached to the nodes.
     #[serde(default, rename = "secondaryBootDisks")]
     pub secondary_boot_disks: ::core::option::Option<::std::vec::Vec<SecondaryBootDisk>>,
@@ -3576,6 +3577,12 @@ pub struct SandboxConfig {
     /// Type of the sandbox to use for the node. // TODO: enum values: ["UNSPECIFIED", "GVISOR"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// SecondaryBootDiskUpdateStrategy is a placeholder which will be extended in the future to define different options for updating secondary boot disks.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryBootDiskUpdateStrategy {
+    pub value: serde_json::Value,
 }
 
 /// SecondaryBootDisk represents a persistent disk attached to a node with special configurations based on its mode.

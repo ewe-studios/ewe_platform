@@ -24,11 +24,15 @@ pub struct SasPortalCreateSignedDeviceRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalEmpty {}
+pub struct SasPortalEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Request for GenerateSecret.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalGenerateSecretRequest {}
+pub struct SasPortalGenerateSecretRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for GenerateSecret.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -213,7 +217,9 @@ pub struct SasPortalSetPolicyRequest {
 
 /// Metadata returned by the long running operation for the SetupSasAnalytics rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalSetupSasAnalyticsMetadata {}
+pub struct SasPortalSetupSasAnalyticsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request for the SetupSasAnalytics rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -225,7 +231,9 @@ pub struct SasPortalSetupSasAnalyticsRequest {
 
 /// Response returned by the long running operation for the SetupSasAnalytics rpc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalSetupSasAnalyticsResponse {}
+pub struct SasPortalSetupSasAnalyticsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for SignDevice.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -281,7 +289,9 @@ pub struct SasPortalValidateInstallerRequest {
 
 /// Response for ValidateInstaller.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SasPortalValidateInstallerResponse {}
+pub struct SasPortalValidateInstallerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Entity representing a SAS customer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

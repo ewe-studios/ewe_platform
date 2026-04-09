@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,12 @@ pub fn firebasedynamiclinks_managed_short_links_create_builder(
     body: &CreateManagedShortLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebasedynamiclinks.googleapis.com/v1/managedShortLinks:create",);
+    let endpoint_url =
+        format!("https://firebasedynamiclinks.googleapis.com/v1/managedShortLinks:create",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -68,8 +70,9 @@ pub fn firebasedynamiclinks_managed_short_links_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CreateManagedShortLinkResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CreateManagedShortLinkResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -194,11 +197,11 @@ pub fn firebasedynamiclinks_short_links_create_builder(
     body: &CreateShortDynamicLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebasedynamiclinks.googleapis.com/v1/shortLinks",);
+    let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/shortLinks",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -231,8 +234,9 @@ pub fn firebasedynamiclinks_short_links_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CreateShortDynamicLinkResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CreateShortDynamicLinkResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -354,14 +358,14 @@ pub fn firebasedynamiclinks_short_links_create(
 
 pub fn firebasedynamiclinks_get_link_stats_builder(
     client: &SimpleHttpClient,
-    dynamicLink: &str,
-    durationDays: Option<&str>,
-    sdkVersion: Option<&str>,
+    dynamicLink: String,
+    durationDays: Option<String>,
+    sdkVersion: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://firebasedynamiclinks.googleapis.com/v1/{}/linkStats",
-        dynamicLink,
+        dynamicLink.as_str(),
     );
 
     // Build request
@@ -374,9 +378,9 @@ pub fn firebasedynamiclinks_get_link_stats_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -410,8 +414,11 @@ pub fn firebasedynamiclinks_get_link_stats_builder(
 pub fn firebasedynamiclinks_get_link_stats_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicLinkStats>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicLinkStats>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -522,9 +529,9 @@ pub fn firebasedynamiclinks_get_link_stats(
 > {
     let builder = firebasedynamiclinks_get_link_stats_builder(
         client,
-        &args.dynamicLink,
-        args.durationDays.as_deref(),
-        args.sdkVersion.as_deref(),
+        args.dynamicLink.clone(),
+        args.durationDays.clone(),
+        args.sdkVersion.clone(),
     )?;
     firebasedynamiclinks_get_link_stats_execute(builder)
 }
@@ -540,11 +547,12 @@ pub fn firebasedynamiclinks_install_attribution_builder(
     body: &GetIosPostInstallAttributionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebasedynamiclinks.googleapis.com/v1/installAttribution",);
+    let endpoint_url =
+        format!("https://firebasedynamiclinks.googleapis.com/v1/installAttribution",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -577,8 +585,9 @@ pub fn firebasedynamiclinks_install_attribution_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetIosPostInstallAttributionResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetIosPostInstallAttributionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -703,11 +712,11 @@ pub fn firebasedynamiclinks_reopen_attribution_builder(
     body: &GetIosReopenAttributionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebasedynamiclinks.googleapis.com/v1/reopenAttribution",);
+    let endpoint_url = format!("https://firebasedynamiclinks.googleapis.com/v1/reopenAttribution",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -740,8 +749,9 @@ pub fn firebasedynamiclinks_reopen_attribution_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetIosReopenAttributionResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetIosReopenAttributionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

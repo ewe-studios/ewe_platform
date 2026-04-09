@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,20 +29,20 @@ use serde::Serialize;
 
 pub fn deploymentmanager_deployments_cancel_preview_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
+    project: String,
+    deployment: String,
     body: &DeploymentsCancelPreviewRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/cancelPreview",
-        project,
-        deployment,
+        project.as_str(),
+        deployment.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -73,7 +74,12 @@ pub fn deploymentmanager_deployments_cancel_preview_builder(
 pub fn deploymentmanager_deployments_cancel_preview_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,8 +185,8 @@ pub fn deploymentmanager_deployments_cancel_preview(
 > {
     let builder = deploymentmanager_deployments_cancel_preview_builder(
         client,
-        &args.project,
-        &args.deployment,
+        args.project.clone(),
+        args.deployment.clone(),
         &args.body,
     )?;
     deploymentmanager_deployments_cancel_preview_execute(builder)
@@ -194,16 +200,16 @@ pub fn deploymentmanager_deployments_cancel_preview(
 
 pub fn deploymentmanager_deployments_delete_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    deletePolicy: Option<&str>,
+    project: String,
+    deployment: String,
+    deletePolicy: Option<String>,
     header_bypassBillingFilter: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
-        project,
-        deployment,
+        project.as_str(),
+        deployment.as_str(),
     );
 
     // Build request
@@ -212,13 +218,13 @@ pub fn deploymentmanager_deployments_delete_builder(
         query_parts.push(format!("deletePolicy={}", val));
     }
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -252,7 +258,12 @@ pub fn deploymentmanager_deployments_delete_builder(
 pub fn deploymentmanager_deployments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -360,187 +371,12 @@ pub fn deploymentmanager_deployments_delete(
 > {
     let builder = deploymentmanager_deployments_delete_builder(
         client,
-        &args.project,
-        &args.deployment,
-        args.deletePolicy.as_deref(),
-        args.header_bypassBillingFilter,
+        args.project.clone(),
+        args.deployment.clone(),
+        args.deletePolicy.clone(),
+        args.header_bypassBillingFilter.clone(),
     )?;
     deploymentmanager_deployments_delete_execute(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Gets information about a specific deployment.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `deploymentmanager_deployments_get_execute()` to send, or `deploymentmanager_deployments_get` for simplest API.
-
-pub fn deploymentmanager_deployments_get_builder(
-    client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    header_bypassBillingFilter: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
-        project,
-        deployment,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Gets information about a specific deployment.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `deploymentmanager_deployments_get_execute()` or `deploymentmanager_deployments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Deployment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Gets information about a specific deployment.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `deploymentmanager_deployments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `deploymentmanager_deployments_get_task()`.
-/// For the simplest API, use `deploymentmanager_deployments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn deploymentmanager_deployments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = deploymentmanager_deployments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`deploymentmanager_deployments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeploymentmanagerDeploymentsGetArgs {
-    /// Path parameter: project
-    pub project: String,
-    /// Path parameter: deployment
-    pub deployment: String,
-    /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Gets information about a specific deployment.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `deploymentmanager_deployments_get_builder()` + `deploymentmanager_deployments_get_execute()`.
-/// For task-level control, use `deploymentmanager_deployments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_get(
-    client: &SimpleHttpClient,
-    args: &DeploymentmanagerDeploymentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = deploymentmanager_deployments_get_builder(
-        client,
-        &args.project,
-        &args.deployment,
-        args.header_bypassBillingFilter,
-    )?;
-    deploymentmanager_deployments_get_execute(builder)
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/getIamPolicy
@@ -551,31 +387,31 @@ pub fn deploymentmanager_deployments_get(
 
 pub fn deploymentmanager_deployments_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
+    project: String,
+    resource: String,
     header_bypassBillingFilter: Option<bool>,
     optionsRequestedPolicyVersion: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/getIamPolicy",
-        project,
-        resource,
+        project.as_str(),
+        resource.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
     if let Some(val) = optionsRequestedPolicyVersion {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -609,7 +445,12 @@ pub fn deploymentmanager_deployments_get_iam_policy_builder(
 pub fn deploymentmanager_deployments_get_iam_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -717,10 +558,10 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 > {
     let builder = deploymentmanager_deployments_get_iam_policy_builder(
         client,
-        &args.project,
-        &args.resource,
-        args.header_bypassBillingFilter,
-        args.optionsRequestedPolicyVersion,
+        args.project.clone(),
+        args.resource.clone(),
+        args.header_bypassBillingFilter.clone(),
+        args.optionsRequestedPolicyVersion.clone(),
     )?;
     deploymentmanager_deployments_get_iam_policy_execute(builder)
 }
@@ -733,16 +574,16 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 
 pub fn deploymentmanager_deployments_insert_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    createPolicy: Option<&str>,
+    project: String,
+    createPolicy: Option<String>,
     header_bypassBillingFilter: Option<bool>,
     preview: Option<bool>,
     body: &Deployment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
-        project,
+        project.as_str(),
     );
 
     // Build request
@@ -751,16 +592,16 @@ pub fn deploymentmanager_deployments_insert_builder(
         query_parts.push(format!("createPolicy={}", val));
     }
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
     if let Some(val) = preview {
         query_parts.push(format!("preview={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -796,7 +637,12 @@ pub fn deploymentmanager_deployments_insert_builder(
 pub fn deploymentmanager_deployments_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -906,412 +752,13 @@ pub fn deploymentmanager_deployments_insert(
 > {
     let builder = deploymentmanager_deployments_insert_builder(
         client,
-        &args.project,
-        args.createPolicy.as_deref(),
-        args.header_bypassBillingFilter,
-        args.preview,
+        args.project.clone(),
+        args.createPolicy.clone(),
+        args.header_bypassBillingFilter.clone(),
+        args.preview.clone(),
         &args.body,
     )?;
     deploymentmanager_deployments_insert_execute(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
-/// Lists all deployments for a given project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `deploymentmanager_deployments_list_execute()` to send, or `deploymentmanager_deployments_list` for simplest API.
-
-pub fn deploymentmanager_deployments_list_builder(
-    client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
-        project,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
-/// Lists all deployments for a given project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `deploymentmanager_deployments_list_execute()` or `deploymentmanager_deployments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DeploymentsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
-/// Lists all deployments for a given project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `deploymentmanager_deployments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `deploymentmanager_deployments_list_task()`.
-/// For the simplest API, use `deploymentmanager_deployments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn deploymentmanager_deployments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = deploymentmanager_deployments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`deploymentmanager_deployments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeploymentmanagerDeploymentsListArgs {
-    /// Path parameter: project
-    pub project: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
-/// Lists all deployments for a given project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `deploymentmanager_deployments_list_builder()` + `deploymentmanager_deployments_list_execute()`.
-/// For task-level control, use `deploymentmanager_deployments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_list(
-    client: &SimpleHttpClient,
-    args: &DeploymentmanagerDeploymentsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = deploymentmanager_deployments_list_builder(
-        client,
-        &args.project,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
-    )?;
-    deploymentmanager_deployments_list_execute(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Patches a deployment and all of the resources described by the deployment manifest.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `deploymentmanager_deployments_patch_execute()` to send, or `deploymentmanager_deployments_patch` for simplest API.
-
-pub fn deploymentmanager_deployments_patch_builder(
-    client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    createPolicy: Option<&str>,
-    deletePolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
-    body: &Deployment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
-        project,
-        deployment,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = createPolicy {
-        query_parts.push(format!("createPolicy={}", val));
-    }
-    if let Some(val) = deletePolicy {
-        query_parts.push(format!("deletePolicy={}", val));
-    }
-    if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
-    }
-    if let Some(val) = preview {
-        query_parts.push(format!("preview={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Patches a deployment and all of the resources described by the deployment manifest.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `deploymentmanager_deployments_patch_execute()` or `deploymentmanager_deployments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Patches a deployment and all of the resources described by the deployment manifest.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `deploymentmanager_deployments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `deploymentmanager_deployments_patch_task()`.
-/// For the simplest API, use `deploymentmanager_deployments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn deploymentmanager_deployments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = deploymentmanager_deployments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`deploymentmanager_deployments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeploymentmanagerDeploymentsPatchArgs {
-    /// Path parameter: project
-    pub project: String,
-    /// Path parameter: deployment
-    pub deployment: String,
-    /// Query parameter: createPolicy
-    pub createPolicy: Option<String>,
-    /// Query parameter: deletePolicy
-    pub deletePolicy: Option<String>,
-    /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
-    /// Query parameter: preview
-    pub preview: Option<bool>,
-    /// Request body.
-    pub body: Deployment,
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Patches a deployment and all of the resources described by the deployment manifest.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `deploymentmanager_deployments_patch_builder()` + `deploymentmanager_deployments_patch_execute()`.
-/// For task-level control, use `deploymentmanager_deployments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_patch(
-    client: &SimpleHttpClient,
-    args: &DeploymentmanagerDeploymentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = deploymentmanager_deployments_patch_builder(
-        client,
-        &args.project,
-        &args.deployment,
-        args.createPolicy.as_deref(),
-        args.deletePolicy.as_deref(),
-        args.header_bypassBillingFilter,
-        args.preview,
-        &args.body,
-    )?;
-    deploymentmanager_deployments_patch_execute(builder)
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
@@ -1322,20 +769,20 @@ pub fn deploymentmanager_deployments_patch(
 
 pub fn deploymentmanager_deployments_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
+    project: String,
+    resource: String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/setIamPolicy",
-        project,
-        resource,
+        project.as_str(),
+        resource.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1367,7 +814,12 @@ pub fn deploymentmanager_deployments_set_iam_policy_builder(
 pub fn deploymentmanager_deployments_set_iam_policy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1473,8 +925,8 @@ pub fn deploymentmanager_deployments_set_iam_policy(
 > {
     let builder = deploymentmanager_deployments_set_iam_policy_builder(
         client,
-        &args.project,
-        &args.resource,
+        args.project.clone(),
+        args.resource.clone(),
         &args.body,
     )?;
     deploymentmanager_deployments_set_iam_policy_execute(builder)
@@ -1488,20 +940,20 @@ pub fn deploymentmanager_deployments_set_iam_policy(
 
 pub fn deploymentmanager_deployments_stop_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
+    project: String,
+    deployment: String,
     body: &DeploymentsStopRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/stop",
-        project,
-        deployment,
+        project.as_str(),
+        deployment.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1533,7 +985,12 @@ pub fn deploymentmanager_deployments_stop_builder(
 pub fn deploymentmanager_deployments_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1639,8 +1096,8 @@ pub fn deploymentmanager_deployments_stop(
 > {
     let builder = deploymentmanager_deployments_stop_builder(
         client,
-        &args.project,
-        &args.deployment,
+        args.project.clone(),
+        args.deployment.clone(),
         &args.body,
     )?;
     deploymentmanager_deployments_stop_execute(builder)
@@ -1654,28 +1111,28 @@ pub fn deploymentmanager_deployments_stop(
 
 pub fn deploymentmanager_deployments_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
+    project: String,
+    resource: String,
     header_bypassBillingFilter: Option<bool>,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/testIamPermissions",
-        project,
-        resource,
+        project.as_str(),
+        resource.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1711,8 +1168,11 @@ pub fn deploymentmanager_deployments_test_iam_permissions_builder(
 pub fn deploymentmanager_deployments_test_iam_permissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1825,214 +1285,12 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
 > {
     let builder = deploymentmanager_deployments_test_iam_permissions_builder(
         client,
-        &args.project,
-        &args.resource,
-        args.header_bypassBillingFilter,
+        args.project.clone(),
+        args.resource.clone(),
+        args.header_bypassBillingFilter.clone(),
         &args.body,
     )?;
     deploymentmanager_deployments_test_iam_permissions_execute(builder)
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Updates a deployment and all of the resources described by the deployment manifest.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `deploymentmanager_deployments_update_execute()` to send, or `deploymentmanager_deployments_update` for simplest API.
-
-pub fn deploymentmanager_deployments_update_builder(
-    client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    createPolicy: Option<&str>,
-    deletePolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
-    body: &Deployment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
-        project,
-        deployment,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = createPolicy {
-        query_parts.push(format!("createPolicy={}", val));
-    }
-    if let Some(val) = deletePolicy {
-        query_parts.push(format!("deletePolicy={}", val));
-    }
-    if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
-    }
-    if let Some(val) = preview {
-        query_parts.push(format!("preview={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Updates a deployment and all of the resources described by the deployment manifest.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `deploymentmanager_deployments_update_execute()` or `deploymentmanager_deployments_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Updates a deployment and all of the resources described by the deployment manifest.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `deploymentmanager_deployments_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `deploymentmanager_deployments_update_task()`.
-/// For the simplest API, use `deploymentmanager_deployments_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn deploymentmanager_deployments_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = deploymentmanager_deployments_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`deploymentmanager_deployments_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeploymentmanagerDeploymentsUpdateArgs {
-    /// Path parameter: project
-    pub project: String,
-    /// Path parameter: deployment
-    pub deployment: String,
-    /// Query parameter: createPolicy
-    pub createPolicy: Option<String>,
-    /// Query parameter: deletePolicy
-    pub deletePolicy: Option<String>,
-    /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
-    /// Query parameter: preview
-    pub preview: Option<bool>,
-    /// Request body.
-    pub body: Deployment,
-}
-
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
-/// Updates a deployment and all of the resources described by the deployment manifest.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `deploymentmanager_deployments_update_builder()` + `deploymentmanager_deployments_update_execute()`.
-/// For task-level control, use `deploymentmanager_deployments_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn deploymentmanager_deployments_update(
-    client: &SimpleHttpClient,
-    args: &DeploymentmanagerDeploymentsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = deploymentmanager_deployments_update_builder(
-        client,
-        &args.project,
-        &args.deployment,
-        args.createPolicy.as_deref(),
-        args.deletePolicy.as_deref(),
-        args.header_bypassBillingFilter,
-        args.preview,
-        &args.body,
-    )?;
-    deploymentmanager_deployments_update_execute(builder)
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests/{manifest}
@@ -2043,29 +1301,29 @@ pub fn deploymentmanager_deployments_update(
 
 pub fn deploymentmanager_manifests_get_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    manifest: &str,
+    project: String,
+    deployment: String,
+    manifest: String,
     header_bypassBillingFilter: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests/{}",
-        project,
-        deployment,
-        manifest,
+        project.as_str(),
+        deployment.as_str(),
+        manifest.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2099,7 +1357,12 @@ pub fn deploymentmanager_manifests_get_builder(
 pub fn deploymentmanager_manifests_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Manifest>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Manifest>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2207,10 +1470,10 @@ pub fn deploymentmanager_manifests_get(
 > {
     let builder = deploymentmanager_manifests_get_builder(
         client,
-        &args.project,
-        &args.deployment,
-        &args.manifest,
-        args.header_bypassBillingFilter,
+        args.project.clone(),
+        args.deployment.clone(),
+        args.manifest.clone(),
+        args.header_bypassBillingFilter.clone(),
     )?;
     deploymentmanager_manifests_get_execute(builder)
 }
@@ -2223,18 +1486,18 @@ pub fn deploymentmanager_manifests_get(
 
 pub fn deploymentmanager_manifests_list_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    filter: Option<&str>,
+    project: String,
+    deployment: String,
+    filter: Option<String>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests",
-        project,
-        deployment,
+        project.as_str(),
+        deployment.as_str(),
     );
 
     // Build request
@@ -2253,9 +1516,9 @@ pub fn deploymentmanager_manifests_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2289,8 +1552,11 @@ pub fn deploymentmanager_manifests_list_builder(
 pub fn deploymentmanager_manifests_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ManifestsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManifestsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2407,12 +1673,12 @@ pub fn deploymentmanager_manifests_list(
 > {
     let builder = deploymentmanager_manifests_list_builder(
         client,
-        &args.project,
-        &args.deployment,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
+        args.project.clone(),
+        args.deployment.clone(),
+        args.filter.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
     )?;
     deploymentmanager_manifests_list_execute(builder)
 }
@@ -2425,27 +1691,27 @@ pub fn deploymentmanager_manifests_list(
 
 pub fn deploymentmanager_operations_get_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    operation: &str,
+    project: String,
+    operation: String,
     header_bypassBillingFilter: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations/{}",
-        project,
-        operation,
+        project.as_str(),
+        operation.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2479,7 +1745,12 @@ pub fn deploymentmanager_operations_get_builder(
 pub fn deploymentmanager_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2585,9 +1856,9 @@ pub fn deploymentmanager_operations_get(
 > {
     let builder = deploymentmanager_operations_get_builder(
         client,
-        &args.project,
-        &args.operation,
-        args.header_bypassBillingFilter,
+        args.project.clone(),
+        args.operation.clone(),
+        args.header_bypassBillingFilter.clone(),
     )?;
     deploymentmanager_operations_get_execute(builder)
 }
@@ -2600,16 +1871,16 @@ pub fn deploymentmanager_operations_get(
 
 pub fn deploymentmanager_operations_list_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
+    project: String,
+    filter: Option<String>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations",
-        project,
+        project.as_str(),
     );
 
     // Build request
@@ -2628,9 +1899,9 @@ pub fn deploymentmanager_operations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2664,8 +1935,11 @@ pub fn deploymentmanager_operations_list_builder(
 pub fn deploymentmanager_operations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OperationsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperationsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2780,11 +2054,11 @@ pub fn deploymentmanager_operations_list(
 > {
     let builder = deploymentmanager_operations_list_builder(
         client,
-        &args.project,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
+        args.project.clone(),
+        args.filter.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
     )?;
     deploymentmanager_operations_list_execute(builder)
 }
@@ -2797,29 +2071,29 @@ pub fn deploymentmanager_operations_list(
 
 pub fn deploymentmanager_resources_get_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    resource: &str,
+    project: String,
+    deployment: String,
+    resource: String,
     header_bypassBillingFilter: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources/{}",
-        project,
-        deployment,
-        resource,
+        project.as_str(),
+        deployment.as_str(),
+        resource.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = header_bypassBillingFilter {
-        query_parts.push(format!("header_bypassBillingFilter={}", val));
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2853,7 +2127,12 @@ pub fn deploymentmanager_resources_get_builder(
 pub fn deploymentmanager_resources_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Resource>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Resource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2961,10 +2240,10 @@ pub fn deploymentmanager_resources_get(
 > {
     let builder = deploymentmanager_resources_get_builder(
         client,
-        &args.project,
-        &args.deployment,
-        &args.resource,
-        args.header_bypassBillingFilter,
+        args.project.clone(),
+        args.deployment.clone(),
+        args.resource.clone(),
+        args.header_bypassBillingFilter.clone(),
     )?;
     deploymentmanager_resources_get_execute(builder)
 }
@@ -2977,18 +2256,18 @@ pub fn deploymentmanager_resources_get(
 
 pub fn deploymentmanager_resources_list_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    filter: Option<&str>,
+    project: String,
+    deployment: String,
+    filter: Option<String>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources",
-        project,
-        deployment,
+        project.as_str(),
+        deployment.as_str(),
     );
 
     // Build request
@@ -3007,9 +2286,9 @@ pub fn deploymentmanager_resources_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3043,8 +2322,11 @@ pub fn deploymentmanager_resources_list_builder(
 pub fn deploymentmanager_resources_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResourcesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResourcesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3161,12 +2443,12 @@ pub fn deploymentmanager_resources_list(
 > {
     let builder = deploymentmanager_resources_list_builder(
         client,
-        &args.project,
-        &args.deployment,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
+        args.project.clone(),
+        args.deployment.clone(),
+        args.filter.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
     )?;
     deploymentmanager_resources_list_execute(builder)
 }
@@ -3179,16 +2461,16 @@ pub fn deploymentmanager_resources_list(
 
 pub fn deploymentmanager_types_list_builder(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
+    project: String,
+    filter: Option<String>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/types",
-        project,
+        project.as_str(),
     );
 
     // Build request
@@ -3207,9 +2489,9 @@ pub fn deploymentmanager_types_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3243,8 +2525,11 @@ pub fn deploymentmanager_types_list_builder(
 pub fn deploymentmanager_types_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TypesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TypesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3359,11 +2644,11 @@ pub fn deploymentmanager_types_list(
 > {
     let builder = deploymentmanager_types_list_builder(
         client,
-        &args.project,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
+        args.project.clone(),
+        args.filter.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
     )?;
     deploymentmanager_types_list_execute(builder)
 }

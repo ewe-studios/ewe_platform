@@ -24,7 +24,9 @@ pub struct ConversionList {
 
 /// File returned to https://developers.google.com/search-ads/v2/reference/reports/getIdMappingFile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IdMappingFile {}
+pub struct IdMappingFile {
+    pub value: serde_json::Value,
+}
 
 /// A DoubleClick Search report. This object contains the report request, some report metadata such as currency code, and the generated report rows or report files.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,7 +51,7 @@ pub struct Report {
     pub row_count: ::core::option::Option<i32>,
     /// Synchronous report only. Generated report rows.
     #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub rows: ::core::option::Option<::std::vec::Vec<ReportRow>>,
     /// The currency code of all monetary values produced in the report, including values that are set by users (e.g., keyword bid settings) and metrics (e.g., cost and revenue). The currency code of a report is determined by the statisticsCurrency field of the report request.
     #[serde(default, rename = "statisticsCurrencyCode")]
     pub statistics_currency_code: ::core::option::Option<String>,
@@ -57,10 +59,6 @@ pub struct Report {
     #[serde(default, rename = "statisticsTimeZone")]
     pub statistics_time_zone: ::core::option::Option<String>,
 }
-
-/// A row in a DoubleClick Search report.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportRow {}
 
 /// A list of saved columns. Advertisers create saved columns to report on Floodlight activities, Google Analytics goals, or custom KPIs. To request reports with saved columns, you''ll need the saved column names that are available from this list.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -244,6 +242,12 @@ pub struct ReportRequest {
     /// If true, the report would only be created if all the requested stat data are sourced from a single timezone. Defaults to false.
     #[serde(default, rename = "verifySingleTimeZone")]
     pub verify_single_time_zone: ::core::option::Option<bool>,
+}
+
+/// A row in a DoubleClick Search report.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ReportRow {
+    pub value: serde_json::Value,
 }
 
 /// A saved column

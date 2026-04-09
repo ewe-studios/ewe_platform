@@ -49,7 +49,9 @@ pub struct AttachTenantProjectRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to create a tenancy unit for a service consumer of a managed service.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -69,7 +71,9 @@ pub struct DeleteTenantProjectRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -233,11 +237,15 @@ pub struct V1Beta1BatchCreateProducerOverridesResponse {
 
 /// Response message for the DisableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1Beta1DisableConsumerResponse {}
+pub struct V1Beta1DisableConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the EnableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1Beta1EnableConsumerResponse {}
+pub struct V1Beta1EnableConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the GenerateServiceIdentity method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -265,15 +273,21 @@ pub struct V1Beta1ImportProducerQuotaPoliciesResponse {
 
 /// Response message for the RefreshConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1Beta1RefreshConsumerResponse {}
+pub struct V1Beta1RefreshConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the DisableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1DisableConsumerResponse {}
+pub struct V1DisableConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the EnableConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1EnableConsumerResponse {}
+pub struct V1EnableConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the GenerateDefaultIdentity method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -299,7 +313,9 @@ pub struct V1GenerateServiceAccountResponse {
 
 /// Response message for the RefreshConsumer method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct V1RefreshConsumerResponse {}
+pub struct V1RefreshConsumerResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the RemoveVisibilityLabels method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

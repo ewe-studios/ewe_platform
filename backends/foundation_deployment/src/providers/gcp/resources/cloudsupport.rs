@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for the CloseCase endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseCaseRequest {}
+pub struct CloseCaseRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request message for the CreateAttachment endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

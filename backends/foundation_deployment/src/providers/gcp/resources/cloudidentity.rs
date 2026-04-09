@@ -29,7 +29,9 @@ pub struct AddIdpCredentialRequest {
 
 /// Request to cancel sent invitation for target email in UserInvitation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelUserInvitationRequest {}
+pub struct CancelUserInvitationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for MembershipsService.CheckTransitiveMembership.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,7 +43,9 @@ pub struct CheckTransitiveMembershipResponse {
 
 /// Metadata for CreateGroup LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateGroupMetadata {}
+pub struct CreateGroupMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.CreateInboundOidcSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,39 +65,57 @@ pub struct CreateInboundSamlSsoProfileOperationMetadata {
 
 /// LRO response metadata for InboundSsoAssignmentsService.CreateInboundSsoAssignment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateInboundSsoAssignmentOperationMetadata {}
+pub struct CreateInboundSsoAssignmentOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for CreateMembership LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateMembershipMetadata {}
+pub struct CreateMembershipMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for DeleteGroup LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteGroupMetadata {}
+pub struct DeleteGroupMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundSamlSsoProfilesService.DeleteIdpCredential.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteIdpCredentialOperationMetadata {}
+pub struct DeleteIdpCredentialOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.DeleteInboundOidcSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteInboundOidcSsoProfileOperationMetadata {}
+pub struct DeleteInboundOidcSsoProfileOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundSamlSsoProfilesService.DeleteInboundSamlSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteInboundSamlSsoProfileOperationMetadata {}
+pub struct DeleteInboundSamlSsoProfileOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundSsoAssignmentsService.DeleteInboundSsoAssignment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteInboundSsoAssignmentOperationMetadata {}
+pub struct DeleteInboundSsoAssignmentOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for DeleteMembership LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteMembershipMetadata {}
+pub struct DeleteMembershipMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of GetMembershipGraphResponse LRO. This is currently empty to permit future extensibility.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetMembershipGraphMetadata {}
+pub struct GetMembershipGraphMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response message for MembershipsService.GetMembershipGraph.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,7 +130,9 @@ pub struct GetMembershipGraphResponse {
 
 /// Metadata for ApproveDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for approving the device to access user data.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -128,7 +152,9 @@ pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserResponse {
 
 /// Metadata for BlockDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for blocking account on device.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -148,7 +174,9 @@ pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserResponse {
 
 /// Metadata for CancelWipeDevice LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for cancelling an unfinished device wipe.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -168,7 +196,9 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceResponse {
 
 /// Metadata for CancelWipeDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for cancelling an unfinished user account wipe.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -188,7 +218,9 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserResponse {
 
 /// Metadata for CreateDevice LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1CreateDeviceMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1CreateDeviceMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Additional custom attribute values may be one of these types
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -206,11 +238,15 @@ pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
 
 /// Metadata for DeleteDevice LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for DeleteDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message that is returned in ListClientStates.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -249,7 +285,9 @@ pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
 
 /// Metadata for ListEndpointApps LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1ListEndpointAppsMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1ListEndpointAppsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response containing resource names of the DeviceUsers associated with the caller''s credentials.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -267,19 +305,27 @@ pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
 
 /// Metadata for SignoutDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1SignoutDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1SignoutDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for UpdateClientState LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1UpdateClientStateMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1UpdateClientStateMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for UpdateDevice LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1UpdateDeviceMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1UpdateDeviceMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for WipeDevice LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for wiping all data on the device.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -302,7 +348,9 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
 
 /// Metadata for WipeDeviceUser LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserMetadata {}
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for starting an account wipe on device.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -531,11 +579,15 @@ pub struct SecuritySettings {
 
 /// A request to send email for inviting target user corresponding to the UserInvitation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendUserInvitationRequest {}
+pub struct SendUserInvitationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for UpdateGroup LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateGroupMetadata {}
+pub struct UpdateGroupMetadata {
+    pub value: serde_json::Value,
+}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.UpdateInboundOidcSsoProfile.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -555,11 +607,15 @@ pub struct UpdateInboundSamlSsoProfileOperationMetadata {
 
 /// LRO response metadata for InboundSsoAssignmentsService.UpdateInboundSsoAssignment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateInboundSsoAssignmentOperationMetadata {}
+pub struct UpdateInboundSsoAssignmentOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for UpdateMembership LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateMembershipMetadata {}
+pub struct UpdateMembershipMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Membership graph''s path information as an adjacency list.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

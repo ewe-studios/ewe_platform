@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,10 +29,10 @@ use serde::Serialize;
 
 pub fn civicinfo_divisions_query_division_by_address_builder(
     client: &SimpleHttpClient,
-    address: Option<&str>,
+    address: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisionsByAddress",);
+    let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisionsByAddress",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -40,9 +41,9 @@ pub fn civicinfo_divisions_query_division_by_address_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -77,8 +78,9 @@ pub fn civicinfo_divisions_query_division_by_address_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CivicinfoApiprotosV2DivisionByAddressResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CivicinfoApiprotosV2DivisionByAddressResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -190,7 +192,7 @@ pub fn civicinfo_divisions_query_division_by_address(
     ApiError,
 > {
     let builder =
-        civicinfo_divisions_query_division_by_address_builder(client, args.address.as_deref())?;
+        civicinfo_divisions_query_division_by_address_builder(client, args.address.clone())?;
     civicinfo_divisions_query_division_by_address_execute(builder)
 }
 
@@ -202,10 +204,10 @@ pub fn civicinfo_divisions_query_division_by_address(
 
 pub fn civicinfo_divisions_search_builder(
     client: &SimpleHttpClient,
-    query: Option<&str>,
+    query: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisions",);
+    let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -214,9 +216,9 @@ pub fn civicinfo_divisions_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -251,8 +253,9 @@ pub fn civicinfo_divisions_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CivicinfoApiprotosV2DivisionSearchResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CivicinfoApiprotosV2DivisionSearchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -363,7 +366,7 @@ pub fn civicinfo_divisions_search(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_divisions_search_builder(client, args.query.as_deref())?;
+    let builder = civicinfo_divisions_search_builder(client, args.query.clone())?;
     civicinfo_divisions_search_execute(builder)
 }
 
@@ -378,7 +381,7 @@ pub fn civicinfo_elections_election_query_builder(
     productionDataOnly: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://civicinfo.googleapis.com/civicinfo/v2/elections",);
+    let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/elections",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -387,9 +390,9 @@ pub fn civicinfo_elections_election_query_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -424,8 +427,9 @@ pub fn civicinfo_elections_election_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CivicinfoApiprotosV2ElectionsQueryResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CivicinfoApiprotosV2ElectionsQueryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -536,7 +540,8 @@ pub fn civicinfo_elections_election_query(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_elections_election_query_builder(client, args.productionDataOnly)?;
+    let builder =
+        civicinfo_elections_election_query_builder(client, args.productionDataOnly.clone())?;
     civicinfo_elections_election_query_execute(builder)
 }
 
@@ -548,14 +553,14 @@ pub fn civicinfo_elections_election_query(
 
 pub fn civicinfo_elections_voter_info_query_builder(
     client: &SimpleHttpClient,
-    address: Option<&str>,
-    electionId: Option<&str>,
+    address: Option<String>,
+    electionId: Option<String>,
     officialOnly: Option<bool>,
     productionDataOnly: Option<bool>,
     returnAllAvailableData: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://civicinfo.googleapis.com/civicinfo/v2/voterinfo",);
+    let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/voterinfo",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -576,9 +581,9 @@ pub fn civicinfo_elections_voter_info_query_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -613,8 +618,9 @@ pub fn civicinfo_elections_voter_info_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CivicinfoApiprotosV2VoterInfoResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CivicinfoApiprotosV2VoterInfoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -734,11 +740,11 @@ pub fn civicinfo_elections_voter_info_query(
 > {
     let builder = civicinfo_elections_voter_info_query_builder(
         client,
-        args.address.as_deref(),
-        args.electionId.as_deref(),
-        args.officialOnly,
-        args.productionDataOnly,
-        args.returnAllAvailableData,
+        args.address.clone(),
+        args.electionId.clone(),
+        args.officialOnly.clone(),
+        args.productionDataOnly.clone(),
+        args.returnAllAvailableData.clone(),
     )?;
     civicinfo_elections_voter_info_query_execute(builder)
 }

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,22 +29,23 @@ use serde::Serialize;
 
 pub fn testing_application_detail_service_get_apk_details_builder(
     client: &SimpleHttpClient,
-    bundleLocation_gcsPath: Option<&str>,
+    bundleLocation_gcsPath: Option<String>,
     body: &FileReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://testing.googleapis.com/v1/applicationDetailService/getApkDetails",);
+    let endpoint_url =
+        format!("https://testing.googleapis.com/v1/applicationDetailService/getApkDetails",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = bundleLocation_gcsPath {
-        query_parts.push(format!("bundleLocation_gcsPath={}", val));
+        query_parts.push(format!("bundleLocation.gcsPath={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -79,8 +81,11 @@ pub fn testing_application_detail_service_get_apk_details_builder(
 pub fn testing_application_detail_service_get_apk_details_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetApkDetailsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetApkDetailsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -189,167 +194,10 @@ pub fn testing_application_detail_service_get_apk_details(
 > {
     let builder = testing_application_detail_service_get_apk_details_builder(
         client,
-        args.bundleLocation_gcsPath.as_deref(),
+        args.bundleLocation_gcsPath.clone(),
         &args.body,
     )?;
     testing_application_detail_service_get_apk_details_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}:cancel
-/// POST /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}`:cancel Changes the DeviceSession to state FINISHED and terminates all connections. Canceled sessions are not deleted and can be retrieved or listed by the user until they expire based on the 28 day deletion policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `testing_projects_device_sessions_cancel_execute()` to send, or `testing_projects_device_sessions_cancel` for simplest API.
-
-pub fn testing_projects_device_sessions_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelDeviceSessionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{}:cancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}:cancel
-/// POST /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}`:cancel Changes the DeviceSession to state FINISHED and terminates all connections. Canceled sessions are not deleted and can be retrieved or listed by the user until they expire based on the 28 day deletion policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `testing_projects_device_sessions_cancel_execute()` or `testing_projects_device_sessions_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}:cancel
-/// POST /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}`:cancel Changes the DeviceSession to state FINISHED and terminates all connections. Canceled sessions are not deleted and can be retrieved or listed by the user until they expire based on the 28 day deletion policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `testing_projects_device_sessions_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `testing_projects_device_sessions_cancel_task()`.
-/// For the simplest API, use `testing_projects_device_sessions_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn testing_projects_device_sessions_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = testing_projects_device_sessions_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`testing_projects_device_sessions_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TestingProjectsDeviceSessionsCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CancelDeviceSessionRequest,
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}:cancel
-/// POST /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}`:cancel Changes the DeviceSession to state FINISHED and terminates all connections. Canceled sessions are not deleted and can be retrieved or listed by the user until they expire based on the 28 day deletion policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `testing_projects_device_sessions_cancel_builder()` + `testing_projects_device_sessions_cancel_execute()`.
-/// For task-level control, use `testing_projects_device_sessions_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_cancel(
-    client: &SimpleHttpClient,
-    args: &TestingProjectsDeviceSessionsCancelArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = testing_projects_device_sessions_cancel_builder(client, &args.name, &args.body)?;
-    testing_projects_device_sessions_cancel_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/deviceSessions
@@ -360,18 +208,15 @@ pub fn testing_projects_device_sessions_cancel(
 
 pub fn testing_projects_device_sessions_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &DeviceSession,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://testing.googleapis.com/v1/projects/{}/deviceSessions",
-        parent,
-    );
+    let endpoint_url = format!("https://testing.googleapis.com/v1/projects/{}/deviceSessions",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -403,7 +248,12 @@ pub fn testing_projects_device_sessions_create_builder(
 pub fn testing_projects_device_sessions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeviceSession>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -510,538 +360,8 @@ pub fn testing_projects_device_sessions_create(
     ApiError,
 > {
     let builder =
-        testing_projects_device_sessions_create_builder(client, &args.parent, &args.body)?;
+        testing_projects_device_sessions_create_builder(client, args.parent.clone(), &args.body)?;
     testing_projects_device_sessions_create_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// GET /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}` Return a DeviceSession, which documents the allocation status and whether the device is allocated. Clients making requests from this API must poll GetDeviceSession.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `testing_projects_device_sessions_get_execute()` to send, or `testing_projects_device_sessions_get` for simplest API.
-
-pub fn testing_projects_device_sessions_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// GET /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}` Return a DeviceSession, which documents the allocation status and whether the device is allocated. Clients making requests from this API must poll GetDeviceSession.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `testing_projects_device_sessions_get_execute()` or `testing_projects_device_sessions_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DeviceSession = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// GET /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}` Return a DeviceSession, which documents the allocation status and whether the device is allocated. Clients making requests from this API must poll GetDeviceSession.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `testing_projects_device_sessions_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `testing_projects_device_sessions_get_task()`.
-/// For the simplest API, use `testing_projects_device_sessions_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn testing_projects_device_sessions_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = testing_projects_device_sessions_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`testing_projects_device_sessions_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TestingProjectsDeviceSessionsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// GET /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}` Return a DeviceSession, which documents the allocation status and whether the device is allocated. Clients making requests from this API must poll GetDeviceSession.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `testing_projects_device_sessions_get_builder()` + `testing_projects_device_sessions_get_execute()`.
-/// For task-level control, use `testing_projects_device_sessions_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_get(
-    client: &SimpleHttpClient,
-    args: &TestingProjectsDeviceSessionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = testing_projects_device_sessions_get_builder(client, &args.name)?;
-    testing_projects_device_sessions_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions
-/// GET /v1/`projects/{project_id}/`deviceSessions`` Lists device Sessions owned by the project user.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `testing_projects_device_sessions_list_execute()` to send, or `testing_projects_device_sessions_list` for simplest API.
-
-pub fn testing_projects_device_sessions_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://testing.googleapis.com/v1/projects/{}/deviceSessions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions
-/// GET /v1/`projects/{project_id}/`deviceSessions`` Lists device Sessions owned by the project user.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `testing_projects_device_sessions_list_execute()` or `testing_projects_device_sessions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDeviceSessionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDeviceSessionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions
-/// GET /v1/`projects/{project_id}/`deviceSessions`` Lists device Sessions owned by the project user.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `testing_projects_device_sessions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `testing_projects_device_sessions_list_task()`.
-/// For the simplest API, use `testing_projects_device_sessions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn testing_projects_device_sessions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDeviceSessionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = testing_projects_device_sessions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`testing_projects_device_sessions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TestingProjectsDeviceSessionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions
-/// GET /v1/`projects/{project_id}/`deviceSessions`` Lists device Sessions owned by the project user.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `testing_projects_device_sessions_list_builder()` + `testing_projects_device_sessions_list_execute()`.
-/// For task-level control, use `testing_projects_device_sessions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_list(
-    client: &SimpleHttpClient,
-    args: &TestingProjectsDeviceSessionsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDeviceSessionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = testing_projects_device_sessions_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    testing_projects_device_sessions_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// PATCH /v1/`projects/{`projectId`}/`deviceSessions`/`deviceSessionId`}`:`updateDeviceSession` Updates the current device session to the fields described by the update_mask.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `testing_projects_device_sessions_patch_execute()` to send, or `testing_projects_device_sessions_patch` for simplest API.
-
-pub fn testing_projects_device_sessions_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DeviceSession,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://testing.googleapis.com/v1/projects/{}/deviceSessions/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// PATCH /v1/`projects/{`projectId`}/`deviceSessions`/`deviceSessionId`}`:`updateDeviceSession` Updates the current device session to the fields described by the update_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `testing_projects_device_sessions_patch_execute()` or `testing_projects_device_sessions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DeviceSession = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// PATCH /v1/`projects/{`projectId`}/`deviceSessions`/`deviceSessionId`}`:`updateDeviceSession` Updates the current device session to the fields described by the update_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `testing_projects_device_sessions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `testing_projects_device_sessions_patch_task()`.
-/// For the simplest API, use `testing_projects_device_sessions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `testing_projects_device_sessions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn testing_projects_device_sessions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = testing_projects_device_sessions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`testing_projects_device_sessions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TestingProjectsDeviceSessionsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: DeviceSession,
-}
-
-/// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
-/// PATCH /v1/`projects/{`projectId`}/`deviceSessions`/`deviceSessionId`}`:`updateDeviceSession` Updates the current device session to the fields described by the update_mask.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `testing_projects_device_sessions_patch_builder()` + `testing_projects_device_sessions_patch_execute()`.
-/// For task-level control, use `testing_projects_device_sessions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn testing_projects_device_sessions_patch(
-    client: &SimpleHttpClient,
-    args: &TestingProjectsDeviceSessionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = testing_projects_device_sessions_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    testing_projects_device_sessions_patch_execute(builder)
 }
 
 /// GET v1/projects/{projectId}/testMatrices/{testMatrixId}:cancel
@@ -1052,18 +372,19 @@ pub fn testing_projects_device_sessions_patch(
 
 pub fn testing_projects_test_matrices_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    testMatrixId: &str,
+    projectId: String,
+    testMatrixId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}:cancel",
-        projectId, testMatrixId,
+        projectId.as_str(),
+        testMatrixId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1093,8 +414,11 @@ pub fn testing_projects_test_matrices_cancel_builder(
 pub fn testing_projects_test_matrices_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CancelTestMatrixResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CancelTestMatrixResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1201,8 +525,11 @@ pub fn testing_projects_test_matrices_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        testing_projects_test_matrices_cancel_builder(client, &args.projectId, &args.testMatrixId)?;
+    let builder = testing_projects_test_matrices_cancel_builder(
+        client,
+        args.projectId.clone(),
+        args.testMatrixId.clone(),
+    )?;
     testing_projects_test_matrices_cancel_execute(builder)
 }
 
@@ -1214,14 +541,14 @@ pub fn testing_projects_test_matrices_cancel(
 
 pub fn testing_projects_test_matrices_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    requestId: Option<&str>,
+    projectId: String,
+    requestId: Option<String>,
     body: &TestMatrix,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -1231,9 +558,9 @@ pub fn testing_projects_test_matrices_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1269,7 +596,12 @@ pub fn testing_projects_test_matrices_create_builder(
 pub fn testing_projects_test_matrices_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestMatrix>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1375,8 +707,8 @@ pub fn testing_projects_test_matrices_create(
 > {
     let builder = testing_projects_test_matrices_create_builder(
         client,
-        &args.projectId,
-        args.requestId.as_deref(),
+        args.projectId.clone(),
+        args.requestId.clone(),
         &args.body,
     )?;
     testing_projects_test_matrices_create_execute(builder)
@@ -1390,18 +722,19 @@ pub fn testing_projects_test_matrices_create(
 
 pub fn testing_projects_test_matrices_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    testMatrixId: &str,
+    projectId: String,
+    testMatrixId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}",
-        projectId, testMatrixId,
+        projectId.as_str(),
+        testMatrixId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1431,7 +764,12 @@ pub fn testing_projects_test_matrices_get_builder(
 pub fn testing_projects_test_matrices_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestMatrix>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1533,8 +871,11 @@ pub fn testing_projects_test_matrices_get(
     impl StreamIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        testing_projects_test_matrices_get_builder(client, &args.projectId, &args.testMatrixId)?;
+    let builder = testing_projects_test_matrices_get_builder(
+        client,
+        args.projectId.clone(),
+        args.testMatrixId.clone(),
+    )?;
     testing_projects_test_matrices_get_execute(builder)
 }
 
@@ -1546,14 +887,14 @@ pub fn testing_projects_test_matrices_get(
 
 pub fn testing_test_environment_catalog_get_builder(
     client: &SimpleHttpClient,
-    environmentType: &str,
+    environmentType: String,
     includeViewableModels: Option<bool>,
-    projectId: Option<&str>,
+    projectId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://testing.googleapis.com/v1/testEnvironmentCatalog/{}",
-        environmentType,
+        environmentType.as_str(),
     );
 
     // Build request
@@ -1566,9 +907,9 @@ pub fn testing_test_environment_catalog_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1602,8 +943,11 @@ pub fn testing_test_environment_catalog_get_builder(
 pub fn testing_test_environment_catalog_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestEnvironmentCatalog>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestEnvironmentCatalog>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1714,9 +1058,9 @@ pub fn testing_test_environment_catalog_get(
 > {
     let builder = testing_test_environment_catalog_get_builder(
         client,
-        &args.environmentType,
-        args.includeViewableModels,
-        args.projectId.as_deref(),
+        args.environmentType.clone(),
+        args.includeViewableModels.clone(),
+        args.projectId.clone(),
     )?;
     testing_test_environment_catalog_get_execute(builder)
 }

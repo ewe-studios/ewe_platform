@@ -24,7 +24,9 @@ pub struct AlterMetadataResourceLocationRequest {
 
 /// Response message for DataprocMetastore.AlterMetadataResourceLocation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AlterMetadataResourceLocationResponse {}
+pub struct AlterMetadataResourceLocationResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for DataprocMetastore.AlterTableProperties.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,19 +69,27 @@ pub struct BackendMetastore {
 
 /// Request message for DataprocMetastore.CancelMigration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelMigrationRequest {}
+pub struct CancelMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for DataprocMetastore.CompleteMigration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompleteMigrationRequest {}
+pub struct CompleteMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Error details in public error message for DataprocMetastore.QueryMetadata.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -213,10 +223,6 @@ pub struct LocationMetadata {
         ::core::option::Option<::std::vec::Vec<HiveMetastoreVersion>>,
 }
 
-/// This is proto2''s version of MessageSet.DEPRECATED: DO NOT USE FOR NEW FIELDS.If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead.MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2.This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessageSet {}
-
 /// Request message for DataprocMetastore.MoveTableToDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveTableToDatabaseRequest {
@@ -233,7 +239,9 @@ pub struct MoveTableToDatabaseRequest {
 
 /// Response message for DataprocMetastore.MoveTableToDatabase.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveTableToDatabaseResponse {}
+pub struct MoveTableToDatabaseResponse {
+    pub value: serde_json::Value,
+}
 
 /// Represents the metadata of a long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -330,7 +338,7 @@ pub struct StatusProto {
     pub message: ::core::option::Option<String>,
     /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
     #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
+    pub message_set: ::core::option::Option<MessageSet>,
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
     pub space: ::core::option::Option<String>,
@@ -562,6 +570,12 @@ pub struct MigrationExecution {
     /// Output only. Additional information about the current state of the migration execution.
     #[serde(default, rename = "stateMessage")]
     pub state_message: ::core::option::Option<String>,
+}
+
+/// This is proto2''s version of MessageSet.DEPRECATED: DO NOT USE FOR NEW FIELDS.If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead.MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2.This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessageSet {
+    pub value: serde_json::Value,
 }
 
 /// A managed metastore service that serves metadata queries.

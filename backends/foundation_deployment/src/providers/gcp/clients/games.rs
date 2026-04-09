@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,11 +29,11 @@ use serde::Serialize;
 
 pub fn games_accesstokens_generate_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: Option<&str>,
-    persona: Option<&str>,
+    packageName: Option<String>,
+    persona: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://games.googleapis.com/games/v1/accesstokens/generatePlayGroupingApiToken",);
 
     // Build request
@@ -45,9 +46,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -82,8 +83,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GeneratePlayGroupingApiTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GeneratePlayGroupingApiTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -197,8 +199,8 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 > {
     let builder = games_accesstokens_generate_play_grouping_api_token_builder(
         client,
-        args.packageName.as_deref(),
-        args.persona.as_deref(),
+        args.packageName.clone(),
+        args.persona.clone(),
     )?;
     games_accesstokens_generate_play_grouping_api_token_execute(builder)
 }
@@ -211,12 +213,12 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 
 pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: Option<&str>,
-    persona: Option<&str>,
-    recallSessionId: Option<&str>,
+    packageName: Option<String>,
+    persona: Option<String>,
+    recallSessionId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/accesstokens/generateRecallPlayGroupingApiToken",
     );
 
@@ -233,9 +235,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -270,8 +272,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateRecallPlayGroupingApiTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateRecallPlayGroupingApiTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -388,9 +391,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 > {
     let builder = games_accesstokens_generate_recall_play_grouping_api_token_builder(
         client,
-        args.packageName.as_deref(),
-        args.persona.as_deref(),
-        args.recallSessionId.as_deref(),
+        args.packageName.clone(),
+        args.persona.clone(),
+        args.recallSessionId.clone(),
     )?;
     games_accesstokens_generate_recall_play_grouping_api_token_execute(builder)
 }
@@ -403,12 +406,12 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 
 pub fn games_achievement_definitions_list_builder(
     client: &SimpleHttpClient,
-    language: Option<&str>,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/achievements",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/achievements",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -423,9 +426,9 @@ pub fn games_achievement_definitions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -460,8 +463,9 @@ pub fn games_achievement_definitions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AchievementDefinitionsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AchievementDefinitionsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -577,197 +581,11 @@ pub fn games_achievement_definitions_list(
 > {
     let builder = games_achievement_definitions_list_builder(
         client,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_achievement_definitions_list_execute(builder)
-}
-
-/// GET games/v1/achievements/{achievementId}/increment
-/// Increments the steps of the achievement with the given ID for the currently authenticated player.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_achievements_increment_execute()` to send, or `games_achievements_increment` for simplest API.
-
-pub fn games_achievements_increment_builder(
-    client: &SimpleHttpClient,
-    achievementId: &str,
-    stepsToIncrement: &str,
-    requestId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/achievements/{}/increment",
-        achievementId, stepsToIncrement,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
-        query_parts.push(format!("requestId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/achievements/{achievementId}/increment
-/// Increments the steps of the achievement with the given ID for the currently authenticated player.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_achievements_increment_execute()` or `games_achievements_increment`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_increment_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_achievements_increment_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AchievementIncrementResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/achievements/{achievementId}/increment
-/// Increments the steps of the achievement with the given ID for the currently authenticated player.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_achievements_increment_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_achievements_increment_task()`.
-/// For the simplest API, use `games_achievements_increment()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_increment_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_achievements_increment_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_achievements_increment_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_achievements_increment`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesAchievementsIncrementArgs {
-    /// Path parameter: achievementId
-    pub achievementId: String,
-    /// Path parameter: stepsToIncrement
-    pub stepsToIncrement: String,
-    /// Query parameter: requestId
-    pub requestId: Option<String>,
-}
-
-/// GET games/v1/achievements/{achievementId}/increment
-/// Increments the steps of the achievement with the given ID for the currently authenticated player.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_achievements_increment_builder()` + `games_achievements_increment_execute()`.
-/// For task-level control, use `games_achievements_increment_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_achievements_increment(
-    client: &SimpleHttpClient,
-    args: &GamesAchievementsIncrementArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_achievements_increment_builder(
-        client,
-        &args.achievementId,
-        &args.stepsToIncrement,
-        args.requestId.as_deref(),
-    )?;
-    games_achievements_increment_execute(builder)
 }
 
 /// GET games/v1/players/{playerId}/achievements
@@ -778,16 +596,16 @@ pub fn games_achievements_increment(
 
 pub fn games_achievements_list_builder(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
+    playerId: String,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    state: Option<&str>,
+    pageToken: Option<String>,
+    state: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/achievements",
-        playerId,
+        playerId.as_str(),
     );
 
     // Build request
@@ -806,9 +624,9 @@ pub fn games_achievements_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -843,8 +661,9 @@ pub fn games_achievements_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<PlayerAchievementListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<PlayerAchievementListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -964,11 +783,11 @@ pub fn games_achievements_list(
 > {
     let builder = games_achievements_list_builder(
         client,
-        &args.playerId,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.state.as_deref(),
+        args.playerId.clone(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.state.clone(),
     )?;
     games_achievements_list_execute(builder)
 }
@@ -981,17 +800,17 @@ pub fn games_achievements_list(
 
 pub fn games_achievements_reveal_builder(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    achievementId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/reveal",
-        achievementId,
+        achievementId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1021,8 +840,11 @@ pub fn games_achievements_reveal_builder(
 pub fn games_achievements_reveal_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AchievementRevealResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementRevealResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1127,176 +949,8 @@ pub fn games_achievements_reveal(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_reveal_builder(client, &args.achievementId)?;
+    let builder = games_achievements_reveal_builder(client, args.achievementId.clone())?;
     games_achievements_reveal_execute(builder)
-}
-
-/// GET games/v1/achievements/{achievementId}/setStepsAtLeast
-/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_achievements_set_steps_at_least_execute()` to send, or `games_achievements_set_steps_at_least` for simplest API.
-
-pub fn games_achievements_set_steps_at_least_builder(
-    client: &SimpleHttpClient,
-    achievementId: &str,
-    steps: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/achievements/{}/setStepsAtLeast",
-        achievementId, steps,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/achievements/{achievementId}/setStepsAtLeast
-/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_achievements_set_steps_at_least_execute()` or `games_achievements_set_steps_at_least`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_set_steps_at_least_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_achievements_set_steps_at_least_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AchievementSetStepsAtLeastResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/achievements/{achievementId}/setStepsAtLeast
-/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_achievements_set_steps_at_least_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_achievements_set_steps_at_least_task()`.
-/// For the simplest API, use `games_achievements_set_steps_at_least()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_set_steps_at_least_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_achievements_set_steps_at_least_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_achievements_set_steps_at_least_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_achievements_set_steps_at_least`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesAchievementsSetStepsAtLeastArgs {
-    /// Path parameter: achievementId
-    pub achievementId: String,
-    /// Path parameter: steps
-    pub steps: String,
-}
-
-/// GET games/v1/achievements/{achievementId}/setStepsAtLeast
-/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_achievements_set_steps_at_least_builder()` + `games_achievements_set_steps_at_least_execute()`.
-/// For task-level control, use `games_achievements_set_steps_at_least_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_achievements_set_steps_at_least(
-    client: &SimpleHttpClient,
-    args: &GamesAchievementsSetStepsAtLeastArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        games_achievements_set_steps_at_least_builder(client, &args.achievementId, &args.steps)?;
-    games_achievements_set_steps_at_least_execute(builder)
 }
 
 /// GET games/v1/achievements/{achievementId}/unlock
@@ -1307,17 +961,17 @@ pub fn games_achievements_set_steps_at_least(
 
 pub fn games_achievements_unlock_builder(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    achievementId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/unlock",
-        achievementId,
+        achievementId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1347,8 +1001,11 @@ pub fn games_achievements_unlock_builder(
 pub fn games_achievements_unlock_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AchievementUnlockResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementUnlockResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1453,7 +1110,7 @@ pub fn games_achievements_unlock(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_unlock_builder(client, &args.achievementId)?;
+    let builder = games_achievements_unlock_builder(client, args.achievementId.clone())?;
     games_achievements_unlock_execute(builder)
 }
 
@@ -1468,11 +1125,12 @@ pub fn games_achievements_update_multiple_builder(
     body: &AchievementUpdateMultipleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/achievements/updateMultiple",);
+    let endpoint_url =
+        format!("https://games.googleapis.com/games/v1/achievements/updateMultiple",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1505,8 +1163,9 @@ pub fn games_achievements_update_multiple_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AchievementUpdateMultipleResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AchievementUpdateMultipleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1628,14 +1287,14 @@ pub fn games_achievements_update_multiple(
 
 pub fn games_applications_get_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    language: Option<&str>,
-    platformType: Option<&str>,
+    applicationId: String,
+    language: Option<String>,
+    platformType: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}",
-        applicationId,
+        applicationId.as_str(),
     );
 
     // Build request
@@ -1648,9 +1307,9 @@ pub fn games_applications_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1684,7 +1343,12 @@ pub fn games_applications_get_builder(
 pub fn games_applications_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Application>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1790,9 +1454,9 @@ pub fn games_applications_get(
 > {
     let builder = games_applications_get_builder(
         client,
-        &args.applicationId,
-        args.language.as_deref(),
-        args.platformType.as_deref(),
+        args.applicationId.clone(),
+        args.language.clone(),
+        args.platformType.clone(),
     )?;
     games_applications_get_execute(builder)
 }
@@ -1805,11 +1469,11 @@ pub fn games_applications_get(
 
 pub fn games_applications_get_end_point_builder(
     client: &SimpleHttpClient,
-    applicationId: Option<&str>,
-    endPointType: Option<&str>,
+    applicationId: Option<String>,
+    endPointType: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/applications/getEndPoint",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/getEndPoint",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1821,9 +1485,9 @@ pub fn games_applications_get_end_point_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1857,7 +1521,12 @@ pub fn games_applications_get_end_point_builder(
 pub fn games_applications_get_end_point_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EndPoint>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EndPoint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1961,8 +1630,8 @@ pub fn games_applications_get_end_point(
 > {
     let builder = games_applications_get_end_point_builder(
         client,
-        args.applicationId.as_deref(),
-        args.endPointType.as_deref(),
+        args.applicationId.clone(),
+        args.endPointType.clone(),
     )?;
     games_applications_get_end_point_execute(builder)
 }
@@ -1977,11 +1646,11 @@ pub fn games_applications_played_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/applications/played",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/played",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2011,7 +1680,12 @@ pub fn games_applications_played_builder(
 pub fn games_applications_played_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2112,17 +1786,17 @@ pub fn games_applications_played(
 
 pub fn games_applications_verify_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
+    applicationId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}/verify",
-        applicationId,
+        applicationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2152,8 +1826,11 @@ pub fn games_applications_verify_builder(
 pub fn games_applications_verify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApplicationVerifyResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ApplicationVerifyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2258,7 +1935,7 @@ pub fn games_applications_verify(
         + 'static,
     ApiError,
 > {
-    let builder = games_applications_verify_builder(client, &args.applicationId)?;
+    let builder = games_applications_verify_builder(client, args.applicationId.clone())?;
     games_applications_verify_execute(builder)
 }
 
@@ -2270,12 +1947,12 @@ pub fn games_applications_verify(
 
 pub fn games_events_list_by_player_builder(
     client: &SimpleHttpClient,
-    language: Option<&str>,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/events",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2290,9 +1967,9 @@ pub fn games_events_list_by_player_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2326,8 +2003,11 @@ pub fn games_events_list_by_player_builder(
 pub fn games_events_list_by_player_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerEventListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerEventListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2438,9 +2118,9 @@ pub fn games_events_list_by_player(
 > {
     let builder = games_events_list_by_player_builder(
         client,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_events_list_by_player_execute(builder)
 }
@@ -2453,12 +2133,12 @@ pub fn games_events_list_by_player(
 
 pub fn games_events_list_definitions_builder(
     client: &SimpleHttpClient,
-    language: Option<&str>,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/eventDefinitions",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/eventDefinitions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2473,9 +2153,9 @@ pub fn games_events_list_definitions_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2509,8 +2189,11 @@ pub fn games_events_list_definitions_builder(
 pub fn games_events_list_definitions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventDefinitionListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventDefinitionListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2625,182 +2308,11 @@ pub fn games_events_list_definitions(
 > {
     let builder = games_events_list_definitions_builder(
         client,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_events_list_definitions_execute(builder)
-}
-
-/// GET games/v1/events
-/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_events_record_execute()` to send, or `games_events_record` for simplest API.
-
-pub fn games_events_record_builder(
-    client: &SimpleHttpClient,
-    language: Option<&str>,
-    body: &EventRecordRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/events",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = language {
-        query_parts.push(format!("language={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET games/v1/events
-/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_events_record_execute()` or `games_events_record`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_events_record_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_events_record_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventUpdateResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/events
-/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_events_record_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_events_record_task()`.
-/// For the simplest API, use `games_events_record()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_events_record_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_events_record_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_events_record_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_events_record`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesEventsRecordArgs {
-    /// Query parameter: language
-    pub language: Option<String>,
-    /// Request body.
-    pub body: EventRecordRequest,
-}
-
-/// GET games/v1/events
-/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_events_record_builder()` + `games_events_record_execute()`.
-/// For task-level control, use `games_events_record_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_events_record(
-    client: &SimpleHttpClient,
-    args: &GamesEventsRecordArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_events_record_builder(client, args.language.as_deref(), &args.body)?;
-    games_events_record_execute(builder)
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}
@@ -2811,13 +2323,13 @@ pub fn games_events_record(
 
 pub fn games_leaderboards_get_builder(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    language: Option<&str>,
+    leaderboardId: String,
+    language: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}",
-        leaderboardId,
+        leaderboardId.as_str(),
     );
 
     // Build request
@@ -2827,9 +2339,9 @@ pub fn games_leaderboards_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2863,7 +2375,12 @@ pub fn games_leaderboards_get_builder(
 pub fn games_leaderboards_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Leaderboard>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Leaderboard>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2966,7 +2483,7 @@ pub fn games_leaderboards_get(
     ApiError,
 > {
     let builder =
-        games_leaderboards_get_builder(client, &args.leaderboardId, args.language.as_deref())?;
+        games_leaderboards_get_builder(client, args.leaderboardId.clone(), args.language.clone())?;
     games_leaderboards_get_execute(builder)
 }
 
@@ -2978,12 +2495,12 @@ pub fn games_leaderboards_get(
 
 pub fn games_leaderboards_list_builder(
     client: &SimpleHttpClient,
-    language: Option<&str>,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/leaderboards",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2998,9 +2515,9 @@ pub fn games_leaderboards_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3034,8 +2551,11 @@ pub fn games_leaderboards_list_builder(
 pub fn games_leaderboards_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LeaderboardListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3146,9 +2666,9 @@ pub fn games_leaderboards_list(
 > {
     let builder = games_leaderboards_list_builder(
         client,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_leaderboards_list_execute(builder)
 }
@@ -3163,11 +2683,11 @@ pub fn games_metagame_get_metagame_config_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/metagameConfig",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/metagameConfig",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3197,8 +2717,11 @@ pub fn games_metagame_get_metagame_config_builder(
 pub fn games_metagame_get_metagame_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MetagameConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MetagameConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3307,16 +2830,17 @@ pub fn games_metagame_get_metagame_config(
 
 pub fn games_metagame_list_categories_by_player_builder(
     client: &SimpleHttpClient,
-    playerId: &str,
-    collection: &str,
-    language: Option<&str>,
+    playerId: String,
+    collection: String,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/categories/{}",
-        playerId, collection,
+        playerId.as_str(),
+        collection.as_str(),
     );
 
     // Build request
@@ -3332,9 +2856,9 @@ pub fn games_metagame_list_categories_by_player_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3368,8 +2892,11 @@ pub fn games_metagame_list_categories_by_player_builder(
 pub fn games_metagame_list_categories_by_player_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CategoryListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CategoryListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3484,11 +3011,11 @@ pub fn games_metagame_list_categories_by_player(
 > {
     let builder = games_metagame_list_categories_by_player_builder(
         client,
-        &args.playerId,
-        &args.collection,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.playerId.clone(),
+        args.collection.clone(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_metagame_list_categories_by_player_execute(builder)
 }
@@ -3501,12 +3028,15 @@ pub fn games_metagame_list_categories_by_player(
 
 pub fn games_players_get_builder(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
-    playerIdConsistencyToken: Option<&str>,
+    playerId: String,
+    language: Option<String>,
+    playerIdConsistencyToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/players/{}", playerId,);
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/players/{}",
+        playerId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3518,9 +3048,9 @@ pub fn games_players_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3554,7 +3084,12 @@ pub fn games_players_get_builder(
 pub fn games_players_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Player>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Player>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3660,9 +3195,9 @@ pub fn games_players_get(
 > {
     let builder = games_players_get_builder(
         client,
-        &args.playerId,
-        args.language.as_deref(),
-        args.playerIdConsistencyToken.as_deref(),
+        args.playerId.clone(),
+        args.language.clone(),
+        args.playerIdConsistencyToken.clone(),
     )?;
     games_players_get_execute(builder)
 }
@@ -3675,10 +3210,10 @@ pub fn games_players_get(
 
 pub fn games_players_get_multiple_application_player_ids_builder(
     client: &SimpleHttpClient,
-    applicationIds: Option<&str>,
+    applicationIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://games.googleapis.com/games/v1/players/me/multipleApplicationPlayerIds",);
 
     // Build request
@@ -3688,9 +3223,9 @@ pub fn games_players_get_multiple_application_player_ids_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3725,8 +3260,9 @@ pub fn games_players_get_multiple_application_player_ids_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetMultipleApplicationPlayerIdsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetMultipleApplicationPlayerIdsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3839,7 +3375,7 @@ pub fn games_players_get_multiple_application_player_ids(
 > {
     let builder = games_players_get_multiple_application_player_ids_builder(
         client,
-        args.applicationIds.as_deref(),
+        args.applicationIds.clone(),
     )?;
     games_players_get_multiple_application_player_ids_execute(builder)
 }
@@ -3854,11 +3390,11 @@ pub fn games_players_get_scoped_player_ids_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/players/me/scopedIds",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/players/me/scopedIds",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3888,8 +3424,11 @@ pub fn games_players_get_scoped_player_ids_builder(
 pub fn games_players_get_scoped_player_ids_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ScopedPlayerIds>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScopedPlayerIds>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3998,15 +3537,15 @@ pub fn games_players_get_scoped_player_ids(
 
 pub fn games_players_list_builder(
     client: &SimpleHttpClient,
-    collection: &str,
-    language: Option<&str>,
+    collection: String,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/me/players/{}",
-        collection,
+        collection.as_str(),
     );
 
     // Build request
@@ -4022,9 +3561,9 @@ pub fn games_players_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4058,8 +3597,11 @@ pub fn games_players_list_builder(
 pub fn games_players_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4172,10 +3714,10 @@ pub fn games_players_list(
 > {
     let builder = games_players_list_builder(
         client,
-        &args.collection,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.collection.clone(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_players_list_execute(builder)
 }
@@ -4188,13 +3730,13 @@ pub fn games_players_list(
 
 pub fn games_recall_games_player_tokens_builder(
     client: &SimpleHttpClient,
-    sessionId: &str,
-    applicationIds: Option<&str>,
+    sessionId: String,
+    applicationIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/gamesPlayerTokens/{}",
-        sessionId,
+        sessionId.as_str(),
     );
 
     // Build request
@@ -4204,9 +3746,9 @@ pub fn games_recall_games_player_tokens_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4241,8 +3783,9 @@ pub fn games_recall_games_player_tokens_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RetrieveGamesPlayerTokensResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RetrieveGamesPlayerTokensResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4356,8 +3899,8 @@ pub fn games_recall_games_player_tokens(
 > {
     let builder = games_recall_games_player_tokens_builder(
         client,
-        &args.sessionId,
-        args.applicationIds.as_deref(),
+        args.sessionId.clone(),
+        args.applicationIds.clone(),
     )?;
     games_recall_games_player_tokens_execute(builder)
 }
@@ -4370,17 +3913,17 @@ pub fn games_recall_games_player_tokens(
 
 pub fn games_recall_last_token_from_all_developer_games_builder(
     client: &SimpleHttpClient,
-    sessionId: &str,
+    sessionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/developerGamesLastPlayerToken/{}",
-        sessionId,
+        sessionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4411,8 +3954,9 @@ pub fn games_recall_last_token_from_all_developer_games_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RetrieveDeveloperGamesLastPlayerTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RetrieveDeveloperGamesLastPlayerTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4524,7 +4068,7 @@ pub fn games_recall_last_token_from_all_developer_games(
     ApiError,
 > {
     let builder =
-        games_recall_last_token_from_all_developer_games_builder(client, &args.sessionId)?;
+        games_recall_last_token_from_all_developer_games_builder(client, args.sessionId.clone())?;
     games_recall_last_token_from_all_developer_games_execute(builder)
 }
 
@@ -4539,11 +4083,11 @@ pub fn games_recall_link_persona_builder(
     body: &LinkPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/recall:linkPersona",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:linkPersona",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4575,8 +4119,11 @@ pub fn games_recall_link_persona_builder(
 pub fn games_recall_link_persona_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LinkPersonaResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LinkPersonaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4696,11 +4243,11 @@ pub fn games_recall_reset_persona_builder(
     body: &ResetPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/recall:resetPersona",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:resetPersona",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4732,8 +4279,11 @@ pub fn games_recall_reset_persona_builder(
 pub fn games_recall_reset_persona_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResetPersonaResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResetPersonaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4850,17 +4400,17 @@ pub fn games_recall_reset_persona(
 
 pub fn games_recall_retrieve_tokens_builder(
     client: &SimpleHttpClient,
-    sessionId: &str,
+    sessionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/tokens/{}",
-        sessionId,
+        sessionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4891,8 +4441,9 @@ pub fn games_recall_retrieve_tokens_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RetrievePlayerTokensResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RetrievePlayerTokensResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -5002,7 +4553,7 @@ pub fn games_recall_retrieve_tokens(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_retrieve_tokens_builder(client, &args.sessionId)?;
+    let builder = games_recall_retrieve_tokens_builder(client, args.sessionId.clone())?;
     games_recall_retrieve_tokens_execute(builder)
 }
 
@@ -5017,11 +4568,11 @@ pub fn games_recall_unlink_persona_builder(
     body: &UnlinkPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/recall:unlinkPersona",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:unlinkPersona",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5053,8 +4604,11 @@ pub fn games_recall_unlink_persona_builder(
 pub fn games_recall_unlink_persona_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UnlinkPersonaResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnlinkPersonaResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5163,164 +4717,6 @@ pub fn games_recall_unlink_persona(
     games_recall_unlink_persona_execute(builder)
 }
 
-/// GET games/v1/revisions/check
-/// Checks whether the games client is out of date.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_revisions_check_execute()` to send, or `games_revisions_check` for simplest API.
-
-pub fn games_revisions_check_builder(
-    client: &SimpleHttpClient,
-    clientRevision: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/revisions/check",
-        clientRevision,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/revisions/check
-/// Checks whether the games client is out of date.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_revisions_check_execute()` or `games_revisions_check`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_revisions_check_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_revisions_check_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RevisionCheckResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/revisions/check
-/// Checks whether the games client is out of date.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_revisions_check_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_revisions_check_task()`.
-/// For the simplest API, use `games_revisions_check()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_revisions_check_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_revisions_check_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_revisions_check_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_revisions_check`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesRevisionsCheckArgs {
-    /// Path parameter: clientRevision
-    pub clientRevision: String,
-}
-
-/// GET games/v1/revisions/check
-/// Checks whether the games client is out of date.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_revisions_check_builder()` + `games_revisions_check_execute()`.
-/// For task-level control, use `games_revisions_check_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_revisions_check(
-    client: &SimpleHttpClient,
-    args: &GamesRevisionsCheckArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_revisions_check_builder(client, &args.clientRevision)?;
-    games_revisions_check_execute(builder)
-}
-
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
 /// Get high scores, and optionally ranks, in leaderboards for the currently authenticated player. For a specific time span, `leaderboardId` can be set to ALL to retrieve data for all leaderboards in a given time span. NOTE: You cannot ask for 'ALL' leaderboards and 'ALL' `timeSpans` in the same request; only one parameter may be set to 'ALL'.
 ///
@@ -5329,18 +4725,20 @@ pub fn games_revisions_check(
 
 pub fn games_scores_get_builder(
     client: &SimpleHttpClient,
-    playerId: &str,
-    leaderboardId: &str,
-    timeSpan: &str,
-    includeRankType: Option<&str>,
-    language: Option<&str>,
+    playerId: String,
+    leaderboardId: String,
+    timeSpan: String,
+    includeRankType: Option<String>,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/leaderboards/{}/scores/{}",
-        playerId, leaderboardId, timeSpan,
+        playerId.as_str(),
+        leaderboardId.as_str(),
+        timeSpan.as_str(),
     );
 
     // Build request
@@ -5359,9 +4757,9 @@ pub fn games_scores_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5396,8 +4794,9 @@ pub fn games_scores_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<PlayerLeaderboardScoreListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<PlayerLeaderboardScoreListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -5521,612 +4920,15 @@ pub fn games_scores_get(
 > {
     let builder = games_scores_get_builder(
         client,
-        &args.playerId,
-        &args.leaderboardId,
-        &args.timeSpan,
-        args.includeRankType.as_deref(),
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.playerId.clone(),
+        args.leaderboardId.clone(),
+        args.timeSpan.clone(),
+        args.includeRankType.clone(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_scores_get_execute(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
-/// Lists the scores in a leaderboard, starting from the top.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_scores_list_execute()` to send, or `games_scores_list` for simplest API.
-
-pub fn games_scores_list_builder(
-    client: &SimpleHttpClient,
-    leaderboardId: &str,
-    collection: &str,
-    timeSpan: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/leaderboards/{}/scores/{}",
-        leaderboardId, collection, timeSpan,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = language {
-        query_parts.push(format!("language={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
-/// Lists the scores in a leaderboard, starting from the top.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_scores_list_execute()` or `games_scores_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LeaderboardScores = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
-/// Lists the scores in a leaderboard, starting from the top.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_scores_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_scores_list_task()`.
-/// For the simplest API, use `games_scores_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_scores_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_scores_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_scores_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesScoresListArgs {
-    /// Path parameter: leaderboardId
-    pub leaderboardId: String,
-    /// Path parameter: collection
-    pub collection: String,
-    /// Path parameter: timeSpan
-    pub timeSpan: String,
-    /// Query parameter: language
-    pub language: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
-/// Lists the scores in a leaderboard, starting from the top.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_scores_list_builder()` + `games_scores_list_execute()`.
-/// For task-level control, use `games_scores_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_list(
-    client: &SimpleHttpClient,
-    args: &GamesScoresListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_scores_list_builder(
-        client,
-        &args.leaderboardId,
-        &args.collection,
-        &args.timeSpan,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-    )?;
-    games_scores_list_execute(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_scores_list_window_execute()` to send, or `games_scores_list_window` for simplest API.
-
-pub fn games_scores_list_window_builder(
-    client: &SimpleHttpClient,
-    leaderboardId: &str,
-    collection: &str,
-    timeSpan: &str,
-    language: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    resultsAbove: Option<i32>,
-    returnTopIfAbsent: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/leaderboards/{}/window/{}",
-        leaderboardId, collection, timeSpan,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = language {
-        query_parts.push(format!("language={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = resultsAbove {
-        query_parts.push(format!("resultsAbove={}", val));
-    }
-    if let Some(val) = returnTopIfAbsent {
-        query_parts.push(format!("returnTopIfAbsent={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_scores_list_window_execute()` or `games_scores_list_window`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_window_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_list_window_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LeaderboardScores = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_scores_list_window_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_scores_list_window_task()`.
-/// For the simplest API, use `games_scores_list_window()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_window_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_scores_list_window_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_scores_list_window_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_scores_list_window`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesScoresListWindowArgs {
-    /// Path parameter: leaderboardId
-    pub leaderboardId: String,
-    /// Path parameter: collection
-    pub collection: String,
-    /// Path parameter: timeSpan
-    pub timeSpan: String,
-    /// Query parameter: language
-    pub language: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: resultsAbove
-    pub resultsAbove: Option<i32>,
-    /// Query parameter: returnTopIfAbsent
-    pub returnTopIfAbsent: Option<bool>,
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
-/// Lists the scores in a leaderboard around (and including) a player's score.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_scores_list_window_builder()` + `games_scores_list_window_execute()`.
-/// For task-level control, use `games_scores_list_window_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_list_window(
-    client: &SimpleHttpClient,
-    args: &GamesScoresListWindowArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_scores_list_window_builder(
-        client,
-        &args.leaderboardId,
-        &args.collection,
-        &args.timeSpan,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.resultsAbove,
-        args.returnTopIfAbsent,
-    )?;
-    games_scores_list_window_execute(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores
-/// Submits a score to the specified leaderboard.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `games_scores_submit_execute()` to send, or `games_scores_submit` for simplest API.
-
-pub fn games_scores_submit_builder(
-    client: &SimpleHttpClient,
-    leaderboardId: &str,
-    score: &str,
-    language: Option<&str>,
-    scoreTag: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://games.googleapis.com/games/v1/leaderboards/{}/scores",
-        leaderboardId, score,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = language {
-        query_parts.push(format!("language={}", val));
-    }
-    if let Some(val) = scoreTag {
-        query_parts.push(format!("scoreTag={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores
-/// Submits a score to the specified leaderboard.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `games_scores_submit_execute()` or `games_scores_submit`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_submit_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_submit_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlayerScoreResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores
-/// Submits a score to the specified leaderboard.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `games_scores_submit_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `games_scores_submit_task()`.
-/// For the simplest API, use `games_scores_submit()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_submit_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn games_scores_submit_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = games_scores_submit_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`games_scores_submit`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesScoresSubmitArgs {
-    /// Path parameter: leaderboardId
-    pub leaderboardId: String,
-    /// Path parameter: score
-    pub score: String,
-    /// Query parameter: language
-    pub language: Option<String>,
-    /// Query parameter: scoreTag
-    pub scoreTag: Option<String>,
-}
-
-/// GET games/v1/leaderboards/{leaderboardId}/scores
-/// Submits a score to the specified leaderboard.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `games_scores_submit_builder()` + `games_scores_submit_execute()`.
-/// For task-level control, use `games_scores_submit_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn games_scores_submit(
-    client: &SimpleHttpClient,
-    args: &GamesScoresSubmitArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = games_scores_submit_builder(
-        client,
-        &args.leaderboardId,
-        &args.score,
-        args.language.as_deref(),
-        args.scoreTag.as_deref(),
-    )?;
-    games_scores_submit_execute(builder)
 }
 
 /// GET games/v1/leaderboards/scores
@@ -6137,11 +4939,11 @@ pub fn games_scores_submit(
 
 pub fn games_scores_submit_multiple_builder(
     client: &SimpleHttpClient,
-    language: Option<&str>,
+    language: Option<String>,
     body: &PlayerScoreSubmissionList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/leaderboards/scores",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards/scores",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6150,9 +4952,9 @@ pub fn games_scores_submit_multiple_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6188,8 +4990,11 @@ pub fn games_scores_submit_multiple_builder(
 pub fn games_scores_submit_multiple_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlayerScoreListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerScoreListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6296,8 +5101,7 @@ pub fn games_scores_submit_multiple(
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_scores_submit_multiple_builder(client, args.language.as_deref(), &args.body)?;
+    let builder = games_scores_submit_multiple_builder(client, args.language.clone(), &args.body)?;
     games_scores_submit_multiple_execute(builder)
 }
 
@@ -6309,13 +5113,13 @@ pub fn games_scores_submit_multiple(
 
 pub fn games_snapshots_get_builder(
     client: &SimpleHttpClient,
-    snapshotId: &str,
-    language: Option<&str>,
+    snapshotId: String,
+    language: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/snapshots/{}",
-        snapshotId,
+        snapshotId.as_str(),
     );
 
     // Build request
@@ -6325,9 +5129,9 @@ pub fn games_snapshots_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6361,7 +5165,12 @@ pub fn games_snapshots_get_builder(
 pub fn games_snapshots_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6463,7 +5272,8 @@ pub fn games_snapshots_get(
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_snapshots_get_builder(client, &args.snapshotId, args.language.as_deref())?;
+    let builder =
+        games_snapshots_get_builder(client, args.snapshotId.clone(), args.language.clone())?;
     games_snapshots_get_execute(builder)
 }
 
@@ -6475,15 +5285,15 @@ pub fn games_snapshots_get(
 
 pub fn games_snapshots_list_builder(
     client: &SimpleHttpClient,
-    playerId: &str,
-    language: Option<&str>,
+    playerId: String,
+    language: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/snapshots",
-        playerId,
+        playerId.as_str(),
     );
 
     // Build request
@@ -6499,9 +5309,9 @@ pub fn games_snapshots_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6535,8 +5345,11 @@ pub fn games_snapshots_list_builder(
 pub fn games_snapshots_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SnapshotListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SnapshotListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6649,10 +5462,10 @@ pub fn games_snapshots_list(
 > {
     let builder = games_snapshots_list_builder(
         client,
-        &args.playerId,
-        args.language.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.playerId.clone(),
+        args.language.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     games_snapshots_list_execute(builder)
 }
@@ -6667,11 +5480,11 @@ pub fn games_stats_get_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://games.googleapis.com/games/v1/stats",);
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/stats",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6701,7 +5514,12 @@ pub fn games_stats_get_builder(
 pub fn games_stats_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StatsResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StatsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder

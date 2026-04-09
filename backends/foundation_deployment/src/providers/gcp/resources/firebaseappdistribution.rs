@@ -97,7 +97,9 @@ pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
 
 /// The response message for DistributeRelease.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppdistroV1DistributeReleaseResponse {}
+pub struct GoogleFirebaseAppdistroV1DistributeReleaseResponse {
+    pub value: serde_json::Value,
+}
 
 /// The response message for ListFeedbackReports.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -146,7 +148,9 @@ pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
 
 /// Operation metadata for UploadRelease.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirebaseAppdistroV1UploadReleaseMetadata {}
+pub struct GoogleFirebaseAppdistroV1UploadReleaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for UploadRelease.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -169,7 +173,9 @@ pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -195,7 +201,9 @@ pub struct GoogleLongrunningWaitOperationRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// App bundle test certificate
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

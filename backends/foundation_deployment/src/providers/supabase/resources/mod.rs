@@ -740,6 +740,12 @@ pub struct LegacyApiKeysResponse {
     pub enabled: bool,
 }
 
+/// ListActionRunResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListActionRunResponse {
+    pub value: serde_json::Value,
+}
+
 /// ListProjectAddonsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProjectAddonsResponse {
@@ -1157,7 +1163,9 @@ pub struct StorageConfigResponse {
 
 /// StreamableFile resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamableFile {}
+pub struct StreamableFile {
+    pub value: serde_json::Value,
+}
 
 /// SubdomainAvailabilityResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2055,6 +2063,12 @@ pub struct V1GetUsageApiRequestsCountResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ListEntitlementsResponse {
     pub entitlements: ::std::vec::Vec<serde_json::Value>,
+}
+
+/// V1ListMigrationsResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct V1ListMigrationsResponse {
+    pub value: serde_json::Value,
 }
 
 /// V1ListProjectsPaginatedResponse resource type.

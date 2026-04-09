@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -193,18 +195,6 @@ pub struct GoogleCloudDatacatalogV1OrganizationConfig {
     pub config: ::core::option::Option<serde_json::Value>,
 }
 
-/// Marks a CSV-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {}
-
-/// Marks an ORC-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {}
-
-/// Marks a Parquet-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {}
-
 /// Long-running operation metadata message returned by the ReconcileTags.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {
@@ -321,11 +311,15 @@ pub struct GoogleCloudDatacatalogV1SetConfigRequest {
 
 /// Request message for StarEntry.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1StarEntryRequest {}
+pub struct GoogleCloudDatacatalogV1StarEntryRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for StarEntry. Empty for now
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1StarEntryResponse {}
+pub struct GoogleCloudDatacatalogV1StarEntryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Contains the value and additional information on a field within a Tag.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -401,11 +395,15 @@ pub struct GoogleCloudDatacatalogV1TagTemplateField {
 
 /// Request message for UnstarEntry.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1UnstarEntryRequest {}
+pub struct GoogleCloudDatacatalogV1UnstarEntryRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for UnstarEntry. Empty for now
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDatacatalogV1UnstarEntryResponse {}
+pub struct GoogleCloudDatacatalogV1UnstarEntryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Detailed statistics on the entry''s usage. Usage statistics have the following limitations: - Only BigQuery tables have them. - They only include BigQuery query jobs. - They might be underestimated because wildcard table references are not yet counted. For more information, see [Querying multiple tables using a wildcard table] (https://cloud.google.com/bigquery/docs/querying-wildcard-tables)
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1629,13 +1627,13 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchema {
     pub avro: ::core::option::Option<GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema>,
     /// Marks a CSV-encoded data source.
     #[serde(default)]
-    pub csv: ::core::option::Option<serde_json::Value>,
+    pub csv: ::core::option::Option<GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema>,
     /// Marks an ORC-encoded data source.
     #[serde(default)]
-    pub orc: ::core::option::Option<serde_json::Value>,
+    pub orc: ::core::option::Option<GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema>,
     /// Marks a Parquet-encoded data source.
     #[serde(default)]
-    pub parquet: ::core::option::Option<serde_json::Value>,
+    pub parquet: ::core::option::Option<GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema>,
     /// Schema in protocol buffer format.
     #[serde(default)]
     pub protobuf: ::core::option::Option<GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema>,
@@ -1661,6 +1659,24 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
     /// JSON source of the Avro schema.
     #[serde(default)]
     pub text: ::core::option::Option<String>,
+}
+
+/// Marks a CSV-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {
+    pub value: serde_json::Value,
+}
+
+/// Marks an ORC-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {
+    pub value: serde_json::Value,
+}
+
+/// Marks a Parquet-encoded data source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {
+    pub value: serde_json::Value,
 }
 
 /// Schema in protocol buffer format.

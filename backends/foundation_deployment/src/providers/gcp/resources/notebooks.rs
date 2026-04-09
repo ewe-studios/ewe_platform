@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for checking authorization for the instance owner.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -84,7 +86,9 @@ pub struct DiagnoseInstanceRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for generating an EUC for the instance owner.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -192,7 +196,9 @@ pub struct ReportInstanceInfoSystemRequest {
 
 /// Request for resetting a notebook instance
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetInstanceRequest {}
+pub struct ResetInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for resizing the notebook instance disks
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -234,11 +240,15 @@ pub struct SetIamPolicyRequest {
 
 /// Request for starting a notebook instance
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartInstanceRequest {}
+pub struct StartInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for stopping a notebook instance
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopInstanceRequest {}
+pub struct StopInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -258,7 +268,9 @@ pub struct TestIamPermissionsResponse {
 
 /// Request for upgrading a notebook instance
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpgradeInstanceRequest {}
+pub struct UpgradeInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for upgrading a notebook instance from within the VM
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

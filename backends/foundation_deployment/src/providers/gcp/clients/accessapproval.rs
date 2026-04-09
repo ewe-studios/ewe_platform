@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,15 @@ use serde::Serialize;
 
 pub fn accessapproval_folders_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
-        name,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,7 +67,12 @@ pub fn accessapproval_folders_delete_access_approval_settings_builder(
 pub fn accessapproval_folders_delete_access_approval_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -169,166 +173,8 @@ pub fn accessapproval_folders_delete_access_approval_settings(
     ApiError,
 > {
     let builder =
-        accessapproval_folders_delete_access_approval_settings_builder(client, &args.name)?;
+        accessapproval_folders_delete_access_approval_settings_builder(client, args.name.clone())?;
     accessapproval_folders_delete_access_approval_settings_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_get_access_approval_settings_execute()` to send, or `accessapproval_folders_get_access_approval_settings` for simplest API.
-
-pub fn accessapproval_folders_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_get_access_approval_settings_execute()` or `accessapproval_folders_get_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_get_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_get_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_get_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_folders_get_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_get_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_get_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_get_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersGetAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_get_access_approval_settings_builder()` + `accessapproval_folders_get_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_folders_get_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_get_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersGetAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_folders_get_access_approval_settings_builder(client, &args.name)?;
-    accessapproval_folders_get_access_approval_settings_execute(builder)
 }
 
 /// GET v1/folders/{foldersId}/serviceAccount
@@ -339,17 +185,15 @@ pub fn accessapproval_folders_get_access_approval_settings(
 
 pub fn accessapproval_folders_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/serviceAccount",
-        name,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/folders/{}/serviceAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -380,8 +224,9 @@ pub fn accessapproval_folders_get_service_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -491,841 +336,8 @@ pub fn accessapproval_folders_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_get_service_account_builder(client, &args.name)?;
+    let builder = accessapproval_folders_get_service_account_builder(client, args.name.clone())?;
     accessapproval_folders_get_service_account_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_update_access_approval_settings_execute()` to send, or `accessapproval_folders_update_access_approval_settings` for simplest API.
-
-pub fn accessapproval_folders_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_update_access_approval_settings_execute()` or `accessapproval_folders_update_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_update_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_update_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_update_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_folders_update_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_update_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_update_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_update_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersUpdateAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AccessApprovalSettings,
-}
-
-/// GET v1/folders/{foldersId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_update_access_approval_settings_builder()` + `accessapproval_folders_update_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_folders_update_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_update_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersUpdateAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_folders_update_access_approval_settings_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    accessapproval_folders_update_access_approval_settings_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_approval_requests_approve_execute()` to send, or `accessapproval_folders_approval_requests_approve` for simplest API.
-
-pub fn accessapproval_folders_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{}:approve",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_approval_requests_approve_execute()` or `accessapproval_folders_approval_requests_approve`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_approve_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_approval_requests_approve_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_approval_requests_approve_task()`.
-/// For the simplest API, use `accessapproval_folders_approval_requests_approve()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_approval_requests_approve_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_approval_requests_approve_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_approval_requests_approve`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersApprovalRequestsApproveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ApproveApprovalRequestMessage,
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_approval_requests_approve_builder()` + `accessapproval_folders_approval_requests_approve_execute()`.
-/// For task-level control, use `accessapproval_folders_approval_requests_approve_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_approve(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersApprovalRequestsApproveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        accessapproval_folders_approval_requests_approve_builder(client, &args.name, &args.body)?;
-    accessapproval_folders_approval_requests_approve_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_approval_requests_dismiss_execute()` to send, or `accessapproval_folders_approval_requests_dismiss` for simplest API.
-
-pub fn accessapproval_folders_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{}:dismiss",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_approval_requests_dismiss_execute()` or `accessapproval_folders_approval_requests_dismiss`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_dismiss_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_approval_requests_dismiss_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_approval_requests_dismiss_task()`.
-/// For the simplest API, use `accessapproval_folders_approval_requests_dismiss()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_approval_requests_dismiss_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_approval_requests_dismiss_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_approval_requests_dismiss`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersApprovalRequestsDismissArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: DismissApprovalRequestMessage,
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_approval_requests_dismiss_builder()` + `accessapproval_folders_approval_requests_dismiss_execute()`.
-/// For task-level control, use `accessapproval_folders_approval_requests_dismiss_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_dismiss(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersApprovalRequestsDismissArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        accessapproval_folders_approval_requests_dismiss_builder(client, &args.name, &args.body)?;
-    accessapproval_folders_approval_requests_dismiss_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_approval_requests_get_execute()` to send, or `accessapproval_folders_approval_requests_get` for simplest API.
-
-pub fn accessapproval_folders_approval_requests_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_approval_requests_get_execute()` or `accessapproval_folders_approval_requests_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_approval_requests_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_approval_requests_get_task()`.
-/// For the simplest API, use `accessapproval_folders_approval_requests_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_approval_requests_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_approval_requests_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_approval_requests_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersApprovalRequestsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_approval_requests_get_builder()` + `accessapproval_folders_approval_requests_get_execute()`.
-/// For task-level control, use `accessapproval_folders_approval_requests_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_get(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersApprovalRequestsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_folders_approval_requests_get_builder(client, &args.name)?;
-    accessapproval_folders_approval_requests_get_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_folders_approval_requests_invalidate_execute()` to send, or `accessapproval_folders_approval_requests_invalidate` for simplest API.
-
-pub fn accessapproval_folders_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests/{}:invalidate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_folders_approval_requests_invalidate_execute()` or `accessapproval_folders_approval_requests_invalidate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_invalidate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_folders_approval_requests_invalidate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_folders_approval_requests_invalidate_task()`.
-/// For the simplest API, use `accessapproval_folders_approval_requests_invalidate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_folders_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_folders_approval_requests_invalidate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_folders_approval_requests_invalidate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_folders_approval_requests_invalidate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalFoldersApprovalRequestsInvalidateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: InvalidateApprovalRequestMessage,
-}
-
-/// GET v1/folders/{foldersId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_folders_approval_requests_invalidate_builder()` + `accessapproval_folders_approval_requests_invalidate_execute()`.
-/// For task-level control, use `accessapproval_folders_approval_requests_invalidate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_folders_approval_requests_invalidate(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalFoldersApprovalRequestsInvalidateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_folders_approval_requests_invalidate_builder(
-        client, &args.name, &args.body,
-    )?;
-    accessapproval_folders_approval_requests_invalidate_execute(builder)
 }
 
 /// GET v1/folders/{foldersId}/approvalRequests
@@ -1336,16 +348,14 @@ pub fn accessapproval_folders_approval_requests_invalidate(
 
 pub fn accessapproval_folders_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/folders/{}/approvalRequests",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1360,9 +370,9 @@ pub fn accessapproval_folders_approval_requests_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1397,8 +407,9 @@ pub fn accessapproval_folders_approval_requests_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1516,10 +527,10 @@ pub fn accessapproval_folders_approval_requests_list(
 > {
     let builder = accessapproval_folders_approval_requests_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     accessapproval_folders_approval_requests_list_execute(builder)
 }
@@ -1532,17 +543,16 @@ pub fn accessapproval_folders_approval_requests_list(
 
 pub fn accessapproval_organizations_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1572,7 +582,12 @@ pub fn accessapproval_organizations_delete_access_approval_settings_builder(
 pub fn accessapproval_organizations_delete_access_approval_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1672,168 +687,11 @@ pub fn accessapproval_organizations_delete_access_approval_settings(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accessapproval_organizations_delete_access_approval_settings_builder(client, &args.name)?;
+    let builder = accessapproval_organizations_delete_access_approval_settings_builder(
+        client,
+        args.name.clone(),
+    )?;
     accessapproval_organizations_delete_access_approval_settings_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_get_access_approval_settings_execute()` to send, or `accessapproval_organizations_get_access_approval_settings` for simplest API.
-
-pub fn accessapproval_organizations_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_get_access_approval_settings_execute()` or `accessapproval_organizations_get_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_get_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_get_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_get_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_organizations_get_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_get_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_get_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_get_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsGetAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_get_access_approval_settings_builder()` + `accessapproval_organizations_get_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_organizations_get_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_get_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsGetAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        accessapproval_organizations_get_access_approval_settings_builder(client, &args.name)?;
-    accessapproval_organizations_get_access_approval_settings_execute(builder)
 }
 
 /// GET v1/organizations/{organizationsId}/serviceAccount
@@ -1844,17 +702,15 @@ pub fn accessapproval_organizations_get_access_approval_settings(
 
 pub fn accessapproval_organizations_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/serviceAccount",
-        name,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/organizations/{}/serviceAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1885,8 +741,9 @@ pub fn accessapproval_organizations_get_service_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1996,843 +853,9 @@ pub fn accessapproval_organizations_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_organizations_get_service_account_builder(client, &args.name)?;
+    let builder =
+        accessapproval_organizations_get_service_account_builder(client, args.name.clone())?;
     accessapproval_organizations_get_service_account_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_update_access_approval_settings_execute()` to send, or `accessapproval_organizations_update_access_approval_settings` for simplest API.
-
-pub fn accessapproval_organizations_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_update_access_approval_settings_execute()` or `accessapproval_organizations_update_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_update_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_update_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_update_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_organizations_update_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_update_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_update_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_update_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AccessApprovalSettings,
-}
-
-/// GET v1/organizations/{organizationsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_update_access_approval_settings_builder()` + `accessapproval_organizations_update_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_organizations_update_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_update_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_organizations_update_access_approval_settings_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    accessapproval_organizations_update_access_approval_settings_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_approval_requests_approve_execute()` to send, or `accessapproval_organizations_approval_requests_approve` for simplest API.
-
-pub fn accessapproval_organizations_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{}:approve",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_approval_requests_approve_execute()` or `accessapproval_organizations_approval_requests_approve`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_approve_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_approval_requests_approve_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_approval_requests_approve_task()`.
-/// For the simplest API, use `accessapproval_organizations_approval_requests_approve()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_approval_requests_approve_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_approval_requests_approve_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_approval_requests_approve`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsApprovalRequestsApproveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ApproveApprovalRequestMessage,
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_approval_requests_approve_builder()` + `accessapproval_organizations_approval_requests_approve_execute()`.
-/// For task-level control, use `accessapproval_organizations_approval_requests_approve_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_approve(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsApprovalRequestsApproveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_organizations_approval_requests_approve_builder(
-        client, &args.name, &args.body,
-    )?;
-    accessapproval_organizations_approval_requests_approve_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_approval_requests_dismiss_execute()` to send, or `accessapproval_organizations_approval_requests_dismiss` for simplest API.
-
-pub fn accessapproval_organizations_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{}:dismiss",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_approval_requests_dismiss_execute()` or `accessapproval_organizations_approval_requests_dismiss`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_dismiss_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_approval_requests_dismiss_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_approval_requests_dismiss_task()`.
-/// For the simplest API, use `accessapproval_organizations_approval_requests_dismiss()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_approval_requests_dismiss_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_approval_requests_dismiss_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_approval_requests_dismiss`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsApprovalRequestsDismissArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: DismissApprovalRequestMessage,
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_approval_requests_dismiss_builder()` + `accessapproval_organizations_approval_requests_dismiss_execute()`.
-/// For task-level control, use `accessapproval_organizations_approval_requests_dismiss_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_dismiss(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsApprovalRequestsDismissArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_organizations_approval_requests_dismiss_builder(
-        client, &args.name, &args.body,
-    )?;
-    accessapproval_organizations_approval_requests_dismiss_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_approval_requests_get_execute()` to send, or `accessapproval_organizations_approval_requests_get` for simplest API.
-
-pub fn accessapproval_organizations_approval_requests_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_approval_requests_get_execute()` or `accessapproval_organizations_approval_requests_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_approval_requests_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_approval_requests_get_task()`.
-/// For the simplest API, use `accessapproval_organizations_approval_requests_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_approval_requests_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_approval_requests_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_approval_requests_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsApprovalRequestsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_approval_requests_get_builder()` + `accessapproval_organizations_approval_requests_get_execute()`.
-/// For task-level control, use `accessapproval_organizations_approval_requests_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_get(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsApprovalRequestsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_organizations_approval_requests_get_builder(client, &args.name)?;
-    accessapproval_organizations_approval_requests_get_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_organizations_approval_requests_invalidate_execute()` to send, or `accessapproval_organizations_approval_requests_invalidate` for simplest API.
-
-pub fn accessapproval_organizations_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests/{}:invalidate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_organizations_approval_requests_invalidate_execute()` or `accessapproval_organizations_approval_requests_invalidate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_invalidate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_organizations_approval_requests_invalidate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_organizations_approval_requests_invalidate_task()`.
-/// For the simplest API, use `accessapproval_organizations_approval_requests_invalidate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_organizations_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_organizations_approval_requests_invalidate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_organizations_approval_requests_invalidate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_organizations_approval_requests_invalidate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalOrganizationsApprovalRequestsInvalidateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: InvalidateApprovalRequestMessage,
-}
-
-/// GET v1/organizations/{organizationsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_organizations_approval_requests_invalidate_builder()` + `accessapproval_organizations_approval_requests_invalidate_execute()`.
-/// For task-level control, use `accessapproval_organizations_approval_requests_invalidate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_organizations_approval_requests_invalidate(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalOrganizationsApprovalRequestsInvalidateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_organizations_approval_requests_invalidate_builder(
-        client, &args.name, &args.body,
-    )?;
-    accessapproval_organizations_approval_requests_invalidate_execute(builder)
 }
 
 /// GET v1/organizations/{organizationsId}/approvalRequests
@@ -2843,16 +866,14 @@ pub fn accessapproval_organizations_approval_requests_invalidate(
 
 pub fn accessapproval_organizations_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/organizations/{}/approvalRequests",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2867,9 +888,9 @@ pub fn accessapproval_organizations_approval_requests_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2904,8 +925,9 @@ pub fn accessapproval_organizations_approval_requests_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3023,10 +1045,10 @@ pub fn accessapproval_organizations_approval_requests_list(
 > {
     let builder = accessapproval_organizations_approval_requests_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     accessapproval_organizations_approval_requests_list_execute(builder)
 }
@@ -3039,17 +1061,15 @@ pub fn accessapproval_organizations_approval_requests_list(
 
 pub fn accessapproval_projects_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
-        name,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3079,7 +1099,12 @@ pub fn accessapproval_projects_delete_access_approval_settings_builder(
 pub fn accessapproval_projects_delete_access_approval_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3180,166 +1205,8 @@ pub fn accessapproval_projects_delete_access_approval_settings(
     ApiError,
 > {
     let builder =
-        accessapproval_projects_delete_access_approval_settings_builder(client, &args.name)?;
+        accessapproval_projects_delete_access_approval_settings_builder(client, args.name.clone())?;
     accessapproval_projects_delete_access_approval_settings_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_get_access_approval_settings_execute()` to send, or `accessapproval_projects_get_access_approval_settings` for simplest API.
-
-pub fn accessapproval_projects_get_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_get_access_approval_settings_execute()` or `accessapproval_projects_get_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_get_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_get_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_get_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_projects_get_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_get_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_get_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_get_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_get_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsGetAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Gets the Access Approval settings associated with a project, folder, or organization.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_get_access_approval_settings_builder()` + `accessapproval_projects_get_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_projects_get_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_get_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsGetAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_projects_get_access_approval_settings_builder(client, &args.name)?;
-    accessapproval_projects_get_access_approval_settings_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/serviceAccount
@@ -3350,17 +1217,15 @@ pub fn accessapproval_projects_get_access_approval_settings(
 
 pub fn accessapproval_projects_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/serviceAccount",
-        name,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/projects/{}/serviceAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3391,8 +1256,9 @@ pub fn accessapproval_projects_get_service_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AccessApprovalServiceAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3502,841 +1368,8 @@ pub fn accessapproval_projects_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_get_service_account_builder(client, &args.name)?;
+    let builder = accessapproval_projects_get_service_account_builder(client, args.name.clone())?;
     accessapproval_projects_get_service_account_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_update_access_approval_settings_execute()` to send, or `accessapproval_projects_update_access_approval_settings` for simplest API.
-
-pub fn accessapproval_projects_update_access_approval_settings_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AccessApprovalSettings,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/accessApprovalSettings",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_update_access_approval_settings_execute()` or `accessapproval_projects_update_access_approval_settings`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_update_access_approval_settings_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccessApprovalSettings = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_update_access_approval_settings_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_update_access_approval_settings_task()`.
-/// For the simplest API, use `accessapproval_projects_update_access_approval_settings()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_update_access_approval_settings_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_update_access_approval_settings_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_update_access_approval_settings_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_update_access_approval_settings`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsUpdateAccessApprovalSettingsArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AccessApprovalSettings,
-}
-
-/// GET v1/projects/{projectsId}/accessApprovalSettings
-/// Updates the settings associated with a project, folder, or organization. Settings to update are determined by the value of field_mask.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_update_access_approval_settings_builder()` + `accessapproval_projects_update_access_approval_settings_execute()`.
-/// For task-level control, use `accessapproval_projects_update_access_approval_settings_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_update_access_approval_settings(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsUpdateAccessApprovalSettingsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccessApprovalSettings>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_projects_update_access_approval_settings_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    accessapproval_projects_update_access_approval_settings_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_approval_requests_approve_execute()` to send, or `accessapproval_projects_approval_requests_approve` for simplest API.
-
-pub fn accessapproval_projects_approval_requests_approve_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{}:approve",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_approval_requests_approve_execute()` or `accessapproval_projects_approval_requests_approve`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_approve_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_approval_requests_approve_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_approval_requests_approve_task()`.
-/// For the simplest API, use `accessapproval_projects_approval_requests_approve()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_approve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_approval_requests_approve_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_approval_requests_approve_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_approval_requests_approve`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsApprovalRequestsApproveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ApproveApprovalRequestMessage,
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:approve
-/// Approves a request and returns the updated ApprovalRequest. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_approval_requests_approve_builder()` + `accessapproval_projects_approval_requests_approve_execute()`.
-/// For task-level control, use `accessapproval_projects_approval_requests_approve_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_approve(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsApprovalRequestsApproveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        accessapproval_projects_approval_requests_approve_builder(client, &args.name, &args.body)?;
-    accessapproval_projects_approval_requests_approve_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_approval_requests_dismiss_execute()` to send, or `accessapproval_projects_approval_requests_dismiss` for simplest API.
-
-pub fn accessapproval_projects_approval_requests_dismiss_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &DismissApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{}:dismiss",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_approval_requests_dismiss_execute()` or `accessapproval_projects_approval_requests_dismiss`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_dismiss_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_approval_requests_dismiss_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_approval_requests_dismiss_task()`.
-/// For the simplest API, use `accessapproval_projects_approval_requests_dismiss()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_dismiss_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_approval_requests_dismiss_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_approval_requests_dismiss_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_approval_requests_dismiss`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsApprovalRequestsDismissArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: DismissApprovalRequestMessage,
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:dismiss
-/// Dismisses a request. Returns the updated ApprovalRequest. NOTE: When a request is dismissed, it is considered ignored. Dismissing a request does not prevent access granted by other Access Approval requests. Returns NOT_FOUND if the request does not exist. Returns FAILED_PRECONDITION if the request exists but is not in a pending state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_approval_requests_dismiss_builder()` + `accessapproval_projects_approval_requests_dismiss_execute()`.
-/// For task-level control, use `accessapproval_projects_approval_requests_dismiss_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_dismiss(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsApprovalRequestsDismissArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        accessapproval_projects_approval_requests_dismiss_builder(client, &args.name, &args.body)?;
-    accessapproval_projects_approval_requests_dismiss_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_approval_requests_get_execute()` to send, or `accessapproval_projects_approval_requests_get` for simplest API.
-
-pub fn accessapproval_projects_approval_requests_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_approval_requests_get_execute()` or `accessapproval_projects_approval_requests_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_approval_requests_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_approval_requests_get_task()`.
-/// For the simplest API, use `accessapproval_projects_approval_requests_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_approval_requests_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_approval_requests_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_approval_requests_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsApprovalRequestsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}
-/// Gets an approval request. Returns NOT_FOUND if the request does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_approval_requests_get_builder()` + `accessapproval_projects_approval_requests_get_execute()`.
-/// For task-level control, use `accessapproval_projects_approval_requests_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_get(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsApprovalRequestsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_projects_approval_requests_get_builder(client, &args.name)?;
-    accessapproval_projects_approval_requests_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `accessapproval_projects_approval_requests_invalidate_execute()` to send, or `accessapproval_projects_approval_requests_invalidate` for simplest API.
-
-pub fn accessapproval_projects_approval_requests_invalidate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &InvalidateApprovalRequestMessage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests/{}:invalidate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `accessapproval_projects_approval_requests_invalidate_execute()` or `accessapproval_projects_approval_requests_invalidate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_invalidate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ApprovalRequest = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `accessapproval_projects_approval_requests_invalidate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `accessapproval_projects_approval_requests_invalidate_task()`.
-/// For the simplest API, use `accessapproval_projects_approval_requests_invalidate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `accessapproval_projects_approval_requests_invalidate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn accessapproval_projects_approval_requests_invalidate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = accessapproval_projects_approval_requests_invalidate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`accessapproval_projects_approval_requests_invalidate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccessapprovalProjectsApprovalRequestsInvalidateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: InvalidateApprovalRequestMessage,
-}
-
-/// GET v1/projects/{projectsId}/approvalRequests/{approvalRequestsId}:invalidate
-/// Invalidates an existing ApprovalRequest. Returns the updated ApprovalRequest. NOTE: This action revokes Google access based on this approval request. If the resource has other active approvals, access will remain granted. Returns FAILED_PRECONDITION if the request exists but is not in an approved state.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `accessapproval_projects_approval_requests_invalidate_builder()` + `accessapproval_projects_approval_requests_invalidate_execute()`.
-/// For task-level control, use `accessapproval_projects_approval_requests_invalidate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn accessapproval_projects_approval_requests_invalidate(
-    client: &SimpleHttpClient,
-    args: &AccessapprovalProjectsApprovalRequestsInvalidateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ApprovalRequest>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = accessapproval_projects_approval_requests_invalidate_builder(
-        client, &args.name, &args.body,
-    )?;
-    accessapproval_projects_approval_requests_invalidate_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/approvalRequests
@@ -4347,16 +1380,14 @@ pub fn accessapproval_projects_approval_requests_invalidate(
 
 pub fn accessapproval_projects_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://accessapproval.googleapis.com/v1/projects/{}/approvalRequests",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4371,9 +1402,9 @@ pub fn accessapproval_projects_approval_requests_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4408,8 +1439,9 @@ pub fn accessapproval_projects_approval_requests_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListApprovalRequestsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4527,10 +1559,10 @@ pub fn accessapproval_projects_approval_requests_list(
 > {
     let builder = accessapproval_projects_approval_requests_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     accessapproval_projects_approval_requests_list_execute(builder)
 }

@@ -29,7 +29,9 @@ pub struct BatchCreatePullRequestCommentsResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request to close an issue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -41,11 +43,15 @@ pub struct CloseIssueRequest {
 
 /// ClosePullRequestRequest is the request to close a pull request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClosePullRequestRequest {}
+pub struct ClosePullRequestRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message containing the content of a blob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -198,7 +204,9 @@ pub struct ListRepositoriesResponse {
 
 /// MergePullRequestRequest is the request to merge a pull request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MergePullRequestRequest {}
+pub struct MergePullRequestRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request to open an issue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -210,7 +218,9 @@ pub struct OpenIssueRequest {
 
 /// OpenPullRequestRequest is the request to open a pull request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenPullRequestRequest {}
+pub struct OpenPullRequestRequest {
+    pub value: serde_json::Value,
+}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

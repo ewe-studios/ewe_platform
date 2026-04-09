@@ -50,10 +50,6 @@ pub struct ContactDetails {
     pub contacts: ::core::option::Option<::std::vec::Vec<Contact>>,
 }
 
-/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
 /// The LRO metadata for a ExportFindings request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportFindingsMetadata {
@@ -67,7 +63,9 @@ pub struct ExportFindingsMetadata {
 
 /// The response to a ExportFindings request. Contains the LRO information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportFindingsResponse {}
+pub struct ExportFindingsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,7 +77,9 @@ pub struct GetIamPolicyRequest {
 
 /// The response to a BulkMute request. Contains the LRO information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV1BulkMuteFindingsResponse {}
+pub struct GoogleCloudSecuritycenterV1BulkMuteFindingsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Representation of third party SIEM/SOAR fields within SCC.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -214,7 +214,9 @@ pub struct GoogleCloudSecuritycenterV2BigQueryExport {
 
 /// The response to a BulkMute request. Contains the LRO information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudSecuritycenterV2BulkMuteFindingsResponse {}
+pub struct GoogleCloudSecuritycenterV2BulkMuteFindingsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Details about specific contacts
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -708,7 +710,9 @@ pub struct OrganizationSettings {
 
 /// Request message for running asset discovery for an organization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunAssetDiscoveryRequest {}
+pub struct RunAssetDiscoveryRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for updating a finding''s state.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1775,7 +1779,7 @@ pub struct SimulatedResult {
     pub finding: ::core::option::Option<Finding>,
     /// Indicates that the test case does not trigger any violation.
     #[serde(default, rename = "noViolation")]
-    pub no_violation: ::core::option::Option<serde_json::Value>,
+    pub no_violation: ::core::option::Option<Empty>,
 }
 
 /// A list of zero or more errors encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
@@ -3313,6 +3317,12 @@ pub struct Finding {
     /// Represents vulnerability-specific fields like CVE and CVSS scores. CVE stands for Common Vulnerabilities and Exposures (https://cve.mitre.org/about/)
     #[serde(default)]
     pub vulnerability: ::core::option::Option<Vulnerability>,
+}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Empty {
+    pub value: serde_json::Value,
 }
 
 /// An error encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.

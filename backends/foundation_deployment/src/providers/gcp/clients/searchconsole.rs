@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn webmasters_searchanalytics_query_builder(
     client: &SimpleHttpClient,
-    siteUrl: &str,
+    siteUrl: String,
     body: &SearchAnalyticsQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/searchAnalytics/query",
-        siteUrl,
+        siteUrl.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +73,9 @@ pub fn webmasters_searchanalytics_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<SearchAnalyticsQueryResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<SearchAnalyticsQueryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -185,7 +187,8 @@ pub fn webmasters_searchanalytics_query(
         + 'static,
     ApiError,
 > {
-    let builder = webmasters_searchanalytics_query_builder(client, &args.siteUrl, &args.body)?;
+    let builder =
+        webmasters_searchanalytics_query_builder(client, args.siteUrl.clone(), &args.body)?;
     webmasters_searchanalytics_query_execute(builder)
 }
 
@@ -197,18 +200,19 @@ pub fn webmasters_searchanalytics_query(
 
 pub fn webmasters_sitemaps_delete_builder(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
+    siteUrl: String,
+    feedpath: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
-        siteUrl, feedpath,
+        siteUrl.as_str(),
+        feedpath.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -238,7 +242,12 @@ pub fn webmasters_sitemaps_delete_builder(
 pub fn webmasters_sitemaps_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -337,163 +346,9 @@ pub fn webmasters_sitemaps_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sitemaps_delete_builder(client, &args.siteUrl, &args.feedpath)?;
+    let builder =
+        webmasters_sitemaps_delete_builder(client, args.siteUrl.clone(), args.feedpath.clone())?;
     webmasters_sitemaps_delete_execute(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Retrieves information about a specific sitemap.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `webmasters_sitemaps_get_execute()` to send, or `webmasters_sitemaps_get` for simplest API.
-
-pub fn webmasters_sitemaps_get_builder(
-    client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
-        siteUrl, feedpath,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Retrieves information about a specific sitemap.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `webmasters_sitemaps_get_execute()` or `webmasters_sitemaps_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sitemaps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sitemaps_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WmxSitemap>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WmxSitemap = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Retrieves information about a specific sitemap.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `webmasters_sitemaps_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `webmasters_sitemaps_get_task()`.
-/// For the simplest API, use `webmasters_sitemaps_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sitemaps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn webmasters_sitemaps_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WmxSitemap>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = webmasters_sitemaps_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`webmasters_sitemaps_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WebmastersSitemapsGetArgs {
-    /// Path parameter: siteUrl
-    pub siteUrl: String,
-    /// Path parameter: feedpath
-    pub feedpath: String,
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Retrieves information about a specific sitemap.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `webmasters_sitemaps_get_builder()` + `webmasters_sitemaps_get_execute()`.
-/// For task-level control, use `webmasters_sitemaps_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sitemaps_get(
-    client: &SimpleHttpClient,
-    args: &WebmastersSitemapsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WmxSitemap>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = webmasters_sitemaps_get_builder(client, &args.siteUrl, &args.feedpath)?;
-    webmasters_sitemaps_get_execute(builder)
 }
 
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps
@@ -504,13 +359,13 @@ pub fn webmasters_sitemaps_get(
 
 pub fn webmasters_sitemaps_list_builder(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    sitemapIndex: Option<&str>,
+    siteUrl: String,
+    sitemapIndex: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps",
-        siteUrl,
+        siteUrl.as_str(),
     );
 
     // Build request
@@ -520,9 +375,9 @@ pub fn webmasters_sitemaps_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -556,8 +411,11 @@ pub fn webmasters_sitemaps_list_builder(
 pub fn webmasters_sitemaps_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SitemapsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SitemapsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -665,160 +523,8 @@ pub fn webmasters_sitemaps_list(
     ApiError,
 > {
     let builder =
-        webmasters_sitemaps_list_builder(client, &args.siteUrl, args.sitemapIndex.as_deref())?;
+        webmasters_sitemaps_list_builder(client, args.siteUrl.clone(), args.sitemapIndex.clone())?;
     webmasters_sitemaps_list_execute(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Submits a sitemap for a site.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `webmasters_sitemaps_submit_execute()` to send, or `webmasters_sitemaps_submit` for simplest API.
-
-pub fn webmasters_sitemaps_submit_builder(
-    client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
-        siteUrl, feedpath,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Submits a sitemap for a site.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `webmasters_sitemaps_submit_execute()` or `webmasters_sitemaps_submit`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sitemaps_submit_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sitemaps_submit_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Submits a sitemap for a site.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `webmasters_sitemaps_submit_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `webmasters_sitemaps_submit_task()`.
-/// For the simplest API, use `webmasters_sitemaps_submit()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sitemaps_submit_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn webmasters_sitemaps_submit_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = webmasters_sitemaps_submit_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`webmasters_sitemaps_submit`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WebmastersSitemapsSubmitArgs {
-    /// Path parameter: siteUrl
-    pub siteUrl: String,
-    /// Path parameter: feedpath
-    pub feedpath: String,
-}
-
-/// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
-/// Submits a sitemap for a site.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `webmasters_sitemaps_submit_builder()` + `webmasters_sitemaps_submit_execute()`.
-/// For task-level control, use `webmasters_sitemaps_submit_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sitemaps_submit(
-    client: &SimpleHttpClient,
-    args: &WebmastersSitemapsSubmitArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = webmasters_sitemaps_submit_builder(client, &args.siteUrl, &args.feedpath)?;
-    webmasters_sitemaps_submit_execute(builder)
 }
 
 /// GET webmasters/v3/sites/{siteUrl}
@@ -829,17 +535,17 @@ pub fn webmasters_sitemaps_submit(
 
 pub fn webmasters_sites_add_builder(
     client: &SimpleHttpClient,
-    siteUrl: &str,
+    siteUrl: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
-        siteUrl,
+        siteUrl.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -869,7 +575,12 @@ pub fn webmasters_sites_add_builder(
 pub fn webmasters_sites_add_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -966,309 +677,8 @@ pub fn webmasters_sites_add(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sites_add_builder(client, &args.siteUrl)?;
+    let builder = webmasters_sites_add_builder(client, args.siteUrl.clone())?;
     webmasters_sites_add_execute(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `webmasters_sites_delete_execute()` to send, or `webmasters_sites_delete` for simplest API.
-
-pub fn webmasters_sites_delete_builder(
-    client: &SimpleHttpClient,
-    siteUrl: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
-        siteUrl,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `webmasters_sites_delete_execute()` or `webmasters_sites_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sites_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sites_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `webmasters_sites_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `webmasters_sites_delete_task()`.
-/// For the simplest API, use `webmasters_sites_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sites_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn webmasters_sites_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = webmasters_sites_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`webmasters_sites_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WebmastersSitesDeleteArgs {
-    /// Path parameter: siteUrl
-    pub siteUrl: String,
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Removes a site from the set of the user's Search Console sites.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `webmasters_sites_delete_builder()` + `webmasters_sites_delete_execute()`.
-/// For task-level control, use `webmasters_sites_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sites_delete(
-    client: &SimpleHttpClient,
-    args: &WebmastersSitesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = webmasters_sites_delete_builder(client, &args.siteUrl)?;
-    webmasters_sites_delete_execute(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Retrieves information about specific site.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `webmasters_sites_get_execute()` to send, or `webmasters_sites_get` for simplest API.
-
-pub fn webmasters_sites_get_builder(
-    client: &SimpleHttpClient,
-    siteUrl: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
-        siteUrl,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Retrieves information about specific site.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `webmasters_sites_get_execute()` or `webmasters_sites_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sites_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sites_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WmxSite>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WmxSite = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Retrieves information about specific site.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `webmasters_sites_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `webmasters_sites_get_task()`.
-/// For the simplest API, use `webmasters_sites_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `webmasters_sites_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn webmasters_sites_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WmxSite>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = webmasters_sites_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`webmasters_sites_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WebmastersSitesGetArgs {
-    /// Path parameter: siteUrl
-    pub siteUrl: String,
-}
-
-/// GET webmasters/v3/sites/{siteUrl}
-/// Retrieves information about specific site.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `webmasters_sites_get_builder()` + `webmasters_sites_get_execute()`.
-/// For task-level control, use `webmasters_sites_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn webmasters_sites_get(
-    client: &SimpleHttpClient,
-    args: &WebmastersSitesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WmxSite>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = webmasters_sites_get_builder(client, &args.siteUrl)?;
-    webmasters_sites_get_execute(builder)
 }
 
 /// GET webmasters/v3/sites
@@ -1281,11 +691,11 @@ pub fn webmasters_sites_list_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://searchconsole.googleapis.com/webmasters/v3/sites",);
+    let endpoint_url = format!("https://searchconsole.googleapis.com/webmasters/v3/sites",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1315,8 +725,11 @@ pub fn webmasters_sites_list_builder(
 pub fn webmasters_sites_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SitesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SitesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1428,11 +841,12 @@ pub fn searchconsole_url_inspection_index_inspect_builder(
     body: &InspectUrlIndexRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",);
+    let endpoint_url =
+        format!("https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1464,8 +878,11 @@ pub fn searchconsole_url_inspection_index_inspect_builder(
 pub fn searchconsole_url_inspection_index_inspect_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InspectUrlIndexResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InspectUrlIndexResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1585,12 +1002,12 @@ pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_builder(
     body: &RunMobileFriendlyTestRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://searchconsole.googleapis.com/v1/urlTestingTools/mobileFriendlyTest:run",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1623,8 +1040,9 @@ pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RunMobileFriendlyTestResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RunMobileFriendlyTestResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

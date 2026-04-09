@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,16 +29,16 @@ use serde::Serialize;
 
 pub fn kgsearch_entities_search_builder(
     client: &SimpleHttpClient,
-    ids: Option<&str>,
+    ids: Option<String>,
     indent: Option<bool>,
-    languages: Option<&str>,
+    languages: Option<String>,
     limit: Option<i32>,
     prefix: Option<bool>,
-    query: Option<&str>,
-    types: Option<&str>,
+    query: Option<String>,
+    types: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://kgsearch.googleapis.com/v1/entities:search",);
+    let endpoint_url = format!("https://kgsearch.googleapis.com/v1/entities:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -64,9 +65,9 @@ pub fn kgsearch_entities_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -100,8 +101,11 @@ pub fn kgsearch_entities_search_builder(
 pub fn kgsearch_entities_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -220,13 +224,13 @@ pub fn kgsearch_entities_search(
 > {
     let builder = kgsearch_entities_search_builder(
         client,
-        args.ids.as_deref(),
-        args.indent,
-        args.languages.as_deref(),
-        args.limit,
-        args.prefix,
-        args.query.as_deref(),
-        args.types.as_deref(),
+        args.ids.clone(),
+        args.indent.clone(),
+        args.languages.clone(),
+        args.limit.clone(),
+        args.prefix.clone(),
+        args.query.clone(),
+        args.types.clone(),
     )?;
     kgsearch_entities_search_execute(builder)
 }

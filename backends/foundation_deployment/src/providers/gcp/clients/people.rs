@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,12 +29,12 @@ use serde::Serialize;
 
 pub fn people_contact_groups_batch_get_builder(
     client: &SimpleHttpClient,
-    groupFields: Option<&str>,
+    groupFields: Option<String>,
     maxMembers: Option<i32>,
-    resourceNames: Option<&str>,
+    resourceNames: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -48,9 +49,9 @@ pub fn people_contact_groups_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -85,8 +86,9 @@ pub fn people_contact_groups_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetContactGroupsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetContactGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -202,9 +204,9 @@ pub fn people_contact_groups_batch_get(
 > {
     let builder = people_contact_groups_batch_get_builder(
         client,
-        args.groupFields.as_deref(),
-        args.maxMembers,
-        args.resourceNames.as_deref(),
+        args.groupFields.clone(),
+        args.maxMembers.clone(),
+        args.resourceNames.clone(),
     )?;
     people_contact_groups_batch_get_execute(builder)
 }
@@ -220,11 +222,11 @@ pub fn people_contact_groups_create_builder(
     body: &CreateContactGroupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/contactGroups",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -256,7 +258,12 @@ pub fn people_contact_groups_create_builder(
 pub fn people_contact_groups_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContactGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -372,14 +379,11 @@ pub fn people_contact_groups_create(
 
 pub fn people_contact_groups_delete_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
     deleteContacts: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/contactGroups/{}",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -388,9 +392,9 @@ pub fn people_contact_groups_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -424,7 +428,12 @@ pub fn people_contact_groups_delete_builder(
 pub fn people_contact_groups_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -526,541 +535,12 @@ pub fn people_contact_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        people_contact_groups_delete_builder(client, &args.resourceName, args.deleteContacts)?;
+    let builder = people_contact_groups_delete_builder(
+        client,
+        args.resourceName.clone(),
+        args.deleteContacts.clone(),
+    )?;
     people_contact_groups_delete_execute(builder)
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `people_contact_groups_get_execute()` to send, or `people_contact_groups_get` for simplest API.
-
-pub fn people_contact_groups_get_builder(
-    client: &SimpleHttpClient,
-    resourceName: &str,
-    groupFields: Option<&str>,
-    maxMembers: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/contactGroups/{}",
-        resourceName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = groupFields {
-        query_parts.push(format!("groupFields={}", val));
-    }
-    if let Some(val) = maxMembers {
-        query_parts.push(format!("maxMembers={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `people_contact_groups_get_execute()` or `people_contact_groups_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContactGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `people_contact_groups_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `people_contact_groups_get_task()`.
-/// For the simplest API, use `people_contact_groups_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn people_contact_groups_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = people_contact_groups_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`people_contact_groups_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeopleContactGroupsGetArgs {
-    /// Path parameter: resourceName
-    pub resourceName: String,
-    /// Query parameter: groupFields
-    pub groupFields: Option<String>,
-    /// Query parameter: maxMembers
-    pub maxMembers: Option<i32>,
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `people_contact_groups_get_builder()` + `people_contact_groups_get_execute()`.
-/// For task-level control, use `people_contact_groups_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_get(
-    client: &SimpleHttpClient,
-    args: &PeopleContactGroupsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = people_contact_groups_get_builder(
-        client,
-        &args.resourceName,
-        args.groupFields.as_deref(),
-        args.maxMembers,
-    )?;
-    people_contact_groups_get_execute(builder)
-}
-
-/// GET v1/contactGroups
-/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `people_contact_groups_list_execute()` to send, or `people_contact_groups_list` for simplest API.
-
-pub fn people_contact_groups_list_builder(
-    client: &SimpleHttpClient,
-    groupFields: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://people.googleapis.com/v1/contactGroups",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = groupFields {
-        query_parts.push(format!("groupFields={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = syncToken {
-        query_parts.push(format!("syncToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/contactGroups
-/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `people_contact_groups_list_execute()` or `people_contact_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListContactGroupsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/contactGroups
-/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `people_contact_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `people_contact_groups_list_task()`.
-/// For the simplest API, use `people_contact_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn people_contact_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = people_contact_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`people_contact_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeopleContactGroupsListArgs {
-    /// Query parameter: groupFields
-    pub groupFields: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-}
-
-/// GET v1/contactGroups
-/// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `people_contact_groups_list_builder()` + `people_contact_groups_list_execute()`.
-/// For task-level control, use `people_contact_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_list(
-    client: &SimpleHttpClient,
-    args: &PeopleContactGroupsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = people_contact_groups_list_builder(
-        client,
-        args.groupFields.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.syncToken.as_deref(),
-    )?;
-    people_contact_groups_list_execute(builder)
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `people_contact_groups_update_execute()` to send, or `people_contact_groups_update` for simplest API.
-
-pub fn people_contact_groups_update_builder(
-    client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &UpdateContactGroupRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/contactGroups/{}",
-        resourceName,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `people_contact_groups_update_execute()` or `people_contact_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContactGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `people_contact_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `people_contact_groups_update_task()`.
-/// For the simplest API, use `people_contact_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `people_contact_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn people_contact_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = people_contact_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`people_contact_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PeopleContactGroupsUpdateArgs {
-    /// Path parameter: resourceName
-    pub resourceName: String,
-    /// Request body.
-    pub body: UpdateContactGroupRequest,
-}
-
-/// GET v1/contactGroups/{contactGroupsId}
-/// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `people_contact_groups_update_builder()` + `people_contact_groups_update_execute()`.
-/// For task-level control, use `people_contact_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn people_contact_groups_update(
-    client: &SimpleHttpClient,
-    args: &PeopleContactGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = people_contact_groups_update_builder(client, &args.resourceName, &args.body)?;
-    people_contact_groups_update_execute(builder)
 }
 
 /// GET v1/contactGroups/{contactGroupsId}/members:modify
@@ -1071,18 +551,15 @@ pub fn people_contact_groups_update(
 
 pub fn people_contact_groups_members_modify_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
     body: &ModifyContactGroupMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/contactGroups/{}/members:modify",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups/{}/members:modify",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1115,8 +592,9 @@ pub fn people_contact_groups_members_modify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ModifyContactGroupMembersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ModifyContactGroupMembersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1228,8 +706,11 @@ pub fn people_contact_groups_members_modify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_contact_groups_members_modify_builder(client, &args.resourceName, &args.body)?;
+    let builder = people_contact_groups_members_modify_builder(
+        client,
+        args.resourceName.clone(),
+        &args.body,
+    )?;
     people_contact_groups_members_modify_execute(builder)
 }
 
@@ -1241,18 +722,17 @@ pub fn people_contact_groups_members_modify(
 
 pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
     body: &CopyOtherContactToMyContactsGroupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://people.googleapis.com/v1/otherContacts/{}:copyOtherContactToMyContactsGroup",
-        resourceName,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1284,7 +764,12 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
 pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1388,7 +873,7 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 > {
     let builder = people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
         client,
-        &args.resourceName,
+        args.resourceName.clone(),
         &args.body,
     )?;
     people_other_contacts_copy_other_contact_to_my_contacts_group_execute(builder)
@@ -1403,14 +888,14 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 pub fn people_other_contacts_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    pageToken: Option<String>,
+    readMask: Option<String>,
     requestSyncToken: Option<bool>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    sources: Option<String>,
+    syncToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/otherContacts",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1434,9 +919,9 @@ pub fn people_other_contacts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1470,8 +955,11 @@ pub fn people_other_contacts_list_builder(
 pub fn people_other_contacts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOtherContactsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOtherContactsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1588,12 +1076,12 @@ pub fn people_other_contacts_list(
 > {
     let builder = people_other_contacts_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.readMask.as_deref(),
-        args.requestSyncToken,
-        args.sources.as_deref(),
-        args.syncToken.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.readMask.clone(),
+        args.requestSyncToken.clone(),
+        args.sources.clone(),
+        args.syncToken.clone(),
     )?;
     people_other_contacts_list_execute(builder)
 }
@@ -1607,11 +1095,11 @@ pub fn people_other_contacts_list(
 pub fn people_other_contacts_search_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    query: Option<&str>,
-    readMask: Option<&str>,
+    query: Option<String>,
+    readMask: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/otherContacts:search",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1626,9 +1114,9 @@ pub fn people_other_contacts_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1662,8 +1150,11 @@ pub fn people_other_contacts_search_builder(
 pub fn people_other_contacts_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1774,9 +1265,9 @@ pub fn people_other_contacts_search(
 > {
     let builder = people_other_contacts_search_builder(
         client,
-        args.pageSize,
-        args.query.as_deref(),
-        args.readMask.as_deref(),
+        args.pageSize.clone(),
+        args.query.clone(),
+        args.readMask.clone(),
     )?;
     people_other_contacts_search_execute(builder)
 }
@@ -1792,11 +1283,11 @@ pub fn people_people_batch_create_contacts_builder(
     body: &BatchCreateContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:batchCreateContacts",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchCreateContacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1828,8 +1319,11 @@ pub fn people_people_batch_create_contacts_builder(
 pub fn people_people_batch_create_contacts_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchCreateContactsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchCreateContactsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1953,11 +1447,11 @@ pub fn people_people_batch_delete_contacts_builder(
     body: &BatchDeleteContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:batchDeleteContacts",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchDeleteContacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1989,7 +1483,12 @@ pub fn people_people_batch_delete_contacts_builder(
 pub fn people_people_batch_delete_contacts_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2104,11 +1603,11 @@ pub fn people_people_batch_update_contacts_builder(
     body: &BatchUpdateContactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:batchUpdateContacts",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchUpdateContacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2140,8 +1639,11 @@ pub fn people_people_batch_update_contacts_builder(
 pub fn people_people_batch_update_contacts_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchUpdateContactsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateContactsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2262,12 +1764,12 @@ pub fn people_people_batch_update_contacts(
 
 pub fn people_people_create_contact_builder(
     client: &SimpleHttpClient,
-    personFields: Option<&str>,
-    sources: Option<&str>,
+    personFields: Option<String>,
+    sources: Option<String>,
     body: &Person,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:createContact",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:createContact",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2279,9 +1781,9 @@ pub fn people_people_create_contact_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2317,7 +1819,12 @@ pub fn people_people_create_contact_builder(
 pub fn people_people_create_contact_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2423,8 +1930,8 @@ pub fn people_people_create_contact(
 > {
     let builder = people_people_create_contact_builder(
         client,
-        args.personFields.as_deref(),
-        args.sources.as_deref(),
+        args.personFields.clone(),
+        args.sources.clone(),
         &args.body,
     )?;
     people_people_create_contact_execute(builder)
@@ -2438,17 +1945,14 @@ pub fn people_people_create_contact(
 
 pub fn people_people_delete_contact_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/people/{}:deleteContact",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContact",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2478,7 +1982,12 @@ pub fn people_people_delete_contact_builder(
 pub fn people_people_delete_contact_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2578,7 +2087,7 @@ pub fn people_people_delete_contact(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_delete_contact_builder(client, &args.resourceName)?;
+    let builder = people_people_delete_contact_builder(client, args.resourceName.clone())?;
     people_people_delete_contact_execute(builder)
 }
 
@@ -2590,15 +2099,12 @@ pub fn people_people_delete_contact(
 
 pub fn people_people_delete_contact_photo_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    sources: Option<&str>,
+    resourceName: String,
+    personFields: Option<String>,
+    sources: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/people/{}:deleteContactPhoto",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContactPhoto",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2610,9 +2116,9 @@ pub fn people_people_delete_contact_photo_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2646,8 +2152,11 @@ pub fn people_people_delete_contact_photo_builder(
 pub fn people_people_delete_contact_photo_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeleteContactPhotoResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeleteContactPhotoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2762,9 +2271,9 @@ pub fn people_people_delete_contact_photo(
 > {
     let builder = people_people_delete_contact_photo_builder(
         client,
-        &args.resourceName,
-        args.personFields.as_deref(),
-        args.sources.as_deref(),
+        args.resourceName.clone(),
+        args.personFields.clone(),
+        args.sources.clone(),
     )?;
     people_people_delete_contact_photo_execute(builder)
 }
@@ -2777,13 +2286,13 @@ pub fn people_people_delete_contact_photo(
 
 pub fn people_people_get_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
-    sources: Option<&str>,
+    resourceName: String,
+    personFields: Option<String>,
+    requestMask_includeField: Option<String>,
+    sources: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people/{}", resourceName,);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2791,16 +2300,16 @@ pub fn people_people_get_builder(
         query_parts.push(format!("personFields={}", val));
     }
     if let Some(val) = requestMask_includeField {
-        query_parts.push(format!("requestMask_includeField={}", val));
+        query_parts.push(format!("requestMask.includeField={}", val));
     }
     if let Some(val) = sources {
         query_parts.push(format!("sources={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2834,7 +2343,12 @@ pub fn people_people_get_builder(
 pub fn people_people_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2942,10 +2456,10 @@ pub fn people_people_get(
 > {
     let builder = people_people_get_builder(
         client,
-        &args.resourceName,
-        args.personFields.as_deref(),
-        args.requestMask_includeField.as_deref(),
-        args.sources.as_deref(),
+        args.resourceName.clone(),
+        args.personFields.clone(),
+        args.requestMask_includeField.clone(),
+        args.sources.clone(),
     )?;
     people_people_get_execute(builder)
 }
@@ -2958,13 +2472,13 @@ pub fn people_people_get(
 
 pub fn people_people_get_batch_get_builder(
     client: &SimpleHttpClient,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
-    resourceNames: Option<&str>,
-    sources: Option<&str>,
+    personFields: Option<String>,
+    requestMask_includeField: Option<String>,
+    resourceNames: Option<String>,
+    sources: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:batchGet",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2972,7 +2486,7 @@ pub fn people_people_get_batch_get_builder(
         query_parts.push(format!("personFields={}", val));
     }
     if let Some(val) = requestMask_includeField {
-        query_parts.push(format!("requestMask_includeField={}", val));
+        query_parts.push(format!("requestMask.includeField={}", val));
     }
     if let Some(val) = resourceNames {
         query_parts.push(format!("resourceNames={}", val));
@@ -2982,9 +2496,9 @@ pub fn people_people_get_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3018,8 +2532,11 @@ pub fn people_people_get_batch_get_builder(
 pub fn people_people_get_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetPeopleResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetPeopleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3132,10 +2649,10 @@ pub fn people_people_get_batch_get(
 > {
     let builder = people_people_get_batch_get_builder(
         client,
-        args.personFields.as_deref(),
-        args.requestMask_includeField.as_deref(),
-        args.resourceNames.as_deref(),
-        args.sources.as_deref(),
+        args.personFields.clone(),
+        args.requestMask_includeField.clone(),
+        args.resourceNames.clone(),
+        args.sources.clone(),
     )?;
     people_people_get_batch_get_execute(builder)
 }
@@ -3148,16 +2665,16 @@ pub fn people_people_get_batch_get(
 
 pub fn people_people_list_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: Option<&str>,
+    mergeSources: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    pageToken: Option<String>,
+    readMask: Option<String>,
     requestSyncToken: Option<bool>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    sources: Option<String>,
+    syncToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3184,9 +2701,9 @@ pub fn people_people_list_directory_people_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3220,8 +2737,11 @@ pub fn people_people_list_directory_people_builder(
 pub fn people_people_list_directory_people_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDirectoryPeopleResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDirectoryPeopleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3344,13 +2864,13 @@ pub fn people_people_list_directory_people(
 > {
     let builder = people_people_list_directory_people_builder(
         client,
-        args.mergeSources.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.readMask.as_deref(),
-        args.requestSyncToken,
-        args.sources.as_deref(),
-        args.syncToken.as_deref(),
+        args.mergeSources.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.readMask.clone(),
+        args.requestSyncToken.clone(),
+        args.sources.clone(),
+        args.syncToken.clone(),
     )?;
     people_people_list_directory_people_execute(builder)
 }
@@ -3364,12 +2884,12 @@ pub fn people_people_list_directory_people(
 pub fn people_people_search_contacts_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    query: Option<&str>,
-    readMask: Option<&str>,
-    sources: Option<&str>,
+    query: Option<String>,
+    readMask: Option<String>,
+    sources: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:searchContacts",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:searchContacts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3387,9 +2907,9 @@ pub fn people_people_search_contacts_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3423,8 +2943,11 @@ pub fn people_people_search_contacts_builder(
 pub fn people_people_search_contacts_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3537,10 +3060,10 @@ pub fn people_people_search_contacts(
 > {
     let builder = people_people_search_contacts_builder(
         client,
-        args.pageSize,
-        args.query.as_deref(),
-        args.readMask.as_deref(),
-        args.sources.as_deref(),
+        args.pageSize.clone(),
+        args.query.clone(),
+        args.readMask.clone(),
+        args.sources.clone(),
     )?;
     people_people_search_contacts_execute(builder)
 }
@@ -3553,15 +3076,15 @@ pub fn people_people_search_contacts(
 
 pub fn people_people_search_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: Option<&str>,
+    mergeSources: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    readMask: Option<&str>,
-    sources: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
+    readMask: Option<String>,
+    sources: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
+    let endpoint_url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3585,9 +3108,9 @@ pub fn people_people_search_directory_people_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3622,8 +3145,9 @@ pub fn people_people_search_directory_people_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<SearchDirectoryPeopleResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<SearchDirectoryPeopleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3745,12 +3269,12 @@ pub fn people_people_search_directory_people(
 > {
     let builder = people_people_search_directory_people_builder(
         client,
-        args.mergeSources.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
-        args.readMask.as_deref(),
-        args.sources.as_deref(),
+        args.mergeSources.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
+        args.readMask.clone(),
+        args.sources.clone(),
     )?;
     people_people_search_directory_people_execute(builder)
 }
@@ -3763,17 +3287,14 @@ pub fn people_people_search_directory_people(
 
 pub fn people_people_update_contact_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    sources: Option<&str>,
-    updatePersonFields: Option<&str>,
+    resourceName: String,
+    personFields: Option<String>,
+    sources: Option<String>,
+    updatePersonFields: Option<String>,
     body: &Person,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/people/{}:updateContact",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:updateContact",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3788,9 +3309,9 @@ pub fn people_people_update_contact_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3826,7 +3347,12 @@ pub fn people_people_update_contact_builder(
 pub fn people_people_update_contact_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Person>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3936,10 +3462,10 @@ pub fn people_people_update_contact(
 > {
     let builder = people_people_update_contact_builder(
         client,
-        &args.resourceName,
-        args.personFields.as_deref(),
-        args.sources.as_deref(),
-        args.updatePersonFields.as_deref(),
+        args.resourceName.clone(),
+        args.personFields.clone(),
+        args.sources.clone(),
+        args.updatePersonFields.clone(),
         &args.body,
     )?;
     people_people_update_contact_execute(builder)
@@ -3953,18 +3479,15 @@ pub fn people_people_update_contact(
 
 pub fn people_people_update_contact_photo_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
     body: &UpdateContactPhotoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/people/{}:updateContactPhoto",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:updateContactPhoto",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3996,8 +3519,11 @@ pub fn people_people_update_contact_photo_builder(
 pub fn people_people_update_contact_photo_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UpdateContactPhotoResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpdateContactPhotoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4109,7 +3635,7 @@ pub fn people_people_update_contact_photo(
     ApiError,
 > {
     let builder =
-        people_people_update_contact_photo_builder(client, &args.resourceName, &args.body)?;
+        people_people_update_contact_photo_builder(client, args.resourceName.clone(), &args.body)?;
     people_people_update_contact_photo_execute(builder)
 }
 
@@ -4121,21 +3647,18 @@ pub fn people_people_update_contact_photo(
 
 pub fn people_people_connections_list_builder(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    resourceName: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
+    pageToken: Option<String>,
+    personFields: Option<String>,
+    requestMask_includeField: Option<String>,
     requestSyncToken: Option<bool>,
-    sortOrder: Option<&str>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    sortOrder: Option<String>,
+    sources: Option<String>,
+    syncToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://people.googleapis.com/v1/people/{}/connections",
-        resourceName,
-    );
+    let endpoint_url = format!("https://people.googleapis.com/v1/people/{}/connections",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4149,7 +3672,7 @@ pub fn people_people_connections_list_builder(
         query_parts.push(format!("personFields={}", val));
     }
     if let Some(val) = requestMask_includeField {
-        query_parts.push(format!("requestMask_includeField={}", val));
+        query_parts.push(format!("requestMask.includeField={}", val));
     }
     if let Some(val) = requestSyncToken {
         query_parts.push(format!("requestSyncToken={}", val));
@@ -4165,9 +3688,9 @@ pub fn people_people_connections_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4201,8 +3724,11 @@ pub fn people_people_connections_list_builder(
 pub fn people_people_connections_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConnectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4325,15 +3851,15 @@ pub fn people_people_connections_list(
 > {
     let builder = people_people_connections_list_builder(
         client,
-        &args.resourceName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.personFields.as_deref(),
-        args.requestMask_includeField.as_deref(),
-        args.requestSyncToken,
-        args.sortOrder.as_deref(),
-        args.sources.as_deref(),
-        args.syncToken.as_deref(),
+        args.resourceName.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.personFields.clone(),
+        args.requestMask_includeField.clone(),
+        args.requestSyncToken.clone(),
+        args.sortOrder.clone(),
+        args.sources.clone(),
+        args.syncToken.clone(),
     )?;
     people_people_connections_list_execute(builder)
 }

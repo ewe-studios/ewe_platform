@@ -12,667 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET data/ga
-/// Returns Analytics data for a view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_data_ga_get_execute()` to send, or `analytics_data_ga_get` for simplest API.
-
-pub fn analytics_data_ga_get_builder(
-    client: &SimpleHttpClient,
-    ids: &str,
-    start_date: &str,
-    end_date: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    include_empty_rows: Option<bool>,
-    max_results: Option<i32>,
-    output: Option<&str>,
-    samplingLevel: Option<&str>,
-    segment: Option<&str>,
-    sort: Option<&str>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/data/ga",
-        ids, start_date, end_date, metrics,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = dimensions {
-        query_parts.push(format!("dimensions={}", val));
-    }
-    if let Some(val) = filters {
-        query_parts.push(format!("filters={}", val));
-    }
-    if let Some(val) = include_empty_rows {
-        query_parts.push(format!("include_empty_rows={}", val));
-    }
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = output {
-        query_parts.push(format!("output={}", val));
-    }
-    if let Some(val) = samplingLevel {
-        query_parts.push(format!("samplingLevel={}", val));
-    }
-    if let Some(val) = segment {
-        query_parts.push(format!("segment={}", val));
-    }
-    if let Some(val) = sort {
-        query_parts.push(format!("sort={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET data/ga
-/// Returns Analytics data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_data_ga_get_execute()` or `analytics_data_ga_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_ga_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_ga_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GaData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GaData = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET data/ga
-/// Returns Analytics data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_data_ga_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_data_ga_get_task()`.
-/// For the simplest API, use `analytics_data_ga_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_ga_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_data_ga_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GaData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_data_ga_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_data_ga_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsDataGaGetArgs {
-    /// Path parameter: ids
-    pub ids: String,
-    /// Path parameter: start_date
-    pub start_date: String,
-    /// Path parameter: end_date
-    pub end_date: String,
-    /// Path parameter: metrics
-    pub metrics: String,
-    /// Query parameter: dimensions
-    pub dimensions: Option<String>,
-    /// Query parameter: filters
-    pub filters: Option<String>,
-    /// Query parameter: include_empty_rows
-    pub include_empty_rows: Option<bool>,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: output
-    pub output: Option<String>,
-    /// Query parameter: samplingLevel
-    pub samplingLevel: Option<String>,
-    /// Query parameter: segment
-    pub segment: Option<String>,
-    /// Query parameter: sort
-    pub sort: Option<String>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET data/ga
-/// Returns Analytics data for a view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_data_ga_get_builder()` + `analytics_data_ga_get_execute()`.
-/// For task-level control, use `analytics_data_ga_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_ga_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsDataGaGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GaData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_data_ga_get_builder(
-        client,
-        &args.ids,
-        &args.start_date,
-        &args.end_date,
-        &args.metrics,
-        args.dimensions.as_deref(),
-        args.filters.as_deref(),
-        args.include_empty_rows,
-        args.max_results,
-        args.output.as_deref(),
-        args.samplingLevel.as_deref(),
-        args.segment.as_deref(),
-        args.sort.as_deref(),
-        args.start_index,
-    )?;
-    analytics_data_ga_get_execute(builder)
-}
-
-/// GET data/mcf
-/// Returns Analytics Multi-Channel Funnels data for a view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_data_mcf_get_execute()` to send, or `analytics_data_mcf_get` for simplest API.
-
-pub fn analytics_data_mcf_get_builder(
-    client: &SimpleHttpClient,
-    ids: &str,
-    start_date: &str,
-    end_date: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    max_results: Option<i32>,
-    samplingLevel: Option<&str>,
-    sort: Option<&str>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/data/mcf",
-        ids, start_date, end_date, metrics,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = dimensions {
-        query_parts.push(format!("dimensions={}", val));
-    }
-    if let Some(val) = filters {
-        query_parts.push(format!("filters={}", val));
-    }
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = samplingLevel {
-        query_parts.push(format!("samplingLevel={}", val));
-    }
-    if let Some(val) = sort {
-        query_parts.push(format!("sort={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET data/mcf
-/// Returns Analytics Multi-Channel Funnels data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_data_mcf_get_execute()` or `analytics_data_mcf_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_mcf_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_mcf_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<McfData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: McfData = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET data/mcf
-/// Returns Analytics Multi-Channel Funnels data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_data_mcf_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_data_mcf_get_task()`.
-/// For the simplest API, use `analytics_data_mcf_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_mcf_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_data_mcf_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<McfData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_data_mcf_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_data_mcf_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsDataMcfGetArgs {
-    /// Path parameter: ids
-    pub ids: String,
-    /// Path parameter: start_date
-    pub start_date: String,
-    /// Path parameter: end_date
-    pub end_date: String,
-    /// Path parameter: metrics
-    pub metrics: String,
-    /// Query parameter: dimensions
-    pub dimensions: Option<String>,
-    /// Query parameter: filters
-    pub filters: Option<String>,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: samplingLevel
-    pub samplingLevel: Option<String>,
-    /// Query parameter: sort
-    pub sort: Option<String>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET data/mcf
-/// Returns Analytics Multi-Channel Funnels data for a view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_data_mcf_get_builder()` + `analytics_data_mcf_get_execute()`.
-/// For task-level control, use `analytics_data_mcf_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_mcf_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsDataMcfGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<McfData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_data_mcf_get_builder(
-        client,
-        &args.ids,
-        &args.start_date,
-        &args.end_date,
-        &args.metrics,
-        args.dimensions.as_deref(),
-        args.filters.as_deref(),
-        args.max_results,
-        args.samplingLevel.as_deref(),
-        args.sort.as_deref(),
-        args.start_index,
-    )?;
-    analytics_data_mcf_get_execute(builder)
-}
-
-/// GET data/realtime
-/// Returns real time data for a view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_data_realtime_get_execute()` to send, or `analytics_data_realtime_get` for simplest API.
-
-pub fn analytics_data_realtime_get_builder(
-    client: &SimpleHttpClient,
-    ids: &str,
-    metrics: &str,
-    dimensions: Option<&str>,
-    filters: Option<&str>,
-    max_results: Option<i32>,
-    sort: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/data/realtime",
-        ids, metrics,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = dimensions {
-        query_parts.push(format!("dimensions={}", val));
-    }
-    if let Some(val) = filters {
-        query_parts.push(format!("filters={}", val));
-    }
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = sort {
-        query_parts.push(format!("sort={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET data/realtime
-/// Returns real time data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_data_realtime_get_execute()` or `analytics_data_realtime_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_realtime_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_realtime_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RealtimeData>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RealtimeData = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET data/realtime
-/// Returns real time data for a view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_data_realtime_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_data_realtime_get_task()`.
-/// For the simplest API, use `analytics_data_realtime_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_data_realtime_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_data_realtime_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RealtimeData>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_data_realtime_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_data_realtime_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsDataRealtimeGetArgs {
-    /// Path parameter: ids
-    pub ids: String,
-    /// Path parameter: metrics
-    pub metrics: String,
-    /// Query parameter: dimensions
-    pub dimensions: Option<String>,
-    /// Query parameter: filters
-    pub filters: Option<String>,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: sort
-    pub sort: Option<String>,
-}
-
-/// GET data/realtime
-/// Returns real time data for a view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_data_realtime_get_builder()` + `analytics_data_realtime_get_execute()`.
-/// For task-level control, use `analytics_data_realtime_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_data_realtime_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsDataRealtimeGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RealtimeData>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_data_realtime_get_builder(
-        client,
-        &args.ids,
-        &args.metrics,
-        args.dimensions.as_deref(),
-        args.filters.as_deref(),
-        args.max_results,
-        args.sort.as_deref(),
-    )?;
-    analytics_data_realtime_get_execute(builder)
-}
 
 /// GET management/accountSummaries
 /// Lists account summaries (lightweight tree comprised of `accounts/properties/profiles`) to which the user has access.
@@ -686,21 +33,22 @@ pub fn analytics_management_account_summaries_list_builder(
     start_index: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/management/accountSummaries",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/analytics/v3/management/accountSummaries",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
+        query_parts.push(format!("max-results={}", val));
     }
     if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
+        query_parts.push(format!("start-index={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -734,8 +82,11 @@ pub fn analytics_management_account_summaries_list_builder(
 pub fn analytics_management_account_summaries_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountSummaries>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountSummaries>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -844,8 +195,8 @@ pub fn analytics_management_account_summaries_list(
 > {
     let builder = analytics_management_account_summaries_list_builder(
         client,
-        args.max_results,
-        args.start_index,
+        args.max_results.clone(),
+        args.start_index.clone(),
     )?;
     analytics_management_account_summaries_list_execute(builder)
 }
@@ -858,18 +209,19 @@ pub fn analytics_management_account_summaries_list(
 
 pub fn analytics_management_account_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    linkId: &str,
+    accountId: String,
+    linkId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks/{}",
-        accountId, linkId,
+        accountId.as_str(),
+        linkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -899,7 +251,12 @@ pub fn analytics_management_account_user_links_delete_builder(
 pub fn analytics_management_account_user_links_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1000,8 +357,8 @@ pub fn analytics_management_account_user_links_delete(
 > {
     let builder = analytics_management_account_user_links_delete_builder(
         client,
-        &args.accountId,
-        &args.linkId,
+        args.accountId.clone(),
+        args.linkId.clone(),
     )?;
     analytics_management_account_user_links_delete_execute(builder)
 }
@@ -1014,18 +371,18 @@ pub fn analytics_management_account_user_links_delete(
 
 pub fn analytics_management_account_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1057,8 +414,11 @@ pub fn analytics_management_account_user_links_insert_builder(
 pub fn analytics_management_account_user_links_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntityUserLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1167,364 +527,10 @@ pub fn analytics_management_account_user_links_insert(
 > {
     let builder = analytics_management_account_user_links_insert_builder(
         client,
-        &args.accountId,
+        args.accountId.clone(),
         &args.body,
     )?;
     analytics_management_account_user_links_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks
-/// Lists account-user links for a given account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_account_user_links_list_execute()` to send, or `analytics_management_account_user_links_list` for simplest API.
-
-pub fn analytics_management_account_user_links_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks
-/// Lists account-user links for a given account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_account_user_links_list_execute()` or `analytics_management_account_user_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_account_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_account_user_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLinks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks
-/// Lists account-user links for a given account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_account_user_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_account_user_links_list_task()`.
-/// For the simplest API, use `analytics_management_account_user_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_account_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_account_user_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_account_user_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_account_user_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementAccountUserLinksListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks
-/// Lists account-user links for a given account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_account_user_links_list_builder()` + `analytics_management_account_user_links_list_execute()`.
-/// For task-level control, use `analytics_management_account_user_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_account_user_links_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementAccountUserLinksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_account_user_links_list_builder(
-        client,
-        &args.accountId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_account_user_links_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_account_user_links_update_execute()` to send, or `analytics_management_account_user_links_update` for simplest API.
-
-pub fn analytics_management_account_user_links_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks/{}",
-        accountId, linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_account_user_links_update_execute()` or `analytics_management_account_user_links_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_account_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_account_user_links_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_account_user_links_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_account_user_links_update_task()`.
-/// For the simplest API, use `analytics_management_account_user_links_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_account_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_account_user_links_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_account_user_links_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_account_user_links_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementAccountUserLinksUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-    /// Request body.
-    pub body: EntityUserLink,
-}
-
-/// GET management/accounts/{accountId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_account_user_links_update_builder()` + `analytics_management_account_user_links_update_execute()`.
-/// For task-level control, use `analytics_management_account_user_links_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_account_user_links_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementAccountUserLinksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_account_user_links_update_builder(
-        client,
-        &args.accountId,
-        &args.linkId,
-        &args.body,
-    )?;
-    analytics_management_account_user_links_update_execute(builder)
 }
 
 /// GET management/accounts
@@ -1539,21 +545,21 @@ pub fn analytics_management_accounts_list_builder(
     start_index: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/management/accounts",);
+    let endpoint_url = format!("https://www.googleapis.com/analytics/v3/management/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
+        query_parts.push(format!("max-results={}", val));
     }
     if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
+        query_parts.push(format!("start-index={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1587,7 +593,12 @@ pub fn analytics_management_accounts_list_builder(
 pub fn analytics_management_accounts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Accounts>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Accounts>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1689,8 +700,11 @@ pub fn analytics_management_accounts_list(
     impl StreamIterator<D = Result<ApiResponse<Accounts>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_accounts_list_builder(client, args.max_results, args.start_index)?;
+    let builder = analytics_management_accounts_list_builder(
+        client,
+        args.max_results.clone(),
+        args.start_index.clone(),
+    )?;
     analytics_management_accounts_list_execute(builder)
 }
 
@@ -1705,11 +719,12 @@ pub fn analytics_management_client_id_hash_client_id_builder(
     body: &HashClientIdRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/management/clientId:hashClientId",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/analytics/v3/management/clientId:hashClientId",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1741,8 +756,11 @@ pub fn analytics_management_client_id_hash_client_id_builder(
 pub fn analytics_management_client_id_hash_client_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<HashClientIdResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HashClientIdResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1859,31 +877,31 @@ pub fn analytics_management_client_id_hash_client_id(
 
 pub fn analytics_management_custom_data_sources_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     max_results: Option<i32>,
     start_index: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
+        query_parts.push(format!("max-results={}", val));
     }
     if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
+        query_parts.push(format!("start-index={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1917,8 +935,11 @@ pub fn analytics_management_custom_data_sources_list_builder(
 pub fn analytics_management_custom_data_sources_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDataSources>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomDataSources>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2031,10 +1052,10 @@ pub fn analytics_management_custom_data_sources_list(
 > {
     let builder = analytics_management_custom_data_sources_list_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.max_results.clone(),
+        args.start_index.clone(),
     )?;
     analytics_management_custom_data_sources_list_execute(builder)
 }
@@ -2047,21 +1068,21 @@ pub fn analytics_management_custom_data_sources_list(
 
 pub fn analytics_management_custom_dimensions_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
+    accountId: String,
+    webPropertyId: String,
+    customDimensionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions/{}",
-        accountId,
-        webPropertyId,
-        customDimensionId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        customDimensionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2091,8 +1112,11 @@ pub fn analytics_management_custom_dimensions_get_builder(
 pub fn analytics_management_custom_dimensions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomDimension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2203,9 +1227,9 @@ pub fn analytics_management_custom_dimensions_get(
 > {
     let builder = analytics_management_custom_dimensions_get_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDimensionId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.customDimensionId.clone(),
     )?;
     analytics_management_custom_dimensions_get_execute(builder)
 }
@@ -2218,20 +1242,20 @@ pub fn analytics_management_custom_dimensions_get(
 
 pub fn analytics_management_custom_dimensions_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &CustomDimension,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2263,8 +1287,11 @@ pub fn analytics_management_custom_dimensions_insert_builder(
 pub fn analytics_management_custom_dimensions_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomDimension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2375,583 +1402,11 @@ pub fn analytics_management_custom_dimensions_insert(
 > {
     let builder = analytics_management_custom_dimensions_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_custom_dimensions_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
-/// Lists custom dimensions to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_dimensions_list_execute()` to send, or `analytics_management_custom_dimensions_list` for simplest API.
-
-pub fn analytics_management_custom_dimensions_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions",
-        accountId,
-        webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
-/// Lists custom dimensions to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_dimensions_list_execute()` or `analytics_management_custom_dimensions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDimensions>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomDimensions = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
-/// Lists custom dimensions to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_dimensions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_dimensions_list_task()`.
-/// For the simplest API, use `analytics_management_custom_dimensions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_dimensions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimensions>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_dimensions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_dimensions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomDimensionsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
-/// Lists custom dimensions to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_dimensions_list_builder()` + `analytics_management_custom_dimensions_list_execute()`.
-/// For task-level control, use `analytics_management_custom_dimensions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomDimensionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimensions>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_dimensions_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_custom_dimensions_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_dimensions_patch_execute()` to send, or `analytics_management_custom_dimensions_patch` for simplest API.
-
-pub fn analytics_management_custom_dimensions_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomDimension,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions/{}",
-        accountId,
-        webPropertyId,
-        customDimensionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ignoreCustomDataSourceLinks {
-        query_parts.push(format!("ignoreCustomDataSourceLinks={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_dimensions_patch_execute()` or `analytics_management_custom_dimensions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomDimension = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_dimensions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_dimensions_patch_task()`.
-/// For the simplest API, use `analytics_management_custom_dimensions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_dimensions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_dimensions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_dimensions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomDimensionsPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: customDimensionId
-    pub customDimensionId: String,
-    /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<bool>,
-    /// Request body.
-    pub body: CustomDimension,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_dimensions_patch_builder()` + `analytics_management_custom_dimensions_patch_execute()`.
-/// For task-level control, use `analytics_management_custom_dimensions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomDimensionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_dimensions_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDimensionId,
-        args.ignoreCustomDataSourceLinks,
-        &args.body,
-    )?;
-    analytics_management_custom_dimensions_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_dimensions_update_execute()` to send, or `analytics_management_custom_dimensions_update` for simplest API.
-
-pub fn analytics_management_custom_dimensions_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDimensionId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomDimension,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions/{}",
-        accountId,
-        webPropertyId,
-        customDimensionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ignoreCustomDataSourceLinks {
-        query_parts.push(format!("ignoreCustomDataSourceLinks={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_dimensions_update_execute()` or `analytics_management_custom_dimensions_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomDimension = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_dimensions_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_dimensions_update_task()`.
-/// For the simplest API, use `analytics_management_custom_dimensions_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_dimensions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_dimensions_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_dimensions_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_dimensions_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomDimensionsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: customDimensionId
-    pub customDimensionId: String,
-    /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<bool>,
-    /// Request body.
-    pub body: CustomDimension,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
-/// Updates an existing custom dimension.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_dimensions_update_builder()` + `analytics_management_custom_dimensions_update_execute()`.
-/// For task-level control, use `analytics_management_custom_dimensions_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_dimensions_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomDimensionsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomDimension>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_dimensions_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDimensionId,
-        args.ignoreCustomDataSourceLinks,
-        &args.body,
-    )?;
-    analytics_management_custom_dimensions_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
@@ -2962,21 +1417,21 @@ pub fn analytics_management_custom_dimensions_update(
 
 pub fn analytics_management_custom_metrics_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
+    accountId: String,
+    webPropertyId: String,
+    customMetricId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics/{}",
-        accountId,
-        webPropertyId,
-        customMetricId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        customMetricId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3006,7 +1461,12 @@ pub fn analytics_management_custom_metrics_get_builder(
 pub fn analytics_management_custom_metrics_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomMetric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3116,9 +1576,9 @@ pub fn analytics_management_custom_metrics_get(
 > {
     let builder = analytics_management_custom_metrics_get_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customMetricId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.customMetricId.clone(),
     )?;
     analytics_management_custom_metrics_get_execute(builder)
 }
@@ -3131,20 +1591,20 @@ pub fn analytics_management_custom_metrics_get(
 
 pub fn analytics_management_custom_metrics_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &CustomMetric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3176,7 +1636,12 @@ pub fn analytics_management_custom_metrics_insert_builder(
 pub fn analytics_management_custom_metrics_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomMetric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3286,577 +1751,11 @@ pub fn analytics_management_custom_metrics_insert(
 > {
     let builder = analytics_management_custom_metrics_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_custom_metrics_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
-/// Lists custom metrics to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_metrics_list_execute()` to send, or `analytics_management_custom_metrics_list` for simplest API.
-
-pub fn analytics_management_custom_metrics_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics",
-        accountId,
-        webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
-/// Lists custom metrics to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_metrics_list_execute()` or `analytics_management_custom_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomMetrics>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomMetrics = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
-/// Lists custom metrics to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_metrics_list_task()`.
-/// For the simplest API, use `analytics_management_custom_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetrics>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomMetricsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
-/// Lists custom metrics to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_metrics_list_builder()` + `analytics_management_custom_metrics_list_execute()`.
-/// For task-level control, use `analytics_management_custom_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomMetricsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetrics>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_metrics_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_custom_metrics_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_metrics_patch_execute()` to send, or `analytics_management_custom_metrics_patch` for simplest API.
-
-pub fn analytics_management_custom_metrics_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomMetric,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics/{}",
-        accountId,
-        webPropertyId,
-        customMetricId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ignoreCustomDataSourceLinks {
-        query_parts.push(format!("ignoreCustomDataSourceLinks={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_metrics_patch_execute()` or `analytics_management_custom_metrics_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomMetric = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_metrics_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_metrics_patch_task()`.
-/// For the simplest API, use `analytics_management_custom_metrics_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_metrics_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_metrics_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_metrics_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomMetricsPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: customMetricId
-    pub customMetricId: String,
-    /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<bool>,
-    /// Request body.
-    pub body: CustomMetric,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_metrics_patch_builder()` + `analytics_management_custom_metrics_patch_execute()`.
-/// For task-level control, use `analytics_management_custom_metrics_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomMetricsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_metrics_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customMetricId,
-        args.ignoreCustomDataSourceLinks,
-        &args.body,
-    )?;
-    analytics_management_custom_metrics_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_custom_metrics_update_execute()` to send, or `analytics_management_custom_metrics_update` for simplest API.
-
-pub fn analytics_management_custom_metrics_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customMetricId: &str,
-    ignoreCustomDataSourceLinks: Option<bool>,
-    body: &CustomMetric,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics/{}",
-        accountId,
-        webPropertyId,
-        customMetricId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ignoreCustomDataSourceLinks {
-        query_parts.push(format!("ignoreCustomDataSourceLinks={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_custom_metrics_update_execute()` or `analytics_management_custom_metrics_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CustomMetric = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_custom_metrics_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_custom_metrics_update_task()`.
-/// For the simplest API, use `analytics_management_custom_metrics_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_custom_metrics_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_custom_metrics_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_custom_metrics_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_custom_metrics_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementCustomMetricsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: customMetricId
-    pub customMetricId: String,
-    /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<bool>,
-    /// Request body.
-    pub body: CustomMetric,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
-/// Updates an existing custom metric.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_custom_metrics_update_builder()` + `analytics_management_custom_metrics_update_execute()`.
-/// For task-level control, use `analytics_management_custom_metrics_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_custom_metrics_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementCustomMetricsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CustomMetric>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_custom_metrics_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customMetricId,
-        args.ignoreCustomDataSourceLinks,
-        &args.body,
-    )?;
-    analytics_management_custom_metrics_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
@@ -3867,23 +1766,23 @@ pub fn analytics_management_custom_metrics_update(
 
 pub fn analytics_management_experiments_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
+    experimentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
+        experimentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3913,7 +1812,12 @@ pub fn analytics_management_experiments_delete_builder(
 pub fn analytics_management_experiments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4018,182 +1922,12 @@ pub fn analytics_management_experiments_delete(
 > {
     let builder = analytics_management_experiments_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.experimentId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
+        args.experimentId.clone(),
     )?;
     analytics_management_experiments_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Returns an experiment to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_experiments_get_execute()` to send, or `analytics_management_experiments_get` for simplest API.
-
-pub fn analytics_management_experiments_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Returns an experiment to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_experiments_get_execute()` or `analytics_management_experiments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Experiment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Returns an experiment to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_experiments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_experiments_get_task()`.
-/// For the simplest API, use `analytics_management_experiments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_experiments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_experiments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_experiments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementExperimentsGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: experimentId
-    pub experimentId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Returns an experiment to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_experiments_get_builder()` + `analytics_management_experiments_get_execute()`.
-/// For task-level control, use `analytics_management_experiments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementExperimentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_experiments_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.experimentId,
-    )?;
-    analytics_management_experiments_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
@@ -4204,22 +1938,22 @@ pub fn analytics_management_experiments_get(
 
 pub fn analytics_management_experiments_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
     body: &Experiment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4251,7 +1985,12 @@ pub fn analytics_management_experiments_insert_builder(
 pub fn analytics_management_experiments_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Experiment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4359,551 +2098,12 @@ pub fn analytics_management_experiments_insert(
 > {
     let builder = analytics_management_experiments_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
         &args.body,
     )?;
     analytics_management_experiments_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
-/// Lists experiments to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_experiments_list_execute()` to send, or `analytics_management_experiments_list` for simplest API.
-
-pub fn analytics_management_experiments_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
-/// Lists experiments to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_experiments_list_execute()` or `analytics_management_experiments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Experiments>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Experiments = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
-/// Lists experiments to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_experiments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_experiments_list_task()`.
-/// For the simplest API, use `analytics_management_experiments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_experiments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiments>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_experiments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_experiments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementExperimentsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
-/// Lists experiments to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_experiments_list_builder()` + `analytics_management_experiments_list_execute()`.
-/// For task-level control, use `analytics_management_experiments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementExperimentsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiments>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_experiments_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_experiments_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_experiments_patch_execute()` to send, or `analytics_management_experiments_patch` for simplest API.
-
-pub fn analytics_management_experiments_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
-    body: &Experiment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_experiments_patch_execute()` or `analytics_management_experiments_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Experiment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_experiments_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_experiments_patch_task()`.
-/// For the simplest API, use `analytics_management_experiments_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_experiments_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_experiments_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_experiments_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementExperimentsPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: experimentId
-    pub experimentId: String,
-    /// Request body.
-    pub body: Experiment,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_experiments_patch_builder()` + `analytics_management_experiments_patch_execute()`.
-/// For task-level control, use `analytics_management_experiments_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementExperimentsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_experiments_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.experimentId,
-        &args.body,
-    )?;
-    analytics_management_experiments_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_experiments_update_execute()` to send, or `analytics_management_experiments_update` for simplest API.
-
-pub fn analytics_management_experiments_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    experimentId: &str,
-    body: &Experiment,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        experimentId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_experiments_update_execute()` or `analytics_management_experiments_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Experiment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_experiments_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_experiments_update_task()`.
-/// For the simplest API, use `analytics_management_experiments_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_experiments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_experiments_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_experiments_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_experiments_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementExperimentsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: experimentId
-    pub experimentId: String,
-    /// Request body.
-    pub body: Experiment,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments/{experimentId}
-/// Update an existing experiment.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_experiments_update_builder()` + `analytics_management_experiments_update_execute()`.
-/// For task-level control, use `analytics_management_experiments_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_experiments_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementExperimentsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Experiment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_experiments_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.experimentId,
-        &args.body,
-    )?;
-    analytics_management_experiments_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/filters/{filterId}
@@ -4914,18 +2114,19 @@ pub fn analytics_management_experiments_update(
 
 pub fn analytics_management_filters_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
+    accountId: String,
+    filterId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters/{}",
-        accountId, filterId,
+        accountId.as_str(),
+        filterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4955,7 +2156,12 @@ pub fn analytics_management_filters_delete_builder(
 pub fn analytics_management_filters_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Filter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5057,165 +2263,12 @@ pub fn analytics_management_filters_delete(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_filters_delete_builder(client, &args.accountId, &args.filterId)?;
+    let builder = analytics_management_filters_delete_builder(
+        client,
+        args.accountId.clone(),
+        args.filterId.clone(),
+    )?;
     analytics_management_filters_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Returns filters to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_filters_get_execute()` to send, or `analytics_management_filters_get` for simplest API.
-
-pub fn analytics_management_filters_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters/{}",
-        accountId, filterId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Returns filters to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_filters_get_execute()` or `analytics_management_filters_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Filter = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Returns filters to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_filters_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_filters_get_task()`.
-/// For the simplest API, use `analytics_management_filters_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_filters_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_filters_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_filters_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementFiltersGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: filterId
-    pub filterId: String,
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Returns filters to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_filters_get_builder()` + `analytics_management_filters_get_execute()`.
-/// For task-level control, use `analytics_management_filters_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementFiltersGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        analytics_management_filters_get_builder(client, &args.accountId, &args.filterId)?;
-    analytics_management_filters_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/filters
@@ -5226,18 +2279,18 @@ pub fn analytics_management_filters_get(
 
 pub fn analytics_management_filters_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     body: &Filter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5269,7 +2322,12 @@ pub fn analytics_management_filters_insert_builder(
 pub fn analytics_management_filters_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Filter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5371,515 +2429,9 @@ pub fn analytics_management_filters_insert(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_insert_builder(client, &args.accountId, &args.body)?;
+    let builder =
+        analytics_management_filters_insert_builder(client, args.accountId.clone(), &args.body)?;
     analytics_management_filters_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/filters
-/// Lists all filters for an account
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_filters_list_execute()` to send, or `analytics_management_filters_list` for simplest API.
-
-pub fn analytics_management_filters_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/filters
-/// Lists all filters for an account
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_filters_list_execute()` or `analytics_management_filters_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filters>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Filters = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/filters
-/// Lists all filters for an account
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_filters_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_filters_list_task()`.
-/// For the simplest API, use `analytics_management_filters_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_filters_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filters>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_filters_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_filters_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementFiltersListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/filters
-/// Lists all filters for an account
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_filters_list_builder()` + `analytics_management_filters_list_execute()`.
-/// For task-level control, use `analytics_management_filters_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementFiltersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filters>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_filters_list_builder(
-        client,
-        &args.accountId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_filters_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_filters_patch_execute()` to send, or `analytics_management_filters_patch` for simplest API.
-
-pub fn analytics_management_filters_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
-    body: &Filter,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters/{}",
-        accountId, filterId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_filters_patch_execute()` or `analytics_management_filters_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Filter = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_filters_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_filters_patch_task()`.
-/// For the simplest API, use `analytics_management_filters_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_filters_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_filters_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_filters_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementFiltersPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: filterId
-    pub filterId: String,
-    /// Request body.
-    pub body: Filter,
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_filters_patch_builder()` + `analytics_management_filters_patch_execute()`.
-/// For task-level control, use `analytics_management_filters_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementFiltersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_filters_patch_builder(
-        client,
-        &args.accountId,
-        &args.filterId,
-        &args.body,
-    )?;
-    analytics_management_filters_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_filters_update_execute()` to send, or `analytics_management_filters_update` for simplest API.
-
-pub fn analytics_management_filters_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    filterId: &str,
-    body: &Filter,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters/{}",
-        accountId, filterId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_filters_update_execute()` or `analytics_management_filters_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Filter = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_filters_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_filters_update_task()`.
-/// For the simplest API, use `analytics_management_filters_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_filters_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_filters_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_filters_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_filters_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementFiltersUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: filterId
-    pub filterId: String,
-    /// Request body.
-    pub body: Filter,
-}
-
-/// GET management/accounts/{accountId}/filters/{filterId}
-/// Updates an existing filter.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_filters_update_builder()` + `analytics_management_filters_update_execute()`.
-/// For task-level control, use `analytics_management_filters_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_filters_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementFiltersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_filters_update_builder(
-        client,
-        &args.accountId,
-        &args.filterId,
-        &args.body,
-    )?;
-    analytics_management_filters_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
@@ -5890,23 +2442,23 @@ pub fn analytics_management_filters_update(
 
 pub fn analytics_management_goals_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
+    goalId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
+        goalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5936,7 +2488,12 @@ pub fn analytics_management_goals_get_builder(
 pub fn analytics_management_goals_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Goal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6044,10 +2601,10 @@ pub fn analytics_management_goals_get(
 > {
     let builder = analytics_management_goals_get_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.goalId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
+        args.goalId.clone(),
     )?;
     analytics_management_goals_get_execute(builder)
 }
@@ -6060,22 +2617,22 @@ pub fn analytics_management_goals_get(
 
 pub fn analytics_management_goals_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
     body: &Goal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6107,7 +2664,12 @@ pub fn analytics_management_goals_insert_builder(
 pub fn analytics_management_goals_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Goal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6215,551 +2777,12 @@ pub fn analytics_management_goals_insert(
 > {
     let builder = analytics_management_goals_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
         &args.body,
     )?;
     analytics_management_goals_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
-/// Lists goals to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_goals_list_execute()` to send, or `analytics_management_goals_list` for simplest API.
-
-pub fn analytics_management_goals_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
-/// Lists goals to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_goals_list_execute()` or `analytics_management_goals_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Goals>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Goals = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
-/// Lists goals to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_goals_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_goals_list_task()`.
-/// For the simplest API, use `analytics_management_goals_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_goals_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goals>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_goals_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_goals_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementGoalsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
-/// Lists goals to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_goals_list_builder()` + `analytics_management_goals_list_execute()`.
-/// For task-level control, use `analytics_management_goals_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementGoalsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goals>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_goals_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_goals_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_goals_patch_execute()` to send, or `analytics_management_goals_patch` for simplest API.
-
-pub fn analytics_management_goals_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
-    body: &Goal,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_goals_patch_execute()` or `analytics_management_goals_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Goal = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_goals_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_goals_patch_task()`.
-/// For the simplest API, use `analytics_management_goals_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_goals_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_goals_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_goals_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementGoalsPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: goalId
-    pub goalId: String,
-    /// Request body.
-    pub body: Goal,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_goals_patch_builder()` + `analytics_management_goals_patch_execute()`.
-/// For task-level control, use `analytics_management_goals_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementGoalsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_goals_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.goalId,
-        &args.body,
-    )?;
-    analytics_management_goals_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_goals_update_execute()` to send, or `analytics_management_goals_update` for simplest API.
-
-pub fn analytics_management_goals_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    goalId: &str,
-    body: &Goal,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        goalId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_goals_update_execute()` or `analytics_management_goals_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Goal = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_goals_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_goals_update_task()`.
-/// For the simplest API, use `analytics_management_goals_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_goals_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_goals_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_goals_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_goals_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementGoalsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: goalId
-    pub goalId: String,
-    /// Request body.
-    pub body: Goal,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals/{goalId}
-/// Updates an existing goal.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_goals_update_builder()` + `analytics_management_goals_update_execute()`.
-/// For task-level control, use `analytics_management_goals_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_goals_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementGoalsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Goal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_goals_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.goalId,
-        &args.body,
-    )?;
-    analytics_management_goals_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
@@ -6770,23 +2793,23 @@ pub fn analytics_management_goals_update(
 
 pub fn analytics_management_profile_filter_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
+    linkId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
+        linkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6816,7 +2839,12 @@ pub fn analytics_management_profile_filter_links_delete_builder(
 pub fn analytics_management_profile_filter_links_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6921,188 +2949,12 @@ pub fn analytics_management_profile_filter_links_delete(
 > {
     let builder = analytics_management_profile_filter_links_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
+        args.linkId.clone(),
     )?;
     analytics_management_profile_filter_links_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Returns a single profile filter link.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_filter_links_get_execute()` to send, or `analytics_management_profile_filter_links_get` for simplest API.
-
-pub fn analytics_management_profile_filter_links_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Returns a single profile filter link.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_filter_links_get_execute()` or `analytics_management_profile_filter_links_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ProfileFilterLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Returns a single profile filter link.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_filter_links_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_filter_links_get_task()`.
-/// For the simplest API, use `analytics_management_profile_filter_links_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_filter_links_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_filter_links_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_filter_links_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileFilterLinksGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Returns a single profile filter link.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_filter_links_get_builder()` + `analytics_management_profile_filter_links_get_execute()`.
-/// For task-level control, use `analytics_management_profile_filter_links_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileFilterLinksGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_filter_links_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
-    )?;
-    analytics_management_profile_filter_links_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
@@ -7113,22 +2965,22 @@ pub fn analytics_management_profile_filter_links_get(
 
 pub fn analytics_management_profile_filter_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
     body: &ProfileFilterLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7160,8 +3012,11 @@ pub fn analytics_management_profile_filter_links_insert_builder(
 pub fn analytics_management_profile_filter_links_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProfileFilterLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7274,569 +3129,12 @@ pub fn analytics_management_profile_filter_links_insert(
 > {
     let builder = analytics_management_profile_filter_links_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
         &args.body,
     )?;
     analytics_management_profile_filter_links_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
-/// Lists all profile filter links for a profile.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_filter_links_list_execute()` to send, or `analytics_management_profile_filter_links_list` for simplest API.
-
-pub fn analytics_management_profile_filter_links_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
-/// Lists all profile filter links for a profile.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_filter_links_list_execute()` or `analytics_management_profile_filter_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProfileFilterLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ProfileFilterLinks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
-/// Lists all profile filter links for a profile.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_filter_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_filter_links_list_task()`.
-/// For the simplest API, use `analytics_management_profile_filter_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_filter_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_filter_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_filter_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileFilterLinksListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
-/// Lists all profile filter links for a profile.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_filter_links_list_builder()` + `analytics_management_profile_filter_links_list_execute()`.
-/// For task-level control, use `analytics_management_profile_filter_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileFilterLinksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_filter_links_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_profile_filter_links_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_filter_links_patch_execute()` to send, or `analytics_management_profile_filter_links_patch` for simplest API.
-
-pub fn analytics_management_profile_filter_links_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &ProfileFilterLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_filter_links_patch_execute()` or `analytics_management_profile_filter_links_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ProfileFilterLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_filter_links_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_filter_links_patch_task()`.
-/// For the simplest API, use `analytics_management_profile_filter_links_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_filter_links_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_filter_links_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_filter_links_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileFilterLinksPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-    /// Request body.
-    pub body: ProfileFilterLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_filter_links_patch_builder()` + `analytics_management_profile_filter_links_patch_execute()`.
-/// For task-level control, use `analytics_management_profile_filter_links_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileFilterLinksPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_filter_links_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
-        &args.body,
-    )?;
-    analytics_management_profile_filter_links_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_filter_links_update_execute()` to send, or `analytics_management_profile_filter_links_update` for simplest API.
-
-pub fn analytics_management_profile_filter_links_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &ProfileFilterLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_filter_links_update_execute()` or `analytics_management_profile_filter_links_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ProfileFilterLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_filter_links_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_filter_links_update_task()`.
-/// For the simplest API, use `analytics_management_profile_filter_links_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_filter_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_filter_links_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_filter_links_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_filter_links_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileFilterLinksUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-    /// Request body.
-    pub body: ProfileFilterLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks/{linkId}
-/// Update an existing profile filter link.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_filter_links_update_builder()` + `analytics_management_profile_filter_links_update_execute()`.
-/// For task-level control, use `analytics_management_profile_filter_links_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_filter_links_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileFilterLinksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProfileFilterLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_filter_links_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
-        &args.body,
-    )?;
-    analytics_management_profile_filter_links_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
@@ -7847,23 +3145,23 @@ pub fn analytics_management_profile_filter_links_update(
 
 pub fn analytics_management_profile_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
+    linkId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
+        linkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7893,7 +3191,12 @@ pub fn analytics_management_profile_user_links_delete_builder(
 pub fn analytics_management_profile_user_links_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7998,10 +3301,10 @@ pub fn analytics_management_profile_user_links_delete(
 > {
     let builder = analytics_management_profile_user_links_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
+        args.linkId.clone(),
     )?;
     analytics_management_profile_user_links_delete_execute(builder)
 }
@@ -8014,22 +3317,22 @@ pub fn analytics_management_profile_user_links_delete(
 
 pub fn analytics_management_profile_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8061,8 +3364,11 @@ pub fn analytics_management_profile_user_links_insert_builder(
 pub fn analytics_management_profile_user_links_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntityUserLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8175,387 +3481,12 @@ pub fn analytics_management_profile_user_links_insert(
 > {
     let builder = analytics_management_profile_user_links_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
         &args.body,
     )?;
     analytics_management_profile_user_links_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
-/// Lists profile-user links for a given view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_user_links_list_execute()` to send, or `analytics_management_profile_user_links_list` for simplest API.
-
-pub fn analytics_management_profile_user_links_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
-/// Lists profile-user links for a given view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_user_links_list_execute()` or `analytics_management_profile_user_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_user_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLinks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
-/// Lists profile-user links for a given view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_user_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_user_links_list_task()`.
-/// For the simplest API, use `analytics_management_profile_user_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_user_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_user_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_user_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileUserLinksListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
-/// Lists profile-user links for a given view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_user_links_list_builder()` + `analytics_management_profile_user_links_list_execute()`.
-/// For task-level control, use `analytics_management_profile_user_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_user_links_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileUserLinksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_user_links_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_profile_user_links_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profile_user_links_update_execute()` to send, or `analytics_management_profile_user_links_update` for simplest API.
-
-pub fn analytics_management_profile_user_links_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profile_user_links_update_execute()` or `analytics_management_profile_user_links_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_user_links_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profile_user_links_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profile_user_links_update_task()`.
-/// For the simplest API, use `analytics_management_profile_user_links_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profile_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profile_user_links_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profile_user_links_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profile_user_links_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfileUserLinksUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-    /// Request body.
-    pub body: EntityUserLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profile_user_links_update_builder()` + `analytics_management_profile_user_links_update_execute()`.
-/// For task-level control, use `analytics_management_profile_user_links_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profile_user_links_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfileUserLinksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profile_user_links_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.linkId,
-        &args.body,
-    )?;
-    analytics_management_profile_user_links_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
@@ -8566,21 +3497,21 @@ pub fn analytics_management_profile_user_links_update(
 
 pub fn analytics_management_profiles_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8610,7 +3541,12 @@ pub fn analytics_management_profiles_delete_builder(
 pub fn analytics_management_profiles_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8713,176 +3649,11 @@ pub fn analytics_management_profiles_delete(
 > {
     let builder = analytics_management_profiles_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
     )?;
     analytics_management_profiles_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Gets a view (profile) to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profiles_get_execute()` to send, or `analytics_management_profiles_get` for simplest API.
-
-pub fn analytics_management_profiles_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Gets a view (profile) to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profiles_get_execute()` or `analytics_management_profiles_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Profile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Gets a view (profile) to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profiles_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profiles_get_task()`.
-/// For the simplest API, use `analytics_management_profiles_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profiles_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profiles_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profiles_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfilesGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Gets a view (profile) to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profiles_get_builder()` + `analytics_management_profiles_get_execute()`.
-/// For task-level control, use `analytics_management_profiles_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfilesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profiles_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-    )?;
-    analytics_management_profiles_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
@@ -8893,19 +3664,20 @@ pub fn analytics_management_profiles_get(
 
 pub fn analytics_management_profiles_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &Profile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles",
-        accountId, webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8937,7 +3709,12 @@ pub fn analytics_management_profiles_insert_builder(
 pub fn analytics_management_profiles_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Profile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9043,534 +3820,11 @@ pub fn analytics_management_profiles_insert(
 > {
     let builder = analytics_management_profiles_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_profiles_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
-/// Lists views (profiles) to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profiles_list_execute()` to send, or `analytics_management_profiles_list` for simplest API.
-
-pub fn analytics_management_profiles_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles",
-        accountId, webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
-/// Lists views (profiles) to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profiles_list_execute()` or `analytics_management_profiles_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profiles>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Profiles = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
-/// Lists views (profiles) to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profiles_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profiles_list_task()`.
-/// For the simplest API, use `analytics_management_profiles_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profiles_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profiles>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profiles_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profiles_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfilesListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
-/// Lists views (profiles) to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profiles_list_builder()` + `analytics_management_profiles_list_execute()`.
-/// For task-level control, use `analytics_management_profiles_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfilesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profiles>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profiles_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_profiles_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile). This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profiles_patch_execute()` to send, or `analytics_management_profiles_patch` for simplest API.
-
-pub fn analytics_management_profiles_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Profile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile). This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profiles_patch_execute()` or `analytics_management_profiles_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Profile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile). This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profiles_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profiles_patch_task()`.
-/// For the simplest API, use `analytics_management_profiles_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profiles_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profiles_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profiles_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfilesPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Profile,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile). This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profiles_patch_builder()` + `analytics_management_profiles_patch_execute()`.
-/// For task-level control, use `analytics_management_profiles_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfilesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profiles_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.body,
-    )?;
-    analytics_management_profiles_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_profiles_update_execute()` to send, or `analytics_management_profiles_update` for simplest API.
-
-pub fn analytics_management_profiles_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    body: &Profile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_profiles_update_execute()` or `analytics_management_profiles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Profile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_profiles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_profiles_update_task()`.
-/// For the simplest API, use `analytics_management_profiles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_profiles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_profiles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_profiles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementProfilesUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Profile,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}
-/// Updates an existing view (profile).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_profiles_update_builder()` + `analytics_management_profiles_update_execute()`.
-/// For task-level control, use `analytics_management_profiles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_profiles_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementProfilesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_profiles_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.body,
-    )?;
-    analytics_management_profiles_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
@@ -9581,21 +3835,21 @@ pub fn analytics_management_profiles_update(
 
 pub fn analytics_management_remarketing_audience_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
+    accountId: String,
+    webPropertyId: String,
+    remarketingAudienceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences/{}",
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        remarketingAudienceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9625,7 +3879,12 @@ pub fn analytics_management_remarketing_audience_delete_builder(
 pub fn analytics_management_remarketing_audience_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9728,182 +3987,11 @@ pub fn analytics_management_remarketing_audience_delete(
 > {
     let builder = analytics_management_remarketing_audience_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.remarketingAudienceId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.remarketingAudienceId.clone(),
     )?;
     analytics_management_remarketing_audience_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Gets a remarketing audience to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_remarketing_audience_get_execute()` to send, or `analytics_management_remarketing_audience_get` for simplest API.
-
-pub fn analytics_management_remarketing_audience_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences/{}",
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Gets a remarketing audience to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_remarketing_audience_get_execute()` or `analytics_management_remarketing_audience_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingAudience = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Gets a remarketing audience to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_remarketing_audience_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_remarketing_audience_get_task()`.
-/// For the simplest API, use `analytics_management_remarketing_audience_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_remarketing_audience_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_remarketing_audience_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_remarketing_audience_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementRemarketingAudienceGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: remarketingAudienceId
-    pub remarketingAudienceId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Gets a remarketing audience to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_remarketing_audience_get_builder()` + `analytics_management_remarketing_audience_get_execute()`.
-/// For task-level control, use `analytics_management_remarketing_audience_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementRemarketingAudienceGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_remarketing_audience_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.remarketingAudienceId,
-    )?;
-    analytics_management_remarketing_audience_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
@@ -9914,20 +4002,20 @@ pub fn analytics_management_remarketing_audience_get(
 
 pub fn analytics_management_remarketing_audience_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &RemarketingAudience,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9959,8 +4047,11 @@ pub fn analytics_management_remarketing_audience_insert_builder(
 pub fn analytics_management_remarketing_audience_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemarketingAudience>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -10071,560 +4162,11 @@ pub fn analytics_management_remarketing_audience_insert(
 > {
     let builder = analytics_management_remarketing_audience_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_remarketing_audience_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
-/// Lists remarketing audiences to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_remarketing_audience_list_execute()` to send, or `analytics_management_remarketing_audience_list` for simplest API.
-
-pub fn analytics_management_remarketing_audience_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-    type_rs: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences",
-        accountId,
-        webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-    if let Some(val) = type_rs {
-        query_parts.push(format!("type={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
-/// Lists remarketing audiences to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_remarketing_audience_list_execute()` or `analytics_management_remarketing_audience_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingAudiences>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingAudiences = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
-/// Lists remarketing audiences to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_remarketing_audience_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_remarketing_audience_list_task()`.
-/// For the simplest API, use `analytics_management_remarketing_audience_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_remarketing_audience_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudiences>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_remarketing_audience_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_remarketing_audience_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementRemarketingAudienceListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-    /// Query parameter: type
-    pub type_rs: Option<String>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
-/// Lists remarketing audiences to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_remarketing_audience_list_builder()` + `analytics_management_remarketing_audience_list_execute()`.
-/// For task-level control, use `analytics_management_remarketing_audience_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementRemarketingAudienceListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudiences>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_remarketing_audience_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-        args.type_rs.as_deref(),
-    )?;
-    analytics_management_remarketing_audience_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_remarketing_audience_patch_execute()` to send, or `analytics_management_remarketing_audience_patch` for simplest API.
-
-pub fn analytics_management_remarketing_audience_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
-    body: &RemarketingAudience,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences/{}",
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_remarketing_audience_patch_execute()` or `analytics_management_remarketing_audience_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingAudience = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_remarketing_audience_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_remarketing_audience_patch_task()`.
-/// For the simplest API, use `analytics_management_remarketing_audience_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_remarketing_audience_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_remarketing_audience_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_remarketing_audience_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementRemarketingAudiencePatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: remarketingAudienceId
-    pub remarketingAudienceId: String,
-    /// Request body.
-    pub body: RemarketingAudience,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_remarketing_audience_patch_builder()` + `analytics_management_remarketing_audience_patch_execute()`.
-/// For task-level control, use `analytics_management_remarketing_audience_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementRemarketingAudiencePatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_remarketing_audience_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.remarketingAudienceId,
-        &args.body,
-    )?;
-    analytics_management_remarketing_audience_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_remarketing_audience_update_execute()` to send, or `analytics_management_remarketing_audience_update` for simplest API.
-
-pub fn analytics_management_remarketing_audience_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    remarketingAudienceId: &str,
-    body: &RemarketingAudience,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences/{}",
-        accountId,
-        webPropertyId,
-        remarketingAudienceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_remarketing_audience_update_execute()` or `analytics_management_remarketing_audience_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingAudience = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_remarketing_audience_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_remarketing_audience_update_task()`.
-/// For the simplest API, use `analytics_management_remarketing_audience_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_remarketing_audience_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_remarketing_audience_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_remarketing_audience_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_remarketing_audience_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementRemarketingAudienceUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: remarketingAudienceId
-    pub remarketingAudienceId: String,
-    /// Request body.
-    pub body: RemarketingAudience,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences/{remarketingAudienceId}
-/// Updates an existing remarketing audience.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_remarketing_audience_update_builder()` + `analytics_management_remarketing_audience_update_execute()`.
-/// For task-level control, use `analytics_management_remarketing_audience_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_remarketing_audience_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementRemarketingAudienceUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingAudience>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_remarketing_audience_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.remarketingAudienceId,
-        &args.body,
-    )?;
-    analytics_management_remarketing_audience_update_execute(builder)
 }
 
 /// GET management/segments
@@ -10639,21 +4181,21 @@ pub fn analytics_management_segments_list_builder(
     start_index: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/management/segments",);
+    let endpoint_url = format!("https://www.googleapis.com/analytics/v3/management/segments",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
+        query_parts.push(format!("max-results={}", val));
     }
     if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
+        query_parts.push(format!("start-index={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -10687,7 +4229,12 @@ pub fn analytics_management_segments_list_builder(
 pub fn analytics_management_segments_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Segments>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Segments>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10789,8 +4336,11 @@ pub fn analytics_management_segments_list(
     impl StreamIterator<D = Result<ApiResponse<Segments>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_segments_list_builder(client, args.max_results, args.start_index)?;
+    let builder = analytics_management_segments_list_builder(
+        client,
+        args.max_results.clone(),
+        args.start_index.clone(),
+    )?;
     analytics_management_segments_list_execute(builder)
 }
 
@@ -10802,23 +4352,23 @@ pub fn analytics_management_segments_list(
 
 pub fn analytics_management_unsampled_reports_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    unsampledReportId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
+    unsampledReportId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        unsampledReportId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
+        unsampledReportId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10848,7 +4398,12 @@ pub fn analytics_management_unsampled_reports_delete_builder(
 pub fn analytics_management_unsampled_reports_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10953,188 +4508,12 @@ pub fn analytics_management_unsampled_reports_delete(
 > {
     let builder = analytics_management_unsampled_reports_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.unsampledReportId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
+        args.unsampledReportId.clone(),
     )?;
     analytics_management_unsampled_reports_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
-/// Returns a single unsampled report.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_unsampled_reports_get_execute()` to send, or `analytics_management_unsampled_reports_get` for simplest API.
-
-pub fn analytics_management_unsampled_reports_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    unsampledReportId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports/{}",
-        accountId,
-        webPropertyId,
-        profileId,
-        unsampledReportId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
-/// Returns a single unsampled report.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_unsampled_reports_get_execute()` or `analytics_management_unsampled_reports_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_unsampled_reports_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_unsampled_reports_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UnsampledReport = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
-/// Returns a single unsampled report.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_unsampled_reports_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_unsampled_reports_get_task()`.
-/// For the simplest API, use `analytics_management_unsampled_reports_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_unsampled_reports_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_unsampled_reports_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_unsampled_reports_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_unsampled_reports_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementUnsampledReportsGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: unsampledReportId
-    pub unsampledReportId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports/{unsampledReportId}
-/// Returns a single unsampled report.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_unsampled_reports_get_builder()` + `analytics_management_unsampled_reports_get_execute()`.
-/// For task-level control, use `analytics_management_unsampled_reports_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_unsampled_reports_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementUnsampledReportsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_unsampled_reports_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        &args.unsampledReportId,
-    )?;
-    analytics_management_unsampled_reports_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
@@ -11145,22 +4524,22 @@ pub fn analytics_management_unsampled_reports_get(
 
 pub fn analytics_management_unsampled_reports_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
+    accountId: String,
+    webPropertyId: String,
+    profileId: String,
     body: &UnsampledReport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports",
-        accountId,
-        webPropertyId,
-        profileId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11192,8 +4571,11 @@ pub fn analytics_management_unsampled_reports_insert_builder(
 pub fn analytics_management_unsampled_reports_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UnsampledReport>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UnsampledReport>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11306,205 +4688,12 @@ pub fn analytics_management_unsampled_reports_insert(
 > {
     let builder = analytics_management_unsampled_reports_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.profileId.clone(),
         &args.body,
     )?;
     analytics_management_unsampled_reports_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
-/// Lists unsampled reports to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_unsampled_reports_list_execute()` to send, or `analytics_management_unsampled_reports_list` for simplest API.
-
-pub fn analytics_management_unsampled_reports_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    profileId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports",
-        accountId,
-        webPropertyId,
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
-/// Lists unsampled reports to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_unsampled_reports_list_execute()` or `analytics_management_unsampled_reports_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_unsampled_reports_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_unsampled_reports_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UnsampledReports>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UnsampledReports = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
-/// Lists unsampled reports to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_unsampled_reports_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_unsampled_reports_list_task()`.
-/// For the simplest API, use `analytics_management_unsampled_reports_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_unsampled_reports_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_unsampled_reports_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UnsampledReports>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_unsampled_reports_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_unsampled_reports_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementUnsampledReportsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
-/// Lists unsampled reports to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_unsampled_reports_list_builder()` + `analytics_management_unsampled_reports_list_execute()`.
-/// For task-level control, use `analytics_management_unsampled_reports_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_unsampled_reports_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementUnsampledReportsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UnsampledReports>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_unsampled_reports_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.profileId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_unsampled_reports_list_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/deleteUploadData
@@ -11515,22 +4704,22 @@ pub fn analytics_management_unsampled_reports_list(
 
 pub fn analytics_management_uploads_delete_upload_data_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
+    accountId: String,
+    webPropertyId: String,
+    customDataSourceId: String,
     body: &AnalyticsDataimportDeleteUploadDataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/deleteUploadData",
-        accountId,
-        webPropertyId,
-        customDataSourceId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        customDataSourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11562,7 +4751,12 @@ pub fn analytics_management_uploads_delete_upload_data_builder(
 pub fn analytics_management_uploads_delete_upload_data_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11667,9 +4861,9 @@ pub fn analytics_management_uploads_delete_upload_data(
 > {
     let builder = analytics_management_uploads_delete_upload_data_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDataSourceId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.customDataSourceId.clone(),
         &args.body,
     )?;
     analytics_management_uploads_delete_upload_data_execute(builder)
@@ -11683,23 +4877,23 @@ pub fn analytics_management_uploads_delete_upload_data(
 
 pub fn analytics_management_uploads_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
-    uploadId: &str,
+    accountId: String,
+    webPropertyId: String,
+    customDataSourceId: String,
+    uploadId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/uploads/{}",
-        accountId,
-        webPropertyId,
-        customDataSourceId,
-        uploadId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        customDataSourceId.as_str(),
+        uploadId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11729,7 +4923,12 @@ pub fn analytics_management_uploads_get_builder(
 pub fn analytics_management_uploads_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Upload>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11837,10 +5036,10 @@ pub fn analytics_management_uploads_get(
 > {
     let builder = analytics_management_uploads_get_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDataSourceId,
-        &args.uploadId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.customDataSourceId.clone(),
+        args.uploadId.clone(),
     )?;
     analytics_management_uploads_get_execute(builder)
 }
@@ -11853,33 +5052,33 @@ pub fn analytics_management_uploads_get(
 
 pub fn analytics_management_uploads_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
+    accountId: String,
+    webPropertyId: String,
+    customDataSourceId: String,
     max_results: Option<i32>,
     start_index: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/uploads",
-        accountId,
-        webPropertyId,
-        customDataSourceId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        customDataSourceId.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
+        query_parts.push(format!("max-results={}", val));
     }
     if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
+        query_parts.push(format!("start-index={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11913,7 +5112,12 @@ pub fn analytics_management_uploads_list_builder(
 pub fn analytics_management_uploads_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Uploads>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Uploads>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12023,178 +5227,13 @@ pub fn analytics_management_uploads_list(
 > {
     let builder = analytics_management_uploads_list_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDataSourceId,
-        args.max_results,
-        args.start_index,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.customDataSourceId.clone(),
+        args.max_results.clone(),
+        args.start_index.clone(),
     )?;
     analytics_management_uploads_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
-/// Upload data for a custom data source.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_uploads_upload_data_execute()` to send, or `analytics_management_uploads_upload_data` for simplest API.
-
-pub fn analytics_management_uploads_upload_data_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    customDataSourceId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/uploads",
-        accountId,
-        webPropertyId,
-        customDataSourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
-/// Upload data for a custom data source.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_uploads_upload_data_execute()` or `analytics_management_uploads_upload_data`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_uploads_upload_data_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_uploads_upload_data_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Upload = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
-/// Upload data for a custom data source.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_uploads_upload_data_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_uploads_upload_data_task()`.
-/// For the simplest API, use `analytics_management_uploads_upload_data()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_uploads_upload_data_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_uploads_upload_data_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_uploads_upload_data_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_uploads_upload_data`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementUploadsUploadDataArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: customDataSourceId
-    pub customDataSourceId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
-/// Upload data for a custom data source.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_uploads_upload_data_builder()` + `analytics_management_uploads_upload_data_execute()`.
-/// For task-level control, use `analytics_management_uploads_upload_data_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_uploads_upload_data(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementUploadsUploadDataArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Upload>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_uploads_upload_data_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.customDataSourceId,
-    )?;
-    analytics_management_uploads_upload_data_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
@@ -12205,21 +5244,21 @@ pub fn analytics_management_uploads_upload_data(
 
 pub fn analytics_management_web_property_ad_words_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
+    accountId: String,
+    webPropertyId: String,
+    webPropertyAdWordsLinkId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks/{}",
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        webPropertyAdWordsLinkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12249,7 +5288,12 @@ pub fn analytics_management_web_property_ad_words_links_delete_builder(
 pub fn analytics_management_web_property_ad_words_links_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12352,182 +5396,11 @@ pub fn analytics_management_web_property_ad_words_links_delete(
 > {
     let builder = analytics_management_web_property_ad_words_links_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.webPropertyAdWordsLinkId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.webPropertyAdWordsLinkId.clone(),
     )?;
     analytics_management_web_property_ad_words_links_delete_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Returns a web property-Google Ads link to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_web_property_ad_words_links_get_execute()` to send, or `analytics_management_web_property_ad_words_links_get` for simplest API.
-
-pub fn analytics_management_web_property_ad_words_links_get_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks/{}",
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Returns a web property-Google Ads link to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_web_property_ad_words_links_get_execute()` or `analytics_management_web_property_ad_words_links_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityAdWordsLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Returns a web property-Google Ads link to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_web_property_ad_words_links_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_get_task()`.
-/// For the simplest API, use `analytics_management_web_property_ad_words_links_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_web_property_ad_words_links_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_web_property_ad_words_links_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_web_property_ad_words_links_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebPropertyAdWordsLinksGetArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: webPropertyAdWordsLinkId
-    pub webPropertyAdWordsLinkId: String,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Returns a web property-Google Ads link to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_web_property_ad_words_links_get_builder()` + `analytics_management_web_property_ad_words_links_get_execute()`.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_get(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebPropertyAdWordsLinksGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_web_property_ad_words_links_get_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.webPropertyAdWordsLinkId,
-    )?;
-    analytics_management_web_property_ad_words_links_get_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
@@ -12538,20 +5411,20 @@ pub fn analytics_management_web_property_ad_words_links_get(
 
 pub fn analytics_management_web_property_ad_words_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &EntityAdWordsLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12583,8 +5456,11 @@ pub fn analytics_management_web_property_ad_words_links_insert_builder(
 pub fn analytics_management_web_property_ad_words_links_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntityAdWordsLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -12695,553 +5571,11 @@ pub fn analytics_management_web_property_ad_words_links_insert(
 > {
     let builder = analytics_management_web_property_ad_words_links_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_web_property_ad_words_links_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
-/// Lists `webProperty`-Google Ads links for a given web property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_web_property_ad_words_links_list_execute()` to send, or `analytics_management_web_property_ad_words_links_list` for simplest API.
-
-pub fn analytics_management_web_property_ad_words_links_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks",
-        accountId,
-        webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
-/// Lists `webProperty`-Google Ads links for a given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_web_property_ad_words_links_list_execute()` or `analytics_management_web_property_ad_words_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityAdWordsLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityAdWordsLinks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
-/// Lists `webProperty`-Google Ads links for a given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_web_property_ad_words_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_list_task()`.
-/// For the simplest API, use `analytics_management_web_property_ad_words_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_web_property_ad_words_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_web_property_ad_words_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_web_property_ad_words_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebPropertyAdWordsLinksListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
-/// Lists `webProperty`-Google Ads links for a given web property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_web_property_ad_words_links_list_builder()` + `analytics_management_web_property_ad_words_links_list_execute()`.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebPropertyAdWordsLinksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_web_property_ad_words_links_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_web_property_ad_words_links_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_web_property_ad_words_links_patch_execute()` to send, or `analytics_management_web_property_ad_words_links_patch` for simplest API.
-
-pub fn analytics_management_web_property_ad_words_links_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
-    body: &EntityAdWordsLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks/{}",
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_web_property_ad_words_links_patch_execute()` or `analytics_management_web_property_ad_words_links_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityAdWordsLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_web_property_ad_words_links_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_patch_task()`.
-/// For the simplest API, use `analytics_management_web_property_ad_words_links_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_web_property_ad_words_links_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_web_property_ad_words_links_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_web_property_ad_words_links_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebPropertyAdWordsLinksPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: webPropertyAdWordsLinkId
-    pub webPropertyAdWordsLinkId: String,
-    /// Request body.
-    pub body: EntityAdWordsLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_web_property_ad_words_links_patch_builder()` + `analytics_management_web_property_ad_words_links_patch_execute()`.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebPropertyAdWordsLinksPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_web_property_ad_words_links_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.webPropertyAdWordsLinkId,
-        &args.body,
-    )?;
-    analytics_management_web_property_ad_words_links_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_web_property_ad_words_links_update_execute()` to send, or `analytics_management_web_property_ad_words_links_update` for simplest API.
-
-pub fn analytics_management_web_property_ad_words_links_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    webPropertyAdWordsLinkId: &str,
-    body: &EntityAdWordsLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks/{}",
-        accountId,
-        webPropertyId,
-        webPropertyAdWordsLinkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_web_property_ad_words_links_update_execute()` or `analytics_management_web_property_ad_words_links_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityAdWordsLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_web_property_ad_words_links_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_update_task()`.
-/// For the simplest API, use `analytics_management_web_property_ad_words_links_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_web_property_ad_words_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_web_property_ad_words_links_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_web_property_ad_words_links_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_web_property_ad_words_links_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebPropertyAdWordsLinksUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: webPropertyAdWordsLinkId
-    pub webPropertyAdWordsLinkId: String,
-    /// Request body.
-    pub body: EntityAdWordsLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks/{webPropertyAdWordsLinkId}
-/// Updates an existing `webProperty`-Google Ads link.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_web_property_ad_words_links_update_builder()` + `analytics_management_web_property_ad_words_links_update_execute()`.
-/// For task-level control, use `analytics_management_web_property_ad_words_links_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_web_property_ad_words_links_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebPropertyAdWordsLinksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityAdWordsLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_web_property_ad_words_links_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.webPropertyAdWordsLinkId,
-        &args.body,
-    )?;
-    analytics_management_web_property_ad_words_links_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}
@@ -13252,18 +5586,19 @@ pub fn analytics_management_web_property_ad_words_links_update(
 
 pub fn analytics_management_webproperties_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}",
-        accountId, webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13293,7 +5628,12 @@ pub fn analytics_management_webproperties_get_builder(
 pub fn analytics_management_webproperties_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Webproperty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13397,8 +5737,8 @@ pub fn analytics_management_webproperties_get(
 > {
     let builder = analytics_management_webproperties_get_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
     )?;
     analytics_management_webproperties_get_execute(builder)
 }
@@ -13411,18 +5751,18 @@ pub fn analytics_management_webproperties_get(
 
 pub fn analytics_management_webproperties_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     body: &Webproperty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13454,7 +5794,12 @@ pub fn analytics_management_webproperties_insert_builder(
 pub fn analytics_management_webproperties_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Webproperty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13556,520 +5901,12 @@ pub fn analytics_management_webproperties_insert(
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_webproperties_insert_builder(client, &args.accountId, &args.body)?;
+    let builder = analytics_management_webproperties_insert_builder(
+        client,
+        args.accountId.clone(),
+        &args.body,
+    )?;
     analytics_management_webproperties_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties
-/// Lists web properties to which the user has access.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_webproperties_list_execute()` to send, or `analytics_management_webproperties_list` for simplest API.
-
-pub fn analytics_management_webproperties_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties
-/// Lists web properties to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_webproperties_list_execute()` or `analytics_management_webproperties_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Webproperties>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Webproperties = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties
-/// Lists web properties to which the user has access.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_webproperties_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_webproperties_list_task()`.
-/// For the simplest API, use `analytics_management_webproperties_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_webproperties_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperties>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_webproperties_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_webproperties_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebpropertiesListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties
-/// Lists web properties to which the user has access.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_webproperties_list_builder()` + `analytics_management_webproperties_list_execute()`.
-/// For task-level control, use `analytics_management_webproperties_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebpropertiesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperties>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_webproperties_list_builder(
-        client,
-        &args.accountId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_webproperties_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_webproperties_patch_execute()` to send, or `analytics_management_webproperties_patch` for simplest API.
-
-pub fn analytics_management_webproperties_patch_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &Webproperty,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}",
-        accountId, webPropertyId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_webproperties_patch_execute()` or `analytics_management_webproperties_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Webproperty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_webproperties_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_webproperties_patch_task()`.
-/// For the simplest API, use `analytics_management_webproperties_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_webproperties_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_webproperties_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_webproperties_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebpropertiesPatchArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Request body.
-    pub body: Webproperty,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_webproperties_patch_builder()` + `analytics_management_webproperties_patch_execute()`.
-/// For task-level control, use `analytics_management_webproperties_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_patch(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebpropertiesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_webproperties_patch_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.body,
-    )?;
-    analytics_management_webproperties_patch_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_webproperties_update_execute()` to send, or `analytics_management_webproperties_update` for simplest API.
-
-pub fn analytics_management_webproperties_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    body: &Webproperty,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}",
-        accountId, webPropertyId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_webproperties_update_execute()` or `analytics_management_webproperties_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Webproperty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_webproperties_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_webproperties_update_task()`.
-/// For the simplest API, use `analytics_management_webproperties_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperties_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_webproperties_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = analytics_management_webproperties_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_webproperties_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebpropertiesUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Request body.
-    pub body: Webproperty,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}
-/// Updates an existing web property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_webproperties_update_builder()` + `analytics_management_webproperties_update_execute()`.
-/// For task-level control, use `analytics_management_webproperties_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperties_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebpropertiesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_webproperties_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.body,
-    )?;
-    analytics_management_webproperties_update_execute(builder)
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
@@ -14080,21 +5917,21 @@ pub fn analytics_management_webproperties_update(
 
 pub fn analytics_management_webproperty_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    linkId: &str,
+    accountId: String,
+    webPropertyId: String,
+    linkId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks/{}",
-        accountId,
-        webPropertyId,
-        linkId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
+        linkId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14124,7 +5961,12 @@ pub fn analytics_management_webproperty_user_links_delete_builder(
 pub fn analytics_management_webproperty_user_links_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14227,9 +6069,9 @@ pub fn analytics_management_webproperty_user_links_delete(
 > {
     let builder = analytics_management_webproperty_user_links_delete_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.linkId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
+        args.linkId.clone(),
     )?;
     analytics_management_webproperty_user_links_delete_execute(builder)
 }
@@ -14242,20 +6084,20 @@ pub fn analytics_management_webproperty_user_links_delete(
 
 pub fn analytics_management_webproperty_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
+    accountId: String,
+    webPropertyId: String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks",
-        accountId,
-        webPropertyId,
+        accountId.as_str(),
+        webPropertyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14287,8 +6129,11 @@ pub fn analytics_management_webproperty_user_links_insert_builder(
 pub fn analytics_management_webproperty_user_links_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntityUserLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -14399,376 +6244,11 @@ pub fn analytics_management_webproperty_user_links_insert(
 > {
     let builder = analytics_management_webproperty_user_links_insert_builder(
         client,
-        &args.accountId,
-        &args.webPropertyId,
+        args.accountId.clone(),
+        args.webPropertyId.clone(),
         &args.body,
     )?;
     analytics_management_webproperty_user_links_insert_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
-/// Lists `webProperty`-user links for a given web property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_webproperty_user_links_list_execute()` to send, or `analytics_management_webproperty_user_links_list` for simplest API.
-
-pub fn analytics_management_webproperty_user_links_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks",
-        accountId,
-        webPropertyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
-        query_parts.push(format!("max_results={}", val));
-    }
-    if let Some(val) = start_index {
-        query_parts.push(format!("start_index={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
-/// Lists `webProperty`-user links for a given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_webproperty_user_links_list_execute()` or `analytics_management_webproperty_user_links_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperty_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperty_user_links_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLinks = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
-/// Lists `webProperty`-user links for a given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_webproperty_user_links_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_webproperty_user_links_list_task()`.
-/// For the simplest API, use `analytics_management_webproperty_user_links_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperty_user_links_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_webproperty_user_links_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_webproperty_user_links_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_webproperty_user_links_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebpropertyUserLinksListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Query parameter: max_results
-    pub max_results: Option<i32>,
-    /// Query parameter: start_index
-    pub start_index: Option<i32>,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
-/// Lists `webProperty`-user links for a given web property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_webproperty_user_links_list_builder()` + `analytics_management_webproperty_user_links_list_execute()`.
-/// For task-level control, use `analytics_management_webproperty_user_links_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperty_user_links_list(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebpropertyUserLinksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLinks>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_webproperty_user_links_list_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        args.max_results,
-        args.start_index,
-    )?;
-    analytics_management_webproperty_user_links_list_execute(builder)
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given web property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `analytics_management_webproperty_user_links_update_execute()` to send, or `analytics_management_webproperty_user_links_update` for simplest API.
-
-pub fn analytics_management_webproperty_user_links_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    webPropertyId: &str,
-    linkId: &str,
-    body: &EntityUserLink,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks/{}",
-        accountId,
-        webPropertyId,
-        linkId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `analytics_management_webproperty_user_links_update_execute()` or `analytics_management_webproperty_user_links_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperty_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperty_user_links_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntityUserLink = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given web property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `analytics_management_webproperty_user_links_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `analytics_management_webproperty_user_links_update_task()`.
-/// For the simplest API, use `analytics_management_webproperty_user_links_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `analytics_management_webproperty_user_links_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn analytics_management_webproperty_user_links_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = analytics_management_webproperty_user_links_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`analytics_management_webproperty_user_links_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsManagementWebpropertyUserLinksUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: webPropertyId
-    pub webPropertyId: String,
-    /// Path parameter: linkId
-    pub linkId: String,
-    /// Request body.
-    pub body: EntityUserLink,
-}
-
-/// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks/{linkId}
-/// Updates permissions for an existing user on the given web property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `analytics_management_webproperty_user_links_update_builder()` + `analytics_management_webproperty_user_links_update_execute()`.
-/// For task-level control, use `analytics_management_webproperty_user_links_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn analytics_management_webproperty_user_links_update(
-    client: &SimpleHttpClient,
-    args: &AnalyticsManagementWebpropertyUserLinksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EntityUserLink>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = analytics_management_webproperty_user_links_update_builder(
-        client,
-        &args.accountId,
-        &args.webPropertyId,
-        &args.linkId,
-        &args.body,
-    )?;
-    analytics_management_webproperty_user_links_update_execute(builder)
 }
 
 /// GET metadata/{reportType}/columns
@@ -14779,17 +6259,17 @@ pub fn analytics_management_webproperty_user_links_update(
 
 pub fn analytics_metadata_columns_list_builder(
     client: &SimpleHttpClient,
-    reportType: &str,
+    reportType: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/metadata/{}/columns",
-        reportType,
+        reportType.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14819,7 +6299,12 @@ pub fn analytics_metadata_columns_list_builder(
 pub fn analytics_metadata_columns_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Columns>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Columns>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14919,7 +6404,7 @@ pub fn analytics_metadata_columns_list(
     impl StreamIterator<D = Result<ApiResponse<Columns>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_metadata_columns_list_builder(client, &args.reportType)?;
+    let builder = analytics_metadata_columns_list_builder(client, args.reportType.clone())?;
     analytics_metadata_columns_list_execute(builder)
 }
 
@@ -14934,11 +6419,12 @@ pub fn analytics_provisioning_create_account_ticket_builder(
     body: &AccountTicket,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/provisioning/createAccountTicket",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/analytics/v3/provisioning/createAccountTicket",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14970,7 +6456,12 @@ pub fn analytics_provisioning_create_account_ticket_builder(
 pub fn analytics_provisioning_create_account_ticket_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountTicket>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountTicket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15089,11 +6580,12 @@ pub fn analytics_provisioning_create_account_tree_builder(
     body: &AccountTreeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/analytics/v3/provisioning/createAccountTree",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/analytics/v3/provisioning/createAccountTree",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15125,8 +6617,11 @@ pub fn analytics_provisioning_create_account_tree_builder(
 pub fn analytics_provisioning_create_account_tree_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountTreeResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountTreeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -15246,13 +6741,13 @@ pub fn analytics_user_deletion_user_deletion_request_upsert_builder(
     body: &UserDeletionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/userDeletion/userDeletionRequests:upsert",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15284,8 +6779,11 @@ pub fn analytics_user_deletion_user_deletion_request_upsert_builder(
 pub fn analytics_user_deletion_user_deletion_request_upsert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserDeletionRequest>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserDeletionRequest>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {

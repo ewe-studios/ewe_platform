@@ -86,7 +86,9 @@ pub struct DnsForwarding {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for VmwareEngine.FetchNetworkPolicyExternalAddresses
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -98,10 +100,6 @@ pub struct FetchNetworkPolicyExternalAddressesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
-
-/// Volume message captures user inputs for creation of file services managed by GCVE
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleVmwareFileService {}
 
 /// Request message for VmwareEngine.GrantDnsBindPermission
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1311,7 +1309,7 @@ pub struct NfsDatastore {
     pub google_file_service: ::core::option::Option<GoogleFileService>,
     /// GCVE file service configuration
     #[serde(default, rename = "googleVmwareFileService")]
-    pub google_vmware_file_service: ::core::option::Option<serde_json::Value>,
+    pub google_vmware_file_service: ::core::option::Option<GoogleVmwareFileService>,
     /// Third party file service configuration
     #[serde(default, rename = "thirdPartyFileService")]
     pub third_party_file_service: ::core::option::Option<ThirdPartyFileService>,
@@ -1534,6 +1532,12 @@ pub struct GoogleFileService {
     /// Google netapp volume resource name e.g. projects/my-project/locations/me-west1-b/volumes/my-volume
     #[serde(default, rename = "netappVolume")]
     pub netapp_volume: ::core::option::Option<String>,
+}
+
+/// Volume message captures user inputs for creation of file services managed by GCVE
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleVmwareFileService {
+    pub value: serde_json::Value,
 }
 
 /// Third party file service configuration

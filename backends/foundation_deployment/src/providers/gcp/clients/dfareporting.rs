@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,19 +29,17 @@ use serde::Serialize;
 
 pub fn dfareporting_account_active_ad_summaries_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    summaryAccountId: &str,
+    profileId: String,
+    summaryAccountId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountActiveAdSummaries/{}",
-        profileId,
-        summaryAccountId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -70,8 +69,11 @@ pub fn dfareporting_account_active_ad_summaries_get_builder(
 pub fn dfareporting_account_active_ad_summaries_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountActiveAdSummary>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountActiveAdSummary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -180,8 +182,8 @@ pub fn dfareporting_account_active_ad_summaries_get(
 > {
     let builder = dfareporting_account_active_ad_summaries_get_builder(
         client,
-        &args.profileId,
-        &args.summaryAccountId,
+        args.profileId.clone(),
+        args.summaryAccountId.clone(),
     )?;
     dfareporting_account_active_ad_summaries_get_execute(builder)
 }
@@ -194,19 +196,17 @@ pub fn dfareporting_account_active_ad_summaries_get(
 
 pub fn dfareporting_account_permission_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissionGroups/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -236,8 +236,11 @@ pub fn dfareporting_account_permission_groups_get_builder(
 pub fn dfareporting_account_permission_groups_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountPermissionGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountPermissionGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -344,8 +347,11 @@ pub fn dfareporting_account_permission_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_account_permission_groups_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_account_permission_groups_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_account_permission_groups_get_execute(builder)
 }
 
@@ -357,17 +363,16 @@ pub fn dfareporting_account_permission_groups_get(
 
 pub fn dfareporting_account_permission_groups_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissionGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -398,8 +403,9 @@ pub fn dfareporting_account_permission_groups_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AccountPermissionGroupsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AccountPermissionGroupsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -509,7 +515,8 @@ pub fn dfareporting_account_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permission_groups_list_builder(client, &args.profileId)?;
+    let builder =
+        dfareporting_account_permission_groups_list_builder(client, args.profileId.clone())?;
     dfareporting_account_permission_groups_list_execute(builder)
 }
 
@@ -521,18 +528,17 @@ pub fn dfareporting_account_permission_groups_list(
 
 pub fn dfareporting_account_permissions_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissions/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -562,8 +568,11 @@ pub fn dfareporting_account_permissions_get_builder(
 pub fn dfareporting_account_permissions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountPermission>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -670,7 +679,11 @@ pub fn dfareporting_account_permissions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_account_permissions_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_account_permissions_get_execute(builder)
 }
 
@@ -682,17 +695,16 @@ pub fn dfareporting_account_permissions_get(
 
 pub fn dfareporting_account_permissions_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountPermissions",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -723,8 +735,9 @@ pub fn dfareporting_account_permissions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AccountPermissionsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AccountPermissionsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -834,7 +847,7 @@ pub fn dfareporting_account_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_account_permissions_list_builder(client, args.profileId.clone())?;
     dfareporting_account_permissions_list_execute(builder)
 }
 
@@ -846,19 +859,18 @@ pub fn dfareporting_account_permissions_list(
 
 pub fn dfareporting_account_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles/{}",
-        profileId,
-        id,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -888,8 +900,11 @@ pub fn dfareporting_account_user_profiles_get_builder(
 pub fn dfareporting_account_user_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountUserProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -996,8 +1011,11 @@ pub fn dfareporting_account_user_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_account_user_profiles_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_account_user_profiles_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_account_user_profiles_get_execute(builder)
 }
 
@@ -1009,18 +1027,17 @@ pub fn dfareporting_account_user_profiles_get(
 
 pub fn dfareporting_account_user_profiles_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &AccountUserProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1052,8 +1069,11 @@ pub fn dfareporting_account_user_profiles_insert_builder(
 pub fn dfareporting_account_user_profiles_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountUserProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1160,582 +1180,12 @@ pub fn dfareporting_account_user_profiles_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_account_user_profiles_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_account_user_profiles_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Retrieves a list of account user profiles, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_account_user_profiles_list_execute()` to send, or `dfareporting_account_user_profiles_list` for simplest API.
-
-pub fn dfareporting_account_user_profiles_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-    userRoleId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-    if let Some(val) = userRoleId {
-        query_parts.push(format!("userRoleId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Retrieves a list of account user profiles, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_account_user_profiles_list_execute()` or `dfareporting_account_user_profiles_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AccountUserProfilesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccountUserProfilesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Retrieves a list of account user profiles, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_account_user_profiles_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_account_user_profiles_list_task()`.
-/// For the simplest API, use `dfareporting_account_user_profiles_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_account_user_profiles_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AccountUserProfilesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_account_user_profiles_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_account_user_profiles_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAccountUserProfilesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-    /// Query parameter: userRoleId
-    pub userRoleId: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Retrieves a list of account user profiles, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_account_user_profiles_list_builder()` + `dfareporting_account_user_profiles_list_execute()`.
-/// For task-level control, use `dfareporting_account_user_profiles_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingAccountUserProfilesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AccountUserProfilesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_account_user_profiles_list_builder(
+    let builder = dfareporting_account_user_profiles_insert_builder(
         client,
-        &args.profileId,
-        args.active,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.subaccountId.as_deref(),
-        args.userRoleId.as_deref(),
-    )?;
-    dfareporting_account_user_profiles_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_account_user_profiles_patch_execute()` to send, or `dfareporting_account_user_profiles_patch` for simplest API.
-
-pub fn dfareporting_account_user_profiles_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &AccountUserProfile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_account_user_profiles_patch_execute()` or `dfareporting_account_user_profiles_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccountUserProfile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_account_user_profiles_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_account_user_profiles_patch_task()`.
-/// For the simplest API, use `dfareporting_account_user_profiles_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_account_user_profiles_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_account_user_profiles_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_account_user_profiles_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAccountUserProfilesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: AccountUserProfile,
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_account_user_profiles_patch_builder()` + `dfareporting_account_user_profiles_patch_execute()`.
-/// For task-level control, use `dfareporting_account_user_profiles_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAccountUserProfilesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_account_user_profiles_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
+        args.profileId.clone(),
         &args.body,
     )?;
-    dfareporting_account_user_profiles_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_account_user_profiles_update_execute()` to send, or `dfareporting_account_user_profiles_update` for simplest API.
-
-pub fn dfareporting_account_user_profiles_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AccountUserProfile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_account_user_profiles_update_execute()` or `dfareporting_account_user_profiles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AccountUserProfile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_account_user_profiles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_account_user_profiles_update_task()`.
-/// For the simplest API, use `dfareporting_account_user_profiles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_account_user_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_account_user_profiles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_account_user_profiles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_account_user_profiles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAccountUserProfilesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: AccountUserProfile,
-}
-
-/// GET userprofiles/{userprofilesId}/accountUserProfiles
-/// Updates an existing account user profile.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_account_user_profiles_update_builder()` + `dfareporting_account_user_profiles_update_execute()`.
-/// For task-level control, use `dfareporting_account_user_profiles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_account_user_profiles_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAccountUserProfilesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_account_user_profiles_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_account_user_profiles_update_execute(builder)
+    dfareporting_account_user_profiles_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/accounts/{accountsId}
@@ -1746,18 +1196,16 @@ pub fn dfareporting_account_user_profiles_update(
 
 pub fn dfareporting_accounts_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts/{}",
-        profileId, id,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1787,7 +1235,12 @@ pub fn dfareporting_accounts_get_builder(
 pub fn dfareporting_accounts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Account>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1889,7 +1342,8 @@ pub fn dfareporting_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_accounts_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_accounts_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_accounts_get_execute(builder)
 }
 
@@ -1901,20 +1355,18 @@ pub fn dfareporting_accounts_get(
 
 pub fn dfareporting_accounts_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     active: Option<bool>,
-    ids: Option<&str>,
+    ids: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    pageToken: Option<String>,
+    searchString: Option<String>,
+    sortField: Option<String>,
+    sortOrder: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1941,9 +1393,9 @@ pub fn dfareporting_accounts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1977,8 +1429,11 @@ pub fn dfareporting_accounts_list_builder(
 pub fn dfareporting_accounts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AccountsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccountsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2099,334 +1554,16 @@ pub fn dfareporting_accounts_list(
 > {
     let builder = dfareporting_accounts_list_builder(
         client,
-        &args.profileId,
-        args.active,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
+        args.profileId.clone(),
+        args.active.clone(),
+        args.ids.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.searchString.clone(),
+        args.sortField.clone(),
+        args.sortOrder.clone(),
     )?;
     dfareporting_accounts_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_accounts_patch_execute()` to send, or `dfareporting_accounts_patch` for simplest API.
-
-pub fn dfareporting_accounts_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Account,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_accounts_patch_execute()` or `dfareporting_accounts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_accounts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_accounts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Account = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_accounts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_accounts_patch_task()`.
-/// For the simplest API, use `dfareporting_accounts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_accounts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_accounts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_accounts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_accounts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAccountsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Account,
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_accounts_patch_builder()` + `dfareporting_accounts_patch_execute()`.
-/// For task-level control, use `dfareporting_accounts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_accounts_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAccountsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_accounts_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_accounts_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_accounts_update_execute()` to send, or `dfareporting_accounts_update` for simplest API.
-
-pub fn dfareporting_accounts_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Account,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accounts",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_accounts_update_execute()` or `dfareporting_accounts_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_accounts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_accounts_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Account = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_accounts_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_accounts_update_task()`.
-/// For the simplest API, use `dfareporting_accounts_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_accounts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_accounts_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_accounts_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_accounts_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAccountsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Account,
-}
-
-/// GET userprofiles/{userprofilesId}/accounts
-/// Updates an existing account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_accounts_update_builder()` + `dfareporting_accounts_update_execute()`.
-/// For task-level control, use `dfareporting_accounts_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_accounts_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAccountsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_accounts_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_accounts_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/ads/{adsId}
@@ -2437,18 +1574,16 @@ pub fn dfareporting_accounts_update(
 
 pub fn dfareporting_ads_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads/{}",
-        profileId, id,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2478,7 +1613,12 @@ pub fn dfareporting_ads_get_builder(
 pub fn dfareporting_ads_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Ad>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2580,7 +1720,7 @@ pub fn dfareporting_ads_get(
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_ads_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_ads_get_execute(builder)
 }
 
@@ -2592,18 +1732,16 @@ pub fn dfareporting_ads_get(
 
 pub fn dfareporting_ads_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Ad,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2635,7 +1773,12 @@ pub fn dfareporting_ads_insert_builder(
 pub fn dfareporting_ads_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Ad>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2737,655 +1880,8 @@ pub fn dfareporting_ads_insert(
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_insert_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_ads_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_ads_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Retrieves a list of ads, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_ads_list_execute()` to send, or `dfareporting_ads_list` for simplest API.
-
-pub fn dfareporting_ads_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    advertiserId: Option<&str>,
-    archived: Option<bool>,
-    audienceSegmentIds: Option<&str>,
-    campaignIds: Option<&str>,
-    compatibility: Option<&str>,
-    creativeIds: Option<&str>,
-    creativeOptimizationConfigurationIds: Option<&str>,
-    dynamicClickTracker: Option<bool>,
-    ids: Option<&str>,
-    landingPageIds: Option<&str>,
-    maxResults: Option<i32>,
-    overriddenEventTagId: Option<&str>,
-    pageToken: Option<&str>,
-    placementIds: Option<&str>,
-    remarketingListIds: Option<&str>,
-    searchString: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    sslCompliant: Option<bool>,
-    sslRequired: Option<bool>,
-    type_rs: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = archived {
-        query_parts.push(format!("archived={}", val));
-    }
-    if let Some(val) = audienceSegmentIds {
-        query_parts.push(format!("audienceSegmentIds={}", val));
-    }
-    if let Some(val) = campaignIds {
-        query_parts.push(format!("campaignIds={}", val));
-    }
-    if let Some(val) = compatibility {
-        query_parts.push(format!("compatibility={}", val));
-    }
-    if let Some(val) = creativeIds {
-        query_parts.push(format!("creativeIds={}", val));
-    }
-    if let Some(val) = creativeOptimizationConfigurationIds {
-        query_parts.push(format!("creativeOptimizationConfigurationIds={}", val));
-    }
-    if let Some(val) = dynamicClickTracker {
-        query_parts.push(format!("dynamicClickTracker={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = landingPageIds {
-        query_parts.push(format!("landingPageIds={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = overriddenEventTagId {
-        query_parts.push(format!("overriddenEventTagId={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = placementIds {
-        query_parts.push(format!("placementIds={}", val));
-    }
-    if let Some(val) = remarketingListIds {
-        query_parts.push(format!("remarketingListIds={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sizeIds {
-        query_parts.push(format!("sizeIds={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = sslCompliant {
-        query_parts.push(format!("sslCompliant={}", val));
-    }
-    if let Some(val) = sslRequired {
-        query_parts.push(format!("sslRequired={}", val));
-    }
-    if let Some(val) = type_rs {
-        query_parts.push(format!("type={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Retrieves a list of ads, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_ads_list_execute()` or `dfareporting_ads_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Retrieves a list of ads, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_ads_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_ads_list_task()`.
-/// For the simplest API, use `dfareporting_ads_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_ads_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_ads_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_ads_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: archived
-    pub archived: Option<bool>,
-    /// Query parameter: audienceSegmentIds
-    pub audienceSegmentIds: Option<String>,
-    /// Query parameter: campaignIds
-    pub campaignIds: Option<String>,
-    /// Query parameter: compatibility
-    pub compatibility: Option<String>,
-    /// Query parameter: creativeIds
-    pub creativeIds: Option<String>,
-    /// Query parameter: creativeOptimizationConfigurationIds
-    pub creativeOptimizationConfigurationIds: Option<String>,
-    /// Query parameter: dynamicClickTracker
-    pub dynamicClickTracker: Option<bool>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: landingPageIds
-    pub landingPageIds: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: overriddenEventTagId
-    pub overriddenEventTagId: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: placementIds
-    pub placementIds: Option<String>,
-    /// Query parameter: remarketingListIds
-    pub remarketingListIds: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sizeIds
-    pub sizeIds: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: sslCompliant
-    pub sslCompliant: Option<bool>,
-    /// Query parameter: sslRequired
-    pub sslRequired: Option<bool>,
-    /// Query parameter: type
-    pub type_rs: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Retrieves a list of ads, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_ads_list_builder()` + `dfareporting_ads_list_execute()`.
-/// For task-level control, use `dfareporting_ads_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_ads_list_builder(
-        client,
-        &args.profileId,
-        args.active,
-        args.advertiserId.as_deref(),
-        args.archived,
-        args.audienceSegmentIds.as_deref(),
-        args.campaignIds.as_deref(),
-        args.compatibility.as_deref(),
-        args.creativeIds.as_deref(),
-        args.creativeOptimizationConfigurationIds.as_deref(),
-        args.dynamicClickTracker,
-        args.ids.as_deref(),
-        args.landingPageIds.as_deref(),
-        args.maxResults,
-        args.overriddenEventTagId.as_deref(),
-        args.pageToken.as_deref(),
-        args.placementIds.as_deref(),
-        args.remarketingListIds.as_deref(),
-        args.searchString.as_deref(),
-        args.sizeIds.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.sslCompliant,
-        args.sslRequired,
-        args.type_rs.as_deref(),
-    )?;
-    dfareporting_ads_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_ads_patch_execute()` to send, or `dfareporting_ads_patch` for simplest API.
-
-pub fn dfareporting_ads_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Ad,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_ads_patch_execute()` or `dfareporting_ads_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Ad = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_ads_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_ads_patch_task()`.
-/// For the simplest API, use `dfareporting_ads_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_ads_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_ads_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_ads_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Ad,
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_ads_patch_builder()` + `dfareporting_ads_patch_execute()`.
-/// For task-level control, use `dfareporting_ads_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_ads_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_ads_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_ads_update_execute()` to send, or `dfareporting_ads_update` for simplest API.
-
-pub fn dfareporting_ads_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Ad,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/ads",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_ads_update_execute()` or `dfareporting_ads_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Ad = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_ads_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_ads_update_task()`.
-/// For the simplest API, use `dfareporting_ads_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_ads_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_ads_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_ads_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_ads_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Ad,
-}
-
-/// GET userprofiles/{userprofilesId}/ads
-/// Updates an existing ad.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_ads_update_builder()` + `dfareporting_ads_update_execute()`.
-/// For task-level control, use `dfareporting_ads_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_ads_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_ads_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_ads_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
@@ -3396,18 +1892,17 @@ pub fn dfareporting_ads_update(
 
 pub fn dfareporting_advertiser_groups_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3437,7 +1932,12 @@ pub fn dfareporting_advertiser_groups_delete_builder(
 pub fn dfareporting_advertiser_groups_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3536,169 +2036,12 @@ pub fn dfareporting_advertiser_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_delete_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_advertiser_groups_delete_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_advertiser_groups_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
-/// Gets one advertiser group by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_groups_get_execute()` to send, or `dfareporting_advertiser_groups_get` for simplest API.
-
-pub fn dfareporting_advertiser_groups_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups/{}",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
-/// Gets one advertiser group by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_groups_get_execute()` or `dfareporting_advertiser_groups_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertiserGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
-/// Gets one advertiser group by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_groups_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_groups_get_task()`.
-/// For the simplest API, use `dfareporting_advertiser_groups_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_groups_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_groups_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_groups_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserGroupsGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
-/// Gets one advertiser group by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_groups_get_builder()` + `dfareporting_advertiser_groups_get_execute()`.
-/// For task-level control, use `dfareporting_advertiser_groups_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserGroupsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertiser_groups_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_advertiser_groups_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/advertiserGroups
@@ -3709,18 +2052,17 @@ pub fn dfareporting_advertiser_groups_get(
 
 pub fn dfareporting_advertiser_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &AdvertiserGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3752,8 +2094,11 @@ pub fn dfareporting_advertiser_groups_insert_builder(
 pub fn dfareporting_advertiser_groups_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdvertiserGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3861,560 +2206,8 @@ pub fn dfareporting_advertiser_groups_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_advertiser_groups_insert_builder(client, &args.profileId, &args.body)?;
+        dfareporting_advertiser_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_advertiser_groups_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Retrieves a list of advertiser groups, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_groups_list_execute()` to send, or `dfareporting_advertiser_groups_list` for simplest API.
-
-pub fn dfareporting_advertiser_groups_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Retrieves a list of advertiser groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_groups_list_execute()` or `dfareporting_advertiser_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AdvertiserGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertiserGroupsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Retrieves a list of advertiser groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_groups_list_task()`.
-/// For the simplest API, use `dfareporting_advertiser_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AdvertiserGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserGroupsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Retrieves a list of advertiser groups, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_groups_list_builder()` + `dfareporting_advertiser_groups_list_execute()`.
-/// For task-level control, use `dfareporting_advertiser_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserGroupsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AdvertiserGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertiser_groups_list_builder(
-        client,
-        &args.profileId,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_advertiser_groups_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_groups_patch_execute()` to send, or `dfareporting_advertiser_groups_patch` for simplest API.
-
-pub fn dfareporting_advertiser_groups_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &AdvertiserGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_groups_patch_execute()` or `dfareporting_advertiser_groups_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertiserGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_groups_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_groups_patch_task()`.
-/// For the simplest API, use `dfareporting_advertiser_groups_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_groups_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_groups_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_groups_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserGroupsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: AdvertiserGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_groups_patch_builder()` + `dfareporting_advertiser_groups_patch_execute()`.
-/// For task-level control, use `dfareporting_advertiser_groups_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserGroupsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertiser_groups_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_advertiser_groups_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_groups_update_execute()` to send, or `dfareporting_advertiser_groups_update` for simplest API.
-
-pub fn dfareporting_advertiser_groups_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AdvertiserGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserGroups",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_groups_update_execute()` or `dfareporting_advertiser_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertiserGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_groups_update_task()`.
-/// For the simplest API, use `dfareporting_advertiser_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserGroupsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: AdvertiserGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserGroups
-/// Updates an existing advertiser group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_groups_update_builder()` + `dfareporting_advertiser_groups_update_execute()`.
-/// For task-level control, use `dfareporting_advertiser_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_groups_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_advertiser_groups_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_advertiser_groups_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/advertisers/{advertisersId}/invoices
@@ -4425,17 +2218,15 @@ pub fn dfareporting_advertiser_groups_update(
 
 pub fn dfareporting_advertiser_invoices_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    issueMonth: Option<&str>,
+    profileId: String,
+    advertiserId: String,
+    issueMonth: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers/{}/invoices",
-        profileId,
-        advertiserId,
     );
 
     // Build request
@@ -4451,9 +2242,9 @@ pub fn dfareporting_advertiser_invoices_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4488,8 +2279,9 @@ pub fn dfareporting_advertiser_invoices_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<AdvertiserInvoicesListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<AdvertiserInvoicesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4609,11 +2401,11 @@ pub fn dfareporting_advertiser_invoices_list(
 > {
     let builder = dfareporting_advertiser_invoices_list_builder(
         client,
-        &args.profileId,
-        &args.advertiserId,
-        args.issueMonth.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.profileId.clone(),
+        args.advertiserId.clone(),
+        args.issueMonth.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     dfareporting_advertiser_invoices_list_execute(builder)
 }
@@ -4626,19 +2418,17 @@ pub fn dfareporting_advertiser_invoices_list(
 
 pub fn dfareporting_advertiser_landing_pages_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4668,7 +2458,12 @@ pub fn dfareporting_advertiser_landing_pages_get_builder(
 pub fn dfareporting_advertiser_landing_pages_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LandingPage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4770,8 +2565,11 @@ pub fn dfareporting_advertiser_landing_pages_get(
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_advertiser_landing_pages_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_advertiser_landing_pages_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_advertiser_landing_pages_get_execute(builder)
 }
 
@@ -4783,18 +2581,17 @@ pub fn dfareporting_advertiser_landing_pages_get(
 
 pub fn dfareporting_advertiser_landing_pages_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &LandingPage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4826,7 +2623,12 @@ pub fn dfareporting_advertiser_landing_pages_insert_builder(
 pub fn dfareporting_advertiser_landing_pages_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LandingPage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4928,578 +2730,12 @@ pub fn dfareporting_advertiser_landing_pages_insert(
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_advertiser_landing_pages_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_advertiser_landing_pages_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Retrieves a list of landing pages.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_landing_pages_list_execute()` to send, or `dfareporting_advertiser_landing_pages_list` for simplest API.
-
-pub fn dfareporting_advertiser_landing_pages_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    archived: Option<bool>,
-    campaignIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = archived {
-        query_parts.push(format!("archived={}", val));
-    }
-    if let Some(val) = campaignIds {
-        query_parts.push(format!("campaignIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Retrieves a list of landing pages.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_landing_pages_list_execute()` or `dfareporting_advertiser_landing_pages_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<AdvertiserLandingPagesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertiserLandingPagesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Retrieves a list of landing pages.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_landing_pages_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_list_task()`.
-/// For the simplest API, use `dfareporting_advertiser_landing_pages_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_landing_pages_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AdvertiserLandingPagesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_landing_pages_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_landing_pages_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserLandingPagesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: archived
-    pub archived: Option<bool>,
-    /// Query parameter: campaignIds
-    pub campaignIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Retrieves a list of landing pages.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_landing_pages_list_builder()` + `dfareporting_advertiser_landing_pages_list_execute()`.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserLandingPagesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<AdvertiserLandingPagesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertiser_landing_pages_list_builder(
+    let builder = dfareporting_advertiser_landing_pages_insert_builder(
         client,
-        &args.profileId,
-        args.advertiserIds.as_deref(),
-        args.archived,
-        args.campaignIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.subaccountId.as_deref(),
-    )?;
-    dfareporting_advertiser_landing_pages_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_landing_pages_patch_execute()` to send, or `dfareporting_advertiser_landing_pages_patch` for simplest API.
-
-pub fn dfareporting_advertiser_landing_pages_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &LandingPage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
-        profileId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_landing_pages_patch_execute()` or `dfareporting_advertiser_landing_pages_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LandingPage = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_landing_pages_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_patch_task()`.
-/// For the simplest API, use `dfareporting_advertiser_landing_pages_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_landing_pages_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_landing_pages_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_landing_pages_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserLandingPagesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: LandingPage,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_landing_pages_patch_builder()` + `dfareporting_advertiser_landing_pages_patch_execute()`.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserLandingPagesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertiser_landing_pages_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
+        args.profileId.clone(),
         &args.body,
     )?;
-    dfareporting_advertiser_landing_pages_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertiser_landing_pages_update_execute()` to send, or `dfareporting_advertiser_landing_pages_update` for simplest API.
-
-pub fn dfareporting_advertiser_landing_pages_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &LandingPage,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertiserLandingPages",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertiser_landing_pages_update_execute()` or `dfareporting_advertiser_landing_pages_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LandingPage = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertiser_landing_pages_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_update_task()`.
-/// For the simplest API, use `dfareporting_advertiser_landing_pages_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertiser_landing_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertiser_landing_pages_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertiser_landing_pages_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertiser_landing_pages_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertiserLandingPagesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: LandingPage,
-}
-
-/// GET userprofiles/{userprofilesId}/advertiserLandingPages
-/// Updates an existing landing page.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertiser_landing_pages_update_builder()` + `dfareporting_advertiser_landing_pages_update_execute()`.
-/// For task-level control, use `dfareporting_advertiser_landing_pages_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertiser_landing_pages_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertiserLandingPagesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_advertiser_landing_pages_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_advertiser_landing_pages_update_execute(builder)
+    dfareporting_advertiser_landing_pages_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/advertisers/{advertisersId}
@@ -5510,18 +2746,17 @@ pub fn dfareporting_advertiser_landing_pages_update(
 
 pub fn dfareporting_advertisers_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5551,7 +2786,12 @@ pub fn dfareporting_advertisers_get_builder(
 pub fn dfareporting_advertisers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Advertiser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5653,7 +2893,8 @@ pub fn dfareporting_advertisers_get(
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_advertisers_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_advertisers_get_execute(builder)
 }
 
@@ -5665,18 +2906,16 @@ pub fn dfareporting_advertisers_get(
 
 pub fn dfareporting_advertisers_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Advertiser,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5708,7 +2947,12 @@ pub fn dfareporting_advertisers_insert_builder(
 pub fn dfareporting_advertisers_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Advertiser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5810,579 +3054,9 @@ pub fn dfareporting_advertisers_insert(
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_advertisers_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Retrieves a list of advertisers, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertisers_list_execute()` to send, or `dfareporting_advertisers_list` for simplest API.
-
-pub fn dfareporting_advertisers_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserGroupIds: Option<&str>,
-    floodlightConfigurationIds: Option<&str>,
-    ids: Option<&str>,
-    includeAdvertisersWithoutGroupsOnly: Option<bool>,
-    maxResults: Option<i32>,
-    onlyParent: Option<bool>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    status: Option<&str>,
-    subaccountId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserGroupIds {
-        query_parts.push(format!("advertiserGroupIds={}", val));
-    }
-    if let Some(val) = floodlightConfigurationIds {
-        query_parts.push(format!("floodlightConfigurationIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = includeAdvertisersWithoutGroupsOnly {
-        query_parts.push(format!("includeAdvertisersWithoutGroupsOnly={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = onlyParent {
-        query_parts.push(format!("onlyParent={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = status {
-        query_parts.push(format!("status={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Retrieves a list of advertisers, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertisers_list_execute()` or `dfareporting_advertisers_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdvertisersListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AdvertisersListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Retrieves a list of advertisers, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertisers_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertisers_list_task()`.
-/// For the simplest API, use `dfareporting_advertisers_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertisers_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertisersListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertisers_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertisers_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertisersListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserGroupIds
-    pub advertiserGroupIds: Option<String>,
-    /// Query parameter: floodlightConfigurationIds
-    pub floodlightConfigurationIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: includeAdvertisersWithoutGroupsOnly
-    pub includeAdvertisersWithoutGroupsOnly: Option<bool>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: onlyParent
-    pub onlyParent: Option<bool>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: status
-    pub status: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Retrieves a list of advertisers, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertisers_list_builder()` + `dfareporting_advertisers_list_execute()`.
-/// For task-level control, use `dfareporting_advertisers_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertisersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AdvertisersListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertisers_list_builder(
-        client,
-        &args.profileId,
-        args.advertiserGroupIds.as_deref(),
-        args.floodlightConfigurationIds.as_deref(),
-        args.ids.as_deref(),
-        args.includeAdvertisersWithoutGroupsOnly,
-        args.maxResults,
-        args.onlyParent,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.status.as_deref(),
-        args.subaccountId.as_deref(),
-    )?;
-    dfareporting_advertisers_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertisers_patch_execute()` to send, or `dfareporting_advertisers_patch` for simplest API.
-
-pub fn dfareporting_advertisers_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Advertiser,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertisers_patch_execute()` or `dfareporting_advertisers_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Advertiser = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertisers_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertisers_patch_task()`.
-/// For the simplest API, use `dfareporting_advertisers_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertisers_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertisers_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertisers_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertisersPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Advertiser,
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertisers_patch_builder()` + `dfareporting_advertisers_patch_execute()`.
-/// For task-level control, use `dfareporting_advertisers_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertisersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_advertisers_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_advertisers_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_advertisers_update_execute()` to send, or `dfareporting_advertisers_update` for simplest API.
-
-pub fn dfareporting_advertisers_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Advertiser,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/advertisers",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_advertisers_update_execute()` or `dfareporting_advertisers_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Advertiser = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_advertisers_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_advertisers_update_task()`.
-/// For the simplest API, use `dfareporting_advertisers_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_advertisers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_advertisers_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_advertisers_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_advertisers_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingAdvertisersUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Advertiser,
-}
-
-/// GET userprofiles/{userprofilesId}/advertisers
-/// Updates an existing advertiser.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_advertisers_update_builder()` + `dfareporting_advertisers_update_execute()`.
-/// For task-level control, use `dfareporting_advertisers_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_advertisers_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingAdvertisersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_advertisers_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_advertisers_update_execute(builder)
+        dfareporting_advertisers_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_advertisers_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
@@ -6393,20 +3067,18 @@ pub fn dfareporting_advertisers_update(
 
 pub fn dfareporting_billing_assignments_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
+    profileId: String,
+    billingProfileId: String,
     body: &BillingAssignment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingAssignments",
-        profileId,
-        billingProfileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6438,8 +3110,11 @@ pub fn dfareporting_billing_assignments_insert_builder(
 pub fn dfareporting_billing_assignments_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BillingAssignment>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingAssignment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6550,183 +3225,11 @@ pub fn dfareporting_billing_assignments_insert(
 > {
     let builder = dfareporting_billing_assignments_insert_builder(
         client,
-        &args.profileId,
-        &args.billingProfileId,
+        args.profileId.clone(),
+        args.billingProfileId.clone(),
         &args.body,
     )?;
     dfareporting_billing_assignments_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
-/// Retrieves a list of billing assignments.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_billing_assignments_list_execute()` to send, or `dfareporting_billing_assignments_list` for simplest API.
-
-pub fn dfareporting_billing_assignments_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingAssignments",
-        profileId,
-        billingProfileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
-/// Retrieves a list of billing assignments.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_billing_assignments_list_execute()` or `dfareporting_billing_assignments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_billing_assignments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_billing_assignments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<BillingAssignmentsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: BillingAssignmentsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
-/// Retrieves a list of billing assignments.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_billing_assignments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_billing_assignments_list_task()`.
-/// For the simplest API, use `dfareporting_billing_assignments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_billing_assignments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_billing_assignments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingAssignmentsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_billing_assignments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_billing_assignments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingBillingAssignmentsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: billingProfileId
-    pub billingProfileId: String,
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
-/// Retrieves a list of billing assignments.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_billing_assignments_list_builder()` + `dfareporting_billing_assignments_list_execute()`.
-/// For task-level control, use `dfareporting_billing_assignments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_billing_assignments_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingBillingAssignmentsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingAssignmentsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_billing_assignments_list_builder(
-        client,
-        &args.profileId,
-        &args.billingProfileId,
-    )?;
-    dfareporting_billing_assignments_list_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}
@@ -6737,18 +3240,17 @@ pub fn dfareporting_billing_assignments_list(
 
 pub fn dfareporting_billing_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6778,8 +3280,11 @@ pub fn dfareporting_billing_profiles_get_builder(
 pub fn dfareporting_billing_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6886,7 +3391,8 @@ pub fn dfareporting_billing_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_billing_profiles_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_billing_profiles_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_billing_profiles_get_execute(builder)
 }
 
@@ -6898,22 +3404,21 @@ pub fn dfareporting_billing_profiles_get(
 
 pub fn dfareporting_billing_profiles_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    currency_code: Option<&str>,
-    ids: Option<&str>,
+    profileId: String,
+    currency_code: Option<String>,
+    ids: Option<String>,
     maxResults: Option<i32>,
-    name: Option<&str>,
+    name: Option<String>,
     onlySuggestion: Option<bool>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    status: Option<&str>,
-    subaccountIds: Option<&str>,
+    pageToken: Option<String>,
+    sortField: Option<String>,
+    sortOrder: Option<String>,
+    status: Option<String>,
+    subaccountIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles",
-        profileId,
     );
 
     // Build request
@@ -6950,9 +3455,9 @@ pub fn dfareporting_billing_profiles_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6986,8 +3491,11 @@ pub fn dfareporting_billing_profiles_list_builder(
 pub fn dfareporting_billing_profiles_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BillingProfilesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingProfilesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7118,183 +3626,19 @@ pub fn dfareporting_billing_profiles_list(
 > {
     let builder = dfareporting_billing_profiles_list_builder(
         client,
-        &args.profileId,
-        args.currency_code.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.name.as_deref(),
-        args.onlySuggestion,
-        args.pageToken.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.status.as_deref(),
-        args.subaccountIds.as_deref(),
+        args.profileId.clone(),
+        args.currency_code.clone(),
+        args.ids.clone(),
+        args.maxResults.clone(),
+        args.name.clone(),
+        args.onlySuggestion.clone(),
+        args.pageToken.clone(),
+        args.sortField.clone(),
+        args.sortOrder.clone(),
+        args.status.clone(),
+        args.subaccountIds.clone(),
     )?;
     dfareporting_billing_profiles_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles
-/// Updates an existing billing profile.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_billing_profiles_update_execute()` to send, or `dfareporting_billing_profiles_update` for simplest API.
-
-pub fn dfareporting_billing_profiles_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &BillingProfile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles
-/// Updates an existing billing profile.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_billing_profiles_update_execute()` or `dfareporting_billing_profiles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_billing_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_billing_profiles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: BillingProfile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles
-/// Updates an existing billing profile.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_billing_profiles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_billing_profiles_update_task()`.
-/// For the simplest API, use `dfareporting_billing_profiles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_billing_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_billing_profiles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_billing_profiles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_billing_profiles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingBillingProfilesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: BillingProfile,
-}
-
-/// GET userprofiles/{userprofilesId}/billingProfiles
-/// Updates an existing billing profile.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_billing_profiles_update_builder()` + `dfareporting_billing_profiles_update_execute()`.
-/// For task-level control, use `dfareporting_billing_profiles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_billing_profiles_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingBillingProfilesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_billing_profiles_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_billing_profiles_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingRates
@@ -7305,19 +3649,17 @@ pub fn dfareporting_billing_profiles_update(
 
 pub fn dfareporting_billing_rates_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
+    profileId: String,
+    billingProfileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/billingProfiles/{}/billingRates",
-        profileId,
-        billingProfileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7347,8 +3689,11 @@ pub fn dfareporting_billing_rates_list_builder(
 pub fn dfareporting_billing_rates_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BillingRatesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingRatesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7455,8 +3800,11 @@ pub fn dfareporting_billing_rates_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_billing_rates_list_builder(client, &args.profileId, &args.billingProfileId)?;
+    let builder = dfareporting_billing_rates_list_builder(
+        client,
+        args.profileId.clone(),
+        args.billingProfileId.clone(),
+    )?;
     dfareporting_billing_rates_list_execute(builder)
 }
 
@@ -7468,17 +3816,15 @@ pub fn dfareporting_billing_rates_list(
 
 pub fn dfareporting_browsers_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/browsers",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/browsers",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7508,8 +3854,11 @@ pub fn dfareporting_browsers_list_builder(
 pub fn dfareporting_browsers_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BrowsersListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BrowsersListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7614,7 +3963,7 @@ pub fn dfareporting_browsers_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_browsers_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_browsers_list_builder(client, args.profileId.clone())?;
     dfareporting_browsers_list_execute(builder)
 }
 
@@ -7626,20 +3975,18 @@ pub fn dfareporting_browsers_list(
 
 pub fn dfareporting_campaign_creative_associations_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: &str,
+    profileId: String,
+    campaignId: String,
     body: &CampaignCreativeAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}/campaignCreativeAssociations",
-        profileId,
-        campaignId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7671,8 +4018,11 @@ pub fn dfareporting_campaign_creative_associations_insert_builder(
 pub fn dfareporting_campaign_creative_associations_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CampaignCreativeAssociation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CampaignCreativeAssociation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7787,212 +4137,11 @@ pub fn dfareporting_campaign_creative_associations_insert(
 > {
     let builder = dfareporting_campaign_creative_associations_insert_builder(
         client,
-        &args.profileId,
-        &args.campaignId,
+        args.profileId.clone(),
+        args.campaignId.clone(),
         &args.body,
     )?;
     dfareporting_campaign_creative_associations_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
-/// Retrieves the list of creative IDs associated with the specified campaign. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_campaign_creative_associations_list_execute()` to send, or `dfareporting_campaign_creative_associations_list` for simplest API.
-
-pub fn dfareporting_campaign_creative_associations_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}/campaignCreativeAssociations",
-        profileId,
-        campaignId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
-/// Retrieves the list of creative IDs associated with the specified campaign. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_campaign_creative_associations_list_execute()` or `dfareporting_campaign_creative_associations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaign_creative_associations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaign_creative_associations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<CampaignCreativeAssociationsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CampaignCreativeAssociationsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
-/// Retrieves the list of creative IDs associated with the specified campaign. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_campaign_creative_associations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_campaign_creative_associations_list_task()`.
-/// For the simplest API, use `dfareporting_campaign_creative_associations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaign_creative_associations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_campaign_creative_associations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CampaignCreativeAssociationsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_campaign_creative_associations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_campaign_creative_associations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCampaignCreativeAssociationsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: campaignId
-    pub campaignId: String,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
-/// Retrieves the list of creative IDs associated with the specified campaign. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_campaign_creative_associations_list_builder()` + `dfareporting_campaign_creative_associations_list_execute()`.
-/// For task-level control, use `dfareporting_campaign_creative_associations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaign_creative_associations_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCampaignCreativeAssociationsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CampaignCreativeAssociationsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_campaign_creative_associations_list_builder(
-        client,
-        &args.profileId,
-        &args.campaignId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_campaign_creative_associations_list_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}
@@ -8003,18 +4152,17 @@ pub fn dfareporting_campaign_creative_associations_list(
 
 pub fn dfareporting_campaigns_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8044,7 +4192,12 @@ pub fn dfareporting_campaigns_get_builder(
 pub fn dfareporting_campaigns_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Campaign>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8146,7 +4299,8 @@ pub fn dfareporting_campaigns_get(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_campaigns_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_campaigns_get_execute(builder)
 }
 
@@ -8158,18 +4312,16 @@ pub fn dfareporting_campaigns_get(
 
 pub fn dfareporting_campaigns_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Campaign,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8201,7 +4353,12 @@ pub fn dfareporting_campaigns_insert_builder(
 pub fn dfareporting_campaigns_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Campaign>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8303,586 +4460,9 @@ pub fn dfareporting_campaigns_insert(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_campaigns_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Retrieves a list of campaigns, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_campaigns_list_execute()` to send, or `dfareporting_campaigns_list` for simplest API.
-
-pub fn dfareporting_campaigns_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserGroupIds: Option<&str>,
-    advertiserIds: Option<&str>,
-    archived: Option<bool>,
-    atLeastOneOptimizationActivity: Option<bool>,
-    excludedIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    overriddenEventTagId: Option<&str>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserGroupIds {
-        query_parts.push(format!("advertiserGroupIds={}", val));
-    }
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = archived {
-        query_parts.push(format!("archived={}", val));
-    }
-    if let Some(val) = atLeastOneOptimizationActivity {
-        query_parts.push(format!("atLeastOneOptimizationActivity={}", val));
-    }
-    if let Some(val) = excludedIds {
-        query_parts.push(format!("excludedIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = overriddenEventTagId {
-        query_parts.push(format!("overriddenEventTagId={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Retrieves a list of campaigns, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_campaigns_list_execute()` or `dfareporting_campaigns_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CampaignsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CampaignsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Retrieves a list of campaigns, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_campaigns_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_campaigns_list_task()`.
-/// For the simplest API, use `dfareporting_campaigns_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_campaigns_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CampaignsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_campaigns_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_campaigns_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCampaignsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserGroupIds
-    pub advertiserGroupIds: Option<String>,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: archived
-    pub archived: Option<bool>,
-    /// Query parameter: atLeastOneOptimizationActivity
-    pub atLeastOneOptimizationActivity: Option<bool>,
-    /// Query parameter: excludedIds
-    pub excludedIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: overriddenEventTagId
-    pub overriddenEventTagId: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Retrieves a list of campaigns, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_campaigns_list_builder()` + `dfareporting_campaigns_list_execute()`.
-/// For task-level control, use `dfareporting_campaigns_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCampaignsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CampaignsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_campaigns_list_builder(
-        client,
-        &args.profileId,
-        args.advertiserGroupIds.as_deref(),
-        args.advertiserIds.as_deref(),
-        args.archived,
-        args.atLeastOneOptimizationActivity,
-        args.excludedIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.overriddenEventTagId.as_deref(),
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.subaccountId.as_deref(),
-    )?;
-    dfareporting_campaigns_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_campaigns_patch_execute()` to send, or `dfareporting_campaigns_patch` for simplest API.
-
-pub fn dfareporting_campaigns_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Campaign,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_campaigns_patch_execute()` or `dfareporting_campaigns_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Campaign = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_campaigns_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_campaigns_patch_task()`.
-/// For the simplest API, use `dfareporting_campaigns_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_campaigns_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_campaigns_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_campaigns_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCampaignsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Campaign,
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_campaigns_patch_builder()` + `dfareporting_campaigns_patch_execute()`.
-/// For task-level control, use `dfareporting_campaigns_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingCampaignsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_campaigns_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_campaigns_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_campaigns_update_execute()` to send, or `dfareporting_campaigns_update` for simplest API.
-
-pub fn dfareporting_campaigns_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Campaign,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/campaigns",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_campaigns_update_execute()` or `dfareporting_campaigns_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Campaign = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_campaigns_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_campaigns_update_task()`.
-/// For the simplest API, use `dfareporting_campaigns_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_campaigns_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_campaigns_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_campaigns_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_campaigns_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCampaignsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Campaign,
-}
-
-/// GET userprofiles/{userprofilesId}/campaigns
-/// Updates an existing campaign.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_campaigns_update_builder()` + `dfareporting_campaigns_update_execute()`.
-/// For task-level control, use `dfareporting_campaigns_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_campaigns_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingCampaignsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_campaigns_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_campaigns_update_execute(builder)
+        dfareporting_campaigns_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_campaigns_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/changeLogs/{changeLogsId}
@@ -8893,18 +4473,17 @@ pub fn dfareporting_campaigns_update(
 
 pub fn dfareporting_change_logs_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/changeLogs/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8934,7 +4513,12 @@ pub fn dfareporting_change_logs_get_builder(
 pub fn dfareporting_change_logs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ChangeLog>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChangeLog>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9036,7 +4620,8 @@ pub fn dfareporting_change_logs_get(
     impl StreamIterator<D = Result<ApiResponse<ChangeLog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_change_logs_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_change_logs_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_change_logs_get_execute(builder)
 }
 
@@ -9048,23 +4633,21 @@ pub fn dfareporting_change_logs_get(
 
 pub fn dfareporting_change_logs_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    action: Option<&str>,
-    ids: Option<&str>,
-    maxChangeTime: Option<&str>,
+    profileId: String,
+    action: Option<String>,
+    ids: Option<String>,
+    maxChangeTime: Option<String>,
     maxResults: Option<i32>,
-    minChangeTime: Option<&str>,
-    objectIds: Option<&str>,
-    objectType: Option<&str>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    userProfileIds: Option<&str>,
+    minChangeTime: Option<String>,
+    objectIds: Option<String>,
+    objectType: Option<String>,
+    pageToken: Option<String>,
+    searchString: Option<String>,
+    userProfileIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/changeLogs",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/changeLogs",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -9100,9 +4683,9 @@ pub fn dfareporting_change_logs_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9136,8 +4719,11 @@ pub fn dfareporting_change_logs_list_builder(
 pub fn dfareporting_change_logs_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ChangeLogsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChangeLogsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9264,17 +4850,17 @@ pub fn dfareporting_change_logs_list(
 > {
     let builder = dfareporting_change_logs_list_builder(
         client,
-        &args.profileId,
-        args.action.as_deref(),
-        args.ids.as_deref(),
-        args.maxChangeTime.as_deref(),
-        args.maxResults,
-        args.minChangeTime.as_deref(),
-        args.objectIds.as_deref(),
-        args.objectType.as_deref(),
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.userProfileIds.as_deref(),
+        args.profileId.clone(),
+        args.action.clone(),
+        args.ids.clone(),
+        args.maxChangeTime.clone(),
+        args.maxResults.clone(),
+        args.minChangeTime.clone(),
+        args.objectIds.clone(),
+        args.objectType.clone(),
+        args.pageToken.clone(),
+        args.searchString.clone(),
+        args.userProfileIds.clone(),
     )?;
     dfareporting_change_logs_list_execute(builder)
 }
@@ -9287,17 +4873,15 @@ pub fn dfareporting_change_logs_list(
 
 pub fn dfareporting_cities_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    countryDartIds: Option<&str>,
-    dartIds: Option<&str>,
-    namePrefix: Option<&str>,
-    regionDartIds: Option<&str>,
+    profileId: String,
+    countryDartIds: Option<String>,
+    dartIds: Option<String>,
+    namePrefix: Option<String>,
+    regionDartIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/cities",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/cities",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -9315,9 +4899,9 @@ pub fn dfareporting_cities_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9351,8 +4935,11 @@ pub fn dfareporting_cities_list_builder(
 pub fn dfareporting_cities_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CitiesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CitiesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9467,11 +5054,11 @@ pub fn dfareporting_cities_list(
 > {
     let builder = dfareporting_cities_list_builder(
         client,
-        &args.profileId,
-        args.countryDartIds.as_deref(),
-        args.dartIds.as_deref(),
-        args.namePrefix.as_deref(),
-        args.regionDartIds.as_deref(),
+        args.profileId.clone(),
+        args.countryDartIds.clone(),
+        args.dartIds.clone(),
+        args.namePrefix.clone(),
+        args.regionDartIds.clone(),
     )?;
     dfareporting_cities_list_execute(builder)
 }
@@ -9484,18 +5071,17 @@ pub fn dfareporting_cities_list(
 
 pub fn dfareporting_connection_types_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/connectionTypes/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9525,8 +5111,11 @@ pub fn dfareporting_connection_types_get_builder(
 pub fn dfareporting_connection_types_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConnectionType>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectionType>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9633,7 +5222,8 @@ pub fn dfareporting_connection_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_connection_types_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_connection_types_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_connection_types_get_execute(builder)
 }
 
@@ -9645,17 +5235,16 @@ pub fn dfareporting_connection_types_get(
 
 pub fn dfareporting_connection_types_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/connectionTypes",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9685,8 +5274,11 @@ pub fn dfareporting_connection_types_list_builder(
 pub fn dfareporting_connection_types_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConnectionTypesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectionTypesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9795,7 +5387,7 @@ pub fn dfareporting_connection_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_connection_types_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_connection_types_list_builder(client, args.profileId.clone())?;
     dfareporting_connection_types_list_execute(builder)
 }
 
@@ -9807,18 +5399,17 @@ pub fn dfareporting_connection_types_list(
 
 pub fn dfareporting_content_categories_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9848,7 +5439,12 @@ pub fn dfareporting_content_categories_delete_builder(
 pub fn dfareporting_content_categories_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9947,170 +5543,12 @@ pub fn dfareporting_content_categories_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_content_categories_delete_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_content_categories_delete_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_content_categories_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
-/// Gets one content category by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_content_categories_get_execute()` to send, or `dfareporting_content_categories_get` for simplest API.
-
-pub fn dfareporting_content_categories_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories/{}",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
-/// Gets one content category by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_content_categories_get_execute()` or `dfareporting_content_categories_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContentCategory = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
-/// Gets one content category by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_content_categories_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_content_categories_get_task()`.
-/// For the simplest API, use `dfareporting_content_categories_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_content_categories_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_content_categories_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_content_categories_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingContentCategoriesGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
-/// Gets one content category by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_content_categories_get_builder()` + `dfareporting_content_categories_get_execute()`.
-/// For task-level control, use `dfareporting_content_categories_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingContentCategoriesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_content_categories_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_content_categories_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/contentCategories
@@ -10121,18 +5559,17 @@ pub fn dfareporting_content_categories_get(
 
 pub fn dfareporting_content_categories_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &ContentCategory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10164,8 +5601,11 @@ pub fn dfareporting_content_categories_insert_builder(
 pub fn dfareporting_content_categories_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ContentCategory>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -10273,560 +5713,8 @@ pub fn dfareporting_content_categories_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_content_categories_insert_builder(client, &args.profileId, &args.body)?;
+        dfareporting_content_categories_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_content_categories_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Retrieves a list of content categories, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_content_categories_list_execute()` to send, or `dfareporting_content_categories_list` for simplest API.
-
-pub fn dfareporting_content_categories_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Retrieves a list of content categories, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_content_categories_list_execute()` or `dfareporting_content_categories_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ContentCategoriesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContentCategoriesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Retrieves a list of content categories, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_content_categories_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_content_categories_list_task()`.
-/// For the simplest API, use `dfareporting_content_categories_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_content_categories_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ContentCategoriesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_content_categories_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_content_categories_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingContentCategoriesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Retrieves a list of content categories, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_content_categories_list_builder()` + `dfareporting_content_categories_list_execute()`.
-/// For task-level control, use `dfareporting_content_categories_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingContentCategoriesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ContentCategoriesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_content_categories_list_builder(
-        client,
-        &args.profileId,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_content_categories_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_content_categories_patch_execute()` to send, or `dfareporting_content_categories_patch` for simplest API.
-
-pub fn dfareporting_content_categories_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &ContentCategory,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_content_categories_patch_execute()` or `dfareporting_content_categories_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContentCategory = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_content_categories_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_content_categories_patch_task()`.
-/// For the simplest API, use `dfareporting_content_categories_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_content_categories_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_content_categories_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_content_categories_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingContentCategoriesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: ContentCategory,
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_content_categories_patch_builder()` + `dfareporting_content_categories_patch_execute()`.
-/// For task-level control, use `dfareporting_content_categories_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingContentCategoriesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_content_categories_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_content_categories_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_content_categories_update_execute()` to send, or `dfareporting_content_categories_update` for simplest API.
-
-pub fn dfareporting_content_categories_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &ContentCategory,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/contentCategories",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_content_categories_update_execute()` or `dfareporting_content_categories_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ContentCategory = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_content_categories_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_content_categories_update_task()`.
-/// For the simplest API, use `dfareporting_content_categories_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_content_categories_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_content_categories_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_content_categories_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_content_categories_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingContentCategoriesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: ContentCategory,
-}
-
-/// GET userprofiles/{userprofilesId}/contentCategories
-/// Updates an existing content category.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_content_categories_update_builder()` + `dfareporting_content_categories_update_execute()`.
-/// For task-level control, use `dfareporting_content_categories_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_content_categories_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingContentCategoriesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_content_categories_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_content_categories_update_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/conversions/batchinsert
@@ -10837,18 +5725,18 @@ pub fn dfareporting_content_categories_update(
 
 pub fn dfareporting_conversions_batchinsert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &ConversionsBatchInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchinsert",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10881,8 +5769,9 @@ pub fn dfareporting_conversions_batchinsert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ConversionsBatchInsertResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ConversionsBatchInsertResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -10995,7 +5884,7 @@ pub fn dfareporting_conversions_batchinsert(
     ApiError,
 > {
     let builder =
-        dfareporting_conversions_batchinsert_builder(client, &args.profileId, &args.body)?;
+        dfareporting_conversions_batchinsert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_conversions_batchinsert_execute(builder)
 }
 
@@ -11007,18 +5896,18 @@ pub fn dfareporting_conversions_batchinsert(
 
 pub fn dfareporting_conversions_batchupdate_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &ConversionsBatchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchupdate",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11051,8 +5940,9 @@ pub fn dfareporting_conversions_batchupdate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ConversionsBatchUpdateResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ConversionsBatchUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -11165,7 +6055,7 @@ pub fn dfareporting_conversions_batchupdate(
     ApiError,
 > {
     let builder =
-        dfareporting_conversions_batchupdate_builder(client, &args.profileId, &args.body)?;
+        dfareporting_conversions_batchupdate_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_conversions_batchupdate_execute(builder)
 }
 
@@ -11177,18 +6067,17 @@ pub fn dfareporting_conversions_batchupdate(
 
 pub fn dfareporting_countries_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    dartId: &str,
+    profileId: String,
+    dartId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/countries/{}",
-        profileId, dartId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11218,7 +6107,12 @@ pub fn dfareporting_countries_get_builder(
 pub fn dfareporting_countries_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Country>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Country>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11320,7 +6214,8 @@ pub fn dfareporting_countries_get(
     impl StreamIterator<D = Result<ApiResponse<Country>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_countries_get_builder(client, &args.profileId, &args.dartId)?;
+    let builder =
+        dfareporting_countries_get_builder(client, args.profileId.clone(), args.dartId.clone())?;
     dfareporting_countries_get_execute(builder)
 }
 
@@ -11332,17 +6227,15 @@ pub fn dfareporting_countries_get(
 
 pub fn dfareporting_countries_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/countries",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/countries",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11372,8 +6265,11 @@ pub fn dfareporting_countries_list_builder(
 pub fn dfareporting_countries_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CountriesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CountriesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11478,7 +6374,7 @@ pub fn dfareporting_countries_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_countries_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_countries_list_builder(client, args.profileId.clone())?;
     dfareporting_countries_list_execute(builder)
 }
 
@@ -11490,20 +6386,18 @@ pub fn dfareporting_countries_list(
 
 pub fn dfareporting_creative_assets_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
+    profileId: String,
+    advertiserId: String,
     body: &CreativeAssetMetadata,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeAssets/{}/creativeAssets",
-        profileId,
-        advertiserId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11535,8 +6429,11 @@ pub fn dfareporting_creative_assets_insert_builder(
 pub fn dfareporting_creative_assets_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeAssetMetadata>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreativeAssetMetadata>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11647,8 +6544,8 @@ pub fn dfareporting_creative_assets_insert(
 > {
     let builder = dfareporting_creative_assets_insert_builder(
         client,
-        &args.profileId,
-        &args.advertiserId,
+        args.profileId.clone(),
+        args.advertiserId.clone(),
         &args.body,
     )?;
     dfareporting_creative_assets_insert_execute(builder)
@@ -11662,21 +6559,18 @@ pub fn dfareporting_creative_assets_insert(
 
 pub fn dfareporting_creative_field_values_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
+    profileId: String,
+    creativeFieldId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues/{}",
-        profileId,
-        creativeFieldId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11706,7 +6600,12 @@ pub fn dfareporting_creative_field_values_delete_builder(
 pub fn dfareporting_creative_field_values_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11809,182 +6708,11 @@ pub fn dfareporting_creative_field_values_delete(
 > {
     let builder = dfareporting_creative_field_values_delete_builder(
         client,
-        &args.profileId,
-        &args.creativeFieldId,
-        &args.id,
+        args.profileId.clone(),
+        args.creativeFieldId.clone(),
+        args.id.clone(),
     )?;
     dfareporting_creative_field_values_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
-/// Gets one creative field value by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_field_values_get_execute()` to send, or `dfareporting_creative_field_values_get` for simplest API.
-
-pub fn dfareporting_creative_field_values_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues/{}",
-        profileId,
-        creativeFieldId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
-/// Gets one creative field value by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_field_values_get_execute()` or `dfareporting_creative_field_values_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeFieldValue = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
-/// Gets one creative field value by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_field_values_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_field_values_get_task()`.
-/// For the simplest API, use `dfareporting_creative_field_values_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_field_values_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_field_values_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_field_values_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldValuesGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: creativeFieldId
-    pub creativeFieldId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
-/// Gets one creative field value by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_field_values_get_builder()` + `dfareporting_creative_field_values_get_execute()`.
-/// For task-level control, use `dfareporting_creative_field_values_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldValuesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_field_values_get_builder(
-        client,
-        &args.profileId,
-        &args.creativeFieldId,
-        &args.id,
-    )?;
-    dfareporting_creative_field_values_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
@@ -11995,20 +6723,18 @@ pub fn dfareporting_creative_field_values_get(
 
 pub fn dfareporting_creative_field_values_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
+    profileId: String,
+    creativeFieldId: String,
     body: &CreativeFieldValue,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
-        profileId,
-        creativeFieldId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12040,8 +6766,11 @@ pub fn dfareporting_creative_field_values_insert_builder(
 pub fn dfareporting_creative_field_values_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreativeFieldValue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -12152,582 +6881,11 @@ pub fn dfareporting_creative_field_values_insert(
 > {
     let builder = dfareporting_creative_field_values_insert_builder(
         client,
-        &args.profileId,
-        &args.creativeFieldId,
+        args.profileId.clone(),
+        args.creativeFieldId.clone(),
         &args.body,
     )?;
     dfareporting_creative_field_values_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Retrieves a list of creative field values, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_field_values_list_execute()` to send, or `dfareporting_creative_field_values_list` for simplest API.
-
-pub fn dfareporting_creative_field_values_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
-        profileId,
-        creativeFieldId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Retrieves a list of creative field values, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_field_values_list_execute()` or `dfareporting_creative_field_values_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<CreativeFieldValuesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeFieldValuesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Retrieves a list of creative field values, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_field_values_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_field_values_list_task()`.
-/// For the simplest API, use `dfareporting_creative_field_values_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_field_values_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeFieldValuesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_field_values_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_field_values_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldValuesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: creativeFieldId
-    pub creativeFieldId: String,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Retrieves a list of creative field values, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_field_values_list_builder()` + `dfareporting_creative_field_values_list_execute()`.
-/// For task-level control, use `dfareporting_creative_field_values_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldValuesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeFieldValuesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_field_values_list_builder(
-        client,
-        &args.profileId,
-        &args.creativeFieldId,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_creative_field_values_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_field_values_patch_execute()` to send, or `dfareporting_creative_field_values_patch` for simplest API.
-
-pub fn dfareporting_creative_field_values_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
-    body: &CreativeFieldValue,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
-        profileId,
-        creativeFieldId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_field_values_patch_execute()` or `dfareporting_creative_field_values_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeFieldValue = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_field_values_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_field_values_patch_task()`.
-/// For the simplest API, use `dfareporting_creative_field_values_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_field_values_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_field_values_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_field_values_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldValuesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: creativeFieldId
-    pub creativeFieldId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: CreativeFieldValue,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_field_values_patch_builder()` + `dfareporting_creative_field_values_patch_execute()`.
-/// For task-level control, use `dfareporting_creative_field_values_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldValuesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_field_values_patch_builder(
-        client,
-        &args.profileId,
-        &args.creativeFieldId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_creative_field_values_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_field_values_update_execute()` to send, or `dfareporting_creative_field_values_update` for simplest API.
-
-pub fn dfareporting_creative_field_values_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    body: &CreativeFieldValue,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}/creativeFieldValues",
-        profileId,
-        creativeFieldId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_field_values_update_execute()` or `dfareporting_creative_field_values_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeFieldValue = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_field_values_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_field_values_update_task()`.
-/// For the simplest API, use `dfareporting_creative_field_values_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_field_values_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_field_values_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_field_values_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_field_values_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldValuesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: creativeFieldId
-    pub creativeFieldId: String,
-    /// Request body.
-    pub body: CreativeFieldValue,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
-/// Updates an existing creative field value.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_field_values_update_builder()` + `dfareporting_creative_field_values_update_execute()`.
-/// For task-level control, use `dfareporting_creative_field_values_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_field_values_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldValuesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_field_values_update_builder(
-        client,
-        &args.profileId,
-        &args.creativeFieldId,
-        &args.body,
-    )?;
-    dfareporting_creative_field_values_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
@@ -12738,18 +6896,17 @@ pub fn dfareporting_creative_field_values_update(
 
 pub fn dfareporting_creative_fields_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12779,7 +6936,12 @@ pub fn dfareporting_creative_fields_delete_builder(
 pub fn dfareporting_creative_fields_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12878,167 +7040,12 @@ pub fn dfareporting_creative_fields_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_delete_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_creative_fields_delete_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_creative_fields_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
-/// Gets one creative field by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_fields_get_execute()` to send, or `dfareporting_creative_fields_get` for simplest API.
-
-pub fn dfareporting_creative_fields_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields/{}",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
-/// Gets one creative field by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_fields_get_execute()` or `dfareporting_creative_fields_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeField = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
-/// Gets one creative field by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_fields_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_fields_get_task()`.
-/// For the simplest API, use `dfareporting_creative_fields_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_fields_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_fields_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_fields_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldsGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
-/// Gets one creative field by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_fields_get_builder()` + `dfareporting_creative_fields_get_execute()`.
-/// For task-level control, use `dfareporting_creative_fields_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_fields_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_creative_fields_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/creativeFields
@@ -13049,18 +7056,17 @@ pub fn dfareporting_creative_fields_get(
 
 pub fn dfareporting_creative_fields_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &CreativeField,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13092,7 +7098,12 @@ pub fn dfareporting_creative_fields_insert_builder(
 pub fn dfareporting_creative_fields_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreativeField>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13198,556 +7209,9 @@ pub fn dfareporting_creative_fields_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creative_fields_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Retrieves a list of creative fields, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_fields_list_execute()` to send, or `dfareporting_creative_fields_list` for simplest API.
-
-pub fn dfareporting_creative_fields_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Retrieves a list of creative fields, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_fields_list_execute()` or `dfareporting_creative_fields_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeFieldsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeFieldsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Retrieves a list of creative fields, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_fields_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_fields_list_task()`.
-/// For the simplest API, use `dfareporting_creative_fields_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_fields_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeFieldsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_fields_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_fields_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Retrieves a list of creative fields, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_fields_list_builder()` + `dfareporting_creative_fields_list_execute()`.
-/// For task-level control, use `dfareporting_creative_fields_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeFieldsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_fields_list_builder(
-        client,
-        &args.profileId,
-        args.advertiserIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_creative_fields_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_fields_patch_execute()` to send, or `dfareporting_creative_fields_patch` for simplest API.
-
-pub fn dfareporting_creative_fields_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &CreativeField,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_fields_patch_execute()` or `dfareporting_creative_fields_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeField = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_fields_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_fields_patch_task()`.
-/// For the simplest API, use `dfareporting_creative_fields_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_fields_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_fields_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_fields_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: CreativeField,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_fields_patch_builder()` + `dfareporting_creative_fields_patch_execute()`.
-/// For task-level control, use `dfareporting_creative_fields_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_creative_fields_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_creative_fields_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_fields_update_execute()` to send, or `dfareporting_creative_fields_update` for simplest API.
-
-pub fn dfareporting_creative_fields_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeField,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeFields",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_fields_update_execute()` or `dfareporting_creative_fields_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeField = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_fields_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_fields_update_task()`.
-/// For the simplest API, use `dfareporting_creative_fields_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_fields_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_fields_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_fields_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_fields_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeFieldsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: CreativeField,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeFields
-/// Updates an existing creative field.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_fields_update_builder()` + `dfareporting_creative_fields_update_execute()`.
-/// For task-level control, use `dfareporting_creative_fields_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_fields_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeFieldsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_fields_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creative_fields_update_execute(builder)
+        dfareporting_creative_fields_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_creative_fields_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/creativeGroups/{creativeGroupsId}
@@ -13758,18 +7222,17 @@ pub fn dfareporting_creative_fields_update(
 
 pub fn dfareporting_creative_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13799,7 +7262,12 @@ pub fn dfareporting_creative_groups_get_builder(
 pub fn dfareporting_creative_groups_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreativeGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13905,7 +7373,8 @@ pub fn dfareporting_creative_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_creative_groups_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_creative_groups_get_execute(builder)
 }
 
@@ -13917,18 +7386,17 @@ pub fn dfareporting_creative_groups_get(
 
 pub fn dfareporting_creative_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &CreativeGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13960,7 +7428,12 @@ pub fn dfareporting_creative_groups_insert_builder(
 pub fn dfareporting_creative_groups_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreativeGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14066,563 +7539,9 @@ pub fn dfareporting_creative_groups_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creative_groups_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Retrieves a list of creative groups, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_groups_list_execute()` to send, or `dfareporting_creative_groups_list` for simplest API.
-
-pub fn dfareporting_creative_groups_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    groupNumber: Option<i32>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = groupNumber {
-        query_parts.push(format!("groupNumber={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Retrieves a list of creative groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_groups_list_execute()` or `dfareporting_creative_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeGroupsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeGroupsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Retrieves a list of creative groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_groups_list_task()`.
-/// For the simplest API, use `dfareporting_creative_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeGroupsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: groupNumber
-    pub groupNumber: Option<i32>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Retrieves a list of creative groups, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_groups_list_builder()` + `dfareporting_creative_groups_list_execute()`.
-/// For task-level control, use `dfareporting_creative_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeGroupsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CreativeGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_groups_list_builder(
-        client,
-        &args.profileId,
-        args.advertiserIds.as_deref(),
-        args.groupNumber,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_creative_groups_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_groups_patch_execute()` to send, or `dfareporting_creative_groups_patch` for simplest API.
-
-pub fn dfareporting_creative_groups_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &CreativeGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_groups_patch_execute()` or `dfareporting_creative_groups_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_groups_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_groups_patch_task()`.
-/// For the simplest API, use `dfareporting_creative_groups_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_groups_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_groups_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_groups_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeGroupsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: CreativeGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_groups_patch_builder()` + `dfareporting_creative_groups_patch_execute()`.
-/// For task-level control, use `dfareporting_creative_groups_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeGroupsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_creative_groups_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_creative_groups_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creative_groups_update_execute()` to send, or `dfareporting_creative_groups_update` for simplest API.
-
-pub fn dfareporting_creative_groups_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creativeGroups",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creative_groups_update_execute()` or `dfareporting_creative_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativeGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creative_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creative_groups_update_task()`.
-/// For the simplest API, use `dfareporting_creative_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creative_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creative_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creative_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creative_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativeGroupsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: CreativeGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/creativeGroups
-/// Updates an existing creative group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creative_groups_update_builder()` + `dfareporting_creative_groups_update_execute()`.
-/// For task-level control, use `dfareporting_creative_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creative_groups_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativeGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creative_groups_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creative_groups_update_execute(builder)
+        dfareporting_creative_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_creative_groups_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/creatives/{creativesId}
@@ -14633,18 +7552,17 @@ pub fn dfareporting_creative_groups_update(
 
 pub fn dfareporting_creatives_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14674,7 +7592,12 @@ pub fn dfareporting_creatives_get_builder(
 pub fn dfareporting_creatives_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14776,7 +7699,8 @@ pub fn dfareporting_creatives_get(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_creatives_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_creatives_get_execute(builder)
 }
 
@@ -14788,18 +7712,16 @@ pub fn dfareporting_creatives_get(
 
 pub fn dfareporting_creatives_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14831,7 +7753,12 @@ pub fn dfareporting_creatives_insert_builder(
 pub fn dfareporting_creatives_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14933,607 +7860,9 @@ pub fn dfareporting_creatives_insert(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creatives_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Retrieves a list of creatives, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creatives_list_execute()` to send, or `dfareporting_creatives_list` for simplest API.
-
-pub fn dfareporting_creatives_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    advertiserId: Option<&str>,
-    archived: Option<bool>,
-    campaignId: Option<&str>,
-    companionCreativeIds: Option<&str>,
-    creativeFieldIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    renderingIds: Option<&str>,
-    searchString: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    studioCreativeId: Option<&str>,
-    types: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = archived {
-        query_parts.push(format!("archived={}", val));
-    }
-    if let Some(val) = campaignId {
-        query_parts.push(format!("campaignId={}", val));
-    }
-    if let Some(val) = companionCreativeIds {
-        query_parts.push(format!("companionCreativeIds={}", val));
-    }
-    if let Some(val) = creativeFieldIds {
-        query_parts.push(format!("creativeFieldIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = renderingIds {
-        query_parts.push(format!("renderingIds={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sizeIds {
-        query_parts.push(format!("sizeIds={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = studioCreativeId {
-        query_parts.push(format!("studioCreativeId={}", val));
-    }
-    if let Some(val) = types {
-        query_parts.push(format!("types={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Retrieves a list of creatives, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creatives_list_execute()` or `dfareporting_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreativesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CreativesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Retrieves a list of creatives, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creatives_list_task()`.
-/// For the simplest API, use `dfareporting_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: archived
-    pub archived: Option<bool>,
-    /// Query parameter: campaignId
-    pub campaignId: Option<String>,
-    /// Query parameter: companionCreativeIds
-    pub companionCreativeIds: Option<String>,
-    /// Query parameter: creativeFieldIds
-    pub creativeFieldIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: renderingIds
-    pub renderingIds: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sizeIds
-    pub sizeIds: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: studioCreativeId
-    pub studioCreativeId: Option<String>,
-    /// Query parameter: types
-    pub types: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Retrieves a list of creatives, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creatives_list_builder()` + `dfareporting_creatives_list_execute()`.
-/// For task-level control, use `dfareporting_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreativesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creatives_list_builder(
-        client,
-        &args.profileId,
-        args.active,
-        args.advertiserId.as_deref(),
-        args.archived,
-        args.campaignId.as_deref(),
-        args.companionCreativeIds.as_deref(),
-        args.creativeFieldIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.renderingIds.as_deref(),
-        args.searchString.as_deref(),
-        args.sizeIds.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.studioCreativeId.as_deref(),
-        args.types.as_deref(),
-    )?;
-    dfareporting_creatives_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creatives_patch_execute()` to send, or `dfareporting_creatives_patch` for simplest API.
-
-pub fn dfareporting_creatives_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Creative,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creatives_patch_execute()` or `dfareporting_creatives_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Creative = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creatives_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creatives_patch_task()`.
-/// For the simplest API, use `dfareporting_creatives_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creatives_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creatives_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creatives_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Creative,
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creatives_patch_builder()` + `dfareporting_creatives_patch_execute()`.
-/// For task-level control, use `dfareporting_creatives_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_creatives_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_creatives_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_creatives_update_execute()` to send, or `dfareporting_creatives_update` for simplest API.
-
-pub fn dfareporting_creatives_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Creative,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/creatives",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_creatives_update_execute()` or `dfareporting_creatives_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Creative = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_creatives_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_creatives_update_task()`.
-/// For the simplest API, use `dfareporting_creatives_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_creatives_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_creatives_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_creatives_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_creatives_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingCreativesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Creative,
-}
-
-/// GET userprofiles/{userprofilesId}/creatives
-/// Updates an existing creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_creatives_update_builder()` + `dfareporting_creatives_update_execute()`.
-/// For task-level control, use `dfareporting_creatives_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_creatives_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingCreativesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_creatives_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_creatives_update_execute(builder)
+        dfareporting_creatives_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_creatives_insert_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/dimensionvalues/query
@@ -15544,15 +7873,15 @@ pub fn dfareporting_creatives_update(
 
 pub fn dfareporting_dimension_values_query_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     body: &DimensionValueRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dimensionvalues/query",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
@@ -15565,9 +7894,9 @@ pub fn dfareporting_dimension_values_query_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -15603,8 +7932,11 @@ pub fn dfareporting_dimension_values_query_builder(
 pub fn dfareporting_dimension_values_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DimensionValueList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DimensionValueList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -15717,9 +8049,9 @@ pub fn dfareporting_dimension_values_query(
 > {
     let builder = dfareporting_dimension_values_query_builder(
         client,
-        &args.profileId,
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.profileId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
         &args.body,
     )?;
     dfareporting_dimension_values_query_execute(builder)
@@ -15733,18 +8065,17 @@ pub fn dfareporting_dimension_values_query(
 
 pub fn dfareporting_directory_sites_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15774,7 +8105,12 @@ pub fn dfareporting_directory_sites_get_builder(
 pub fn dfareporting_directory_sites_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DirectorySite>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DirectorySite>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15880,7 +8216,8 @@ pub fn dfareporting_directory_sites_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_directory_sites_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_directory_sites_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_directory_sites_get_execute(builder)
 }
 
@@ -15892,18 +8229,17 @@ pub fn dfareporting_directory_sites_get(
 
 pub fn dfareporting_directory_sites_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &DirectorySite,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15935,7 +8271,12 @@ pub fn dfareporting_directory_sites_insert_builder(
 pub fn dfareporting_directory_sites_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DirectorySite>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DirectorySite>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16041,258 +8382,9 @@ pub fn dfareporting_directory_sites_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_directory_sites_insert_builder(client, &args.profileId, &args.body)?;
+    let builder =
+        dfareporting_directory_sites_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_directory_sites_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/directorySites
-/// Retrieves a list of directory sites, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_directory_sites_list_execute()` to send, or `dfareporting_directory_sites_list` for simplest API.
-
-pub fn dfareporting_directory_sites_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    acceptsInStreamVideoPlacements: Option<bool>,
-    acceptsInterstitialPlacements: Option<bool>,
-    acceptsPublisherPaidPlacements: Option<bool>,
-    active: Option<bool>,
-    dfpNetworkCode: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/directorySites",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = acceptsInStreamVideoPlacements {
-        query_parts.push(format!("acceptsInStreamVideoPlacements={}", val));
-    }
-    if let Some(val) = acceptsInterstitialPlacements {
-        query_parts.push(format!("acceptsInterstitialPlacements={}", val));
-    }
-    if let Some(val) = acceptsPublisherPaidPlacements {
-        query_parts.push(format!("acceptsPublisherPaidPlacements={}", val));
-    }
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = dfpNetworkCode {
-        query_parts.push(format!("dfpNetworkCode={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/directorySites
-/// Retrieves a list of directory sites, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_directory_sites_list_execute()` or `dfareporting_directory_sites_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_directory_sites_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_directory_sites_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DirectorySitesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DirectorySitesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/directorySites
-/// Retrieves a list of directory sites, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_directory_sites_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_directory_sites_list_task()`.
-/// For the simplest API, use `dfareporting_directory_sites_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_directory_sites_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_directory_sites_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DirectorySitesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_directory_sites_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_directory_sites_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingDirectorySitesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: acceptsInStreamVideoPlacements
-    pub acceptsInStreamVideoPlacements: Option<bool>,
-    /// Query parameter: acceptsInterstitialPlacements
-    pub acceptsInterstitialPlacements: Option<bool>,
-    /// Query parameter: acceptsPublisherPaidPlacements
-    pub acceptsPublisherPaidPlacements: Option<bool>,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: dfpNetworkCode
-    pub dfpNetworkCode: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/directorySites
-/// Retrieves a list of directory sites, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_directory_sites_list_builder()` + `dfareporting_directory_sites_list_execute()`.
-/// For task-level control, use `dfareporting_directory_sites_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_directory_sites_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingDirectorySitesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DirectorySitesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_directory_sites_list_builder(
-        client,
-        &args.profileId,
-        args.acceptsInStreamVideoPlacements,
-        args.acceptsInterstitialPlacements,
-        args.acceptsPublisherPaidPlacements,
-        args.active,
-        args.dfpNetworkCode.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_directory_sites_list_execute(builder)
 }
 
 /// GET studio/dynamicFeeds/{dynamicFeedsId}
@@ -16303,17 +8395,15 @@ pub fn dfareporting_directory_sites_list(
 
 pub fn dfareporting_dynamic_feeds_get_builder(
     client: &SimpleHttpClient,
-    dynamicFeedId: &str,
+    dynamicFeedId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds/{}",
-        dynamicFeedId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16343,7 +8433,12 @@ pub fn dfareporting_dynamic_feeds_get_builder(
 pub fn dfareporting_dynamic_feeds_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicFeed>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16443,7 +8538,7 @@ pub fn dfareporting_dynamic_feeds_get(
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_get_builder(client, &args.dynamicFeedId)?;
+    let builder = dfareporting_dynamic_feeds_get_builder(client, args.dynamicFeedId.clone())?;
     dfareporting_dynamic_feeds_get_execute(builder)
 }
 
@@ -16458,11 +8553,12 @@ pub fn dfareporting_dynamic_feeds_insert_builder(
     body: &DynamicFeedsInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds",);
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16494,7 +8590,12 @@ pub fn dfareporting_dynamic_feeds_insert_builder(
 pub fn dfareporting_dynamic_feeds_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicFeed>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16606,17 +8707,16 @@ pub fn dfareporting_dynamic_feeds_insert(
 
 pub fn dfareporting_dynamic_feeds_retransform_builder(
     client: &SimpleHttpClient,
-    dynamicFeedId: &str,
+    dynamicFeedId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds/{}/retransform",
-        dynamicFeedId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16646,7 +8746,12 @@ pub fn dfareporting_dynamic_feeds_retransform_builder(
 pub fn dfareporting_dynamic_feeds_retransform_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicFeed>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16746,159 +8851,9 @@ pub fn dfareporting_dynamic_feeds_retransform(
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_retransform_builder(client, &args.dynamicFeedId)?;
+    let builder =
+        dfareporting_dynamic_feeds_retransform_builder(client, args.dynamicFeedId.clone())?;
     dfareporting_dynamic_feeds_retransform_execute(builder)
-}
-
-/// GET studio/dynamicFeeds
-/// Updates a new dynamic feed. For draft feeds, only Element can be updated. For published feeds, only FeedSchedule can be updated. Other fields will be ignored.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_dynamic_feeds_update_execute()` to send, or `dfareporting_dynamic_feeds_update` for simplest API.
-
-pub fn dfareporting_dynamic_feeds_update_builder(
-    client: &SimpleHttpClient,
-    body: &DynamicFeed,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicFeeds",);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET studio/dynamicFeeds
-/// Updates a new dynamic feed. For draft feeds, only Element can be updated. For published feeds, only FeedSchedule can be updated. Other fields will be ignored.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_dynamic_feeds_update_execute()` or `dfareporting_dynamic_feeds_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_feeds_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_feeds_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DynamicFeed = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET studio/dynamicFeeds
-/// Updates a new dynamic feed. For draft feeds, only Element can be updated. For published feeds, only FeedSchedule can be updated. Other fields will be ignored.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_dynamic_feeds_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_dynamic_feeds_update_task()`.
-/// For the simplest API, use `dfareporting_dynamic_feeds_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_feeds_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_dynamic_feeds_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_dynamic_feeds_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_dynamic_feeds_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingDynamicFeedsUpdateArgs {
-    /// Request body.
-    pub body: DynamicFeed,
-}
-
-/// GET studio/dynamicFeeds
-/// Updates a new dynamic feed. For draft feeds, only Element can be updated. For published feeds, only FeedSchedule can be updated. Other fields will be ignored.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_dynamic_feeds_update_builder()` + `dfareporting_dynamic_feeds_update_execute()`.
-/// For task-level control, use `dfareporting_dynamic_feeds_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_feeds_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingDynamicFeedsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_dynamic_feeds_update_builder(client, &args.body)?;
-    dfareporting_dynamic_feeds_update_execute(builder)
 }
 
 /// GET studio/dynamicProfiles/{dynamicProfilesId}/generateCode
@@ -16909,17 +8864,16 @@ pub fn dfareporting_dynamic_feeds_update(
 
 pub fn dfareporting_dynamic_profiles_generate_code_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    dynamicProfileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}/generateCode",
-        dynamicProfileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16950,8 +8904,9 @@ pub fn dfareporting_dynamic_profiles_generate_code_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DynamicProfileGenerateCodeResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DynamicProfileGenerateCodeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -17062,7 +9017,7 @@ pub fn dfareporting_dynamic_profiles_generate_code(
     ApiError,
 > {
     let builder =
-        dfareporting_dynamic_profiles_generate_code_builder(client, &args.dynamicProfileId)?;
+        dfareporting_dynamic_profiles_generate_code_builder(client, args.dynamicProfileId.clone())?;
     dfareporting_dynamic_profiles_generate_code_execute(builder)
 }
 
@@ -17074,17 +9029,15 @@ pub fn dfareporting_dynamic_profiles_generate_code(
 
 pub fn dfareporting_dynamic_profiles_get_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    dynamicProfileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}",
-        dynamicProfileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17114,8 +9067,11 @@ pub fn dfareporting_dynamic_profiles_get_builder(
 pub fn dfareporting_dynamic_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17220,7 +9176,7 @@ pub fn dfareporting_dynamic_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_get_builder(client, &args.dynamicProfileId)?;
+    let builder = dfareporting_dynamic_profiles_get_builder(client, args.dynamicProfileId.clone())?;
     dfareporting_dynamic_profiles_get_execute(builder)
 }
 
@@ -17235,12 +9191,12 @@ pub fn dfareporting_dynamic_profiles_insert_builder(
     body: &DynamicProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17272,8 +9228,11 @@ pub fn dfareporting_dynamic_profiles_insert_builder(
 pub fn dfareporting_dynamic_profiles_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17390,17 +9349,16 @@ pub fn dfareporting_dynamic_profiles_insert(
 
 pub fn dfareporting_dynamic_profiles_publish_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    dynamicProfileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles/{}/publish",
-        dynamicProfileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17430,7 +9388,12 @@ pub fn dfareporting_dynamic_profiles_publish_builder(
 pub fn dfareporting_dynamic_profiles_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -17527,333 +9490,9 @@ pub fn dfareporting_dynamic_profiles_publish(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_publish_builder(client, &args.dynamicProfileId)?;
+    let builder =
+        dfareporting_dynamic_profiles_publish_builder(client, args.dynamicProfileId.clone())?;
     dfareporting_dynamic_profiles_publish_execute(builder)
-}
-
-/// GET studio/dynamicProfiles
-/// Updates an existing dynamic profile.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_dynamic_profiles_update_execute()` to send, or `dfareporting_dynamic_profiles_update` for simplest API.
-
-pub fn dfareporting_dynamic_profiles_update_builder(
-    client: &SimpleHttpClient,
-    body: &DynamicProfile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url =
-        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/dynamicProfiles",);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET studio/dynamicProfiles
-/// Updates an existing dynamic profile.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_dynamic_profiles_update_execute()` or `dfareporting_dynamic_profiles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_profiles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DynamicProfile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET studio/dynamicProfiles
-/// Updates an existing dynamic profile.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_dynamic_profiles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_dynamic_profiles_update_task()`.
-/// For the simplest API, use `dfareporting_dynamic_profiles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_profiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_dynamic_profiles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_dynamic_profiles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_dynamic_profiles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingDynamicProfilesUpdateArgs {
-    /// Request body.
-    pub body: DynamicProfile,
-}
-
-/// GET studio/dynamicProfiles
-/// Updates an existing dynamic profile.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_dynamic_profiles_update_builder()` + `dfareporting_dynamic_profiles_update_execute()`.
-/// For task-level control, use `dfareporting_dynamic_profiles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_profiles_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingDynamicProfilesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_dynamic_profiles_update_builder(client, &args.body)?;
-    dfareporting_dynamic_profiles_update_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
-/// Deletes an existing dynamic targeting key.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_dynamic_targeting_keys_delete_execute()` to send, or `dfareporting_dynamic_targeting_keys_delete` for simplest API.
-
-pub fn dfareporting_dynamic_targeting_keys_delete_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    objectId: &str,
-    name: &str,
-    objectType: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys/{}",
-        profileId,
-        objectId,
-        name,
-        objectType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
-/// Deletes an existing dynamic targeting key.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_dynamic_targeting_keys_delete_execute()` or `dfareporting_dynamic_targeting_keys_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_targeting_keys_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_targeting_keys_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
-/// Deletes an existing dynamic targeting key.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_dynamic_targeting_keys_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_dynamic_targeting_keys_delete_task()`.
-/// For the simplest API, use `dfareporting_dynamic_targeting_keys_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_targeting_keys_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_dynamic_targeting_keys_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_dynamic_targeting_keys_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_dynamic_targeting_keys_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingDynamicTargetingKeysDeleteArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: objectId
-    pub objectId: String,
-    /// Path parameter: name
-    pub name: String,
-    /// Path parameter: objectType
-    pub objectType: String,
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
-/// Deletes an existing dynamic targeting key.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_dynamic_targeting_keys_delete_builder()` + `dfareporting_dynamic_targeting_keys_delete_execute()`.
-/// For task-level control, use `dfareporting_dynamic_targeting_keys_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_targeting_keys_delete(
-    client: &SimpleHttpClient,
-    args: &DfareportingDynamicTargetingKeysDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_dynamic_targeting_keys_delete_builder(
-        client,
-        &args.profileId,
-        &args.objectId,
-        &args.name,
-        &args.objectType,
-    )?;
-    dfareporting_dynamic_targeting_keys_delete_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
@@ -17864,18 +9503,17 @@ pub fn dfareporting_dynamic_targeting_keys_delete(
 
 pub fn dfareporting_dynamic_targeting_keys_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &DynamicTargetingKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17907,8 +9545,11 @@ pub fn dfareporting_dynamic_targeting_keys_insert_builder(
 pub fn dfareporting_dynamic_targeting_keys_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DynamicTargetingKey>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DynamicTargetingKey>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -18015,212 +9656,12 @@ pub fn dfareporting_dynamic_targeting_keys_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_dynamic_targeting_keys_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_dynamic_targeting_keys_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Retrieves a list of dynamic targeting keys.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_dynamic_targeting_keys_list_execute()` to send, or `dfareporting_dynamic_targeting_keys_list` for simplest API.
-
-pub fn dfareporting_dynamic_targeting_keys_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    names: Option<&str>,
-    objectId: Option<&str>,
-    objectType: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dynamicTargetingKeys",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = names {
-        query_parts.push(format!("names={}", val));
-    }
-    if let Some(val) = objectId {
-        query_parts.push(format!("objectId={}", val));
-    }
-    if let Some(val) = objectType {
-        query_parts.push(format!("objectType={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Retrieves a list of dynamic targeting keys.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_dynamic_targeting_keys_list_execute()` or `dfareporting_dynamic_targeting_keys_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_targeting_keys_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_targeting_keys_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<DynamicTargetingKeysListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DynamicTargetingKeysListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Retrieves a list of dynamic targeting keys.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_dynamic_targeting_keys_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_dynamic_targeting_keys_list_task()`.
-/// For the simplest API, use `dfareporting_dynamic_targeting_keys_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_dynamic_targeting_keys_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_dynamic_targeting_keys_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DynamicTargetingKeysListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_dynamic_targeting_keys_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_dynamic_targeting_keys_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingDynamicTargetingKeysListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: names
-    pub names: Option<String>,
-    /// Query parameter: objectId
-    pub objectId: Option<String>,
-    /// Query parameter: objectType
-    pub objectType: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
-/// Retrieves a list of dynamic targeting keys.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_dynamic_targeting_keys_list_builder()` + `dfareporting_dynamic_targeting_keys_list_execute()`.
-/// For task-level control, use `dfareporting_dynamic_targeting_keys_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_dynamic_targeting_keys_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingDynamicTargetingKeysListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DynamicTargetingKeysListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_dynamic_targeting_keys_list_builder(
+    let builder = dfareporting_dynamic_targeting_keys_insert_builder(
         client,
-        &args.profileId,
-        args.advertiserId.as_deref(),
-        args.names.as_deref(),
-        args.objectId.as_deref(),
-        args.objectType.as_deref(),
+        args.profileId.clone(),
+        &args.body,
     )?;
-    dfareporting_dynamic_targeting_keys_list_execute(builder)
+    dfareporting_dynamic_targeting_keys_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
@@ -18231,18 +9672,17 @@ pub fn dfareporting_dynamic_targeting_keys_list(
 
 pub fn dfareporting_event_tags_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -18272,7 +9712,12 @@ pub fn dfareporting_event_tags_delete_builder(
 pub fn dfareporting_event_tags_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -18371,163 +9816,9 @@ pub fn dfareporting_event_tags_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_delete_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_event_tags_delete_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_event_tags_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
-/// Gets one event tag by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_event_tags_get_execute()` to send, or `dfareporting_event_tags_get` for simplest API.
-
-pub fn dfareporting_event_tags_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags/{}",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
-/// Gets one event tag by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_event_tags_get_execute()` or `dfareporting_event_tags_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTag = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
-/// Gets one event tag by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_event_tags_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_event_tags_get_task()`.
-/// For the simplest API, use `dfareporting_event_tags_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_event_tags_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_event_tags_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_event_tags_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingEventTagsGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
-/// Gets one event tag by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_event_tags_get_builder()` + `dfareporting_event_tags_get_execute()`.
-/// For task-level control, use `dfareporting_event_tags_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingEventTagsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_event_tags_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_event_tags_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/eventTags
@@ -18538,18 +9829,16 @@ pub fn dfareporting_event_tags_get(
 
 pub fn dfareporting_event_tags_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &EventTag,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -18581,7 +9870,12 @@ pub fn dfareporting_event_tags_insert_builder(
 pub fn dfareporting_event_tags_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -18683,565 +9977,9 @@ pub fn dfareporting_event_tags_insert(
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_event_tags_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Retrieves a list of event tags, possibly filtered.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_event_tags_list_execute()` to send, or `dfareporting_event_tags_list` for simplest API.
-
-pub fn dfareporting_event_tags_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    adId: Option<&str>,
-    advertiserId: Option<&str>,
-    campaignId: Option<&str>,
-    definitionsOnly: Option<bool>,
-    enabled: Option<bool>,
-    eventTagTypes: Option<&str>,
-    ids: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = adId {
-        query_parts.push(format!("adId={}", val));
-    }
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = campaignId {
-        query_parts.push(format!("campaignId={}", val));
-    }
-    if let Some(val) = definitionsOnly {
-        query_parts.push(format!("definitionsOnly={}", val));
-    }
-    if let Some(val) = enabled {
-        query_parts.push(format!("enabled={}", val));
-    }
-    if let Some(val) = eventTagTypes {
-        query_parts.push(format!("eventTagTypes={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Retrieves a list of event tags, possibly filtered.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_event_tags_list_execute()` or `dfareporting_event_tags_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTagsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTagsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Retrieves a list of event tags, possibly filtered.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_event_tags_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_event_tags_list_task()`.
-/// For the simplest API, use `dfareporting_event_tags_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_event_tags_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTagsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_event_tags_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_event_tags_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingEventTagsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: adId
-    pub adId: Option<String>,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: campaignId
-    pub campaignId: Option<String>,
-    /// Query parameter: definitionsOnly
-    pub definitionsOnly: Option<bool>,
-    /// Query parameter: enabled
-    pub enabled: Option<bool>,
-    /// Query parameter: eventTagTypes
-    pub eventTagTypes: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Retrieves a list of event tags, possibly filtered.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_event_tags_list_builder()` + `dfareporting_event_tags_list_execute()`.
-/// For task-level control, use `dfareporting_event_tags_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingEventTagsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTagsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_event_tags_list_builder(
-        client,
-        &args.profileId,
-        args.adId.as_deref(),
-        args.advertiserId.as_deref(),
-        args.campaignId.as_deref(),
-        args.definitionsOnly,
-        args.enabled,
-        args.eventTagTypes.as_deref(),
-        args.ids.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_event_tags_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_event_tags_patch_execute()` to send, or `dfareporting_event_tags_patch` for simplest API.
-
-pub fn dfareporting_event_tags_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &EventTag,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_event_tags_patch_execute()` or `dfareporting_event_tags_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTag = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_event_tags_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_event_tags_patch_task()`.
-/// For the simplest API, use `dfareporting_event_tags_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_event_tags_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_event_tags_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_event_tags_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingEventTagsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: EventTag,
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_event_tags_patch_builder()` + `dfareporting_event_tags_patch_execute()`.
-/// For task-level control, use `dfareporting_event_tags_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingEventTagsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_event_tags_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_event_tags_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_event_tags_update_execute()` to send, or `dfareporting_event_tags_update` for simplest API.
-
-pub fn dfareporting_event_tags_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &EventTag,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/eventTags",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_event_tags_update_execute()` or `dfareporting_event_tags_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTag = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_event_tags_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_event_tags_update_task()`.
-/// For the simplest API, use `dfareporting_event_tags_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_event_tags_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_event_tags_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_event_tags_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_event_tags_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingEventTagsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: EventTag,
-}
-
-/// GET userprofiles/{userprofilesId}/eventTags
-/// Updates an existing event tag.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_event_tags_update_builder()` + `dfareporting_event_tags_update_execute()`.
-/// For task-level control, use `dfareporting_event_tags_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_event_tags_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingEventTagsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_event_tags_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_event_tags_update_execute(builder)
+        dfareporting_event_tags_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_event_tags_insert_execute(builder)
 }
 
 /// GET reports/{reportId}/files/{fileId}
@@ -19252,18 +9990,19 @@ pub fn dfareporting_event_tags_update(
 
 pub fn dfareporting_files_get_builder(
     client: &SimpleHttpClient,
-    reportId: &str,
-    fileId: &str,
+    reportId: String,
+    fileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/reports/{}/files/{}",
-        reportId, fileId,
+        reportId.as_str(),
+        fileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19293,7 +10032,12 @@ pub fn dfareporting_files_get_builder(
 pub fn dfareporting_files_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19395,7 +10139,8 @@ pub fn dfareporting_files_get(
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_files_get_builder(client, &args.reportId, &args.fileId)?;
+    let builder =
+        dfareporting_files_get_builder(client, args.reportId.clone(), args.fileId.clone())?;
     dfareporting_files_get_execute(builder)
 }
 
@@ -19407,17 +10152,17 @@ pub fn dfareporting_files_get(
 
 pub fn dfareporting_files_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    pageToken: Option<String>,
+    scope: Option<String>,
+    sortField: Option<String>,
+    sortOrder: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/files",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
@@ -19439,9 +10184,9 @@ pub fn dfareporting_files_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -19475,7 +10220,12 @@ pub fn dfareporting_files_list_builder(
 pub fn dfareporting_files_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FileList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19587,12 +10337,12 @@ pub fn dfareporting_files_list(
 > {
     let builder = dfareporting_files_list_builder(
         client,
-        &args.profileId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.scope.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
+        args.profileId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.scope.clone(),
+        args.sortField.clone(),
+        args.sortOrder.clone(),
     )?;
     dfareporting_files_list_execute(builder)
 }
@@ -19605,19 +10355,17 @@ pub fn dfareporting_files_list(
 
 pub fn dfareporting_floodlight_activities_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19647,7 +10395,12 @@ pub fn dfareporting_floodlight_activities_delete_builder(
 pub fn dfareporting_floodlight_activities_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19746,8 +10499,11 @@ pub fn dfareporting_floodlight_activities_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_activities_delete_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_floodlight_activities_delete_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_floodlight_activities_delete_execute(builder)
 }
 
@@ -19759,13 +10515,12 @@ pub fn dfareporting_floodlight_activities_delete(
 
 pub fn dfareporting_floodlight_activities_generatetag_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    floodlightActivityId: Option<&str>,
+    profileId: String,
+    floodlightActivityId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/generatetag",
-        profileId,
     );
 
     // Build request
@@ -19775,9 +10530,9 @@ pub fn dfareporting_floodlight_activities_generatetag_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -19812,8 +10567,9 @@ pub fn dfareporting_floodlight_activities_generatetag_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FloodlightActivitiesGenerateTagResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FloodlightActivitiesGenerateTagResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -19928,173 +10684,10 @@ pub fn dfareporting_floodlight_activities_generatetag(
 > {
     let builder = dfareporting_floodlight_activities_generatetag_builder(
         client,
-        &args.profileId,
-        args.floodlightActivityId.as_deref(),
+        args.profileId.clone(),
+        args.floodlightActivityId.clone(),
     )?;
     dfareporting_floodlight_activities_generatetag_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
-/// Gets one floodlight activity by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activities_get_execute()` to send, or `dfareporting_floodlight_activities_get` for simplest API.
-
-pub fn dfareporting_floodlight_activities_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities/{}",
-        profileId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
-/// Gets one floodlight activity by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activities_get_execute()` or `dfareporting_floodlight_activities_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivity = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
-/// Gets one floodlight activity by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activities_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activities_get_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activities_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activities_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activities_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activities_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivitiesGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
-/// Gets one floodlight activity by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activities_get_builder()` + `dfareporting_floodlight_activities_get_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activities_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivitiesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_floodlight_activities_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_floodlight_activities_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightActivities
@@ -20105,18 +10698,17 @@ pub fn dfareporting_floodlight_activities_get(
 
 pub fn dfareporting_floodlight_activities_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &FloodlightActivity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -20148,8 +10740,11 @@ pub fn dfareporting_floodlight_activities_insert_builder(
 pub fn dfareporting_floodlight_activities_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FloodlightActivity>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -20256,610 +10851,12 @@ pub fn dfareporting_floodlight_activities_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_activities_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_floodlight_activities_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Retrieves a list of floodlight activities, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activities_list_execute()` to send, or `dfareporting_floodlight_activities_list` for simplest API.
-
-pub fn dfareporting_floodlight_activities_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    floodlightActivityGroupIds: Option<&str>,
-    floodlightActivityGroupName: Option<&str>,
-    floodlightActivityGroupTagString: Option<&str>,
-    floodlightActivityGroupType: Option<&str>,
-    floodlightConfigurationId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    tagString: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = floodlightActivityGroupIds {
-        query_parts.push(format!("floodlightActivityGroupIds={}", val));
-    }
-    if let Some(val) = floodlightActivityGroupName {
-        query_parts.push(format!("floodlightActivityGroupName={}", val));
-    }
-    if let Some(val) = floodlightActivityGroupTagString {
-        query_parts.push(format!("floodlightActivityGroupTagString={}", val));
-    }
-    if let Some(val) = floodlightActivityGroupType {
-        query_parts.push(format!("floodlightActivityGroupType={}", val));
-    }
-    if let Some(val) = floodlightConfigurationId {
-        query_parts.push(format!("floodlightConfigurationId={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = tagString {
-        query_parts.push(format!("tagString={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Retrieves a list of floodlight activities, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activities_list_execute()` or `dfareporting_floodlight_activities_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<FloodlightActivitiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivitiesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Retrieves a list of floodlight activities, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activities_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activities_list_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activities_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activities_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<FloodlightActivitiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activities_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activities_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivitiesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: floodlightActivityGroupIds
-    pub floodlightActivityGroupIds: Option<String>,
-    /// Query parameter: floodlightActivityGroupName
-    pub floodlightActivityGroupName: Option<String>,
-    /// Query parameter: floodlightActivityGroupTagString
-    pub floodlightActivityGroupTagString: Option<String>,
-    /// Query parameter: floodlightActivityGroupType
-    pub floodlightActivityGroupType: Option<String>,
-    /// Query parameter: floodlightConfigurationId
-    pub floodlightConfigurationId: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: tagString
-    pub tagString: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Retrieves a list of floodlight activities, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activities_list_builder()` + `dfareporting_floodlight_activities_list_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activities_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivitiesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<FloodlightActivitiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_activities_list_builder(
+    let builder = dfareporting_floodlight_activities_insert_builder(
         client,
-        &args.profileId,
-        args.advertiserId.as_deref(),
-        args.floodlightActivityGroupIds.as_deref(),
-        args.floodlightActivityGroupName.as_deref(),
-        args.floodlightActivityGroupTagString.as_deref(),
-        args.floodlightActivityGroupType.as_deref(),
-        args.floodlightConfigurationId.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.tagString.as_deref(),
-    )?;
-    dfareporting_floodlight_activities_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activities_patch_execute()` to send, or `dfareporting_floodlight_activities_patch` for simplest API.
-
-pub fn dfareporting_floodlight_activities_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightActivity,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activities_patch_execute()` or `dfareporting_floodlight_activities_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivity = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activities_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activities_patch_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activities_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activities_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activities_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activities_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivitiesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: FloodlightActivity,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activities_patch_builder()` + `dfareporting_floodlight_activities_patch_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activities_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivitiesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_activities_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
+        args.profileId.clone(),
         &args.body,
     )?;
-    dfareporting_floodlight_activities_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activities_update_execute()` to send, or `dfareporting_floodlight_activities_update` for simplest API.
-
-pub fn dfareporting_floodlight_activities_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivity,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivities",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activities_update_execute()` or `dfareporting_floodlight_activities_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivity = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activities_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activities_update_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activities_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activities_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activities_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activities_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activities_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivitiesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: FloodlightActivity,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivities
-/// Updates an existing floodlight activity.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activities_update_builder()` + `dfareporting_floodlight_activities_update_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activities_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activities_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivitiesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_floodlight_activities_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_floodlight_activities_update_execute(builder)
+    dfareporting_floodlight_activities_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups/{floodlightActivityGroupsId}
@@ -20870,19 +10867,17 @@ pub fn dfareporting_floodlight_activities_update(
 
 pub fn dfareporting_floodlight_activity_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20912,8 +10907,11 @@ pub fn dfareporting_floodlight_activity_groups_get_builder(
 pub fn dfareporting_floodlight_activity_groups_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FloodlightActivityGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -21020,8 +11018,11 @@ pub fn dfareporting_floodlight_activity_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_activity_groups_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_floodlight_activity_groups_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_floodlight_activity_groups_get_execute(builder)
 }
 
@@ -21033,18 +11034,17 @@ pub fn dfareporting_floodlight_activity_groups_get(
 
 pub fn dfareporting_floodlight_activity_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &FloodlightActivityGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -21076,8 +11076,11 @@ pub fn dfareporting_floodlight_activity_groups_insert_builder(
 pub fn dfareporting_floodlight_activity_groups_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FloodlightActivityGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -21186,587 +11189,10 @@ pub fn dfareporting_floodlight_activity_groups_insert(
 > {
     let builder = dfareporting_floodlight_activity_groups_insert_builder(
         client,
-        &args.profileId,
+        args.profileId.clone(),
         &args.body,
     )?;
     dfareporting_floodlight_activity_groups_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Retrieves a list of floodlight activity groups, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activity_groups_list_execute()` to send, or `dfareporting_floodlight_activity_groups_list` for simplest API.
-
-pub fn dfareporting_floodlight_activity_groups_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    floodlightConfigurationId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    type_rs: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = floodlightConfigurationId {
-        query_parts.push(format!("floodlightConfigurationId={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = type_rs {
-        query_parts.push(format!("type={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Retrieves a list of floodlight activity groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activity_groups_list_execute()` or `dfareporting_floodlight_activity_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<FloodlightActivityGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivityGroupsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Retrieves a list of floodlight activity groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activity_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_list_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activity_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activity_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<FloodlightActivityGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activity_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activity_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivityGroupsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: floodlightConfigurationId
-    pub floodlightConfigurationId: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: type
-    pub type_rs: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Retrieves a list of floodlight activity groups, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activity_groups_list_builder()` + `dfareporting_floodlight_activity_groups_list_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivityGroupsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<FloodlightActivityGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_activity_groups_list_builder(
-        client,
-        &args.profileId,
-        args.advertiserId.as_deref(),
-        args.floodlightConfigurationId.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.type_rs.as_deref(),
-    )?;
-    dfareporting_floodlight_activity_groups_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activity_groups_patch_execute()` to send, or `dfareporting_floodlight_activity_groups_patch` for simplest API.
-
-pub fn dfareporting_floodlight_activity_groups_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightActivityGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
-        profileId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activity_groups_patch_execute()` or `dfareporting_floodlight_activity_groups_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivityGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activity_groups_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_patch_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activity_groups_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activity_groups_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activity_groups_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activity_groups_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivityGroupsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: FloodlightActivityGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activity_groups_patch_builder()` + `dfareporting_floodlight_activity_groups_patch_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivityGroupsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_activity_groups_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_floodlight_activity_groups_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_activity_groups_update_execute()` to send, or `dfareporting_floodlight_activity_groups_update` for simplest API.
-
-pub fn dfareporting_floodlight_activity_groups_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivityGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightActivityGroups",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_activity_groups_update_execute()` or `dfareporting_floodlight_activity_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightActivityGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_activity_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_update_task()`.
-/// For the simplest API, use `dfareporting_floodlight_activity_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_activity_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_activity_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_activity_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_activity_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightActivityGroupsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: FloodlightActivityGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightActivityGroups
-/// Updates an existing floodlight activity group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_activity_groups_update_builder()` + `dfareporting_floodlight_activity_groups_update_execute()`.
-/// For task-level control, use `dfareporting_floodlight_activity_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_activity_groups_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightActivityGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_activity_groups_update_builder(
-        client,
-        &args.profileId,
-        &args.body,
-    )?;
-    dfareporting_floodlight_activity_groups_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations/{floodlightConfigurationsId}
@@ -21777,19 +11203,17 @@ pub fn dfareporting_floodlight_activity_groups_update(
 
 pub fn dfareporting_floodlight_configurations_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -21819,8 +11243,11 @@ pub fn dfareporting_floodlight_configurations_get_builder(
 pub fn dfareporting_floodlight_configurations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FloodlightConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -21927,8 +11354,11 @@ pub fn dfareporting_floodlight_configurations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_configurations_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_floodlight_configurations_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_floodlight_configurations_get_execute(builder)
 }
 
@@ -21940,13 +11370,12 @@ pub fn dfareporting_floodlight_configurations_get(
 
 pub fn dfareporting_floodlight_configurations_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
+    profileId: String,
+    ids: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
-        profileId,
     );
 
     // Build request
@@ -21956,9 +11385,9 @@ pub fn dfareporting_floodlight_configurations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -21993,8 +11422,9 @@ pub fn dfareporting_floodlight_configurations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FloodlightConfigurationsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FloodlightConfigurationsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -22108,346 +11538,10 @@ pub fn dfareporting_floodlight_configurations_list(
 > {
     let builder = dfareporting_floodlight_configurations_list_builder(
         client,
-        &args.profileId,
-        args.ids.as_deref(),
+        args.profileId.clone(),
+        args.ids.clone(),
     )?;
     dfareporting_floodlight_configurations_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_configurations_patch_execute()` to send, or `dfareporting_floodlight_configurations_patch` for simplest API.
-
-pub fn dfareporting_floodlight_configurations_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightConfiguration,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
-        profileId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_configurations_patch_execute()` or `dfareporting_floodlight_configurations_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_configurations_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_configurations_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_configurations_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_configurations_patch_task()`.
-/// For the simplest API, use `dfareporting_floodlight_configurations_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_configurations_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_configurations_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_configurations_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_configurations_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightConfigurationsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: FloodlightConfiguration,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_configurations_patch_builder()` + `dfareporting_floodlight_configurations_patch_execute()`.
-/// For task-level control, use `dfareporting_floodlight_configurations_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_configurations_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightConfigurationsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_floodlight_configurations_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_floodlight_configurations_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_floodlight_configurations_update_execute()` to send, or `dfareporting_floodlight_configurations_update` for simplest API.
-
-pub fn dfareporting_floodlight_configurations_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightConfiguration,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/floodlightConfigurations",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_floodlight_configurations_update_execute()` or `dfareporting_floodlight_configurations_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_configurations_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_configurations_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FloodlightConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_floodlight_configurations_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_floodlight_configurations_update_task()`.
-/// For the simplest API, use `dfareporting_floodlight_configurations_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_floodlight_configurations_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_floodlight_configurations_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_floodlight_configurations_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_floodlight_configurations_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingFloodlightConfigurationsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: FloodlightConfiguration,
-}
-
-/// GET userprofiles/{userprofilesId}/floodlightConfigurations
-/// Updates an existing floodlight configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_floodlight_configurations_update_builder()` + `dfareporting_floodlight_configurations_update_execute()`.
-/// For task-level control, use `dfareporting_floodlight_configurations_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_floodlight_configurations_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingFloodlightConfigurationsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_floodlight_configurations_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_floodlight_configurations_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/languages
@@ -22458,17 +11552,15 @@ pub fn dfareporting_floodlight_configurations_update(
 
 pub fn dfareporting_languages_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/languages",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/languages",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22498,8 +11590,11 @@ pub fn dfareporting_languages_list_builder(
 pub fn dfareporting_languages_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LanguagesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LanguagesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -22604,7 +11699,7 @@ pub fn dfareporting_languages_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_languages_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_languages_list_builder(client, args.profileId.clone())?;
     dfareporting_languages_list_execute(builder)
 }
 
@@ -22616,17 +11711,15 @@ pub fn dfareporting_languages_list(
 
 pub fn dfareporting_metros_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/metros",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/metros",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22656,8 +11749,11 @@ pub fn dfareporting_metros_list_builder(
 pub fn dfareporting_metros_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MetrosListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MetrosListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -22762,7 +11858,7 @@ pub fn dfareporting_metros_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_metros_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_metros_list_builder(client, args.profileId.clone())?;
     dfareporting_metros_list_execute(builder)
 }
 
@@ -22774,18 +11870,17 @@ pub fn dfareporting_metros_list(
 
 pub fn dfareporting_mobile_apps_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileApps/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22815,7 +11910,12 @@ pub fn dfareporting_mobile_apps_get_builder(
 pub fn dfareporting_mobile_apps_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MobileApp>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MobileApp>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -22917,7 +12017,8 @@ pub fn dfareporting_mobile_apps_get(
     impl StreamIterator<D = Result<ApiResponse<MobileApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_apps_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_mobile_apps_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_mobile_apps_get_execute(builder)
 }
 
@@ -22929,18 +12030,16 @@ pub fn dfareporting_mobile_apps_get(
 
 pub fn dfareporting_mobile_apps_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    directories: Option<&str>,
-    ids: Option<&str>,
+    profileId: String,
+    directories: Option<String>,
+    ids: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
+    pageToken: Option<String>,
+    searchString: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileApps",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileApps",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -22961,9 +12060,9 @@ pub fn dfareporting_mobile_apps_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -22997,8 +12096,11 @@ pub fn dfareporting_mobile_apps_list_builder(
 pub fn dfareporting_mobile_apps_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MobileAppsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MobileAppsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -23115,12 +12217,12 @@ pub fn dfareporting_mobile_apps_list(
 > {
     let builder = dfareporting_mobile_apps_list_builder(
         client,
-        &args.profileId,
-        args.directories.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
+        args.profileId.clone(),
+        args.directories.clone(),
+        args.ids.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.searchString.clone(),
     )?;
     dfareporting_mobile_apps_list_execute(builder)
 }
@@ -23133,18 +12235,17 @@ pub fn dfareporting_mobile_apps_list(
 
 pub fn dfareporting_mobile_carriers_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileCarriers/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23174,7 +12275,12 @@ pub fn dfareporting_mobile_carriers_get_builder(
 pub fn dfareporting_mobile_carriers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MobileCarrier>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MobileCarrier>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -23280,7 +12386,8 @@ pub fn dfareporting_mobile_carriers_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_carriers_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_mobile_carriers_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_mobile_carriers_get_execute(builder)
 }
 
@@ -23292,17 +12399,16 @@ pub fn dfareporting_mobile_carriers_get(
 
 pub fn dfareporting_mobile_carriers_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/mobileCarriers",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23332,8 +12438,11 @@ pub fn dfareporting_mobile_carriers_list_builder(
 pub fn dfareporting_mobile_carriers_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MobileCarriersListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MobileCarriersListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -23442,7 +12551,7 @@ pub fn dfareporting_mobile_carriers_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_carriers_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_mobile_carriers_list_builder(client, args.profileId.clone())?;
     dfareporting_mobile_carriers_list_execute(builder)
 }
 
@@ -23454,19 +12563,17 @@ pub fn dfareporting_mobile_carriers_list(
 
 pub fn dfareporting_operating_system_versions_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystemVersions/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23496,8 +12603,11 @@ pub fn dfareporting_operating_system_versions_get_builder(
 pub fn dfareporting_operating_system_versions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OperatingSystemVersion>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperatingSystemVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -23604,8 +12714,11 @@ pub fn dfareporting_operating_system_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_operating_system_versions_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_operating_system_versions_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_operating_system_versions_get_execute(builder)
 }
 
@@ -23617,17 +12730,16 @@ pub fn dfareporting_operating_system_versions_get(
 
 pub fn dfareporting_operating_system_versions_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystemVersions",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23658,8 +12770,9 @@ pub fn dfareporting_operating_system_versions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<OperatingSystemVersionsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<OperatingSystemVersionsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -23769,7 +12882,8 @@ pub fn dfareporting_operating_system_versions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_system_versions_list_builder(client, &args.profileId)?;
+    let builder =
+        dfareporting_operating_system_versions_list_builder(client, args.profileId.clone())?;
     dfareporting_operating_system_versions_list_execute(builder)
 }
 
@@ -23781,18 +12895,17 @@ pub fn dfareporting_operating_system_versions_list(
 
 pub fn dfareporting_operating_systems_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    dartId: &str,
+    profileId: String,
+    dartId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystems/{}",
-        profileId, dartId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23822,8 +12935,11 @@ pub fn dfareporting_operating_systems_get_builder(
 pub fn dfareporting_operating_systems_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OperatingSystem>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OperatingSystem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -23930,8 +13046,11 @@ pub fn dfareporting_operating_systems_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_operating_systems_get_builder(client, &args.profileId, &args.dartId)?;
+    let builder = dfareporting_operating_systems_get_builder(
+        client,
+        args.profileId.clone(),
+        args.dartId.clone(),
+    )?;
     dfareporting_operating_systems_get_execute(builder)
 }
 
@@ -23943,17 +13062,16 @@ pub fn dfareporting_operating_systems_get(
 
 pub fn dfareporting_operating_systems_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/operatingSystems",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23984,8 +13102,9 @@ pub fn dfareporting_operating_systems_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<OperatingSystemsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<OperatingSystemsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -24095,7 +13214,7 @@ pub fn dfareporting_operating_systems_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_systems_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_operating_systems_list_builder(client, args.profileId.clone())?;
     dfareporting_operating_systems_list_execute(builder)
 }
 
@@ -24107,18 +13226,17 @@ pub fn dfareporting_operating_systems_list(
 
 pub fn dfareporting_placement_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -24148,8 +13266,11 @@ pub fn dfareporting_placement_groups_get_builder(
 pub fn dfareporting_placement_groups_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlacementGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -24256,7 +13377,8 @@ pub fn dfareporting_placement_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_groups_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_placement_groups_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_placement_groups_get_execute(builder)
 }
 
@@ -24268,18 +13390,17 @@ pub fn dfareporting_placement_groups_get(
 
 pub fn dfareporting_placement_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &PlacementGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -24311,8 +13432,11 @@ pub fn dfareporting_placement_groups_insert_builder(
 pub fn dfareporting_placement_groups_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlacementGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -24420,645 +13544,8 @@ pub fn dfareporting_placement_groups_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_placement_groups_insert_builder(client, &args.profileId, &args.body)?;
+        dfareporting_placement_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_placement_groups_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Retrieves a list of placement groups, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_groups_list_execute()` to send, or `dfareporting_placement_groups_list` for simplest API.
-
-pub fn dfareporting_placement_groups_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    activeStatus: Option<&str>,
-    advertiserIds: Option<&str>,
-    campaignIds: Option<&str>,
-    contentCategoryIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    ids: Option<&str>,
-    maxEndDate: Option<&str>,
-    maxResults: Option<i32>,
-    maxStartDate: Option<&str>,
-    minEndDate: Option<&str>,
-    minStartDate: Option<&str>,
-    pageToken: Option<&str>,
-    placementGroupType: Option<&str>,
-    placementStrategyIds: Option<&str>,
-    pricingTypes: Option<&str>,
-    searchString: Option<&str>,
-    siteIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = activeStatus {
-        query_parts.push(format!("activeStatus={}", val));
-    }
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = campaignIds {
-        query_parts.push(format!("campaignIds={}", val));
-    }
-    if let Some(val) = contentCategoryIds {
-        query_parts.push(format!("contentCategoryIds={}", val));
-    }
-    if let Some(val) = directorySiteIds {
-        query_parts.push(format!("directorySiteIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxEndDate {
-        query_parts.push(format!("maxEndDate={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = maxStartDate {
-        query_parts.push(format!("maxStartDate={}", val));
-    }
-    if let Some(val) = minEndDate {
-        query_parts.push(format!("minEndDate={}", val));
-    }
-    if let Some(val) = minStartDate {
-        query_parts.push(format!("minStartDate={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = placementGroupType {
-        query_parts.push(format!("placementGroupType={}", val));
-    }
-    if let Some(val) = placementStrategyIds {
-        query_parts.push(format!("placementStrategyIds={}", val));
-    }
-    if let Some(val) = pricingTypes {
-        query_parts.push(format!("pricingTypes={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = siteIds {
-        query_parts.push(format!("siteIds={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Retrieves a list of placement groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_groups_list_execute()` or `dfareporting_placement_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementGroupsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementGroupsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Retrieves a list of placement groups, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_groups_list_task()`.
-/// For the simplest API, use `dfareporting_placement_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<PlacementGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementGroupsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: activeStatus
-    pub activeStatus: Option<String>,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: campaignIds
-    pub campaignIds: Option<String>,
-    /// Query parameter: contentCategoryIds
-    pub contentCategoryIds: Option<String>,
-    /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxEndDate
-    pub maxEndDate: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: maxStartDate
-    pub maxStartDate: Option<String>,
-    /// Query parameter: minEndDate
-    pub minEndDate: Option<String>,
-    /// Query parameter: minStartDate
-    pub minStartDate: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: placementGroupType
-    pub placementGroupType: Option<String>,
-    /// Query parameter: placementStrategyIds
-    pub placementStrategyIds: Option<String>,
-    /// Query parameter: pricingTypes
-    pub pricingTypes: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: siteIds
-    pub siteIds: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Retrieves a list of placement groups, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_groups_list_builder()` + `dfareporting_placement_groups_list_execute()`.
-/// For task-level control, use `dfareporting_placement_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementGroupsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<PlacementGroupsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placement_groups_list_builder(
-        client,
-        &args.profileId,
-        args.activeStatus.as_deref(),
-        args.advertiserIds.as_deref(),
-        args.campaignIds.as_deref(),
-        args.contentCategoryIds.as_deref(),
-        args.directorySiteIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxEndDate.as_deref(),
-        args.maxResults,
-        args.maxStartDate.as_deref(),
-        args.minEndDate.as_deref(),
-        args.minStartDate.as_deref(),
-        args.pageToken.as_deref(),
-        args.placementGroupType.as_deref(),
-        args.placementStrategyIds.as_deref(),
-        args.pricingTypes.as_deref(),
-        args.searchString.as_deref(),
-        args.siteIds.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_placement_groups_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_groups_patch_execute()` to send, or `dfareporting_placement_groups_patch` for simplest API.
-
-pub fn dfareporting_placement_groups_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &PlacementGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_groups_patch_execute()` or `dfareporting_placement_groups_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_groups_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_groups_patch_task()`.
-/// For the simplest API, use `dfareporting_placement_groups_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_groups_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_groups_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_groups_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementGroupsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: PlacementGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_groups_patch_builder()` + `dfareporting_placement_groups_patch_execute()`.
-/// For task-level control, use `dfareporting_placement_groups_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementGroupsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_placement_groups_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_placement_groups_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_groups_update_execute()` to send, or `dfareporting_placement_groups_update` for simplest API.
-
-pub fn dfareporting_placement_groups_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementGroup,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementGroups",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_groups_update_execute()` or `dfareporting_placement_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementGroup = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_groups_update_task()`.
-/// For the simplest API, use `dfareporting_placement_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementGroupsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: PlacementGroup,
-}
-
-/// GET userprofiles/{userprofilesId}/placementGroups
-/// Updates an existing placement group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_groups_update_builder()` + `dfareporting_placement_groups_update_execute()`.
-/// For task-level control, use `dfareporting_placement_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_groups_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_placement_groups_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_placement_groups_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
@@ -25069,19 +13556,17 @@ pub fn dfareporting_placement_groups_update(
 
 pub fn dfareporting_placement_strategies_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25111,7 +13596,12 @@ pub fn dfareporting_placement_strategies_delete_builder(
 pub fn dfareporting_placement_strategies_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -25210,171 +13700,12 @@ pub fn dfareporting_placement_strategies_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_placement_strategies_delete_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_placement_strategies_delete_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_placement_strategies_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
-/// Gets one placement strategy by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_strategies_get_execute()` to send, or `dfareporting_placement_strategies_get` for simplest API.
-
-pub fn dfareporting_placement_strategies_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies/{}",
-        profileId,
-        id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
-/// Gets one placement strategy by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_strategies_get_execute()` or `dfareporting_placement_strategies_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementStrategy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
-/// Gets one placement strategy by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_strategies_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_strategies_get_task()`.
-/// For the simplest API, use `dfareporting_placement_strategies_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_strategies_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_strategies_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_strategies_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementStrategiesGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
-/// Gets one placement strategy by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_strategies_get_builder()` + `dfareporting_placement_strategies_get_execute()`.
-/// For task-level control, use `dfareporting_placement_strategies_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementStrategiesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placement_strategies_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_placement_strategies_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/placementStrategies
@@ -25385,18 +13716,17 @@ pub fn dfareporting_placement_strategies_get(
 
 pub fn dfareporting_placement_strategies_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &PlacementStrategy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -25428,8 +13758,11 @@ pub fn dfareporting_placement_strategies_insert_builder(
 pub fn dfareporting_placement_strategies_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlacementStrategy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -25536,561 +13869,12 @@ pub fn dfareporting_placement_strategies_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_placement_strategies_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_placement_strategies_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Retrieves a list of placement strategies, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_strategies_list_execute()` to send, or `dfareporting_placement_strategies_list` for simplest API.
-
-pub fn dfareporting_placement_strategies_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Retrieves a list of placement strategies, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_strategies_list_execute()` or `dfareporting_placement_strategies_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<PlacementStrategiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementStrategiesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Retrieves a list of placement strategies, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_strategies_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_strategies_list_task()`.
-/// For the simplest API, use `dfareporting_placement_strategies_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_strategies_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<PlacementStrategiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_strategies_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_strategies_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementStrategiesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Retrieves a list of placement strategies, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_strategies_list_builder()` + `dfareporting_placement_strategies_list_execute()`.
-/// For task-level control, use `dfareporting_placement_strategies_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementStrategiesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<PlacementStrategiesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placement_strategies_list_builder(
+    let builder = dfareporting_placement_strategies_insert_builder(
         client,
-        &args.profileId,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_placement_strategies_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_strategies_patch_execute()` to send, or `dfareporting_placement_strategies_patch` for simplest API.
-
-pub fn dfareporting_placement_strategies_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &PlacementStrategy,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_strategies_patch_execute()` or `dfareporting_placement_strategies_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementStrategy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_strategies_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_strategies_patch_task()`.
-/// For the simplest API, use `dfareporting_placement_strategies_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_strategies_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_strategies_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_strategies_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementStrategiesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: PlacementStrategy,
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_strategies_patch_builder()` + `dfareporting_placement_strategies_patch_execute()`.
-/// For task-level control, use `dfareporting_placement_strategies_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementStrategiesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placement_strategies_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
+        args.profileId.clone(),
         &args.body,
     )?;
-    dfareporting_placement_strategies_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placement_strategies_update_execute()` to send, or `dfareporting_placement_strategies_update` for simplest API.
-
-pub fn dfareporting_placement_strategies_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementStrategy,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placementStrategies",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placement_strategies_update_execute()` or `dfareporting_placement_strategies_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementStrategy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placement_strategies_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placement_strategies_update_task()`.
-/// For the simplest API, use `dfareporting_placement_strategies_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placement_strategies_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placement_strategies_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placement_strategies_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placement_strategies_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementStrategiesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: PlacementStrategy,
-}
-
-/// GET userprofiles/{userprofilesId}/placementStrategies
-/// Updates an existing placement strategy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placement_strategies_update_builder()` + `dfareporting_placement_strategies_update_execute()`.
-/// For task-level control, use `dfareporting_placement_strategies_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placement_strategies_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementStrategiesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_placement_strategies_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_placement_strategies_update_execute(builder)
+    dfareporting_placement_strategies_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/placements/generatetags
@@ -26101,18 +13885,17 @@ pub fn dfareporting_placement_strategies_update(
 
 pub fn dfareporting_placements_generatetags_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: Option<&str>,
-    placementIds: Option<&str>,
-    tagFormats: Option<&str>,
+    profileId: String,
+    campaignId: Option<String>,
+    placementIds: Option<String>,
+    tagFormats: Option<String>,
     tagProperties_dcDbmMacroIncluded: Option<bool>,
     tagProperties_gppMacrosIncluded: Option<bool>,
     tagProperties_tcfGdprMacrosIncluded: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements/generatetags",
-        profileId,
     );
 
     // Build request
@@ -26127,19 +13910,19 @@ pub fn dfareporting_placements_generatetags_builder(
         query_parts.push(format!("tagFormats={}", val));
     }
     if let Some(val) = tagProperties_dcDbmMacroIncluded {
-        query_parts.push(format!("tagProperties_dcDbmMacroIncluded={}", val));
+        query_parts.push(format!("tagProperties.dcDbmMacroIncluded={}", val));
     }
     if let Some(val) = tagProperties_gppMacrosIncluded {
-        query_parts.push(format!("tagProperties_gppMacrosIncluded={}", val));
+        query_parts.push(format!("tagProperties.gppMacrosIncluded={}", val));
     }
     if let Some(val) = tagProperties_tcfGdprMacrosIncluded {
-        query_parts.push(format!("tagProperties_tcfGdprMacrosIncluded={}", val));
+        query_parts.push(format!("tagProperties.tcfGdprMacrosIncluded={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -26174,8 +13957,9 @@ pub fn dfareporting_placements_generatetags_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<PlacementsGenerateTagsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<PlacementsGenerateTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -26299,13 +14083,13 @@ pub fn dfareporting_placements_generatetags(
 > {
     let builder = dfareporting_placements_generatetags_builder(
         client,
-        &args.profileId,
-        args.campaignId.as_deref(),
-        args.placementIds.as_deref(),
-        args.tagFormats.as_deref(),
-        args.tagProperties_dcDbmMacroIncluded,
-        args.tagProperties_gppMacrosIncluded,
-        args.tagProperties_tcfGdprMacrosIncluded,
+        args.profileId.clone(),
+        args.campaignId.clone(),
+        args.placementIds.clone(),
+        args.tagFormats.clone(),
+        args.tagProperties_dcDbmMacroIncluded.clone(),
+        args.tagProperties_gppMacrosIncluded.clone(),
+        args.tagProperties_tcfGdprMacrosIncluded.clone(),
     )?;
     dfareporting_placements_generatetags_execute(builder)
 }
@@ -26318,18 +14102,17 @@ pub fn dfareporting_placements_generatetags(
 
 pub fn dfareporting_placements_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -26359,7 +14142,12 @@ pub fn dfareporting_placements_get_builder(
 pub fn dfareporting_placements_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Placement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -26461,7 +14249,8 @@ pub fn dfareporting_placements_get(
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_placements_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_placements_get_execute(builder)
 }
 
@@ -26473,18 +14262,16 @@ pub fn dfareporting_placements_get(
 
 pub fn dfareporting_placements_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Placement,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -26516,7 +14303,12 @@ pub fn dfareporting_placements_insert_builder(
 pub fn dfareporting_placements_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Placement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -26618,649 +14410,9 @@ pub fn dfareporting_placements_insert(
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_placements_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Retrieves a list of placements, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placements_list_execute()` to send, or `dfareporting_placements_list` for simplest API.
-
-pub fn dfareporting_placements_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    activeStatus: Option<&str>,
-    advertiserIds: Option<&str>,
-    campaignIds: Option<&str>,
-    compatibilities: Option<&str>,
-    contentCategoryIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    groupIds: Option<&str>,
-    ids: Option<&str>,
-    maxEndDate: Option<&str>,
-    maxResults: Option<i32>,
-    maxStartDate: Option<&str>,
-    minEndDate: Option<&str>,
-    minStartDate: Option<&str>,
-    pageToken: Option<&str>,
-    paymentSource: Option<&str>,
-    placementStrategyIds: Option<&str>,
-    pricingTypes: Option<&str>,
-    searchString: Option<&str>,
-    siteIds: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = activeStatus {
-        query_parts.push(format!("activeStatus={}", val));
-    }
-    if let Some(val) = advertiserIds {
-        query_parts.push(format!("advertiserIds={}", val));
-    }
-    if let Some(val) = campaignIds {
-        query_parts.push(format!("campaignIds={}", val));
-    }
-    if let Some(val) = compatibilities {
-        query_parts.push(format!("compatibilities={}", val));
-    }
-    if let Some(val) = contentCategoryIds {
-        query_parts.push(format!("contentCategoryIds={}", val));
-    }
-    if let Some(val) = directorySiteIds {
-        query_parts.push(format!("directorySiteIds={}", val));
-    }
-    if let Some(val) = groupIds {
-        query_parts.push(format!("groupIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxEndDate {
-        query_parts.push(format!("maxEndDate={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = maxStartDate {
-        query_parts.push(format!("maxStartDate={}", val));
-    }
-    if let Some(val) = minEndDate {
-        query_parts.push(format!("minEndDate={}", val));
-    }
-    if let Some(val) = minStartDate {
-        query_parts.push(format!("minStartDate={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = paymentSource {
-        query_parts.push(format!("paymentSource={}", val));
-    }
-    if let Some(val) = placementStrategyIds {
-        query_parts.push(format!("placementStrategyIds={}", val));
-    }
-    if let Some(val) = pricingTypes {
-        query_parts.push(format!("pricingTypes={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = siteIds {
-        query_parts.push(format!("siteIds={}", val));
-    }
-    if let Some(val) = sizeIds {
-        query_parts.push(format!("sizeIds={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Retrieves a list of placements, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placements_list_execute()` or `dfareporting_placements_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlacementsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PlacementsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Retrieves a list of placements, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placements_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placements_list_task()`.
-/// For the simplest API, use `dfareporting_placements_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placements_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placements_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placements_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: activeStatus
-    pub activeStatus: Option<String>,
-    /// Query parameter: advertiserIds
-    pub advertiserIds: Option<String>,
-    /// Query parameter: campaignIds
-    pub campaignIds: Option<String>,
-    /// Query parameter: compatibilities
-    pub compatibilities: Option<String>,
-    /// Query parameter: contentCategoryIds
-    pub contentCategoryIds: Option<String>,
-    /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<String>,
-    /// Query parameter: groupIds
-    pub groupIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxEndDate
-    pub maxEndDate: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: maxStartDate
-    pub maxStartDate: Option<String>,
-    /// Query parameter: minEndDate
-    pub minEndDate: Option<String>,
-    /// Query parameter: minStartDate
-    pub minStartDate: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: paymentSource
-    pub paymentSource: Option<String>,
-    /// Query parameter: placementStrategyIds
-    pub placementStrategyIds: Option<String>,
-    /// Query parameter: pricingTypes
-    pub pricingTypes: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: siteIds
-    pub siteIds: Option<String>,
-    /// Query parameter: sizeIds
-    pub sizeIds: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Retrieves a list of placements, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placements_list_builder()` + `dfareporting_placements_list_execute()`.
-/// For task-level control, use `dfareporting_placements_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PlacementsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placements_list_builder(
-        client,
-        &args.profileId,
-        args.activeStatus.as_deref(),
-        args.advertiserIds.as_deref(),
-        args.campaignIds.as_deref(),
-        args.compatibilities.as_deref(),
-        args.contentCategoryIds.as_deref(),
-        args.directorySiteIds.as_deref(),
-        args.groupIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxEndDate.as_deref(),
-        args.maxResults,
-        args.maxStartDate.as_deref(),
-        args.minEndDate.as_deref(),
-        args.minStartDate.as_deref(),
-        args.pageToken.as_deref(),
-        args.paymentSource.as_deref(),
-        args.placementStrategyIds.as_deref(),
-        args.pricingTypes.as_deref(),
-        args.searchString.as_deref(),
-        args.siteIds.as_deref(),
-        args.sizeIds.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_placements_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placements_patch_execute()` to send, or `dfareporting_placements_patch` for simplest API.
-
-pub fn dfareporting_placements_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Placement,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placements_patch_execute()` or `dfareporting_placements_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Placement = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placements_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placements_patch_task()`.
-/// For the simplest API, use `dfareporting_placements_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placements_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placements_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placements_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Placement,
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placements_patch_builder()` + `dfareporting_placements_patch_execute()`.
-/// For task-level control, use `dfareporting_placements_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_placements_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_placements_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_placements_update_execute()` to send, or `dfareporting_placements_update` for simplest API.
-
-pub fn dfareporting_placements_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Placement,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/placements",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_placements_update_execute()` or `dfareporting_placements_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Placement = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_placements_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_placements_update_task()`.
-/// For the simplest API, use `dfareporting_placements_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_placements_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_placements_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_placements_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_placements_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingPlacementsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Placement,
-}
-
-/// GET userprofiles/{userprofilesId}/placements
-/// Updates an existing placement.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_placements_update_builder()` + `dfareporting_placements_update_execute()`.
-/// For task-level control, use `dfareporting_placements_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_placements_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingPlacementsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_placements_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_placements_update_execute(builder)
+        dfareporting_placements_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_placements_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/platformTypes/{platformTypesId}
@@ -27271,18 +14423,17 @@ pub fn dfareporting_placements_update(
 
 pub fn dfareporting_platform_types_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/platformTypes/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -27312,7 +14463,12 @@ pub fn dfareporting_platform_types_get_builder(
 pub fn dfareporting_platform_types_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlatformType>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlatformType>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -27418,7 +14574,8 @@ pub fn dfareporting_platform_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_platform_types_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_platform_types_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_platform_types_get_execute(builder)
 }
 
@@ -27430,17 +14587,16 @@ pub fn dfareporting_platform_types_get(
 
 pub fn dfareporting_platform_types_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/platformTypes",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -27470,8 +14626,11 @@ pub fn dfareporting_platform_types_list_builder(
 pub fn dfareporting_platform_types_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PlatformTypesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlatformTypesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -27576,7 +14735,7 @@ pub fn dfareporting_platform_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_platform_types_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_platform_types_list_builder(client, args.profileId.clone())?;
     dfareporting_platform_types_list_execute(builder)
 }
 
@@ -27588,18 +14747,17 @@ pub fn dfareporting_platform_types_list(
 
 pub fn dfareporting_postal_codes_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    code: &str,
+    profileId: String,
+    code: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/postalCodes/{}",
-        profileId, code,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -27629,7 +14787,12 @@ pub fn dfareporting_postal_codes_get_builder(
 pub fn dfareporting_postal_codes_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostalCode>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PostalCode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -27731,7 +14894,8 @@ pub fn dfareporting_postal_codes_get(
     impl StreamIterator<D = Result<ApiResponse<PostalCode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_postal_codes_get_builder(client, &args.profileId, &args.code)?;
+    let builder =
+        dfareporting_postal_codes_get_builder(client, args.profileId.clone(), args.code.clone())?;
     dfareporting_postal_codes_get_execute(builder)
 }
 
@@ -27743,17 +14907,15 @@ pub fn dfareporting_postal_codes_get(
 
 pub fn dfareporting_postal_codes_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/postalCodes",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/postalCodes",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -27783,8 +14945,11 @@ pub fn dfareporting_postal_codes_list_builder(
 pub fn dfareporting_postal_codes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostalCodesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PostalCodesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -27889,7 +15054,7 @@ pub fn dfareporting_postal_codes_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_postal_codes_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_postal_codes_list_builder(client, args.profileId.clone())?;
     dfareporting_postal_codes_list_execute(builder)
 }
 
@@ -27901,17 +15066,15 @@ pub fn dfareporting_postal_codes_list(
 
 pub fn dfareporting_regions_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/regions",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/regions",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -27941,8 +15104,11 @@ pub fn dfareporting_regions_list_builder(
 pub fn dfareporting_regions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RegionsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RegionsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -28047,7 +15213,7 @@ pub fn dfareporting_regions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_regions_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_regions_list_builder(client, args.profileId.clone())?;
     dfareporting_regions_list_execute(builder)
 }
 
@@ -28059,19 +15225,17 @@ pub fn dfareporting_regions_list(
 
 pub fn dfareporting_remarketing_list_shares_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    remarketingListId: &str,
+    profileId: String,
+    remarketingListId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares/{}",
-        profileId,
-        remarketingListId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -28101,8 +15265,11 @@ pub fn dfareporting_remarketing_list_shares_get_builder(
 pub fn dfareporting_remarketing_list_shares_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemarketingListShare>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -28211,181 +15378,10 @@ pub fn dfareporting_remarketing_list_shares_get(
 > {
     let builder = dfareporting_remarketing_list_shares_get_builder(
         client,
-        &args.profileId,
-        &args.remarketingListId,
+        args.profileId.clone(),
+        args.remarketingListId.clone(),
     )?;
     dfareporting_remarketing_list_shares_get_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingListShares
-/// Updates an existing remarketing list share. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_remarketing_list_shares_patch_execute()` to send, or `dfareporting_remarketing_list_shares_patch` for simplest API.
-
-pub fn dfareporting_remarketing_list_shares_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &RemarketingListShare,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingListShares
-/// Updates an existing remarketing list share. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_remarketing_list_shares_patch_execute()` or `dfareporting_remarketing_list_shares_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_list_shares_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_list_shares_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingListShare = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingListShares
-/// Updates an existing remarketing list share. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_remarketing_list_shares_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_remarketing_list_shares_patch_task()`.
-/// For the simplest API, use `dfareporting_remarketing_list_shares_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_list_shares_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_remarketing_list_shares_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_remarketing_list_shares_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_remarketing_list_shares_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingRemarketingListSharesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: RemarketingListShare,
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingListShares
-/// Updates an existing remarketing list share. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_remarketing_list_shares_patch_builder()` + `dfareporting_remarketing_list_shares_patch_execute()`.
-/// For task-level control, use `dfareporting_remarketing_list_shares_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_list_shares_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingRemarketingListSharesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_remarketing_list_shares_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_remarketing_list_shares_patch_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/remarketingListShares
@@ -28396,18 +15392,17 @@ pub fn dfareporting_remarketing_list_shares_patch(
 
 pub fn dfareporting_remarketing_list_shares_update_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &RemarketingListShare,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingListShares",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -28439,8 +15434,11 @@ pub fn dfareporting_remarketing_list_shares_update_builder(
 pub fn dfareporting_remarketing_list_shares_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemarketingListShare>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -28547,8 +15545,11 @@ pub fn dfareporting_remarketing_list_shares_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_remarketing_list_shares_update_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_remarketing_list_shares_update_builder(
+        client,
+        args.profileId.clone(),
+        &args.body,
+    )?;
     dfareporting_remarketing_list_shares_update_execute(builder)
 }
 
@@ -28560,18 +15561,17 @@ pub fn dfareporting_remarketing_list_shares_update(
 
 pub fn dfareporting_remarketing_lists_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -28601,8 +15601,11 @@ pub fn dfareporting_remarketing_lists_get_builder(
 pub fn dfareporting_remarketing_lists_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemarketingList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -28709,7 +15712,11 @@ pub fn dfareporting_remarketing_lists_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_remarketing_lists_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_remarketing_lists_get_execute(builder)
 }
 
@@ -28721,18 +15728,17 @@ pub fn dfareporting_remarketing_lists_get(
 
 pub fn dfareporting_remarketing_lists_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &RemarketingList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -28764,8 +15770,11 @@ pub fn dfareporting_remarketing_lists_insert_builder(
 pub fn dfareporting_remarketing_lists_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemarketingList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -28873,571 +15882,8 @@ pub fn dfareporting_remarketing_lists_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_remarketing_lists_insert_builder(client, &args.profileId, &args.body)?;
+        dfareporting_remarketing_lists_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_remarketing_lists_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Retrieves a list of remarketing lists, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_remarketing_lists_list_execute()` to send, or `dfareporting_remarketing_lists_list` for simplest API.
-
-pub fn dfareporting_remarketing_lists_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    active: Option<bool>,
-    floodlightActivityId: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
-        profileId, advertiserId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = floodlightActivityId {
-        query_parts.push(format!("floodlightActivityId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Retrieves a list of remarketing lists, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_remarketing_lists_list_execute()` or `dfareporting_remarketing_lists_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<RemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingListsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Retrieves a list of remarketing lists, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_remarketing_lists_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_remarketing_lists_list_task()`.
-/// For the simplest API, use `dfareporting_remarketing_lists_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_remarketing_lists_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<RemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_remarketing_lists_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_remarketing_lists_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingRemarketingListsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: advertiserId
-    pub advertiserId: String,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: floodlightActivityId
-    pub floodlightActivityId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Retrieves a list of remarketing lists, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_remarketing_lists_list_builder()` + `dfareporting_remarketing_lists_list_execute()`.
-/// For task-level control, use `dfareporting_remarketing_lists_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingRemarketingListsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<RemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_remarketing_lists_list_builder(
-        client,
-        &args.profileId,
-        &args.advertiserId,
-        args.active,
-        args.floodlightActivityId.as_deref(),
-        args.maxResults,
-        args.name.as_deref(),
-        args.pageToken.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_remarketing_lists_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_remarketing_lists_patch_execute()` to send, or `dfareporting_remarketing_lists_patch` for simplest API.
-
-pub fn dfareporting_remarketing_lists_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &RemarketingList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_remarketing_lists_patch_execute()` or `dfareporting_remarketing_lists_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_remarketing_lists_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_remarketing_lists_patch_task()`.
-/// For the simplest API, use `dfareporting_remarketing_lists_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_remarketing_lists_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_remarketing_lists_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_remarketing_lists_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingRemarketingListsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: RemarketingList,
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_remarketing_lists_patch_builder()` + `dfareporting_remarketing_lists_patch_execute()`.
-/// For task-level control, use `dfareporting_remarketing_lists_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingRemarketingListsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_remarketing_lists_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
-        &args.body,
-    )?;
-    dfareporting_remarketing_lists_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_remarketing_lists_update_execute()` to send, or `dfareporting_remarketing_lists_update` for simplest API.
-
-pub fn dfareporting_remarketing_lists_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &RemarketingList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/remarketingLists",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_remarketing_lists_update_execute()` or `dfareporting_remarketing_lists_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RemarketingList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_remarketing_lists_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_remarketing_lists_update_task()`.
-/// For the simplest API, use `dfareporting_remarketing_lists_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_remarketing_lists_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_remarketing_lists_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_remarketing_lists_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_remarketing_lists_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingRemarketingListsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: RemarketingList,
-}
-
-/// GET userprofiles/{userprofilesId}/remarketingLists
-/// Updates an existing remarketing list.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_remarketing_lists_update_builder()` + `dfareporting_remarketing_lists_update_execute()`.
-/// For task-level control, use `dfareporting_remarketing_lists_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_remarketing_lists_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingRemarketingListsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_remarketing_lists_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_remarketing_lists_update_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/reports/{reportId}
@@ -29448,18 +15894,19 @@ pub fn dfareporting_remarketing_lists_update(
 
 pub fn dfareporting_reports_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
+    profileId: String,
+    reportId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
-        profileId, reportId,
+        profileId.as_str(),
+        reportId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -29489,7 +15936,12 @@ pub fn dfareporting_reports_delete_builder(
 pub fn dfareporting_reports_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -29588,163 +16040,9 @@ pub fn dfareporting_reports_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_delete_builder(client, &args.profileId, &args.reportId)?;
+    let builder =
+        dfareporting_reports_delete_builder(client, args.profileId.clone(), args.reportId.clone())?;
     dfareporting_reports_delete_execute(builder)
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Retrieves a report by its ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_reports_get_execute()` to send, or `dfareporting_reports_get` for simplest API.
-
-pub fn dfareporting_reports_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
-        profileId, reportId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Retrieves a report by its ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_reports_get_execute()` or `dfareporting_reports_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Report = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Retrieves a report by its ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_reports_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_reports_get_task()`.
-/// For the simplest API, use `dfareporting_reports_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_reports_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_reports_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_reports_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingReportsGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: reportId
-    pub reportId: String,
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Retrieves a report by its ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_reports_get_builder()` + `dfareporting_reports_get_execute()`.
-/// For task-level control, use `dfareporting_reports_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingReportsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_reports_get_builder(client, &args.profileId, &args.reportId)?;
-    dfareporting_reports_get_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/reports
@@ -29755,18 +16053,18 @@ pub fn dfareporting_reports_get(
 
 pub fn dfareporting_reports_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Report,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -29798,7 +16096,12 @@ pub fn dfareporting_reports_insert_builder(
 pub fn dfareporting_reports_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -29900,206 +16203,8 @@ pub fn dfareporting_reports_insert(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_insert_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_reports_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_reports_insert_execute(builder)
-}
-
-/// GET userprofiles/{profileId}/reports
-/// Retrieves list of reports.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_reports_list_execute()` to send, or `dfareporting_reports_list` for simplest API.
-
-pub fn dfareporting_reports_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = scope {
-        query_parts.push(format!("scope={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{profileId}/reports
-/// Retrieves list of reports.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_reports_list_execute()` or `dfareporting_reports_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReportList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ReportList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{profileId}/reports
-/// Retrieves list of reports.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_reports_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_reports_list_task()`.
-/// For the simplest API, use `dfareporting_reports_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_reports_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ReportList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_reports_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_reports_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingReportsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: scope
-    pub scope: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{profileId}/reports
-/// Retrieves list of reports.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_reports_list_builder()` + `dfareporting_reports_list_execute()`.
-/// For task-level control, use `dfareporting_reports_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingReportsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ReportList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_reports_list_builder(
-        client,
-        &args.profileId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.scope.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_reports_list_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/reports/{reportId}/run
@@ -30110,14 +16215,15 @@ pub fn dfareporting_reports_list(
 
 pub fn dfareporting_reports_run_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
+    profileId: String,
+    reportId: String,
     synchronous: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/run",
-        profileId, reportId,
+        profileId.as_str(),
+        reportId.as_str(),
     );
 
     // Build request
@@ -30127,9 +16233,9 @@ pub fn dfareporting_reports_run_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -30163,7 +16269,12 @@ pub fn dfareporting_reports_run_builder(
 pub fn dfareporting_reports_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -30269,172 +16380,11 @@ pub fn dfareporting_reports_run(
 > {
     let builder = dfareporting_reports_run_builder(
         client,
-        &args.profileId,
-        &args.reportId,
-        args.synchronous,
+        args.profileId.clone(),
+        args.reportId.clone(),
+        args.synchronous.clone(),
     )?;
     dfareporting_reports_run_execute(builder)
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Updates a report.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_reports_update_execute()` to send, or `dfareporting_reports_update` for simplest API.
-
-pub fn dfareporting_reports_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    body: &Report,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
-        profileId, reportId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Updates a report.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_reports_update_execute()` or `dfareporting_reports_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Report = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Updates a report.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_reports_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_reports_update_task()`.
-/// For the simplest API, use `dfareporting_reports_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_reports_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_reports_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_reports_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_reports_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingReportsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: reportId
-    pub reportId: String,
-    /// Request body.
-    pub body: Report,
-}
-
-/// GET userprofiles/{profileId}/reports/{reportId}
-/// Updates a report.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_reports_update_builder()` + `dfareporting_reports_update_execute()`.
-/// For task-level control, use `dfareporting_reports_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_reports_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingReportsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_reports_update_builder(client, &args.profileId, &args.reportId, &args.body)?;
-    dfareporting_reports_update_execute(builder)
 }
 
 /// GET userprofiles/{profileId}/reports/compatiblefields/query
@@ -30445,18 +16395,18 @@ pub fn dfareporting_reports_update(
 
 pub fn dfareporting_reports_compatible_fields_query_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Report,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/compatiblefields/query",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -30488,8 +16438,11 @@ pub fn dfareporting_reports_compatible_fields_query_builder(
 pub fn dfareporting_reports_compatible_fields_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CompatibleFields>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CompatibleFields>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -30596,8 +16549,11 @@ pub fn dfareporting_reports_compatible_fields_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_reports_compatible_fields_query_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_reports_compatible_fields_query_builder(
+        client,
+        args.profileId.clone(),
+        &args.body,
+    )?;
     dfareporting_reports_compatible_fields_query_execute(builder)
 }
 
@@ -30609,19 +16565,21 @@ pub fn dfareporting_reports_compatible_fields_query(
 
 pub fn dfareporting_reports_files_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    fileId: &str,
+    profileId: String,
+    reportId: String,
+    fileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files/{}",
-        profileId, reportId, fileId,
+        profileId.as_str(),
+        reportId.as_str(),
+        fileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -30651,7 +16609,12 @@ pub fn dfareporting_reports_files_get_builder(
 pub fn dfareporting_reports_files_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -30757,9 +16720,9 @@ pub fn dfareporting_reports_files_get(
 > {
     let builder = dfareporting_reports_files_get_builder(
         client,
-        &args.profileId,
-        &args.reportId,
-        &args.fileId,
+        args.profileId.clone(),
+        args.reportId.clone(),
+        args.fileId.clone(),
     )?;
     dfareporting_reports_files_get_execute(builder)
 }
@@ -30772,17 +16735,18 @@ pub fn dfareporting_reports_files_get(
 
 pub fn dfareporting_reports_files_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
+    profileId: String,
+    reportId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    pageToken: Option<String>,
+    sortField: Option<String>,
+    sortOrder: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files",
-        profileId, reportId,
+        profileId.as_str(),
+        reportId.as_str(),
     );
 
     // Build request
@@ -30801,9 +16765,9 @@ pub fn dfareporting_reports_files_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -30837,7 +16801,12 @@ pub fn dfareporting_reports_files_list_builder(
 pub fn dfareporting_reports_files_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FileList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -30949,12 +16918,12 @@ pub fn dfareporting_reports_files_list(
 > {
     let builder = dfareporting_reports_files_list_builder(
         client,
-        &args.profileId,
-        &args.reportId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
+        args.profileId.clone(),
+        args.reportId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.sortField.clone(),
+        args.sortOrder.clone(),
     )?;
     dfareporting_reports_files_list_execute(builder)
 }
@@ -30967,18 +16936,16 @@ pub fn dfareporting_reports_files_list(
 
 pub fn dfareporting_sites_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites/{}",
-        profileId, id,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -31008,7 +16975,12 @@ pub fn dfareporting_sites_get_builder(
 pub fn dfareporting_sites_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Site>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -31110,7 +17082,7 @@ pub fn dfareporting_sites_get(
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_sites_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_sites_get_execute(builder)
 }
 
@@ -31122,18 +17094,16 @@ pub fn dfareporting_sites_get(
 
 pub fn dfareporting_sites_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Site,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -31165,7 +17135,12 @@ pub fn dfareporting_sites_insert_builder(
 pub fn dfareporting_sites_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Site>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -31267,599 +17242,8 @@ pub fn dfareporting_sites_insert(
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_insert_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_sites_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_sites_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Retrieves a list of sites, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_sites_list_execute()` to send, or `dfareporting_sites_list` for simplest API.
-
-pub fn dfareporting_sites_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    acceptsInStreamVideoPlacements: Option<bool>,
-    acceptsInterstitialPlacements: Option<bool>,
-    acceptsPublisherPaidPlacements: Option<bool>,
-    adWordsSite: Option<bool>,
-    approved: Option<bool>,
-    campaignIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-    unmappedSite: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = acceptsInStreamVideoPlacements {
-        query_parts.push(format!("acceptsInStreamVideoPlacements={}", val));
-    }
-    if let Some(val) = acceptsInterstitialPlacements {
-        query_parts.push(format!("acceptsInterstitialPlacements={}", val));
-    }
-    if let Some(val) = acceptsPublisherPaidPlacements {
-        query_parts.push(format!("acceptsPublisherPaidPlacements={}", val));
-    }
-    if let Some(val) = adWordsSite {
-        query_parts.push(format!("adWordsSite={}", val));
-    }
-    if let Some(val) = approved {
-        query_parts.push(format!("approved={}", val));
-    }
-    if let Some(val) = campaignIds {
-        query_parts.push(format!("campaignIds={}", val));
-    }
-    if let Some(val) = directorySiteIds {
-        query_parts.push(format!("directorySiteIds={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-    if let Some(val) = unmappedSite {
-        query_parts.push(format!("unmappedSite={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Retrieves a list of sites, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_sites_list_execute()` or `dfareporting_sites_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SitesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SitesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Retrieves a list of sites, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_sites_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_sites_list_task()`.
-/// For the simplest API, use `dfareporting_sites_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_sites_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SitesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_sites_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_sites_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSitesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: acceptsInStreamVideoPlacements
-    pub acceptsInStreamVideoPlacements: Option<bool>,
-    /// Query parameter: acceptsInterstitialPlacements
-    pub acceptsInterstitialPlacements: Option<bool>,
-    /// Query parameter: acceptsPublisherPaidPlacements
-    pub acceptsPublisherPaidPlacements: Option<bool>,
-    /// Query parameter: adWordsSite
-    pub adWordsSite: Option<bool>,
-    /// Query parameter: approved
-    pub approved: Option<bool>,
-    /// Query parameter: campaignIds
-    pub campaignIds: Option<String>,
-    /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-    /// Query parameter: unmappedSite
-    pub unmappedSite: Option<bool>,
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Retrieves a list of sites, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_sites_list_builder()` + `dfareporting_sites_list_execute()`.
-/// For task-level control, use `dfareporting_sites_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingSitesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SitesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_sites_list_builder(
-        client,
-        &args.profileId,
-        args.acceptsInStreamVideoPlacements,
-        args.acceptsInterstitialPlacements,
-        args.acceptsPublisherPaidPlacements,
-        args.adWordsSite,
-        args.approved,
-        args.campaignIds.as_deref(),
-        args.directorySiteIds.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.subaccountId.as_deref(),
-        args.unmappedSite,
-    )?;
-    dfareporting_sites_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_sites_patch_execute()` to send, or `dfareporting_sites_patch` for simplest API.
-
-pub fn dfareporting_sites_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Site,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_sites_patch_execute()` or `dfareporting_sites_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Site = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_sites_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_sites_patch_task()`.
-/// For the simplest API, use `dfareporting_sites_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_sites_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_sites_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_sites_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSitesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Site,
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_sites_patch_builder()` + `dfareporting_sites_patch_execute()`.
-/// For task-level control, use `dfareporting_sites_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingSitesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_sites_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_sites_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_sites_update_execute()` to send, or `dfareporting_sites_update` for simplest API.
-
-pub fn dfareporting_sites_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Site,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sites",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_sites_update_execute()` or `dfareporting_sites_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Site = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_sites_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_sites_update_task()`.
-/// For the simplest API, use `dfareporting_sites_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sites_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_sites_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_sites_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_sites_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSitesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Site,
-}
-
-/// GET userprofiles/{userprofilesId}/sites
-/// Updates an existing site.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_sites_update_builder()` + `dfareporting_sites_update_execute()`.
-/// For task-level control, use `dfareporting_sites_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sites_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingSitesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_sites_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_sites_update_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/sizes/{sizesId}
@@ -31870,18 +17254,16 @@ pub fn dfareporting_sites_update(
 
 pub fn dfareporting_sizes_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes/{}",
-        profileId, id,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -31911,7 +17293,12 @@ pub fn dfareporting_sizes_get_builder(
 pub fn dfareporting_sizes_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Size>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -32013,7 +17400,7 @@ pub fn dfareporting_sizes_get(
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_sizes_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_sizes_get_execute(builder)
 }
 
@@ -32025,18 +17412,16 @@ pub fn dfareporting_sizes_get(
 
 pub fn dfareporting_sizes_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Size,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -32068,7 +17453,12 @@ pub fn dfareporting_sizes_insert_builder(
 pub fn dfareporting_sizes_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Size>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -32170,205 +17560,8 @@ pub fn dfareporting_sizes_insert(
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_insert_builder(client, &args.profileId, &args.body)?;
+    let builder = dfareporting_sizes_insert_builder(client, args.profileId.clone(), &args.body)?;
     dfareporting_sizes_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sizes
-/// Retrieves a list of sizes, possibly filtered. Retrieved sizes are globally unique and may include values not currently in use by your account. Due to this, the list of sizes returned by this method may differ from the list seen in the Trafficking UI.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_sizes_list_execute()` to send, or `dfareporting_sizes_list` for simplest API.
-
-pub fn dfareporting_sizes_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    height: Option<i32>,
-    iabStandard: Option<bool>,
-    ids: Option<&str>,
-    width: Option<i32>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/sizes",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = height {
-        query_parts.push(format!("height={}", val));
-    }
-    if let Some(val) = iabStandard {
-        query_parts.push(format!("iabStandard={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = width {
-        query_parts.push(format!("width={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/sizes
-/// Retrieves a list of sizes, possibly filtered. Retrieved sizes are globally unique and may include values not currently in use by your account. Due to this, the list of sizes returned by this method may differ from the list seen in the Trafficking UI.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_sizes_list_execute()` or `dfareporting_sizes_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sizes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sizes_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SizesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SizesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/sizes
-/// Retrieves a list of sizes, possibly filtered. Retrieved sizes are globally unique and may include values not currently in use by your account. Due to this, the list of sizes returned by this method may differ from the list seen in the Trafficking UI.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_sizes_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_sizes_list_task()`.
-/// For the simplest API, use `dfareporting_sizes_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_sizes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_sizes_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SizesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_sizes_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_sizes_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSizesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: height
-    pub height: Option<i32>,
-    /// Query parameter: iabStandard
-    pub iabStandard: Option<bool>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: width
-    pub width: Option<i32>,
-}
-
-/// GET userprofiles/{userprofilesId}/sizes
-/// Retrieves a list of sizes, possibly filtered. Retrieved sizes are globally unique and may include values not currently in use by your account. Due to this, the list of sizes returned by this method may differ from the list seen in the Trafficking UI.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_sizes_list_builder()` + `dfareporting_sizes_list_execute()`.
-/// For task-level control, use `dfareporting_sizes_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_sizes_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingSizesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SizesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_sizes_list_builder(
-        client,
-        &args.profileId,
-        args.height,
-        args.iabStandard,
-        args.ids.as_deref(),
-        args.width,
-    )?;
-    dfareporting_sizes_list_execute(builder)
 }
 
 /// GET studio/creativeAssets
@@ -32382,11 +17575,12 @@ pub fn dfareporting_studio_creative_assets_insert_builder(
     body: &DfareportingStudioCreativeAssetsInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creativeAssets",);
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creativeAssets",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -32419,8 +17613,9 @@ pub fn dfareporting_studio_creative_assets_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<StudioCreativeAssetsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<StudioCreativeAssetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -32542,17 +17737,15 @@ pub fn dfareporting_studio_creative_assets_insert(
 
 pub fn dfareporting_studio_creatives_get_builder(
     client: &SimpleHttpClient,
-    studioCreativeId: &str,
+    studioCreativeId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}",
-        studioCreativeId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -32582,8 +17775,11 @@ pub fn dfareporting_studio_creatives_get_builder(
 pub fn dfareporting_studio_creatives_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudioCreative>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudioCreative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -32688,7 +17884,7 @@ pub fn dfareporting_studio_creatives_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_get_builder(client, &args.studioCreativeId)?;
+    let builder = dfareporting_studio_creatives_get_builder(client, args.studioCreativeId.clone())?;
     dfareporting_studio_creatives_get_execute(builder)
 }
 
@@ -32703,11 +17899,12 @@ pub fn dfareporting_studio_creatives_insert_builder(
     body: &StudioCreative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives",);
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -32739,8 +17936,11 @@ pub fn dfareporting_studio_creatives_insert_builder(
 pub fn dfareporting_studio_creatives_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StudioCreative>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StudioCreative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -32857,17 +18057,15 @@ pub fn dfareporting_studio_creatives_insert(
 
 pub fn dfareporting_studio_creatives_publish_builder(
     client: &SimpleHttpClient,
-    studioCreativeId: &str,
+    studioCreativeId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}/publish",
-        studioCreativeId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/studio/creatives/{}/publish",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -32897,7 +18095,12 @@ pub fn dfareporting_studio_creatives_publish_builder(
 pub fn dfareporting_studio_creatives_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -32994,7 +18197,8 @@ pub fn dfareporting_studio_creatives_publish(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_publish_builder(client, &args.studioCreativeId)?;
+    let builder =
+        dfareporting_studio_creatives_publish_builder(client, args.studioCreativeId.clone())?;
     dfareporting_studio_creatives_publish_execute(builder)
 }
 
@@ -33006,18 +18210,17 @@ pub fn dfareporting_studio_creatives_publish(
 
 pub fn dfareporting_subaccounts_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -33047,7 +18250,12 @@ pub fn dfareporting_subaccounts_get_builder(
 pub fn dfareporting_subaccounts_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subaccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -33149,7 +18357,8 @@ pub fn dfareporting_subaccounts_get(
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_subaccounts_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_subaccounts_get_execute(builder)
 }
 
@@ -33161,18 +18370,16 @@ pub fn dfareporting_subaccounts_get(
 
 pub fn dfareporting_subaccounts_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &Subaccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -33204,7 +18411,12 @@ pub fn dfareporting_subaccounts_insert_builder(
 pub fn dfareporting_subaccounts_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subaccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -33306,537 +18518,9 @@ pub fn dfareporting_subaccounts_insert(
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_subaccounts_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Gets a list of subaccounts, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_subaccounts_list_execute()` to send, or `dfareporting_subaccounts_list` for simplest API.
-
-pub fn dfareporting_subaccounts_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Gets a list of subaccounts, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_subaccounts_list_execute()` or `dfareporting_subaccounts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubaccountsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SubaccountsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Gets a list of subaccounts, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_subaccounts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_subaccounts_list_task()`.
-/// For the simplest API, use `dfareporting_subaccounts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_subaccounts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubaccountsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_subaccounts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_subaccounts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSubaccountsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Gets a list of subaccounts, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_subaccounts_list_builder()` + `dfareporting_subaccounts_list_execute()`.
-/// For task-level control, use `dfareporting_subaccounts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingSubaccountsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubaccountsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_subaccounts_list_builder(
-        client,
-        &args.profileId,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_subaccounts_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_subaccounts_patch_execute()` to send, or `dfareporting_subaccounts_patch` for simplest API.
-
-pub fn dfareporting_subaccounts_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Subaccount,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_subaccounts_patch_execute()` or `dfareporting_subaccounts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Subaccount = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_subaccounts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_subaccounts_patch_task()`.
-/// For the simplest API, use `dfareporting_subaccounts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_subaccounts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_subaccounts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_subaccounts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSubaccountsPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: Subaccount,
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_subaccounts_patch_builder()` + `dfareporting_subaccounts_patch_execute()`.
-/// For task-level control, use `dfareporting_subaccounts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingSubaccountsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_subaccounts_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_subaccounts_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_subaccounts_update_execute()` to send, or `dfareporting_subaccounts_update` for simplest API.
-
-pub fn dfareporting_subaccounts_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Subaccount,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/subaccounts",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_subaccounts_update_execute()` or `dfareporting_subaccounts_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Subaccount = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_subaccounts_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_subaccounts_update_task()`.
-/// For the simplest API, use `dfareporting_subaccounts_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_subaccounts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_subaccounts_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_subaccounts_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_subaccounts_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingSubaccountsUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: Subaccount,
-}
-
-/// GET userprofiles/{userprofilesId}/subaccounts
-/// Updates an existing subaccount.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_subaccounts_update_builder()` + `dfareporting_subaccounts_update_execute()`.
-/// For task-level control, use `dfareporting_subaccounts_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_subaccounts_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingSubaccountsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_subaccounts_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_subaccounts_update_execute(builder)
+        dfareporting_subaccounts_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_subaccounts_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/targetableRemarketingLists/{targetableRemarketingListsId}
@@ -33847,19 +18531,17 @@ pub fn dfareporting_subaccounts_update(
 
 pub fn dfareporting_targetable_remarketing_lists_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetableRemarketingLists/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -33889,8 +18571,11 @@ pub fn dfareporting_targetable_remarketing_lists_get_builder(
 pub fn dfareporting_targetable_remarketing_lists_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TargetableRemarketingList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TargetableRemarketingList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -33997,231 +18682,12 @@ pub fn dfareporting_targetable_remarketing_lists_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_targetable_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_targetable_remarketing_lists_get_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetableRemarketingLists
-/// Retrieves a list of targetable remarketing lists, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_targetable_remarketing_lists_list_execute()` to send, or `dfareporting_targetable_remarketing_lists_list` for simplest API.
-
-pub fn dfareporting_targetable_remarketing_lists_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    active: Option<bool>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetableRemarketingLists",
-        profileId,
-        advertiserId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = active {
-        query_parts.push(format!("active={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetableRemarketingLists
-/// Retrieves a list of targetable remarketing lists, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_targetable_remarketing_lists_list_execute()` or `dfareporting_targetable_remarketing_lists_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targetable_remarketing_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targetable_remarketing_lists_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<TargetableRemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TargetableRemarketingListsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/targetableRemarketingLists
-/// Retrieves a list of targetable remarketing lists, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_targetable_remarketing_lists_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_targetable_remarketing_lists_list_task()`.
-/// For the simplest API, use `dfareporting_targetable_remarketing_lists_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targetable_remarketing_lists_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_targetable_remarketing_lists_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TargetableRemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_targetable_remarketing_lists_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_targetable_remarketing_lists_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingTargetableRemarketingListsListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: advertiserId
-    pub advertiserId: String,
-    /// Query parameter: active
-    pub active: Option<bool>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/targetableRemarketingLists
-/// Retrieves a list of targetable remarketing lists, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_targetable_remarketing_lists_list_builder()` + `dfareporting_targetable_remarketing_lists_list_execute()`.
-/// For task-level control, use `dfareporting_targetable_remarketing_lists_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targetable_remarketing_lists_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingTargetableRemarketingListsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TargetableRemarketingListsListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_targetable_remarketing_lists_list_builder(
+    let builder = dfareporting_targetable_remarketing_lists_get_builder(
         client,
-        &args.profileId,
-        &args.advertiserId,
-        args.active,
-        args.maxResults,
-        args.name.as_deref(),
-        args.pageToken.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
+        args.profileId.clone(),
+        args.id.clone(),
     )?;
-    dfareporting_targetable_remarketing_lists_list_execute(builder)
+    dfareporting_targetable_remarketing_lists_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/targetingTemplates/{targetingTemplatesId}
@@ -34232,18 +18698,17 @@ pub fn dfareporting_targetable_remarketing_lists_list(
 
 pub fn dfareporting_targeting_templates_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -34273,8 +18738,11 @@ pub fn dfareporting_targeting_templates_get_builder(
 pub fn dfareporting_targeting_templates_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TargetingTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -34381,7 +18849,11 @@ pub fn dfareporting_targeting_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_targeting_templates_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_targeting_templates_get_execute(builder)
 }
 
@@ -34393,18 +18865,17 @@ pub fn dfareporting_targeting_templates_get(
 
 pub fn dfareporting_targeting_templates_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &TargetingTemplate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -34436,8 +18907,11 @@ pub fn dfareporting_targeting_templates_insert_builder(
 pub fn dfareporting_targeting_templates_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TargetingTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -34544,568 +19018,12 @@ pub fn dfareporting_targeting_templates_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_targeting_templates_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_targeting_templates_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Retrieves a list of targeting templates, optionally filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_targeting_templates_list_execute()` to send, or `dfareporting_targeting_templates_list` for simplest API.
-
-pub fn dfareporting_targeting_templates_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Retrieves a list of targeting templates, optionally filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_targeting_templates_list_execute()` or `dfareporting_targeting_templates_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<TargetingTemplatesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TargetingTemplatesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Retrieves a list of targeting templates, optionally filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_targeting_templates_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_targeting_templates_list_task()`.
-/// For the simplest API, use `dfareporting_targeting_templates_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_targeting_templates_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TargetingTemplatesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_targeting_templates_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_targeting_templates_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingTargetingTemplatesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Retrieves a list of targeting templates, optionally filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_targeting_templates_list_builder()` + `dfareporting_targeting_templates_list_execute()`.
-/// For task-level control, use `dfareporting_targeting_templates_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingTargetingTemplatesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TargetingTemplatesListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_targeting_templates_list_builder(
+    let builder = dfareporting_targeting_templates_insert_builder(
         client,
-        &args.profileId,
-        args.advertiserId.as_deref(),
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-    )?;
-    dfareporting_targeting_templates_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_targeting_templates_patch_execute()` to send, or `dfareporting_targeting_templates_patch` for simplest API.
-
-pub fn dfareporting_targeting_templates_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &TargetingTemplate,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_targeting_templates_patch_execute()` or `dfareporting_targeting_templates_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TargetingTemplate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_targeting_templates_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_targeting_templates_patch_task()`.
-/// For the simplest API, use `dfareporting_targeting_templates_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_targeting_templates_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_targeting_templates_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_targeting_templates_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingTargetingTemplatesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: TargetingTemplate,
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_targeting_templates_patch_builder()` + `dfareporting_targeting_templates_patch_execute()`.
-/// For task-level control, use `dfareporting_targeting_templates_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingTargetingTemplatesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_targeting_templates_patch_builder(
-        client,
-        &args.profileId,
-        &args.id,
+        args.profileId.clone(),
         &args.body,
     )?;
-    dfareporting_targeting_templates_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_targeting_templates_update_execute()` to send, or `dfareporting_targeting_templates_update` for simplest API.
-
-pub fn dfareporting_targeting_templates_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &TargetingTemplate,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/targetingTemplates",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_targeting_templates_update_execute()` or `dfareporting_targeting_templates_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TargetingTemplate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_targeting_templates_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_targeting_templates_update_task()`.
-/// For the simplest API, use `dfareporting_targeting_templates_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_targeting_templates_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_targeting_templates_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_targeting_templates_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_targeting_templates_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingTargetingTemplatesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: TargetingTemplate,
-}
-
-/// GET userprofiles/{userprofilesId}/targetingTemplates
-/// Updates an existing targeting template.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_targeting_templates_update_builder()` + `dfareporting_targeting_templates_update_execute()`.
-/// For task-level control, use `dfareporting_targeting_templates_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_targeting_templates_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingTargetingTemplatesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        dfareporting_targeting_templates_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_targeting_templates_update_execute(builder)
+    dfareporting_targeting_templates_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/tvCampaignDetails/{tvCampaignDetailsId}
@@ -35116,16 +19034,15 @@ pub fn dfareporting_targeting_templates_update(
 
 pub fn dfareporting_tv_campaign_details_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    accountId: Option<&str>,
-    countryDartId: Option<&str>,
-    tvDataProvider: Option<&str>,
+    profileId: String,
+    id: String,
+    accountId: Option<String>,
+    countryDartId: Option<String>,
+    tvDataProvider: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/tvCampaignDetails/{}",
-        profileId, id,
     );
 
     // Build request
@@ -35141,9 +19058,9 @@ pub fn dfareporting_tv_campaign_details_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -35177,8 +19094,11 @@ pub fn dfareporting_tv_campaign_details_get_builder(
 pub fn dfareporting_tv_campaign_details_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TvCampaignDetail>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TvCampaignDetail>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -35293,11 +19213,11 @@ pub fn dfareporting_tv_campaign_details_get(
 > {
     let builder = dfareporting_tv_campaign_details_get_builder(
         client,
-        &args.profileId,
-        &args.id,
-        args.accountId.as_deref(),
-        args.countryDartId.as_deref(),
-        args.tvDataProvider.as_deref(),
+        args.profileId.clone(),
+        args.id.clone(),
+        args.accountId.clone(),
+        args.countryDartId.clone(),
+        args.tvDataProvider.clone(),
     )?;
     dfareporting_tv_campaign_details_get_execute(builder)
 }
@@ -35310,16 +19230,15 @@ pub fn dfareporting_tv_campaign_details_get(
 
 pub fn dfareporting_tv_campaign_summaries_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    accountId: Option<&str>,
-    countryDartId: Option<&str>,
-    name: Option<&str>,
-    tvDataProvider: Option<&str>,
+    profileId: String,
+    accountId: Option<String>,
+    countryDartId: Option<String>,
+    name: Option<String>,
+    tvDataProvider: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/tvCampaignSummaries",
-        profileId,
     );
 
     // Build request
@@ -35338,9 +19257,9 @@ pub fn dfareporting_tv_campaign_summaries_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -35375,8 +19294,9 @@ pub fn dfareporting_tv_campaign_summaries_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<TvCampaignSummariesListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<TvCampaignSummariesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -35496,11 +19416,11 @@ pub fn dfareporting_tv_campaign_summaries_list(
 > {
     let builder = dfareporting_tv_campaign_summaries_list_builder(
         client,
-        &args.profileId,
-        args.accountId.as_deref(),
-        args.countryDartId.as_deref(),
-        args.name.as_deref(),
-        args.tvDataProvider.as_deref(),
+        args.profileId.clone(),
+        args.accountId.clone(),
+        args.countryDartId.clone(),
+        args.name.clone(),
+        args.tvDataProvider.clone(),
     )?;
     dfareporting_tv_campaign_summaries_list_execute(builder)
 }
@@ -35513,17 +19433,17 @@ pub fn dfareporting_tv_campaign_summaries_list(
 
 pub fn dfareporting_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}",
-        profileId,
+        profileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -35553,7 +19473,12 @@ pub fn dfareporting_user_profiles_get_builder(
 pub fn dfareporting_user_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -35653,7 +19578,7 @@ pub fn dfareporting_user_profiles_get(
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_profiles_get_builder(client, &args.profileId)?;
+    let builder = dfareporting_user_profiles_get_builder(client, args.profileId.clone())?;
     dfareporting_user_profiles_get_execute(builder)
 }
 
@@ -35667,11 +19592,11 @@ pub fn dfareporting_user_profiles_list_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles",);
+    let endpoint_url = format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -35701,8 +19626,11 @@ pub fn dfareporting_user_profiles_list_builder(
 pub fn dfareporting_user_profiles_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserProfileList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserProfileList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -35811,19 +19739,17 @@ pub fn dfareporting_user_profiles_list(
 
 pub fn dfareporting_user_role_permission_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissionGroups/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -35853,8 +19779,11 @@ pub fn dfareporting_user_role_permission_groups_get_builder(
 pub fn dfareporting_user_role_permission_groups_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRolePermissionGroup>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserRolePermissionGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -35961,8 +19890,11 @@ pub fn dfareporting_user_role_permission_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_user_role_permission_groups_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_user_role_permission_groups_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_user_role_permission_groups_get_execute(builder)
 }
 
@@ -35974,17 +19906,16 @@ pub fn dfareporting_user_role_permission_groups_get(
 
 pub fn dfareporting_user_role_permission_groups_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissionGroups",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -36015,8 +19946,9 @@ pub fn dfareporting_user_role_permission_groups_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<UserRolePermissionGroupsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<UserRolePermissionGroupsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -36126,7 +20058,8 @@ pub fn dfareporting_user_role_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permission_groups_list_builder(client, &args.profileId)?;
+    let builder =
+        dfareporting_user_role_permission_groups_list_builder(client, args.profileId.clone())?;
     dfareporting_user_role_permission_groups_list_execute(builder)
 }
 
@@ -36138,19 +20071,17 @@ pub fn dfareporting_user_role_permission_groups_list(
 
 pub fn dfareporting_user_role_permissions_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissions/{}",
-        profileId,
-        id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -36180,8 +20111,11 @@ pub fn dfareporting_user_role_permissions_get_builder(
 pub fn dfareporting_user_role_permissions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRolePermission>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserRolePermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -36288,8 +20222,11 @@ pub fn dfareporting_user_role_permissions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_user_role_permissions_get_builder(client, &args.profileId, &args.id)?;
+    let builder = dfareporting_user_role_permissions_get_builder(
+        client,
+        args.profileId.clone(),
+        args.id.clone(),
+    )?;
     dfareporting_user_role_permissions_get_execute(builder)
 }
 
@@ -36301,13 +20238,12 @@ pub fn dfareporting_user_role_permissions_get(
 
 pub fn dfareporting_user_role_permissions_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
+    profileId: String,
+    ids: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRolePermissions",
-        profileId,
     );
 
     // Build request
@@ -36317,9 +20253,9 @@ pub fn dfareporting_user_role_permissions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -36354,8 +20290,9 @@ pub fn dfareporting_user_role_permissions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<UserRolePermissionsListResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<UserRolePermissionsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -36469,8 +20406,8 @@ pub fn dfareporting_user_role_permissions_list(
 > {
     let builder = dfareporting_user_role_permissions_list_builder(
         client,
-        &args.profileId,
-        args.ids.as_deref(),
+        args.profileId.clone(),
+        args.ids.clone(),
     )?;
     dfareporting_user_role_permissions_list_execute(builder)
 }
@@ -36483,18 +20420,17 @@ pub fn dfareporting_user_role_permissions_list(
 
 pub fn dfareporting_user_roles_delete_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -36524,7 +20460,12 @@ pub fn dfareporting_user_roles_delete_builder(
 pub fn dfareporting_user_roles_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -36623,163 +20564,9 @@ pub fn dfareporting_user_roles_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_delete_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_user_roles_delete_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_user_roles_delete_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
-/// Gets one user role by ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_user_roles_get_execute()` to send, or `dfareporting_user_roles_get` for simplest API.
-
-pub fn dfareporting_user_roles_get_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles/{}",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
-/// Gets one user role by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_user_roles_get_execute()` or `dfareporting_user_roles_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserRole = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
-/// Gets one user role by ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_user_roles_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_user_roles_get_task()`.
-/// For the simplest API, use `dfareporting_user_roles_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_user_roles_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_user_roles_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_user_roles_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingUserRolesGetArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
-/// Gets one user role by ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_user_roles_get_builder()` + `dfareporting_user_roles_get_execute()`.
-/// For task-level control, use `dfareporting_user_roles_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_get(
-    client: &SimpleHttpClient,
-    args: &DfareportingUserRolesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_user_roles_get_builder(client, &args.profileId, &args.id)?;
-    dfareporting_user_roles_get_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/userRoles
@@ -36790,18 +20577,16 @@ pub fn dfareporting_user_roles_get(
 
 pub fn dfareporting_user_roles_insert_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
     body: &UserRole,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
-        profileId,
-    );
+    let endpoint_url =
+        format!("https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -36833,7 +20618,12 @@ pub fn dfareporting_user_roles_insert_builder(
 pub fn dfareporting_user_roles_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserRole>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -36935,551 +20725,9 @@ pub fn dfareporting_user_roles_insert(
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_insert_builder(client, &args.profileId, &args.body)?;
-    dfareporting_user_roles_insert_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Retrieves a list of user roles, possibly filtered. This method supports paging.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_user_roles_list_execute()` to send, or `dfareporting_user_roles_list` for simplest API.
-
-pub fn dfareporting_user_roles_list_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    accountUserRoleOnly: Option<bool>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
-        profileId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = accountUserRoleOnly {
-        query_parts.push(format!("accountUserRoleOnly={}", val));
-    }
-    if let Some(val) = ids {
-        query_parts.push(format!("ids={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = searchString {
-        query_parts.push(format!("searchString={}", val));
-    }
-    if let Some(val) = sortField {
-        query_parts.push(format!("sortField={}", val));
-    }
-    if let Some(val) = sortOrder {
-        query_parts.push(format!("sortOrder={}", val));
-    }
-    if let Some(val) = subaccountId {
-        query_parts.push(format!("subaccountId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Retrieves a list of user roles, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_user_roles_list_execute()` or `dfareporting_user_roles_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRolesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserRolesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Retrieves a list of user roles, possibly filtered. This method supports paging.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_user_roles_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_user_roles_list_task()`.
-/// For the simplest API, use `dfareporting_user_roles_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_user_roles_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRolesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dfareporting_user_roles_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_user_roles_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingUserRolesListArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Query parameter: accountUserRoleOnly
-    pub accountUserRoleOnly: Option<bool>,
-    /// Query parameter: ids
-    pub ids: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: searchString
-    pub searchString: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: subaccountId
-    pub subaccountId: Option<String>,
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Retrieves a list of user roles, possibly filtered. This method supports paging.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_user_roles_list_builder()` + `dfareporting_user_roles_list_execute()`.
-/// For task-level control, use `dfareporting_user_roles_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_list(
-    client: &SimpleHttpClient,
-    args: &DfareportingUserRolesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRolesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_user_roles_list_builder(
-        client,
-        &args.profileId,
-        args.accountUserRoleOnly,
-        args.ids.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.searchString.as_deref(),
-        args.sortField.as_deref(),
-        args.sortOrder.as_deref(),
-        args.subaccountId.as_deref(),
-    )?;
-    dfareporting_user_roles_list_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_user_roles_patch_execute()` to send, or `dfareporting_user_roles_patch` for simplest API.
-
-pub fn dfareporting_user_roles_patch_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &UserRole,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
-        profileId, id,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_user_roles_patch_execute()` or `dfareporting_user_roles_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserRole = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_user_roles_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_user_roles_patch_task()`.
-/// For the simplest API, use `dfareporting_user_roles_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_user_roles_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_user_roles_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_user_roles_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingUserRolesPatchArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Path parameter: id
-    pub id: String,
-    /// Request body.
-    pub body: UserRole,
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_user_roles_patch_builder()` + `dfareporting_user_roles_patch_execute()`.
-/// For task-level control, use `dfareporting_user_roles_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_patch(
-    client: &SimpleHttpClient,
-    args: &DfareportingUserRolesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
     let builder =
-        dfareporting_user_roles_patch_builder(client, &args.profileId, &args.id, &args.body)?;
-    dfareporting_user_roles_patch_execute(builder)
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dfareporting_user_roles_update_execute()` to send, or `dfareporting_user_roles_update` for simplest API.
-
-pub fn dfareporting_user_roles_update_builder(
-    client: &SimpleHttpClient,
-    profileId: &str,
-    body: &UserRole,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/userRoles",
-        profileId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dfareporting_user_roles_update_execute()` or `dfareporting_user_roles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UserRole = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dfareporting_user_roles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dfareporting_user_roles_update_task()`.
-/// For the simplest API, use `dfareporting_user_roles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dfareporting_user_roles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dfareporting_user_roles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dfareporting_user_roles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dfareporting_user_roles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DfareportingUserRolesUpdateArgs {
-    /// Path parameter: profileId
-    pub profileId: String,
-    /// Request body.
-    pub body: UserRole,
-}
-
-/// GET userprofiles/{userprofilesId}/userRoles
-/// Updates an existing user role.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dfareporting_user_roles_update_builder()` + `dfareporting_user_roles_update_execute()`.
-/// For task-level control, use `dfareporting_user_roles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dfareporting_user_roles_update(
-    client: &SimpleHttpClient,
-    args: &DfareportingUserRolesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dfareporting_user_roles_update_builder(client, &args.profileId, &args.body)?;
-    dfareporting_user_roles_update_execute(builder)
+        dfareporting_user_roles_insert_builder(client, args.profileId.clone(), &args.body)?;
+    dfareporting_user_roles_insert_execute(builder)
 }
 
 /// GET userprofiles/{userprofilesId}/videoFormats/{videoFormatsId}
@@ -37490,18 +20738,17 @@ pub fn dfareporting_user_roles_update(
 
 pub fn dfareporting_video_formats_get_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    profileId: String,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/videoFormats/{}",
-        profileId, id,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -37531,7 +20778,12 @@ pub fn dfareporting_video_formats_get_builder(
 pub fn dfareporting_video_formats_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VideoFormat>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoFormat>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -37633,7 +20885,8 @@ pub fn dfareporting_video_formats_get(
     impl StreamIterator<D = Result<ApiResponse<VideoFormat>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_video_formats_get_builder(client, &args.profileId, &args.id)?;
+    let builder =
+        dfareporting_video_formats_get_builder(client, args.profileId.clone(), args.id.clone())?;
     dfareporting_video_formats_get_execute(builder)
 }
 
@@ -37645,17 +20898,16 @@ pub fn dfareporting_video_formats_get(
 
 pub fn dfareporting_video_formats_list_builder(
     client: &SimpleHttpClient,
-    profileId: &str,
+    profileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/videoFormats",
-        profileId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -37685,8 +20937,11 @@ pub fn dfareporting_video_formats_list_builder(
 pub fn dfareporting_video_formats_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VideoFormatsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoFormatsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -37791,6 +21046,6 @@ pub fn dfareporting_video_formats_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_video_formats_list_builder(client, &args.profileId)?;
+    let builder = dfareporting_video_formats_list_builder(client, args.profileId.clone())?;
     dfareporting_video_formats_list_execute(builder)
 }

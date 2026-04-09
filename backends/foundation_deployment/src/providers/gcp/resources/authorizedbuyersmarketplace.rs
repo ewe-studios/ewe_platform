@@ -21,11 +21,15 @@ pub struct AcceptProposalRequest {
 
 /// Request message for activating a client.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivateClientRequest {}
+pub struct ActivateClientRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for activating a client user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivateClientUserRequest {}
+pub struct ActivateClientUserRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for adding creative to be used in the bidding process for the finalized deal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -61,19 +65,27 @@ pub struct BatchUpdateDealsResponse {
 
 /// Request to cancel an ongoing negotiation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelNegotiationRequest {}
+pub struct CancelNegotiationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for disabling a client.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeactivateClientRequest {}
+pub struct DeactivateClientRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for deactivating a client user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeactivateClientUserRequest {}
+pub struct DeactivateClientUserRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for listing auction packages.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -162,7 +174,9 @@ pub struct PauseFinalizedDealRequest {
 
 /// Request message for resuming a finalized deal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeFinalizedDealRequest {}
+pub struct ResumeFinalizedDealRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to send an RFP. All fields in this request are proposed to publisher and subject to changes by publisher during later negotiation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -207,11 +221,15 @@ pub struct SendRfpRequest {
 
 /// Request message for setting ready to serve for a finalized deal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetReadyToServeRequest {}
+pub struct SetReadyToServeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SubscribeAuctionPackage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SubscribeAuctionPackageRequest {}
+pub struct SubscribeAuctionPackageRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SubscribeAuctionPackageClients.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -223,7 +241,9 @@ pub struct SubscribeClientsRequest {
 
 /// Request message for UnsubscribeAuctionPackage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnsubscribeAuctionPackageRequest {}
+pub struct UnsubscribeAuctionPackageRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for UnsubscribeAuctionPackage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

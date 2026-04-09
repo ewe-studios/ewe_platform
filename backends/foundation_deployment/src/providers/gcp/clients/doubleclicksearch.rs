@@ -12,481 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `doubleclicksearch_conversion_get_execute()` to send, or `doubleclicksearch_conversion_get` for simplest API.
-
-pub fn doubleclicksearch_conversion_get_builder(
-    client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
-    engineAccountId: &str,
-    endDate: &str,
-    rowCount: &str,
-    startDate: &str,
-    startRow: &str,
-    adGroupId: Option<&str>,
-    adId: Option<&str>,
-    campaignId: Option<&str>,
-    criterionId: Option<&str>,
-    customerId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/engine/{}/conversion",
-        agencyId,
-        advertiserId,
-        engineAccountId,
-        endDate,
-        rowCount,
-        startDate,
-        startRow,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = adGroupId {
-        query_parts.push(format!("adGroupId={}", val));
-    }
-    if let Some(val) = adId {
-        query_parts.push(format!("adId={}", val));
-    }
-    if let Some(val) = campaignId {
-        query_parts.push(format!("campaignId={}", val));
-    }
-    if let Some(val) = criterionId {
-        query_parts.push(format!("criterionId={}", val));
-    }
-    if let Some(val) = customerId {
-        query_parts.push(format!("customerId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `doubleclicksearch_conversion_get_execute()` or `doubleclicksearch_conversion_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ConversionList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `doubleclicksearch_conversion_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `doubleclicksearch_conversion_get_task()`.
-/// For the simplest API, use `doubleclicksearch_conversion_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn doubleclicksearch_conversion_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = doubleclicksearch_conversion_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`doubleclicksearch_conversion_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DoubleclicksearchConversionGetArgs {
-    /// Path parameter: agencyId
-    pub agencyId: String,
-    /// Path parameter: advertiserId
-    pub advertiserId: String,
-    /// Path parameter: engineAccountId
-    pub engineAccountId: String,
-    /// Path parameter: endDate
-    pub endDate: String,
-    /// Path parameter: rowCount
-    pub rowCount: String,
-    /// Path parameter: startDate
-    pub startDate: String,
-    /// Path parameter: startRow
-    pub startRow: String,
-    /// Query parameter: adGroupId
-    pub adGroupId: Option<String>,
-    /// Query parameter: adId
-    pub adId: Option<String>,
-    /// Query parameter: campaignId
-    pub campaignId: Option<String>,
-    /// Query parameter: criterionId
-    pub criterionId: Option<String>,
-    /// Query parameter: customerId
-    pub customerId: Option<String>,
-}
-
-/// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `doubleclicksearch_conversion_get_builder()` + `doubleclicksearch_conversion_get_execute()`.
-/// For task-level control, use `doubleclicksearch_conversion_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_get(
-    client: &SimpleHttpClient,
-    args: &DoubleclicksearchConversionGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = doubleclicksearch_conversion_get_builder(
-        client,
-        &args.agencyId,
-        &args.advertiserId,
-        &args.engineAccountId,
-        &args.endDate,
-        &args.rowCount,
-        &args.startDate,
-        &args.startRow,
-        args.adGroupId.as_deref(),
-        args.adId.as_deref(),
-        args.campaignId.as_deref(),
-        args.criterionId.as_deref(),
-        args.customerId.as_deref(),
-    )?;
-    doubleclicksearch_conversion_get_execute(builder)
-}
-
-/// GET doubleclicksearch/v2/customer/{customerId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `doubleclicksearch_conversion_get_by_customer_id_execute()` to send, or `doubleclicksearch_conversion_get_by_customer_id` for simplest API.
-
-pub fn doubleclicksearch_conversion_get_by_customer_id_builder(
-    client: &SimpleHttpClient,
-    customerId: &str,
-    endDate: &str,
-    rowCount: &str,
-    startDate: &str,
-    startRow: &str,
-    adGroupId: Option<&str>,
-    adId: Option<&str>,
-    advertiserId: Option<&str>,
-    agencyId: Option<&str>,
-    campaignId: Option<&str>,
-    criterionId: Option<&str>,
-    engineAccountId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/customer/{}/conversion",
-        customerId, endDate, rowCount, startDate, startRow,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = adGroupId {
-        query_parts.push(format!("adGroupId={}", val));
-    }
-    if let Some(val) = adId {
-        query_parts.push(format!("adId={}", val));
-    }
-    if let Some(val) = advertiserId {
-        query_parts.push(format!("advertiserId={}", val));
-    }
-    if let Some(val) = agencyId {
-        query_parts.push(format!("agencyId={}", val));
-    }
-    if let Some(val) = campaignId {
-        query_parts.push(format!("campaignId={}", val));
-    }
-    if let Some(val) = criterionId {
-        query_parts.push(format!("criterionId={}", val));
-    }
-    if let Some(val) = engineAccountId {
-        query_parts.push(format!("engineAccountId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET doubleclicksearch/v2/customer/{customerId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `doubleclicksearch_conversion_get_by_customer_id_execute()` or `doubleclicksearch_conversion_get_by_customer_id`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_get_by_customer_id_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_get_by_customer_id_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ConversionList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET doubleclicksearch/v2/customer/{customerId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `doubleclicksearch_conversion_get_by_customer_id_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `doubleclicksearch_conversion_get_by_customer_id_task()`.
-/// For the simplest API, use `doubleclicksearch_conversion_get_by_customer_id()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_get_by_customer_id_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn doubleclicksearch_conversion_get_by_customer_id_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = doubleclicksearch_conversion_get_by_customer_id_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`doubleclicksearch_conversion_get_by_customer_id`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DoubleclicksearchConversionGetByCustomerIdArgs {
-    /// Path parameter: customerId
-    pub customerId: String,
-    /// Path parameter: endDate
-    pub endDate: String,
-    /// Path parameter: rowCount
-    pub rowCount: String,
-    /// Path parameter: startDate
-    pub startDate: String,
-    /// Path parameter: startRow
-    pub startRow: String,
-    /// Query parameter: adGroupId
-    pub adGroupId: Option<String>,
-    /// Query parameter: adId
-    pub adId: Option<String>,
-    /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Query parameter: agencyId
-    pub agencyId: Option<String>,
-    /// Query parameter: campaignId
-    pub campaignId: Option<String>,
-    /// Query parameter: criterionId
-    pub criterionId: Option<String>,
-    /// Query parameter: engineAccountId
-    pub engineAccountId: Option<String>,
-}
-
-/// GET doubleclicksearch/v2/customer/{customerId}/conversion
-/// Retrieves a list of conversions from a DoubleClick Search engine account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `doubleclicksearch_conversion_get_by_customer_id_builder()` + `doubleclicksearch_conversion_get_by_customer_id_execute()`.
-/// For task-level control, use `doubleclicksearch_conversion_get_by_customer_id_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_get_by_customer_id(
-    client: &SimpleHttpClient,
-    args: &DoubleclicksearchConversionGetByCustomerIdArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = doubleclicksearch_conversion_get_by_customer_id_builder(
-        client,
-        &args.customerId,
-        &args.endDate,
-        &args.rowCount,
-        &args.startDate,
-        &args.startRow,
-        args.adGroupId.as_deref(),
-        args.adId.as_deref(),
-        args.advertiserId.as_deref(),
-        args.agencyId.as_deref(),
-        args.campaignId.as_deref(),
-        args.criterionId.as_deref(),
-        args.engineAccountId.as_deref(),
-    )?;
-    doubleclicksearch_conversion_get_by_customer_id_execute(builder)
-}
 
 /// GET doubleclicksearch/v2/conversion
 /// Inserts a batch of new conversions into DoubleClick Search.
@@ -499,11 +32,12 @@ pub fn doubleclicksearch_conversion_insert_builder(
     body: &ConversionList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion",);
+    let endpoint_url =
+        format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -535,8 +69,11 @@ pub fn doubleclicksearch_conversion_insert_builder(
 pub fn doubleclicksearch_conversion_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConversionList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -645,163 +182,6 @@ pub fn doubleclicksearch_conversion_insert(
     doubleclicksearch_conversion_insert_execute(builder)
 }
 
-/// GET doubleclicksearch/v2/conversion
-/// Updates a batch of conversions in DoubleClick Search.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `doubleclicksearch_conversion_update_execute()` to send, or `doubleclicksearch_conversion_update` for simplest API.
-
-pub fn doubleclicksearch_conversion_update_builder(
-    client: &SimpleHttpClient,
-    body: &ConversionList,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion",);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET doubleclicksearch/v2/conversion
-/// Updates a batch of conversions in DoubleClick Search.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `doubleclicksearch_conversion_update_execute()` or `doubleclicksearch_conversion_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ConversionList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET doubleclicksearch/v2/conversion
-/// Updates a batch of conversions in DoubleClick Search.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `doubleclicksearch_conversion_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `doubleclicksearch_conversion_update_task()`.
-/// For the simplest API, use `doubleclicksearch_conversion_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `doubleclicksearch_conversion_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn doubleclicksearch_conversion_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = doubleclicksearch_conversion_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`doubleclicksearch_conversion_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DoubleclicksearchConversionUpdateArgs {
-    /// Request body.
-    pub body: ConversionList,
-}
-
-/// GET doubleclicksearch/v2/conversion
-/// Updates a batch of conversions in DoubleClick Search.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `doubleclicksearch_conversion_update_builder()` + `doubleclicksearch_conversion_update_execute()`.
-/// For task-level control, use `doubleclicksearch_conversion_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn doubleclicksearch_conversion_update(
-    client: &SimpleHttpClient,
-    args: &DoubleclicksearchConversionUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = doubleclicksearch_conversion_update_builder(client, &args.body)?;
-    doubleclicksearch_conversion_update_execute(builder)
-}
-
 /// GET doubleclicksearch/v2/conversion/updateAvailability
 /// Updates the availabilities of a batch of floodlight activities in DoubleClick Search.
 ///
@@ -813,13 +193,13 @@ pub fn doubleclicksearch_conversion_update_availability_builder(
     body: &UpdateAvailabilityRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/conversion/updateAvailability",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -851,8 +231,11 @@ pub fn doubleclicksearch_conversion_update_availability_builder(
 pub fn doubleclicksearch_conversion_update_availability_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UpdateAvailabilityResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpdateAvailabilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -976,12 +359,12 @@ pub fn doubleclicksearch_reports_generate_builder(
     body: &ReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/generate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1013,7 +396,12 @@ pub fn doubleclicksearch_reports_generate_builder(
 pub fn doubleclicksearch_reports_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1125,17 +513,17 @@ pub fn doubleclicksearch_reports_generate(
 
 pub fn doubleclicksearch_reports_get_builder(
     client: &SimpleHttpClient,
-    reportId: &str,
+    reportId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}",
-        reportId,
+        reportId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1165,7 +553,12 @@ pub fn doubleclicksearch_reports_get_builder(
 pub fn doubleclicksearch_reports_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1265,7 +658,7 @@ pub fn doubleclicksearch_reports_get(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_get_builder(client, &args.reportId)?;
+    let builder = doubleclicksearch_reports_get_builder(client, args.reportId.clone())?;
     doubleclicksearch_reports_get_execute(builder)
 }
 
@@ -1277,18 +670,19 @@ pub fn doubleclicksearch_reports_get(
 
 pub fn doubleclicksearch_reports_get_file_builder(
     client: &SimpleHttpClient,
-    reportId: &str,
-    reportFragment: &str,
+    reportId: String,
+    reportFragment: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}/files/{}",
-        reportId, reportFragment,
+        reportId.as_str(),
+        reportFragment.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1318,7 +712,12 @@ pub fn doubleclicksearch_reports_get_file_builder(
 pub fn doubleclicksearch_reports_get_file_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1417,8 +816,11 @@ pub fn doubleclicksearch_reports_get_file(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        doubleclicksearch_reports_get_file_builder(client, &args.reportId, &args.reportFragment)?;
+    let builder = doubleclicksearch_reports_get_file_builder(
+        client,
+        args.reportId.clone(),
+        args.reportFragment.clone(),
+    )?;
     doubleclicksearch_reports_get_file_execute(builder)
 }
 
@@ -1430,19 +832,19 @@ pub fn doubleclicksearch_reports_get_file(
 
 pub fn doubleclicksearch_reports_get_id_mapping_file_builder(
     client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
+    agencyId: String,
+    advertiserId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/idmapping",
-        agencyId,
-        advertiserId,
+        agencyId.as_str(),
+        advertiserId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1472,7 +874,12 @@ pub fn doubleclicksearch_reports_get_id_mapping_file_builder(
 pub fn doubleclicksearch_reports_get_id_mapping_file_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IdMappingFile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IdMappingFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1580,8 +987,8 @@ pub fn doubleclicksearch_reports_get_id_mapping_file(
 > {
     let builder = doubleclicksearch_reports_get_id_mapping_file_builder(
         client,
-        &args.agencyId,
-        &args.advertiserId,
+        args.agencyId.clone(),
+        args.advertiserId.clone(),
     )?;
     doubleclicksearch_reports_get_id_mapping_file_execute(builder)
 }
@@ -1597,11 +1004,12 @@ pub fn doubleclicksearch_reports_request_builder(
     body: &ReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports",);
+    let endpoint_url =
+        format!("https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1633,7 +1041,12 @@ pub fn doubleclicksearch_reports_request_builder(
 pub fn doubleclicksearch_reports_request_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Report>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1745,19 +1158,19 @@ pub fn doubleclicksearch_reports_request(
 
 pub fn doubleclicksearch_saved_columns_list_builder(
     client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
+    agencyId: String,
+    advertiserId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/savedcolumns",
-        agencyId,
-        advertiserId,
+        agencyId.as_str(),
+        advertiserId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1787,8 +1200,11 @@ pub fn doubleclicksearch_saved_columns_list_builder(
 pub fn doubleclicksearch_saved_columns_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SavedColumnList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SavedColumnList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1895,7 +1311,10 @@ pub fn doubleclicksearch_saved_columns_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        doubleclicksearch_saved_columns_list_builder(client, &args.agencyId, &args.advertiserId)?;
+    let builder = doubleclicksearch_saved_columns_list_builder(
+        client,
+        args.agencyId.clone(),
+        args.advertiserId.clone(),
+    )?;
     doubleclicksearch_saved_columns_list_execute(builder)
 }

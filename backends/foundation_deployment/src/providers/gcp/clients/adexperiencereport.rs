@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,14 @@ use serde::Serialize;
 
 pub fn adexperiencereport_sites_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://adexperiencereport.googleapis.com/v1/sites/{}",
-        name,
-    );
+    let endpoint_url = format!("https://adexperiencereport.googleapis.com/v1/sites/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,8 +66,11 @@ pub fn adexperiencereport_sites_get_builder(
 pub fn adexperiencereport_sites_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SiteSummaryResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SiteSummaryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -174,7 +175,7 @@ pub fn adexperiencereport_sites_get(
         + 'static,
     ApiError,
 > {
-    let builder = adexperiencereport_sites_get_builder(client, &args.name)?;
+    let builder = adexperiencereport_sites_get_builder(client, args.name.clone())?;
     adexperiencereport_sites_get_execute(builder)
 }
 
@@ -188,11 +189,11 @@ pub fn adexperiencereport_violating_sites_list_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://adexperiencereport.googleapis.com/v1/violatingSites",);
+    let endpoint_url = format!("https://adexperiencereport.googleapis.com/v1/violatingSites",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -222,8 +223,11 @@ pub fn adexperiencereport_violating_sites_list_builder(
 pub fn adexperiencereport_violating_sites_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ViolatingSitesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ViolatingSitesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
