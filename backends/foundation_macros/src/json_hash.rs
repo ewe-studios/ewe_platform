@@ -1,4 +1,4 @@
-//! JsonHash derive macro implementation.
+//! `JsonHash` derive macro implementation.
 //!
 //! WHY: Generates a `struct_hash()` method for structs that produces a deterministic
 //! hash from the struct name + serialized JSON representation.

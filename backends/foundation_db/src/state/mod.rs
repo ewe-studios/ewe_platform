@@ -21,6 +21,7 @@ pub mod r2;
 pub mod resource_identifier;
 #[cfg(feature = "libsql")]
 pub mod sqlite;
+pub mod store_state_task;
 pub mod traits;
 #[cfg(feature = "libsql")]
 pub mod turso;
@@ -37,6 +38,7 @@ pub use libsql_state::LibSQLStateStore;
 pub use r2::R2StateStore;
 #[cfg(feature = "libsql")]
 pub use sqlite::SqliteStateStore;
+pub use store_state_task::{ProviderError, StoreStateIdentifierTask, StoreStatePending, StoreStateTask};
 pub use traits::{StateStore, StateStoreStream};
 pub use types::{ResourceState, StateStatus};
 

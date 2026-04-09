@@ -692,7 +692,7 @@ where
             Ok(LineFeed::Line(line)) => {
                 writer.write_all(line.as_bytes())?;
                 total_bytes += line.len() as u64;
-                writer.write_all(&[b'\n'])?;
+                writer.write_all(b"\n")?;
                 total_bytes += 1;
             }
             Ok(LineFeed::SKIP | LineFeed::END) => continue,

@@ -11,4 +11,6 @@ pub mod config;
 pub mod core;
 pub mod engine;
 pub mod error;
+pub mod provider_client;
 pub mod providers;
+pub mod resource_info;
