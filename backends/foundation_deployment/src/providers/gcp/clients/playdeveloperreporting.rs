@@ -29,10 +29,10 @@ use serde::Serialize;
 
 pub fn playdeveloperreporting_anomalies_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -40,13 +40,13 @@ pub fn playdeveloperreporting_anomalies_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -218,10 +218,10 @@ pub fn playdeveloperreporting_anomalies_list(
 > {
     let builder = playdeveloperreporting_anomalies_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     playdeveloperreporting_anomalies_list_execute(builder)
 }
@@ -234,7 +234,7 @@ pub fn playdeveloperreporting_anomalies_list(
 
 pub fn playdeveloperreporting_apps_fetch_release_filter_options_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -396,10 +396,8 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_apps_fetch_release_filter_options_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        playdeveloperreporting_apps_fetch_release_filter_options_builder(client, &args.name)?;
     playdeveloperreporting_apps_fetch_release_filter_options_execute(builder)
 }
 
@@ -411,8 +409,8 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
 
 pub fn playdeveloperreporting_apps_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -420,10 +418,10 @@ pub fn playdeveloperreporting_apps_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -589,11 +587,8 @@ pub fn playdeveloperreporting_apps_search(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_apps_search_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        playdeveloperreporting_apps_search_builder(client, &args.pageSize, &args.pageToken)?;
     playdeveloperreporting_apps_search_execute(builder)
 }
 
@@ -605,7 +600,7 @@ pub fn playdeveloperreporting_apps_search(
 
 pub fn playdeveloperreporting_vitals_anrrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -760,7 +755,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_anrrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_anrrate_get_execute(builder)
 }
 
@@ -772,7 +767,7 @@ pub fn playdeveloperreporting_vitals_anrrate_get(
 
 pub fn playdeveloperreporting_vitals_anrrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -940,7 +935,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_anrrate_query_builder(client, args.name.clone(), &args.body)?;
+        playdeveloperreporting_vitals_anrrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_anrrate_query_execute(builder)
 }
 
@@ -952,7 +947,7 @@ pub fn playdeveloperreporting_vitals_anrrate_query(
 
 pub fn playdeveloperreporting_vitals_crashrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1114,7 +1109,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_crashrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_crashrate_get_execute(builder)
 }
 
@@ -1126,7 +1121,7 @@ pub fn playdeveloperreporting_vitals_crashrate_get(
 
 pub fn playdeveloperreporting_vitals_crashrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1293,11 +1288,8 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_crashrate_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_crashrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_crashrate_query_execute(builder)
 }
 
@@ -1309,7 +1301,7 @@ pub fn playdeveloperreporting_vitals_crashrate_query(
 
 pub fn playdeveloperreporting_vitals_errors_counts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1471,8 +1463,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_errors_counts_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_errors_counts_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_errors_counts_get_execute(builder)
 }
 
@@ -1484,7 +1475,7 @@ pub fn playdeveloperreporting_vitals_errors_counts_get(
 
 pub fn playdeveloperreporting_vitals_errors_counts_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1651,11 +1642,8 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_errors_counts_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_errors_counts_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_errors_counts_query_execute(builder)
 }
 
@@ -1667,32 +1655,32 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
 
 pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    interval_endTime_day: Option<i32>,
-    interval_endTime_hours: Option<i32>,
-    interval_endTime_minutes: Option<i32>,
-    interval_endTime_month: Option<i32>,
-    interval_endTime_nanos: Option<i32>,
-    interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<String>,
-    interval_endTime_timeZone_version: Option<String>,
-    interval_endTime_utcOffset: Option<String>,
-    interval_endTime_year: Option<i32>,
-    interval_startTime_day: Option<i32>,
-    interval_startTime_hours: Option<i32>,
-    interval_startTime_minutes: Option<i32>,
-    interval_startTime_month: Option<i32>,
-    interval_startTime_nanos: Option<i32>,
-    interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<String>,
-    interval_startTime_timeZone_version: Option<String>,
-    interval_startTime_utcOffset: Option<String>,
-    interval_startTime_year: Option<i32>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    sampleErrorReportLimit: Option<i32>,
+    parent: &String,
+    filter: &Option<String>,
+    interval_endTime_day: &Option<i32>,
+    interval_endTime_hours: &Option<i32>,
+    interval_endTime_minutes: &Option<i32>,
+    interval_endTime_month: &Option<i32>,
+    interval_endTime_nanos: &Option<i32>,
+    interval_endTime_seconds: &Option<i32>,
+    interval_endTime_timeZone_id: &Option<String>,
+    interval_endTime_timeZone_version: &Option<String>,
+    interval_endTime_utcOffset: &Option<String>,
+    interval_endTime_year: &Option<i32>,
+    interval_startTime_day: &Option<i32>,
+    interval_startTime_hours: &Option<i32>,
+    interval_startTime_minutes: &Option<i32>,
+    interval_startTime_month: &Option<i32>,
+    interval_startTime_nanos: &Option<i32>,
+    interval_startTime_seconds: &Option<i32>,
+    interval_startTime_timeZone_id: &Option<String>,
+    interval_startTime_timeZone_version: &Option<String>,
+    interval_startTime_utcOffset: &Option<String>,
+    interval_startTime_year: &Option<i32>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    sampleErrorReportLimit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1701,79 +1689,79 @@ pub fn playdeveloperreporting_vitals_errors_issues_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = interval_endTime_day {
+    if let Some(val) = interval_endTime_day.as_ref() {
         query_parts.push(format!("interval.endTime.day={}", val));
     }
-    if let Some(val) = interval_endTime_hours {
+    if let Some(val) = interval_endTime_hours.as_ref() {
         query_parts.push(format!("interval.endTime.hours={}", val));
     }
-    if let Some(val) = interval_endTime_minutes {
+    if let Some(val) = interval_endTime_minutes.as_ref() {
         query_parts.push(format!("interval.endTime.minutes={}", val));
     }
-    if let Some(val) = interval_endTime_month {
+    if let Some(val) = interval_endTime_month.as_ref() {
         query_parts.push(format!("interval.endTime.month={}", val));
     }
-    if let Some(val) = interval_endTime_nanos {
+    if let Some(val) = interval_endTime_nanos.as_ref() {
         query_parts.push(format!("interval.endTime.nanos={}", val));
     }
-    if let Some(val) = interval_endTime_seconds {
+    if let Some(val) = interval_endTime_seconds.as_ref() {
         query_parts.push(format!("interval.endTime.seconds={}", val));
     }
-    if let Some(val) = interval_endTime_timeZone_id {
+    if let Some(val) = interval_endTime_timeZone_id.as_ref() {
         query_parts.push(format!("interval.endTime.timeZone.id={}", val));
     }
-    if let Some(val) = interval_endTime_timeZone_version {
+    if let Some(val) = interval_endTime_timeZone_version.as_ref() {
         query_parts.push(format!("interval.endTime.timeZone.version={}", val));
     }
-    if let Some(val) = interval_endTime_utcOffset {
+    if let Some(val) = interval_endTime_utcOffset.as_ref() {
         query_parts.push(format!("interval.endTime.utcOffset={}", val));
     }
-    if let Some(val) = interval_endTime_year {
+    if let Some(val) = interval_endTime_year.as_ref() {
         query_parts.push(format!("interval.endTime.year={}", val));
     }
-    if let Some(val) = interval_startTime_day {
+    if let Some(val) = interval_startTime_day.as_ref() {
         query_parts.push(format!("interval.startTime.day={}", val));
     }
-    if let Some(val) = interval_startTime_hours {
+    if let Some(val) = interval_startTime_hours.as_ref() {
         query_parts.push(format!("interval.startTime.hours={}", val));
     }
-    if let Some(val) = interval_startTime_minutes {
+    if let Some(val) = interval_startTime_minutes.as_ref() {
         query_parts.push(format!("interval.startTime.minutes={}", val));
     }
-    if let Some(val) = interval_startTime_month {
+    if let Some(val) = interval_startTime_month.as_ref() {
         query_parts.push(format!("interval.startTime.month={}", val));
     }
-    if let Some(val) = interval_startTime_nanos {
+    if let Some(val) = interval_startTime_nanos.as_ref() {
         query_parts.push(format!("interval.startTime.nanos={}", val));
     }
-    if let Some(val) = interval_startTime_seconds {
+    if let Some(val) = interval_startTime_seconds.as_ref() {
         query_parts.push(format!("interval.startTime.seconds={}", val));
     }
-    if let Some(val) = interval_startTime_timeZone_id {
+    if let Some(val) = interval_startTime_timeZone_id.as_ref() {
         query_parts.push(format!("interval.startTime.timeZone.id={}", val));
     }
-    if let Some(val) = interval_startTime_timeZone_version {
+    if let Some(val) = interval_startTime_timeZone_version.as_ref() {
         query_parts.push(format!("interval.startTime.timeZone.version={}", val));
     }
-    if let Some(val) = interval_startTime_utcOffset {
+    if let Some(val) = interval_startTime_utcOffset.as_ref() {
         query_parts.push(format!("interval.startTime.utcOffset={}", val));
     }
-    if let Some(val) = interval_startTime_year {
+    if let Some(val) = interval_startTime_year.as_ref() {
         query_parts.push(format!("interval.startTime.year={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = sampleErrorReportLimit {
+    if let Some(val) = sampleErrorReportLimit.as_ref() {
         query_parts.push(format!("sampleErrorReportLimit={}", val));
     }
 
@@ -1989,32 +1977,32 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_issues_search_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.interval_endTime_day.clone(),
-        args.interval_endTime_hours.clone(),
-        args.interval_endTime_minutes.clone(),
-        args.interval_endTime_month.clone(),
-        args.interval_endTime_nanos.clone(),
-        args.interval_endTime_seconds.clone(),
-        args.interval_endTime_timeZone_id.clone(),
-        args.interval_endTime_timeZone_version.clone(),
-        args.interval_endTime_utcOffset.clone(),
-        args.interval_endTime_year.clone(),
-        args.interval_startTime_day.clone(),
-        args.interval_startTime_hours.clone(),
-        args.interval_startTime_minutes.clone(),
-        args.interval_startTime_month.clone(),
-        args.interval_startTime_nanos.clone(),
-        args.interval_startTime_seconds.clone(),
-        args.interval_startTime_timeZone_id.clone(),
-        args.interval_startTime_timeZone_version.clone(),
-        args.interval_startTime_utcOffset.clone(),
-        args.interval_startTime_year.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.sampleErrorReportLimit.clone(),
+        &args.parent,
+        &args.filter,
+        &args.interval_endTime_day,
+        &args.interval_endTime_hours,
+        &args.interval_endTime_minutes,
+        &args.interval_endTime_month,
+        &args.interval_endTime_nanos,
+        &args.interval_endTime_seconds,
+        &args.interval_endTime_timeZone_id,
+        &args.interval_endTime_timeZone_version,
+        &args.interval_endTime_utcOffset,
+        &args.interval_endTime_year,
+        &args.interval_startTime_day,
+        &args.interval_startTime_hours,
+        &args.interval_startTime_minutes,
+        &args.interval_startTime_month,
+        &args.interval_startTime_nanos,
+        &args.interval_startTime_seconds,
+        &args.interval_startTime_timeZone_id,
+        &args.interval_startTime_timeZone_version,
+        &args.interval_startTime_utcOffset,
+        &args.interval_startTime_year,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.sampleErrorReportLimit,
     )?;
     playdeveloperreporting_vitals_errors_issues_search_execute(builder)
 }
@@ -2027,30 +2015,30 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 
 pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    interval_endTime_day: Option<i32>,
-    interval_endTime_hours: Option<i32>,
-    interval_endTime_minutes: Option<i32>,
-    interval_endTime_month: Option<i32>,
-    interval_endTime_nanos: Option<i32>,
-    interval_endTime_seconds: Option<i32>,
-    interval_endTime_timeZone_id: Option<String>,
-    interval_endTime_timeZone_version: Option<String>,
-    interval_endTime_utcOffset: Option<String>,
-    interval_endTime_year: Option<i32>,
-    interval_startTime_day: Option<i32>,
-    interval_startTime_hours: Option<i32>,
-    interval_startTime_minutes: Option<i32>,
-    interval_startTime_month: Option<i32>,
-    interval_startTime_nanos: Option<i32>,
-    interval_startTime_seconds: Option<i32>,
-    interval_startTime_timeZone_id: Option<String>,
-    interval_startTime_timeZone_version: Option<String>,
-    interval_startTime_utcOffset: Option<String>,
-    interval_startTime_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    interval_endTime_day: &Option<i32>,
+    interval_endTime_hours: &Option<i32>,
+    interval_endTime_minutes: &Option<i32>,
+    interval_endTime_month: &Option<i32>,
+    interval_endTime_nanos: &Option<i32>,
+    interval_endTime_seconds: &Option<i32>,
+    interval_endTime_timeZone_id: &Option<String>,
+    interval_endTime_timeZone_version: &Option<String>,
+    interval_endTime_utcOffset: &Option<String>,
+    interval_endTime_year: &Option<i32>,
+    interval_startTime_day: &Option<i32>,
+    interval_startTime_hours: &Option<i32>,
+    interval_startTime_minutes: &Option<i32>,
+    interval_startTime_month: &Option<i32>,
+    interval_startTime_nanos: &Option<i32>,
+    interval_startTime_seconds: &Option<i32>,
+    interval_startTime_timeZone_id: &Option<String>,
+    interval_startTime_timeZone_version: &Option<String>,
+    interval_startTime_utcOffset: &Option<String>,
+    interval_startTime_year: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2059,73 +2047,73 @@ pub fn playdeveloperreporting_vitals_errors_reports_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = interval_endTime_day {
+    if let Some(val) = interval_endTime_day.as_ref() {
         query_parts.push(format!("interval.endTime.day={}", val));
     }
-    if let Some(val) = interval_endTime_hours {
+    if let Some(val) = interval_endTime_hours.as_ref() {
         query_parts.push(format!("interval.endTime.hours={}", val));
     }
-    if let Some(val) = interval_endTime_minutes {
+    if let Some(val) = interval_endTime_minutes.as_ref() {
         query_parts.push(format!("interval.endTime.minutes={}", val));
     }
-    if let Some(val) = interval_endTime_month {
+    if let Some(val) = interval_endTime_month.as_ref() {
         query_parts.push(format!("interval.endTime.month={}", val));
     }
-    if let Some(val) = interval_endTime_nanos {
+    if let Some(val) = interval_endTime_nanos.as_ref() {
         query_parts.push(format!("interval.endTime.nanos={}", val));
     }
-    if let Some(val) = interval_endTime_seconds {
+    if let Some(val) = interval_endTime_seconds.as_ref() {
         query_parts.push(format!("interval.endTime.seconds={}", val));
     }
-    if let Some(val) = interval_endTime_timeZone_id {
+    if let Some(val) = interval_endTime_timeZone_id.as_ref() {
         query_parts.push(format!("interval.endTime.timeZone.id={}", val));
     }
-    if let Some(val) = interval_endTime_timeZone_version {
+    if let Some(val) = interval_endTime_timeZone_version.as_ref() {
         query_parts.push(format!("interval.endTime.timeZone.version={}", val));
     }
-    if let Some(val) = interval_endTime_utcOffset {
+    if let Some(val) = interval_endTime_utcOffset.as_ref() {
         query_parts.push(format!("interval.endTime.utcOffset={}", val));
     }
-    if let Some(val) = interval_endTime_year {
+    if let Some(val) = interval_endTime_year.as_ref() {
         query_parts.push(format!("interval.endTime.year={}", val));
     }
-    if let Some(val) = interval_startTime_day {
+    if let Some(val) = interval_startTime_day.as_ref() {
         query_parts.push(format!("interval.startTime.day={}", val));
     }
-    if let Some(val) = interval_startTime_hours {
+    if let Some(val) = interval_startTime_hours.as_ref() {
         query_parts.push(format!("interval.startTime.hours={}", val));
     }
-    if let Some(val) = interval_startTime_minutes {
+    if let Some(val) = interval_startTime_minutes.as_ref() {
         query_parts.push(format!("interval.startTime.minutes={}", val));
     }
-    if let Some(val) = interval_startTime_month {
+    if let Some(val) = interval_startTime_month.as_ref() {
         query_parts.push(format!("interval.startTime.month={}", val));
     }
-    if let Some(val) = interval_startTime_nanos {
+    if let Some(val) = interval_startTime_nanos.as_ref() {
         query_parts.push(format!("interval.startTime.nanos={}", val));
     }
-    if let Some(val) = interval_startTime_seconds {
+    if let Some(val) = interval_startTime_seconds.as_ref() {
         query_parts.push(format!("interval.startTime.seconds={}", val));
     }
-    if let Some(val) = interval_startTime_timeZone_id {
+    if let Some(val) = interval_startTime_timeZone_id.as_ref() {
         query_parts.push(format!("interval.startTime.timeZone.id={}", val));
     }
-    if let Some(val) = interval_startTime_timeZone_version {
+    if let Some(val) = interval_startTime_timeZone_version.as_ref() {
         query_parts.push(format!("interval.startTime.timeZone.version={}", val));
     }
-    if let Some(val) = interval_startTime_utcOffset {
+    if let Some(val) = interval_startTime_utcOffset.as_ref() {
         query_parts.push(format!("interval.startTime.utcOffset={}", val));
     }
-    if let Some(val) = interval_startTime_year {
+    if let Some(val) = interval_startTime_year.as_ref() {
         query_parts.push(format!("interval.startTime.year={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2337,30 +2325,30 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 > {
     let builder = playdeveloperreporting_vitals_errors_reports_search_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.interval_endTime_day.clone(),
-        args.interval_endTime_hours.clone(),
-        args.interval_endTime_minutes.clone(),
-        args.interval_endTime_month.clone(),
-        args.interval_endTime_nanos.clone(),
-        args.interval_endTime_seconds.clone(),
-        args.interval_endTime_timeZone_id.clone(),
-        args.interval_endTime_timeZone_version.clone(),
-        args.interval_endTime_utcOffset.clone(),
-        args.interval_endTime_year.clone(),
-        args.interval_startTime_day.clone(),
-        args.interval_startTime_hours.clone(),
-        args.interval_startTime_minutes.clone(),
-        args.interval_startTime_month.clone(),
-        args.interval_startTime_nanos.clone(),
-        args.interval_startTime_seconds.clone(),
-        args.interval_startTime_timeZone_id.clone(),
-        args.interval_startTime_timeZone_version.clone(),
-        args.interval_startTime_utcOffset.clone(),
-        args.interval_startTime_year.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.interval_endTime_day,
+        &args.interval_endTime_hours,
+        &args.interval_endTime_minutes,
+        &args.interval_endTime_month,
+        &args.interval_endTime_nanos,
+        &args.interval_endTime_seconds,
+        &args.interval_endTime_timeZone_id,
+        &args.interval_endTime_timeZone_version,
+        &args.interval_endTime_utcOffset,
+        &args.interval_endTime_year,
+        &args.interval_startTime_day,
+        &args.interval_startTime_hours,
+        &args.interval_startTime_minutes,
+        &args.interval_startTime_month,
+        &args.interval_startTime_nanos,
+        &args.interval_startTime_seconds,
+        &args.interval_startTime_timeZone_id,
+        &args.interval_startTime_timeZone_version,
+        &args.interval_startTime_utcOffset,
+        &args.interval_startTime_year,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     playdeveloperreporting_vitals_errors_reports_search_execute(builder)
 }
@@ -2373,7 +2361,7 @@ pub fn playdeveloperreporting_vitals_errors_reports_search(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2536,7 +2524,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, args.name.clone())?;
+        playdeveloperreporting_vitals_excessivewakeuprate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_excessivewakeuprate_get_execute(builder)
 }
 
@@ -2548,7 +2536,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_get(
 
 pub fn playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2716,9 +2704,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
     ApiError,
 > {
     let builder = playdeveloperreporting_vitals_excessivewakeuprate_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     playdeveloperreporting_vitals_excessivewakeuprate_query_execute(builder)
 }
@@ -2731,7 +2717,7 @@ pub fn playdeveloperreporting_vitals_excessivewakeuprate_query(
 
 pub fn playdeveloperreporting_vitals_lmkrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2886,7 +2872,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_lmkrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_lmkrate_get_execute(builder)
 }
 
@@ -2898,7 +2884,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_get(
 
 pub fn playdeveloperreporting_vitals_lmkrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3066,7 +3052,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
     ApiError,
 > {
     let builder =
-        playdeveloperreporting_vitals_lmkrate_query_builder(client, args.name.clone(), &args.body)?;
+        playdeveloperreporting_vitals_lmkrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_lmkrate_query_execute(builder)
 }
 
@@ -3078,7 +3064,7 @@ pub fn playdeveloperreporting_vitals_lmkrate_query(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3240,8 +3226,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_slowrenderingrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowrenderingrate_get_execute(builder)
 }
 
@@ -3253,7 +3238,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_get(
 
 pub fn playdeveloperreporting_vitals_slowrenderingrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3421,9 +3406,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
     ApiError,
 > {
     let builder = playdeveloperreporting_vitals_slowrenderingrate_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     playdeveloperreporting_vitals_slowrenderingrate_query_execute(builder)
 }
@@ -3436,7 +3419,7 @@ pub fn playdeveloperreporting_vitals_slowrenderingrate_query(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3598,8 +3581,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playdeveloperreporting_vitals_slowstartrate_get_builder(client, args.name.clone())?;
+    let builder = playdeveloperreporting_vitals_slowstartrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_slowstartrate_get_execute(builder)
 }
 
@@ -3611,7 +3593,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_get(
 
 pub fn playdeveloperreporting_vitals_slowstartrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3777,11 +3759,8 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_slowstartrate_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_slowstartrate_query_builder(client, &args.name, &args.body)?;
     playdeveloperreporting_vitals_slowstartrate_query_execute(builder)
 }
 
@@ -3793,7 +3772,7 @@ pub fn playdeveloperreporting_vitals_slowstartrate_query(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3955,10 +3934,8 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
         + 'static,
     ApiError,
 > {
-    let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_builder(client, &args.name)?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get_execute(builder)
 }
 
@@ -3970,7 +3947,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_get(
 
 pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4120,9 +4097,7 @@ pub fn playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query(
     ApiError,
 >{
     let builder = playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     playdeveloperreporting_vitals_stuckbackgroundwakelockrate_query_execute(builder)
 }

@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn youtubereporting_jobs_create_builder(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -37,7 +37,7 @@ pub fn youtubereporting_jobs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -187,11 +187,8 @@ pub fn youtubereporting_jobs_create(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_jobs_create_builder(
-        client,
-        args.onBehalfOfContentOwner.clone(),
-        &args.body,
-    )?;
+    let builder =
+        youtubereporting_jobs_create_builder(client, &args.onBehalfOfContentOwner, &args.body)?;
     youtubereporting_jobs_create_execute(builder)
 }
 
@@ -203,18 +200,15 @@ pub fn youtubereporting_jobs_create(
 
 pub fn youtubereporting_jobs_delete_builder(
     client: &SimpleHttpClient,
-    jobId: String,
-    onBehalfOfContentOwner: Option<String>,
+    jobId: &String,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://youtubereporting.googleapis.com/v1/jobs/{}",
-        jobId.as_str(),
-    );
+    let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs/{}", jobId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -362,11 +356,8 @@ pub fn youtubereporting_jobs_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_jobs_delete_builder(
-        client,
-        args.jobId.clone(),
-        args.onBehalfOfContentOwner.clone(),
-    )?;
+    let builder =
+        youtubereporting_jobs_delete_builder(client, &args.jobId, &args.onBehalfOfContentOwner)?;
     youtubereporting_jobs_delete_execute(builder)
 }
 
@@ -378,20 +369,19 @@ pub fn youtubereporting_jobs_delete(
 
 pub fn youtubereporting_jobs_reports_get_builder(
     client: &SimpleHttpClient,
-    jobId: String,
-    reportId: String,
-    onBehalfOfContentOwner: Option<String>,
+    jobId: &String,
+    reportId: &String,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://youtubereporting.googleapis.com/v1/jobs/{}/reports/{}",
-        jobId.as_str(),
-        reportId.as_str(),
+        jobId, reportId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -543,9 +533,9 @@ pub fn youtubereporting_jobs_reports_get(
 > {
     let builder = youtubereporting_jobs_reports_get_builder(
         client,
-        args.jobId.clone(),
-        args.reportId.clone(),
-        args.onBehalfOfContentOwner.clone(),
+        &args.jobId,
+        &args.reportId,
+        &args.onBehalfOfContentOwner,
     )?;
     youtubereporting_jobs_reports_get_execute(builder)
 }
@@ -558,38 +548,38 @@ pub fn youtubereporting_jobs_reports_get(
 
 pub fn youtubereporting_jobs_reports_list_builder(
     client: &SimpleHttpClient,
-    jobId: String,
-    createdAfter: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    startTimeAtOrAfter: Option<String>,
-    startTimeBefore: Option<String>,
+    jobId: &String,
+    createdAfter: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    startTimeAtOrAfter: &Option<String>,
+    startTimeBefore: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://youtubereporting.googleapis.com/v1/jobs/{}/reports",
-        jobId.as_str(),
+        jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = createdAfter {
+    if let Some(val) = createdAfter.as_ref() {
         query_parts.push(format!("createdAfter={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTimeAtOrAfter {
+    if let Some(val) = startTimeAtOrAfter.as_ref() {
         query_parts.push(format!("startTimeAtOrAfter={}", val));
     }
-    if let Some(val) = startTimeBefore {
+    if let Some(val) = startTimeBefore.as_ref() {
         query_parts.push(format!("startTimeBefore={}", val));
     }
 
@@ -753,13 +743,13 @@ pub fn youtubereporting_jobs_reports_list(
 > {
     let builder = youtubereporting_jobs_reports_list_builder(
         client,
-        args.jobId.clone(),
-        args.createdAfter.clone(),
-        args.onBehalfOfContentOwner.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.startTimeAtOrAfter.clone(),
-        args.startTimeBefore.clone(),
+        &args.jobId,
+        &args.createdAfter,
+        &args.onBehalfOfContentOwner,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTimeAtOrAfter,
+        &args.startTimeBefore,
     )?;
     youtubereporting_jobs_reports_list_execute(builder)
 }
@@ -772,7 +762,7 @@ pub fn youtubereporting_jobs_reports_list(
 
 pub fn youtubereporting_media_download_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/media/{}",);
@@ -914,7 +904,7 @@ pub fn youtubereporting_media_download(
     impl StreamIterator<D = Result<ApiResponse<GdataMedia>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_media_download_builder(client, args.resourceName.clone())?;
+    let builder = youtubereporting_media_download_builder(client, &args.resourceName)?;
     youtubereporting_media_download_execute(builder)
 }
 
@@ -926,26 +916,26 @@ pub fn youtubereporting_media_download(
 
 pub fn youtubereporting_report_types_list_builder(
     client: &SimpleHttpClient,
-    includeSystemManaged: Option<bool>,
-    onBehalfOfContentOwner: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    includeSystemManaged: &Option<bool>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/reportTypes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeSystemManaged {
+    if let Some(val) = includeSystemManaged.as_ref() {
         query_parts.push(format!("includeSystemManaged={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1103,10 +1093,10 @@ pub fn youtubereporting_report_types_list(
 > {
     let builder = youtubereporting_report_types_list_builder(
         client,
-        args.includeSystemManaged.clone(),
-        args.onBehalfOfContentOwner.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.includeSystemManaged,
+        &args.onBehalfOfContentOwner,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     youtubereporting_report_types_list_execute(builder)
 }

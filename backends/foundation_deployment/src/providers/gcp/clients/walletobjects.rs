@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn walletobjects_eventticketclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -187,11 +187,8 @@ pub fn walletobjects_eventticketclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_eventticketclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketclass_addmessage_execute(builder)
 }
 
@@ -203,12 +200,12 @@ pub fn walletobjects_eventticketclass_addmessage(
 
 pub fn walletobjects_eventticketclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -352,7 +349,7 @@ pub fn walletobjects_eventticketclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_eventticketclass_get_builder(client, &args.resourceId)?;
     walletobjects_eventticketclass_get_execute(builder)
 }
 
@@ -525,13 +522,13 @@ pub fn walletobjects_eventticketclass_insert(
 
 pub fn walletobjects_eventticketobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -683,11 +680,8 @@ pub fn walletobjects_eventticketobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_eventticketobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketobject_addmessage_execute(builder)
 }
 
@@ -699,12 +693,12 @@ pub fn walletobjects_eventticketobject_addmessage(
 
 pub fn walletobjects_eventticketobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -848,7 +842,7 @@ pub fn walletobjects_eventticketobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_eventticketobject_get_builder(client, &args.resourceId)?;
     walletobjects_eventticketobject_get_execute(builder)
 }
 
@@ -1021,13 +1015,13 @@ pub fn walletobjects_eventticketobject_insert(
 
 pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/modifyLinkedOfferObjects",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -1177,7 +1171,7 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
 > {
     let builder = walletobjects_eventticketobject_modifylinkedofferobjects_builder(
         client,
-        args.resourceId.clone(),
+        &args.resourceId,
         &args.body,
     )?;
     walletobjects_eventticketobject_modifylinkedofferobjects_execute(builder)
@@ -1191,13 +1185,13 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
 
 pub fn walletobjects_flightclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -1350,7 +1344,7 @@ pub fn walletobjects_flightclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_flightclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_flightclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightclass_addmessage_execute(builder)
 }
 
@@ -1362,12 +1356,12 @@ pub fn walletobjects_flightclass_addmessage(
 
 pub fn walletobjects_flightclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -1507,7 +1501,7 @@ pub fn walletobjects_flightclass_get(
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_flightclass_get_builder(client, &args.resourceId)?;
     walletobjects_flightclass_get_execute(builder)
 }
 
@@ -1676,13 +1670,13 @@ pub fn walletobjects_flightclass_insert(
 
 pub fn walletobjects_flightobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -1835,7 +1829,7 @@ pub fn walletobjects_flightobject_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_flightobject_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_flightobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightobject_addmessage_execute(builder)
 }
 
@@ -1847,12 +1841,12 @@ pub fn walletobjects_flightobject_addmessage(
 
 pub fn walletobjects_flightobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -1996,7 +1990,7 @@ pub fn walletobjects_flightobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_flightobject_get_builder(client, &args.resourceId)?;
     walletobjects_flightobject_get_execute(builder)
 }
 
@@ -2169,13 +2163,13 @@ pub fn walletobjects_flightobject_insert(
 
 pub fn walletobjects_genericclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -2328,7 +2322,7 @@ pub fn walletobjects_genericclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_genericclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_genericclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericclass_addmessage_execute(builder)
 }
 
@@ -2340,12 +2334,12 @@ pub fn walletobjects_genericclass_addmessage(
 
 pub fn walletobjects_genericclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -2489,7 +2483,7 @@ pub fn walletobjects_genericclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_genericclass_get_builder(client, &args.resourceId)?;
     walletobjects_genericclass_get_execute(builder)
 }
 
@@ -2662,13 +2656,13 @@ pub fn walletobjects_genericclass_insert(
 
 pub fn walletobjects_genericobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -2820,11 +2814,8 @@ pub fn walletobjects_genericobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_genericobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericobject_addmessage_execute(builder)
 }
 
@@ -2836,12 +2827,12 @@ pub fn walletobjects_genericobject_addmessage(
 
 pub fn walletobjects_genericobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -2985,7 +2976,7 @@ pub fn walletobjects_genericobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_genericobject_get_builder(client, &args.resourceId)?;
     walletobjects_genericobject_get_execute(builder)
 }
 
@@ -3158,13 +3149,13 @@ pub fn walletobjects_genericobject_insert(
 
 pub fn walletobjects_giftcardclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -3316,11 +3307,8 @@ pub fn walletobjects_giftcardclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_giftcardclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardclass_addmessage_execute(builder)
 }
 
@@ -3332,12 +3320,12 @@ pub fn walletobjects_giftcardclass_addmessage(
 
 pub fn walletobjects_giftcardclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -3481,7 +3469,7 @@ pub fn walletobjects_giftcardclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_giftcardclass_get_builder(client, &args.resourceId)?;
     walletobjects_giftcardclass_get_execute(builder)
 }
 
@@ -3654,13 +3642,13 @@ pub fn walletobjects_giftcardclass_insert(
 
 pub fn walletobjects_giftcardobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -3812,11 +3800,8 @@ pub fn walletobjects_giftcardobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_giftcardobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardobject_addmessage_execute(builder)
 }
 
@@ -3828,12 +3813,12 @@ pub fn walletobjects_giftcardobject_addmessage(
 
 pub fn walletobjects_giftcardobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -3977,7 +3962,7 @@ pub fn walletobjects_giftcardobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_giftcardobject_get_builder(client, &args.resourceId)?;
     walletobjects_giftcardobject_get_execute(builder)
 }
 
@@ -4150,12 +4135,12 @@ pub fn walletobjects_giftcardobject_insert(
 
 pub fn walletobjects_issuer_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -4295,7 +4280,7 @@ pub fn walletobjects_issuer_get(
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_issuer_get_builder(client, &args.resourceId)?;
     walletobjects_issuer_get_execute(builder)
 }
 
@@ -4623,13 +4608,13 @@ pub fn walletobjects_jwt_insert(
 
 pub fn walletobjects_loyaltyclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -4782,7 +4767,7 @@ pub fn walletobjects_loyaltyclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_loyaltyclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_loyaltyclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyclass_addmessage_execute(builder)
 }
 
@@ -4794,12 +4779,12 @@ pub fn walletobjects_loyaltyclass_addmessage(
 
 pub fn walletobjects_loyaltyclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -4943,7 +4928,7 @@ pub fn walletobjects_loyaltyclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_loyaltyclass_get_builder(client, &args.resourceId)?;
     walletobjects_loyaltyclass_get_execute(builder)
 }
 
@@ -5116,13 +5101,13 @@ pub fn walletobjects_loyaltyclass_insert(
 
 pub fn walletobjects_loyaltyobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -5274,11 +5259,8 @@ pub fn walletobjects_loyaltyobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_loyaltyobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyobject_addmessage_execute(builder)
 }
 
@@ -5290,12 +5272,12 @@ pub fn walletobjects_loyaltyobject_addmessage(
 
 pub fn walletobjects_loyaltyobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -5439,7 +5421,7 @@ pub fn walletobjects_loyaltyobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_loyaltyobject_get_builder(client, &args.resourceId)?;
     walletobjects_loyaltyobject_get_execute(builder)
 }
 
@@ -5612,13 +5594,13 @@ pub fn walletobjects_loyaltyobject_insert(
 
 pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/modifyLinkedOfferObjects",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -5768,7 +5750,7 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
 > {
     let builder = walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
         client,
-        args.resourceId.clone(),
+        &args.resourceId,
         &args.body,
     )?;
     walletobjects_loyaltyobject_modifylinkedofferobjects_execute(builder)
@@ -5782,12 +5764,12 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
 
 pub fn walletobjects_media_download_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/downloadRotatingBarcodeValues",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -5927,7 +5909,7 @@ pub fn walletobjects_media_download(
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_download_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_media_download_builder(client, &args.resourceId)?;
     walletobjects_media_download_execute(builder)
 }
 
@@ -5939,13 +5921,13 @@ pub fn walletobjects_media_download(
 
 pub fn walletobjects_media_upload_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &TransitObjectUploadRotatingBarcodeValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/uploadRotatingBarcodeValues",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -6098,7 +6080,7 @@ pub fn walletobjects_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_upload_builder(client, args.resourceId.clone(), &args.body)?;
+    let builder = walletobjects_media_upload_builder(client, &args.resourceId, &args.body)?;
     walletobjects_media_upload_execute(builder)
 }
 
@@ -6110,13 +6092,13 @@ pub fn walletobjects_media_upload(
 
 pub fn walletobjects_offerclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -6269,7 +6251,7 @@ pub fn walletobjects_offerclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_offerclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_offerclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerclass_addmessage_execute(builder)
 }
 
@@ -6281,12 +6263,12 @@ pub fn walletobjects_offerclass_addmessage(
 
 pub fn walletobjects_offerclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -6426,7 +6408,7 @@ pub fn walletobjects_offerclass_get(
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_offerclass_get_builder(client, &args.resourceId)?;
     walletobjects_offerclass_get_execute(builder)
 }
 
@@ -6594,13 +6576,13 @@ pub fn walletobjects_offerclass_insert(
 
 pub fn walletobjects_offerobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -6753,7 +6735,7 @@ pub fn walletobjects_offerobject_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_offerobject_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_offerobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerobject_addmessage_execute(builder)
 }
 
@@ -6765,12 +6747,12 @@ pub fn walletobjects_offerobject_addmessage(
 
 pub fn walletobjects_offerobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -6910,7 +6892,7 @@ pub fn walletobjects_offerobject_get(
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_offerobject_get_builder(client, &args.resourceId)?;
     walletobjects_offerobject_get_execute(builder)
 }
 
@@ -7079,12 +7061,12 @@ pub fn walletobjects_offerobject_insert(
 
 pub fn walletobjects_permissions_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -7224,7 +7206,7 @@ pub fn walletobjects_permissions_get(
     impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_permissions_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_permissions_get_builder(client, &args.resourceId)?;
     walletobjects_permissions_get_execute(builder)
 }
 
@@ -7392,13 +7374,13 @@ pub fn walletobjects_smarttap_insert(
 
 pub fn walletobjects_transitclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -7551,7 +7533,7 @@ pub fn walletobjects_transitclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_transitclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
+        walletobjects_transitclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitclass_addmessage_execute(builder)
 }
 
@@ -7563,12 +7545,12 @@ pub fn walletobjects_transitclass_addmessage(
 
 pub fn walletobjects_transitclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -7712,7 +7694,7 @@ pub fn walletobjects_transitclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_transitclass_get_builder(client, &args.resourceId)?;
     walletobjects_transitclass_get_execute(builder)
 }
 
@@ -7885,13 +7867,13 @@ pub fn walletobjects_transitclass_insert(
 
 pub fn walletobjects_transitobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/addMessage",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -8043,11 +8025,8 @@ pub fn walletobjects_transitobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_addmessage_builder(
-        client,
-        args.resourceId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_transitobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitobject_addmessage_execute(builder)
 }
 
@@ -8059,12 +8038,12 @@ pub fn walletobjects_transitobject_addmessage(
 
 pub fn walletobjects_transitobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: String,
+    resourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
-        resourceId.as_str(),
+        resourceId,
     );
 
     // Build request
@@ -8208,7 +8187,7 @@ pub fn walletobjects_transitobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_get_builder(client, args.resourceId.clone())?;
+    let builder = walletobjects_transitobject_get_builder(client, &args.resourceId)?;
     walletobjects_transitobject_get_execute(builder)
 }
 

@@ -29,20 +29,19 @@ use serde::Serialize;
 
 pub fn blogger_blog_user_infos_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    blogId: String,
-    maxPosts: Option<i32>,
+    userId: &String,
+    blogId: &String,
+    maxPosts: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}",
-        userId.as_str(),
-        blogId.as_str(),
+        userId, blogId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxPosts {
+    if let Some(val) = maxPosts.as_ref() {
         query_parts.push(format!("maxPosts={}", val));
     }
 
@@ -196,12 +195,8 @@ pub fn blogger_blog_user_infos_get(
         + 'static,
     ApiError,
 > {
-    let builder = blogger_blog_user_infos_get_builder(
-        client,
-        args.userId.clone(),
-        args.blogId.clone(),
-        args.maxPosts.clone(),
-    )?;
+    let builder =
+        blogger_blog_user_infos_get_builder(client, &args.userId, &args.blogId, &args.maxPosts)?;
     blogger_blog_user_infos_get_execute(builder)
 }
 
@@ -213,22 +208,19 @@ pub fn blogger_blog_user_infos_get(
 
 pub fn blogger_blogs_get_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    maxPosts: Option<i32>,
-    view: Option<String>,
+    blogId: &String,
+    maxPosts: &Option<i32>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}",
-        blogId.as_str(),
-    );
+    let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}", blogId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxPosts {
+    if let Some(val) = maxPosts.as_ref() {
         query_parts.push(format!("maxPosts={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -378,12 +370,7 @@ pub fn blogger_blogs_get(
     impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_blogs_get_builder(
-        client,
-        args.blogId.clone(),
-        args.maxPosts.clone(),
-        args.view.clone(),
-    )?;
+    let builder = blogger_blogs_get_builder(client, &args.blogId, &args.maxPosts, &args.view)?;
     blogger_blogs_get_execute(builder)
 }
 
@@ -395,30 +382,27 @@ pub fn blogger_blogs_get(
 
 pub fn blogger_blogs_list_by_user_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    fetchUserInfo: Option<bool>,
-    role: Option<String>,
-    status: Option<String>,
-    view: Option<String>,
+    userId: &String,
+    fetchUserInfo: &Option<bool>,
+    role: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://blogger.googleapis.com/v3/users/{}/blogs",
-        userId.as_str(),
-    );
+    let endpoint_url = format!("https://blogger.googleapis.com/v3/users/{}/blogs", userId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fetchUserInfo {
+    if let Some(val) = fetchUserInfo.as_ref() {
         query_parts.push(format!("fetchUserInfo={}", val));
     }
-    if let Some(val) = role {
+    if let Some(val) = role.as_ref() {
         query_parts.push(format!("role={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -574,11 +558,11 @@ pub fn blogger_blogs_list_by_user(
 > {
     let builder = blogger_blogs_list_by_user_builder(
         client,
-        args.userId.clone(),
-        args.fetchUserInfo.clone(),
-        args.role.clone(),
-        args.status.clone(),
-        args.view.clone(),
+        &args.userId,
+        &args.fetchUserInfo,
+        &args.role,
+        &args.status,
+        &args.view,
     )?;
     blogger_blogs_list_by_user_execute(builder)
 }
@@ -591,16 +575,14 @@ pub fn blogger_blogs_list_by_user(
 
 pub fn blogger_comments_approve_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    commentId: String,
+    blogId: &String,
+    postId: &String,
+    commentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/approve",
-        blogId.as_str(),
-        postId.as_str(),
-        commentId.as_str(),
+        blogId, postId, commentId,
     );
 
     // Build request
@@ -744,12 +726,8 @@ pub fn blogger_comments_approve(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_approve_builder(
-        client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.commentId.clone(),
-    )?;
+    let builder =
+        blogger_comments_approve_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_approve_execute(builder)
 }
 
@@ -761,16 +739,14 @@ pub fn blogger_comments_approve(
 
 pub fn blogger_comments_delete_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    commentId: String,
+    blogId: &String,
+    postId: &String,
+    commentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}",
-        blogId.as_str(),
-        postId.as_str(),
-        commentId.as_str(),
+        blogId, postId, commentId,
     );
 
     // Build request
@@ -911,12 +887,8 @@ pub fn blogger_comments_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_delete_builder(
-        client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.commentId.clone(),
-    )?;
+    let builder =
+        blogger_comments_delete_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_delete_execute(builder)
 }
 
@@ -928,44 +900,43 @@ pub fn blogger_comments_delete(
 
 pub fn blogger_comments_list_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    endDate: Option<String>,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    startDate: Option<String>,
-    status: Option<String>,
-    view: Option<String>,
+    blogId: &String,
+    postId: &String,
+    endDate: &Option<String>,
+    fetchBodies: &Option<bool>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments",
-        blogId.as_str(),
-        postId.as_str(),
+        blogId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate {
+    if let Some(val) = endDate.as_ref() {
         query_parts.push(format!("endDate={}", val));
     }
-    if let Some(val) = fetchBodies {
+    if let Some(val) = fetchBodies.as_ref() {
         query_parts.push(format!("fetchBodies={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startDate {
+    if let Some(val) = startDate.as_ref() {
         query_parts.push(format!("startDate={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -1129,15 +1100,15 @@ pub fn blogger_comments_list(
 > {
     let builder = blogger_comments_list_builder(
         client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.endDate.clone(),
-        args.fetchBodies.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.startDate.clone(),
-        args.status.clone(),
-        args.view.clone(),
+        &args.blogId,
+        &args.postId,
+        &args.endDate,
+        &args.fetchBodies,
+        &args.maxResults,
+        &args.pageToken,
+        &args.startDate,
+        &args.status,
+        &args.view,
     )?;
     blogger_comments_list_execute(builder)
 }
@@ -1150,38 +1121,38 @@ pub fn blogger_comments_list(
 
 pub fn blogger_comments_list_by_blog_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    endDate: Option<String>,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    startDate: Option<String>,
-    status: Option<String>,
+    blogId: &String,
+    endDate: &Option<String>,
+    fetchBodies: &Option<bool>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/comments",
-        blogId.as_str(),
+        blogId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate {
+    if let Some(val) = endDate.as_ref() {
         query_parts.push(format!("endDate={}", val));
     }
-    if let Some(val) = fetchBodies {
+    if let Some(val) = fetchBodies.as_ref() {
         query_parts.push(format!("fetchBodies={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startDate {
+    if let Some(val) = startDate.as_ref() {
         query_parts.push(format!("startDate={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -1341,13 +1312,13 @@ pub fn blogger_comments_list_by_blog(
 > {
     let builder = blogger_comments_list_by_blog_builder(
         client,
-        args.blogId.clone(),
-        args.endDate.clone(),
-        args.fetchBodies.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.startDate.clone(),
-        args.status.clone(),
+        &args.blogId,
+        &args.endDate,
+        &args.fetchBodies,
+        &args.maxResults,
+        &args.pageToken,
+        &args.startDate,
+        &args.status,
     )?;
     blogger_comments_list_by_blog_execute(builder)
 }
@@ -1360,16 +1331,14 @@ pub fn blogger_comments_list_by_blog(
 
 pub fn blogger_comments_mark_as_spam_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    commentId: String,
+    blogId: &String,
+    postId: &String,
+    commentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/spam",
-        blogId.as_str(),
-        postId.as_str(),
-        commentId.as_str(),
+        blogId, postId, commentId,
     );
 
     // Build request
@@ -1513,12 +1482,8 @@ pub fn blogger_comments_mark_as_spam(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_mark_as_spam_builder(
-        client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.commentId.clone(),
-    )?;
+    let builder =
+        blogger_comments_mark_as_spam_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_mark_as_spam_execute(builder)
 }
 
@@ -1530,16 +1495,14 @@ pub fn blogger_comments_mark_as_spam(
 
 pub fn blogger_comments_remove_content_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    commentId: String,
+    blogId: &String,
+    postId: &String,
+    commentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/removecontent",
-        blogId.as_str(),
-        postId.as_str(),
-        commentId.as_str(),
+        blogId, postId, commentId,
     );
 
     // Build request
@@ -1685,9 +1648,9 @@ pub fn blogger_comments_remove_content(
 > {
     let builder = blogger_comments_remove_content_builder(
         client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.commentId.clone(),
+        &args.blogId,
+        &args.postId,
+        &args.commentId,
     )?;
     blogger_comments_remove_content_execute(builder)
 }
@@ -1700,18 +1663,18 @@ pub fn blogger_comments_remove_content(
 
 pub fn blogger_page_views_get_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    range: Option<String>,
+    blogId: &String,
+    range: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pageviews",
-        blogId.as_str(),
+        blogId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = range {
+    if let Some(val) = range.as_ref() {
         query_parts.push(format!("range={}", val));
     }
 
@@ -1859,7 +1822,7 @@ pub fn blogger_page_views_get(
     impl StreamIterator<D = Result<ApiResponse<Pageviews>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_page_views_get_builder(client, args.blogId.clone(), args.range.clone())?;
+    let builder = blogger_page_views_get_builder(client, &args.blogId, &args.range)?;
     blogger_page_views_get_execute(builder)
 }
 
@@ -1871,20 +1834,19 @@ pub fn blogger_page_views_get(
 
 pub fn blogger_pages_delete_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    pageId: String,
-    useTrash: Option<bool>,
+    blogId: &String,
+    pageId: &String,
+    useTrash: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
-        blogId.as_str(),
-        pageId.as_str(),
+        blogId, pageId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useTrash {
+    if let Some(val) = useTrash.as_ref() {
         query_parts.push(format!("useTrash={}", val));
     }
 
@@ -2031,12 +1993,7 @@ pub fn blogger_pages_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_delete_builder(
-        client,
-        args.blogId.clone(),
-        args.pageId.clone(),
-        args.useTrash.clone(),
-    )?;
+    let builder = blogger_pages_delete_builder(client, &args.blogId, &args.pageId, &args.useTrash)?;
     blogger_pages_delete_execute(builder)
 }
 
@@ -2048,19 +2005,16 @@ pub fn blogger_pages_delete(
 
 pub fn blogger_pages_insert_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    isDraft: Option<bool>,
+    blogId: &String,
+    isDraft: &Option<bool>,
     body: &Page,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/pages",
-        blogId.as_str(),
-    );
+    let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/pages", blogId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = isDraft {
+    if let Some(val) = isDraft.as_ref() {
         query_parts.push(format!("isDraft={}", val));
     }
 
@@ -2212,12 +2166,7 @@ pub fn blogger_pages_insert(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_insert_builder(
-        client,
-        args.blogId.clone(),
-        args.isDraft.clone(),
-        &args.body,
-    )?;
+    let builder = blogger_pages_insert_builder(client, &args.blogId, &args.isDraft, &args.body)?;
     blogger_pages_insert_execute(builder)
 }
 
@@ -2229,14 +2178,13 @@ pub fn blogger_pages_insert(
 
 pub fn blogger_pages_publish_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    pageId: String,
+    blogId: &String,
+    pageId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/publish",
-        blogId.as_str(),
-        pageId.as_str(),
+        blogId, pageId,
     );
 
     // Build request
@@ -2378,7 +2326,7 @@ pub fn blogger_pages_publish(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_publish_builder(client, args.blogId.clone(), args.pageId.clone())?;
+    let builder = blogger_pages_publish_builder(client, &args.blogId, &args.pageId)?;
     blogger_pages_publish_execute(builder)
 }
 
@@ -2390,14 +2338,13 @@ pub fn blogger_pages_publish(
 
 pub fn blogger_pages_revert_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    pageId: String,
+    blogId: &String,
+    pageId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/revert",
-        blogId.as_str(),
-        pageId.as_str(),
+        blogId, pageId,
     );
 
     // Build request
@@ -2539,7 +2486,7 @@ pub fn blogger_pages_revert(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_revert_builder(client, args.blogId.clone(), args.pageId.clone())?;
+    let builder = blogger_pages_revert_builder(client, &args.blogId, &args.pageId)?;
     blogger_pages_revert_execute(builder)
 }
 
@@ -2551,22 +2498,20 @@ pub fn blogger_pages_revert(
 
 pub fn blogger_post_user_infos_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    blogId: String,
-    postId: String,
-    maxComments: Option<i32>,
+    userId: &String,
+    blogId: &String,
+    postId: &String,
+    maxComments: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts/{}",
-        userId.as_str(),
-        blogId.as_str(),
-        postId.as_str(),
+        userId, blogId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxComments {
+    if let Some(val) = maxComments.as_ref() {
         query_parts.push(format!("maxComments={}", val));
     }
 
@@ -2724,10 +2669,10 @@ pub fn blogger_post_user_infos_get(
 > {
     let builder = blogger_post_user_infos_get_builder(
         client,
-        args.userId.clone(),
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.maxComments.clone(),
+        &args.userId,
+        &args.blogId,
+        &args.postId,
+        &args.maxComments,
     )?;
     blogger_post_user_infos_get_execute(builder)
 }
@@ -2740,52 +2685,51 @@ pub fn blogger_post_user_infos_get(
 
 pub fn blogger_post_user_infos_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    blogId: String,
-    endDate: Option<String>,
-    fetchBodies: Option<bool>,
-    labels: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    startDate: Option<String>,
-    status: Option<String>,
-    view: Option<String>,
+    userId: &String,
+    blogId: &String,
+    endDate: &Option<String>,
+    fetchBodies: &Option<bool>,
+    labels: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts",
-        userId.as_str(),
-        blogId.as_str(),
+        userId, blogId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate {
+    if let Some(val) = endDate.as_ref() {
         query_parts.push(format!("endDate={}", val));
     }
-    if let Some(val) = fetchBodies {
+    if let Some(val) = fetchBodies.as_ref() {
         query_parts.push(format!("fetchBodies={}", val));
     }
-    if let Some(val) = labels {
+    if let Some(val) = labels.as_ref() {
         query_parts.push(format!("labels={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startDate {
+    if let Some(val) = startDate.as_ref() {
         query_parts.push(format!("startDate={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2957,17 +2901,17 @@ pub fn blogger_post_user_infos_list(
 > {
     let builder = blogger_post_user_infos_list_builder(
         client,
-        args.userId.clone(),
-        args.blogId.clone(),
-        args.endDate.clone(),
-        args.fetchBodies.clone(),
-        args.labels.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.startDate.clone(),
-        args.status.clone(),
-        args.view.clone(),
+        &args.userId,
+        &args.blogId,
+        &args.endDate,
+        &args.fetchBodies,
+        &args.labels,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.startDate,
+        &args.status,
+        &args.view,
     )?;
     blogger_post_user_infos_list_execute(builder)
 }
@@ -2980,20 +2924,19 @@ pub fn blogger_post_user_infos_list(
 
 pub fn blogger_posts_delete_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    useTrash: Option<bool>,
+    blogId: &String,
+    postId: &String,
+    useTrash: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
-        blogId.as_str(),
-        postId.as_str(),
+        blogId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useTrash {
+    if let Some(val) = useTrash.as_ref() {
         query_parts.push(format!("useTrash={}", val));
     }
 
@@ -3140,12 +3083,7 @@ pub fn blogger_posts_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_delete_builder(
-        client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.useTrash.clone(),
-    )?;
+    let builder = blogger_posts_delete_builder(client, &args.blogId, &args.postId, &args.useTrash)?;
     blogger_posts_delete_execute(builder)
 }
 
@@ -3157,27 +3095,24 @@ pub fn blogger_posts_delete(
 
 pub fn blogger_posts_insert_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    isDraft: Option<bool>,
+    blogId: &String,
+    fetchBody: &Option<bool>,
+    fetchImages: &Option<bool>,
+    isDraft: &Option<bool>,
     body: &Post,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts",
-        blogId.as_str(),
-    );
+    let endpoint_url = format!("https://blogger.googleapis.com/v3/blogs/{}/posts", blogId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fetchBody {
+    if let Some(val) = fetchBody.as_ref() {
         query_parts.push(format!("fetchBody={}", val));
     }
-    if let Some(val) = fetchImages {
+    if let Some(val) = fetchImages.as_ref() {
         query_parts.push(format!("fetchImages={}", val));
     }
-    if let Some(val) = isDraft {
+    if let Some(val) = isDraft.as_ref() {
         query_parts.push(format!("isDraft={}", val));
     }
 
@@ -3335,10 +3270,10 @@ pub fn blogger_posts_insert(
 > {
     let builder = blogger_posts_insert_builder(
         client,
-        args.blogId.clone(),
-        args.fetchBody.clone(),
-        args.fetchImages.clone(),
-        args.isDraft.clone(),
+        &args.blogId,
+        &args.fetchBody,
+        &args.fetchImages,
+        &args.isDraft,
         &args.body,
     )?;
     blogger_posts_insert_execute(builder)
@@ -3352,20 +3287,19 @@ pub fn blogger_posts_insert(
 
 pub fn blogger_posts_publish_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
-    publishDate: Option<String>,
+    blogId: &String,
+    postId: &String,
+    publishDate: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/publish",
-        blogId.as_str(),
-        postId.as_str(),
+        blogId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = publishDate {
+    if let Some(val) = publishDate.as_ref() {
         query_parts.push(format!("publishDate={}", val));
     }
 
@@ -3515,12 +3449,8 @@ pub fn blogger_posts_publish(
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_publish_builder(
-        client,
-        args.blogId.clone(),
-        args.postId.clone(),
-        args.publishDate.clone(),
-    )?;
+    let builder =
+        blogger_posts_publish_builder(client, &args.blogId, &args.postId, &args.publishDate)?;
     blogger_posts_publish_execute(builder)
 }
 
@@ -3532,14 +3462,13 @@ pub fn blogger_posts_publish(
 
 pub fn blogger_posts_revert_builder(
     client: &SimpleHttpClient,
-    blogId: String,
-    postId: String,
+    blogId: &String,
+    postId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/revert",
-        blogId.as_str(),
-        postId.as_str(),
+        blogId, postId,
     );
 
     // Build request
@@ -3681,7 +3610,7 @@ pub fn blogger_posts_revert(
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_revert_builder(client, args.blogId.clone(), args.postId.clone())?;
+    let builder = blogger_posts_revert_builder(client, &args.blogId, &args.postId)?;
     blogger_posts_revert_execute(builder)
 }
 
@@ -3693,13 +3622,10 @@ pub fn blogger_posts_revert(
 
 pub fn blogger_users_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://blogger.googleapis.com/v3/users/{}",
-        userId.as_str(),
-    );
+    let endpoint_url = format!("https://blogger.googleapis.com/v3/users/{}", userId,);
 
     // Build request
     let builder = client
@@ -3838,6 +3764,6 @@ pub fn blogger_users_get(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_users_get_builder(client, args.userId.clone())?;
+    let builder = blogger_users_get_builder(client, &args.userId)?;
     blogger_users_get_execute(builder)
 }

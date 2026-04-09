@@ -29,42 +29,42 @@ use serde::Serialize;
 
 pub fn compute_accelerator_types_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/acceleratorTypes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -234,14 +234,14 @@ pub fn compute_accelerator_types_aggregated_list(
 > {
     let builder = compute_accelerator_types_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_accelerator_types_aggregated_list_execute(builder)
 }
@@ -254,16 +254,14 @@ pub fn compute_accelerator_types_aggregated_list(
 
 pub fn compute_accelerator_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    acceleratorType: String,
+    project: &String,
+    zone: &String,
+    acceleratorType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/acceleratorTypes/{}",
-        project.as_str(),
-        zone.as_str(),
-        acceleratorType.as_str(),
+        project, zone, acceleratorType,
     );
 
     // Build request
@@ -413,9 +411,9 @@ pub fn compute_accelerator_types_get(
 > {
     let builder = compute_accelerator_types_get_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.acceleratorType.clone(),
+        &args.project,
+        &args.zone,
+        &args.acceleratorType,
     )?;
     compute_accelerator_types_get_execute(builder)
 }
@@ -428,36 +426,35 @@ pub fn compute_accelerator_types_get(
 
 pub fn compute_accelerator_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/acceleratorTypes",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -621,13 +618,13 @@ pub fn compute_accelerator_types_list(
 > {
     let builder = compute_accelerator_types_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_accelerator_types_list_execute(builder)
 }
@@ -640,42 +637,42 @@ pub fn compute_accelerator_types_list(
 
 pub fn compute_addresses_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/addresses",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -841,14 +838,14 @@ pub fn compute_addresses_aggregated_list(
 > {
     let builder = compute_addresses_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_addresses_aggregated_list_execute(builder)
 }
@@ -861,22 +858,20 @@ pub fn compute_addresses_aggregated_list(
 
 pub fn compute_addresses_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    address: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    address: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}",
-        project.as_str(),
-        region.as_str(),
-        address.as_str(),
+        project, region, address,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -1030,10 +1025,10 @@ pub fn compute_addresses_delete(
 > {
     let builder = compute_addresses_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.address.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.address,
+        &args.requestId,
     )?;
     compute_addresses_delete_execute(builder)
 }
@@ -1046,21 +1041,20 @@ pub fn compute_addresses_delete(
 
 pub fn compute_addresses_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &Address,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -1216,9 +1210,9 @@ pub fn compute_addresses_insert(
 > {
     let builder = compute_addresses_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_addresses_insert_execute(builder)
@@ -1232,23 +1226,21 @@ pub fn compute_addresses_insert(
 
 pub fn compute_addresses_move_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    address: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    address: &String,
+    requestId: &Option<String>,
     body: &RegionAddressesMoveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/move",
-        project.as_str(),
-        region.as_str(),
-        address.as_str(),
+        project, region, address,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -1406,10 +1398,10 @@ pub fn compute_addresses_move(
 > {
     let builder = compute_addresses_move_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.address.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.address,
+        &args.requestId,
         &args.body,
     )?;
     compute_addresses_move_execute(builder)
@@ -1423,23 +1415,21 @@ pub fn compute_addresses_move(
 
 pub fn compute_addresses_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -1597,10 +1587,10 @@ pub fn compute_addresses_set_labels(
 > {
     let builder = compute_addresses_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_addresses_set_labels_execute(builder)
@@ -1614,17 +1604,17 @@ pub fn compute_addresses_set_labels(
 
 pub fn compute_addresses_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/addresses/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -1778,9 +1768,9 @@ pub fn compute_addresses_test_iam_permissions(
 > {
     let builder = compute_addresses_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_addresses_test_iam_permissions_execute(builder)
@@ -1794,15 +1784,14 @@ pub fn compute_addresses_test_iam_permissions(
 
 pub fn compute_advice_calendar_mode_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
+    project: &String,
+    region: &String,
     body: &CalendarModeAdviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/advice/calendarMode",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
@@ -1956,12 +1945,8 @@ pub fn compute_advice_calendar_mode(
         + 'static,
     ApiError,
 > {
-    let builder = compute_advice_calendar_mode_builder(
-        client,
-        args.project.clone(),
-        args.region.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_advice_calendar_mode_builder(client, &args.project, &args.region, &args.body)?;
     compute_advice_calendar_mode_execute(builder)
 }
 
@@ -1973,42 +1958,42 @@ pub fn compute_advice_calendar_mode(
 
 pub fn compute_autoscalers_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/autoscalers",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -2174,14 +2159,14 @@ pub fn compute_autoscalers_aggregated_list(
 > {
     let builder = compute_autoscalers_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_autoscalers_aggregated_list_execute(builder)
 }
@@ -2194,22 +2179,20 @@ pub fn compute_autoscalers_aggregated_list(
 
 pub fn compute_autoscalers_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    autoscaler: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    autoscaler: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers/{}",
-        project.as_str(),
-        zone.as_str(),
-        autoscaler.as_str(),
+        project, zone, autoscaler,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -2363,10 +2346,10 @@ pub fn compute_autoscalers_delete(
 > {
     let builder = compute_autoscalers_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.autoscaler.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.autoscaler,
+        &args.requestId,
     )?;
     compute_autoscalers_delete_execute(builder)
 }
@@ -2379,21 +2362,20 @@ pub fn compute_autoscalers_delete(
 
 pub fn compute_autoscalers_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &Autoscaler,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -2549,9 +2531,9 @@ pub fn compute_autoscalers_insert(
 > {
     let builder = compute_autoscalers_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_autoscalers_insert_execute(builder)
@@ -2565,17 +2547,17 @@ pub fn compute_autoscalers_insert(
 
 pub fn compute_autoscalers_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/autoscalers/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -2729,9 +2711,9 @@ pub fn compute_autoscalers_test_iam_permissions(
 > {
     let builder = compute_autoscalers_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_autoscalers_test_iam_permissions_execute(builder)
@@ -2745,21 +2727,21 @@ pub fn compute_autoscalers_test_iam_permissions(
 
 pub fn compute_backend_buckets_add_signed_url_key_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendBucket: String,
-    requestId: Option<String>,
+    project: &String,
+    backendBucket: &String,
+    requestId: &Option<String>,
     body: &SignedUrlKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/addSignedUrlKey",
-        project.as_str(),
-        backendBucket.as_str(),
+        project,
+        backendBucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -2915,9 +2897,9 @@ pub fn compute_backend_buckets_add_signed_url_key(
 > {
     let builder = compute_backend_buckets_add_signed_url_key_builder(
         client,
-        args.project.clone(),
-        args.backendBucket.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendBucket,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_buckets_add_signed_url_key_execute(builder)
@@ -2931,20 +2913,19 @@ pub fn compute_backend_buckets_add_signed_url_key(
 
 pub fn compute_backend_buckets_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendBucket: String,
-    requestId: Option<String>,
+    project: &String,
+    backendBucket: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}",
-        project.as_str(),
-        backendBucket.as_str(),
+        project, backendBucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -3096,9 +3077,9 @@ pub fn compute_backend_buckets_delete(
 > {
     let builder = compute_backend_buckets_delete_builder(
         client,
-        args.project.clone(),
-        args.backendBucket.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendBucket,
+        &args.requestId,
     )?;
     compute_backend_buckets_delete_execute(builder)
 }
@@ -3111,20 +3092,20 @@ pub fn compute_backend_buckets_delete(
 
 pub fn compute_backend_buckets_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -3276,9 +3257,9 @@ pub fn compute_backend_buckets_get_iam_policy(
 > {
     let builder = compute_backend_buckets_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_backend_buckets_get_iam_policy_execute(builder)
 }
@@ -3291,19 +3272,19 @@ pub fn compute_backend_buckets_get_iam_policy(
 
 pub fn compute_backend_buckets_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &BackendBucket,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -3455,12 +3436,8 @@ pub fn compute_backend_buckets_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_backend_buckets_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_backend_buckets_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_backend_buckets_insert_execute(builder)
 }
 
@@ -3472,21 +3449,21 @@ pub fn compute_backend_buckets_insert(
 
 pub fn compute_backend_buckets_set_edge_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendBucket: String,
-    requestId: Option<String>,
+    project: &String,
+    backendBucket: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/setEdgeSecurityPolicy",
-        project.as_str(),
-        backendBucket.as_str(),
+        project,
+        backendBucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -3642,9 +3619,9 @@ pub fn compute_backend_buckets_set_edge_security_policy(
 > {
     let builder = compute_backend_buckets_set_edge_security_policy_builder(
         client,
-        args.project.clone(),
-        args.backendBucket.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendBucket,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_buckets_set_edge_security_policy_execute(builder)
@@ -3658,15 +3635,15 @@ pub fn compute_backend_buckets_set_edge_security_policy(
 
 pub fn compute_backend_buckets_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -3814,8 +3791,8 @@ pub fn compute_backend_buckets_set_iam_policy(
 > {
     let builder = compute_backend_buckets_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_backend_buckets_set_iam_policy_execute(builder)
@@ -3829,15 +3806,15 @@ pub fn compute_backend_buckets_set_iam_policy(
 
 pub fn compute_backend_buckets_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendBuckets/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -3989,8 +3966,8 @@ pub fn compute_backend_buckets_test_iam_permissions(
 > {
     let builder = compute_backend_buckets_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_backend_buckets_test_iam_permissions_execute(builder)
@@ -4004,21 +3981,21 @@ pub fn compute_backend_buckets_test_iam_permissions(
 
 pub fn compute_backend_services_add_signed_url_key_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    backendService: &String,
+    requestId: &Option<String>,
     body: &SignedUrlKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/addSignedUrlKey",
-        project.as_str(),
-        backendService.as_str(),
+        project,
+        backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -4174,9 +4151,9 @@ pub fn compute_backend_services_add_signed_url_key(
 > {
     let builder = compute_backend_services_add_signed_url_key_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendService,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_services_add_signed_url_key_execute(builder)
@@ -4190,42 +4167,42 @@ pub fn compute_backend_services_add_signed_url_key(
 
 pub fn compute_backend_services_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/backendServices",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -4395,14 +4372,14 @@ pub fn compute_backend_services_aggregated_list(
 > {
     let builder = compute_backend_services_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_backend_services_aggregated_list_execute(builder)
 }
@@ -4415,20 +4392,19 @@ pub fn compute_backend_services_aggregated_list(
 
 pub fn compute_backend_services_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    backendService: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}",
-        project.as_str(),
-        backendService.as_str(),
+        project, backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -4580,9 +4556,9 @@ pub fn compute_backend_services_delete(
 > {
     let builder = compute_backend_services_delete_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendService,
+        &args.requestId,
     )?;
     compute_backend_services_delete_execute(builder)
 }
@@ -4595,14 +4571,14 @@ pub fn compute_backend_services_delete(
 
 pub fn compute_backend_services_get_effective_security_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
+    project: &String,
+    backendService: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getEffectiveSecurityPolicies",
-        project.as_str(),
-        backendService.as_str(),
+        project,
+        backendService,
     );
 
     // Build request
@@ -4743,8 +4719,8 @@ pub fn compute_backend_services_get_effective_security_policies(
 > {
     let builder = compute_backend_services_get_effective_security_policies_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
+        &args.project,
+        &args.backendService,
     )?;
     compute_backend_services_get_effective_security_policies_execute(builder)
 }
@@ -4757,15 +4733,14 @@ pub fn compute_backend_services_get_effective_security_policies(
 
 pub fn compute_backend_services_get_health_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
+    project: &String,
+    backendService: &String,
     body: &ResourceGroupReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getHealth",
-        project.as_str(),
-        backendService.as_str(),
+        project, backendService,
     );
 
     // Build request
@@ -4917,8 +4892,8 @@ pub fn compute_backend_services_get_health(
 > {
     let builder = compute_backend_services_get_health_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
+        &args.project,
+        &args.backendService,
         &args.body,
     )?;
     compute_backend_services_get_health_execute(builder)
@@ -4932,20 +4907,20 @@ pub fn compute_backend_services_get_health(
 
 pub fn compute_backend_services_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -5097,9 +5072,9 @@ pub fn compute_backend_services_get_iam_policy(
 > {
     let builder = compute_backend_services_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_backend_services_get_iam_policy_execute(builder)
 }
@@ -5112,19 +5087,19 @@ pub fn compute_backend_services_get_iam_policy(
 
 pub fn compute_backend_services_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &BackendService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -5278,8 +5253,8 @@ pub fn compute_backend_services_insert(
 > {
     let builder = compute_backend_services_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_services_insert_execute(builder)
@@ -5293,34 +5268,34 @@ pub fn compute_backend_services_insert(
 
 pub fn compute_backend_services_list_usable_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/listUsable",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5482,12 +5457,12 @@ pub fn compute_backend_services_list_usable(
 > {
     let builder = compute_backend_services_list_usable_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_backend_services_list_usable_execute(builder)
 }
@@ -5500,21 +5475,21 @@ pub fn compute_backend_services_list_usable(
 
 pub fn compute_backend_services_set_edge_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    backendService: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setEdgeSecurityPolicy",
-        project.as_str(),
-        backendService.as_str(),
+        project,
+        backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -5670,9 +5645,9 @@ pub fn compute_backend_services_set_edge_security_policy(
 > {
     let builder = compute_backend_services_set_edge_security_policy_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendService,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_services_set_edge_security_policy_execute(builder)
@@ -5686,15 +5661,15 @@ pub fn compute_backend_services_set_edge_security_policy(
 
 pub fn compute_backend_services_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -5842,8 +5817,8 @@ pub fn compute_backend_services_set_iam_policy(
 > {
     let builder = compute_backend_services_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_backend_services_set_iam_policy_execute(builder)
@@ -5857,21 +5832,21 @@ pub fn compute_backend_services_set_iam_policy(
 
 pub fn compute_backend_services_set_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    backendService: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/setSecurityPolicy",
-        project.as_str(),
-        backendService.as_str(),
+        project,
+        backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -6027,9 +6002,9 @@ pub fn compute_backend_services_set_security_policy(
 > {
     let builder = compute_backend_services_set_security_policy_builder(
         client,
-        args.project.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.backendService,
+        &args.requestId,
         &args.body,
     )?;
     compute_backend_services_set_security_policy_execute(builder)
@@ -6043,15 +6018,15 @@ pub fn compute_backend_services_set_security_policy(
 
 pub fn compute_backend_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/backendServices/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -6203,8 +6178,8 @@ pub fn compute_backend_services_test_iam_permissions(
 > {
     let builder = compute_backend_services_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_backend_services_test_iam_permissions_execute(builder)
@@ -6218,20 +6193,19 @@ pub fn compute_backend_services_test_iam_permissions(
 
 pub fn compute_cross_site_networks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    crossSiteNetwork: String,
-    requestId: Option<String>,
+    project: &String,
+    crossSiteNetwork: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}",
-        project.as_str(),
-        crossSiteNetwork.as_str(),
+        project, crossSiteNetwork,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -6383,9 +6357,9 @@ pub fn compute_cross_site_networks_delete(
 > {
     let builder = compute_cross_site_networks_delete_builder(
         client,
-        args.project.clone(),
-        args.crossSiteNetwork.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.crossSiteNetwork,
+        &args.requestId,
     )?;
     compute_cross_site_networks_delete_execute(builder)
 }
@@ -6398,23 +6372,23 @@ pub fn compute_cross_site_networks_delete(
 
 pub fn compute_cross_site_networks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &CrossSiteNetwork,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -6570,9 +6544,9 @@ pub fn compute_cross_site_networks_insert(
 > {
     let builder = compute_cross_site_networks_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_cross_site_networks_insert_execute(builder)
@@ -6586,42 +6560,42 @@ pub fn compute_cross_site_networks_insert(
 
 pub fn compute_disk_types_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/diskTypes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -6787,14 +6761,14 @@ pub fn compute_disk_types_aggregated_list(
 > {
     let builder = compute_disk_types_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_disk_types_aggregated_list_execute(builder)
 }
@@ -6807,16 +6781,14 @@ pub fn compute_disk_types_aggregated_list(
 
 pub fn compute_disk_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    diskType: String,
+    project: &String,
+    zone: &String,
+    diskType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/diskTypes/{}",
-        project.as_str(),
-        zone.as_str(),
-        diskType.as_str(),
+        project, zone, diskType,
     );
 
     // Build request
@@ -6960,12 +6932,8 @@ pub fn compute_disk_types_get(
     impl StreamIterator<D = Result<ApiResponse<DiskType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_disk_types_get_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.diskType.clone(),
-    )?;
+    let builder =
+        compute_disk_types_get_builder(client, &args.project, &args.zone, &args.diskType)?;
     compute_disk_types_get_execute(builder)
 }
 
@@ -6977,36 +6945,35 @@ pub fn compute_disk_types_get(
 
 pub fn compute_disk_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/diskTypes",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -7170,13 +7137,13 @@ pub fn compute_disk_types_list(
 > {
     let builder = compute_disk_types_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_disk_types_list_execute(builder)
 }
@@ -7189,23 +7156,23 @@ pub fn compute_disk_types_list(
 
 pub fn compute_disks_add_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &DisksAddResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/addResourcePolicies",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project,
+        zone,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -7363,10 +7330,10 @@ pub fn compute_disks_add_resource_policies(
 > {
     let builder = compute_disks_add_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_add_resource_policies_execute(builder)
@@ -7380,42 +7347,42 @@ pub fn compute_disks_add_resource_policies(
 
 pub fn compute_disks_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/disks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -7581,14 +7548,14 @@ pub fn compute_disks_aggregated_list(
 > {
     let builder = compute_disks_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_disks_aggregated_list_execute(builder)
 }
@@ -7601,21 +7568,20 @@ pub fn compute_disks_aggregated_list(
 
 pub fn compute_disks_bulk_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &BulkInsertDiskResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/bulkInsert",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -7771,9 +7737,9 @@ pub fn compute_disks_bulk_insert(
 > {
     let builder = compute_disks_bulk_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_bulk_insert_execute(builder)
@@ -7787,25 +7753,24 @@ pub fn compute_disks_bulk_insert(
 
 pub fn compute_disks_bulk_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
-    resource: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
+    resource: &Option<String>,
     body: &BulkZoneSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/bulkSetLabels",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = resource {
+    if let Some(val) = resource.as_ref() {
         query_parts.push(format!("resource={}", val));
     }
 
@@ -7963,10 +7928,10 @@ pub fn compute_disks_bulk_set_labels(
 > {
     let builder = compute_disks_bulk_set_labels_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
+        &args.resource,
         &args.body,
     )?;
     compute_disks_bulk_set_labels_execute(builder)
@@ -7980,27 +7945,25 @@ pub fn compute_disks_bulk_set_labels(
 
 pub fn compute_disks_create_snapshot_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    guestFlush: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    guestFlush: &Option<bool>,
+    requestId: &Option<String>,
     body: &Snapshot,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/createSnapshot",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project, zone, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = guestFlush {
+    if let Some(val) = guestFlush.as_ref() {
         query_parts.push(format!("guestFlush={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -8160,11 +8123,11 @@ pub fn compute_disks_create_snapshot(
 > {
     let builder = compute_disks_create_snapshot_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.guestFlush.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.guestFlush,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_create_snapshot_execute(builder)
@@ -8178,22 +8141,20 @@ pub fn compute_disks_create_snapshot(
 
 pub fn compute_disks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project, zone, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -8347,10 +8308,10 @@ pub fn compute_disks_delete(
 > {
     let builder = compute_disks_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
     )?;
     compute_disks_delete_execute(builder)
 }
@@ -8363,22 +8324,20 @@ pub fn compute_disks_delete(
 
 pub fn compute_disks_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -8532,10 +8491,10 @@ pub fn compute_disks_get_iam_policy(
 > {
     let builder = compute_disks_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_disks_get_iam_policy_execute(builder)
 }
@@ -8548,25 +8507,24 @@ pub fn compute_disks_get_iam_policy(
 
 pub fn compute_disks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
-    sourceImage: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
+    sourceImage: &Option<String>,
     body: &Disk,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceImage {
+    if let Some(val) = sourceImage.as_ref() {
         query_parts.push(format!("sourceImage={}", val));
     }
 
@@ -8724,10 +8682,10 @@ pub fn compute_disks_insert(
 > {
     let builder = compute_disks_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
-        args.sourceImage.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
+        &args.sourceImage,
         &args.body,
     )?;
     compute_disks_insert_execute(builder)
@@ -8741,23 +8699,23 @@ pub fn compute_disks_insert(
 
 pub fn compute_disks_remove_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &DisksRemoveResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/removeResourcePolicies",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project,
+        zone,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -8915,10 +8873,10 @@ pub fn compute_disks_remove_resource_policies(
 > {
     let builder = compute_disks_remove_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_remove_resource_policies_execute(builder)
@@ -8932,23 +8890,21 @@ pub fn compute_disks_remove_resource_policies(
 
 pub fn compute_disks_resize_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &DisksResizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/resize",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project, zone, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -9106,10 +9062,10 @@ pub fn compute_disks_resize(
 > {
     let builder = compute_disks_resize_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_resize_execute(builder)
@@ -9123,17 +9079,15 @@ pub fn compute_disks_resize(
 
 pub fn compute_disks_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
@@ -9283,9 +9237,9 @@ pub fn compute_disks_set_iam_policy(
 > {
     let builder = compute_disks_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_disks_set_iam_policy_execute(builder)
@@ -9299,23 +9253,21 @@ pub fn compute_disks_set_iam_policy(
 
 pub fn compute_disks_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &ZoneSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/setLabels",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -9473,10 +9425,10 @@ pub fn compute_disks_set_labels(
 > {
     let builder = compute_disks_set_labels_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_set_labels_execute(builder)
@@ -9490,23 +9442,23 @@ pub fn compute_disks_set_labels(
 
 pub fn compute_disks_start_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &DisksStartAsyncReplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/startAsyncReplication",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project,
+        zone,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -9664,10 +9616,10 @@ pub fn compute_disks_start_async_replication(
 > {
     let builder = compute_disks_start_async_replication_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_start_async_replication_execute(builder)
@@ -9681,22 +9633,22 @@ pub fn compute_disks_start_async_replication(
 
 pub fn compute_disks_stop_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    disk: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/stopAsyncReplication",
-        project.as_str(),
-        zone.as_str(),
-        disk.as_str(),
+        project,
+        zone,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -9850,10 +9802,10 @@ pub fn compute_disks_stop_async_replication(
 > {
     let builder = compute_disks_stop_async_replication_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.disk,
+        &args.requestId,
     )?;
     compute_disks_stop_async_replication_execute(builder)
 }
@@ -9866,21 +9818,21 @@ pub fn compute_disks_stop_async_replication(
 
 pub fn compute_disks_stop_group_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &DisksStopGroupAsyncReplicationResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/stopGroupAsyncReplication",
-        project.as_str(),
-        zone.as_str(),
+        project,
+        zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -10036,9 +9988,9 @@ pub fn compute_disks_stop_group_async_replication(
 > {
     let builder = compute_disks_stop_group_async_replication_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_disks_stop_group_async_replication_execute(builder)
@@ -10052,17 +10004,17 @@ pub fn compute_disks_stop_group_async_replication(
 
 pub fn compute_disks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/disks/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -10216,9 +10168,9 @@ pub fn compute_disks_test_iam_permissions(
 > {
     let builder = compute_disks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_disks_test_iam_permissions_execute(builder)
@@ -10232,20 +10184,19 @@ pub fn compute_disks_test_iam_permissions(
 
 pub fn compute_external_vpn_gateways_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    externalVpnGateway: String,
-    requestId: Option<String>,
+    project: &String,
+    externalVpnGateway: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}",
-        project.as_str(),
-        externalVpnGateway.as_str(),
+        project, externalVpnGateway,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -10397,9 +10348,9 @@ pub fn compute_external_vpn_gateways_delete(
 > {
     let builder = compute_external_vpn_gateways_delete_builder(
         client,
-        args.project.clone(),
-        args.externalVpnGateway.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.externalVpnGateway,
+        &args.requestId,
     )?;
     compute_external_vpn_gateways_delete_execute(builder)
 }
@@ -10412,19 +10363,19 @@ pub fn compute_external_vpn_gateways_delete(
 
 pub fn compute_external_vpn_gateways_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ExternalVpnGateway,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -10578,8 +10529,8 @@ pub fn compute_external_vpn_gateways_insert(
 > {
     let builder = compute_external_vpn_gateways_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_external_vpn_gateways_insert_execute(builder)
@@ -10593,15 +10544,15 @@ pub fn compute_external_vpn_gateways_insert(
 
 pub fn compute_external_vpn_gateways_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -10749,8 +10700,8 @@ pub fn compute_external_vpn_gateways_set_labels(
 > {
     let builder = compute_external_vpn_gateways_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_external_vpn_gateways_set_labels_execute(builder)
@@ -10764,15 +10715,15 @@ pub fn compute_external_vpn_gateways_set_labels(
 
 pub fn compute_external_vpn_gateways_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/externalVpnGateways/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -10924,8 +10875,8 @@ pub fn compute_external_vpn_gateways_test_iam_permissions(
 > {
     let builder = compute_external_vpn_gateways_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_external_vpn_gateways_test_iam_permissions_execute(builder)
@@ -10939,23 +10890,23 @@ pub fn compute_external_vpn_gateways_test_iam_permissions(
 
 pub fn compute_firewall_policies_add_association_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    replaceExistingAssociation: Option<bool>,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    replaceExistingAssociation: &Option<bool>,
+    requestId: &Option<String>,
     body: &FirewallPolicyAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/addAssociation",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = replaceExistingAssociation {
+    if let Some(val) = replaceExistingAssociation.as_ref() {
         query_parts.push(format!("replaceExistingAssociation={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -11111,9 +11062,9 @@ pub fn compute_firewall_policies_add_association(
 > {
     let builder = compute_firewall_policies_add_association_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.replaceExistingAssociation.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.replaceExistingAssociation,
+        &args.requestId,
         &args.body,
     )?;
     compute_firewall_policies_add_association_execute(builder)
@@ -11127,19 +11078,19 @@ pub fn compute_firewall_policies_add_association(
 
 pub fn compute_firewall_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/addRule",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -11293,8 +11244,8 @@ pub fn compute_firewall_policies_add_rule(
 > {
     let builder = compute_firewall_policies_add_rule_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.requestId,
         &args.body,
     )?;
     compute_firewall_policies_add_rule_execute(builder)
@@ -11308,22 +11259,22 @@ pub fn compute_firewall_policies_add_rule(
 
 pub fn compute_firewall_policies_clone_rules_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    requestId: Option<String>,
-    sourceFirewallPolicy: Option<String>,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/cloneRules",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceFirewallPolicy {
+    if let Some(val) = sourceFirewallPolicy.as_ref() {
         query_parts.push(format!("sourceFirewallPolicy={}", val));
     }
 
@@ -11475,9 +11426,9 @@ pub fn compute_firewall_policies_clone_rules(
 > {
     let builder = compute_firewall_policies_clone_rules_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
-        args.sourceFirewallPolicy.clone(),
+        &args.firewallPolicy,
+        &args.requestId,
+        &args.sourceFirewallPolicy,
     )?;
     compute_firewall_policies_clone_rules_execute(builder)
 }
@@ -11490,18 +11441,18 @@ pub fn compute_firewall_policies_clone_rules(
 
 pub fn compute_firewall_policies_delete_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -11649,11 +11600,8 @@ pub fn compute_firewall_policies_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_firewall_policies_delete_builder(
-        client,
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_firewall_policies_delete_builder(client, &args.firewallPolicy, &args.requestId)?;
     compute_firewall_policies_delete_execute(builder)
 }
 
@@ -11665,18 +11613,18 @@ pub fn compute_firewall_policies_delete(
 
 pub fn compute_firewall_policies_get_association_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    name: Option<String>,
+    firewallPolicy: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getAssociation",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -11830,8 +11778,8 @@ pub fn compute_firewall_policies_get_association(
 > {
     let builder = compute_firewall_policies_get_association_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.name.clone(),
+        &args.firewallPolicy,
+        &args.name,
     )?;
     compute_firewall_policies_get_association_execute(builder)
 }
@@ -11844,18 +11792,18 @@ pub fn compute_firewall_policies_get_association(
 
 pub fn compute_firewall_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getIamPolicy",
-        resource.as_str(),
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -12005,8 +11953,8 @@ pub fn compute_firewall_policies_get_iam_policy(
 > {
     let builder = compute_firewall_policies_get_iam_policy_builder(
         client,
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_firewall_policies_get_iam_policy_execute(builder)
 }
@@ -12019,18 +11967,18 @@ pub fn compute_firewall_policies_get_iam_policy(
 
 pub fn compute_firewall_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    priority: Option<i32>,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/getRule",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -12182,11 +12130,8 @@ pub fn compute_firewall_policies_get_rule(
         + 'static,
     ApiError,
 > {
-    let builder = compute_firewall_policies_get_rule_builder(
-        client,
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-    )?;
+    let builder =
+        compute_firewall_policies_get_rule_builder(client, &args.firewallPolicy, &args.priority)?;
     compute_firewall_policies_get_rule_execute(builder)
 }
 
@@ -12198,8 +12143,8 @@ pub fn compute_firewall_policies_get_rule(
 
 pub fn compute_firewall_policies_insert_builder(
     client: &SimpleHttpClient,
-    parentId: Option<String>,
-    requestId: Option<String>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
     body: &FirewallPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -12208,10 +12153,10 @@ pub fn compute_firewall_policies_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -12365,8 +12310,8 @@ pub fn compute_firewall_policies_insert(
 > {
     let builder = compute_firewall_policies_insert_builder(
         client,
-        args.parentId.clone(),
-        args.requestId.clone(),
+        &args.parentId,
+        &args.requestId,
         &args.body,
     )?;
     compute_firewall_policies_insert_execute(builder)
@@ -12380,8 +12325,8 @@ pub fn compute_firewall_policies_insert(
 
 pub fn compute_firewall_policies_list_associations_builder(
     client: &SimpleHttpClient,
-    includeInheritedPolicies: Option<bool>,
-    targetResource: Option<String>,
+    includeInheritedPolicies: &Option<bool>,
+    targetResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12390,10 +12335,10 @@ pub fn compute_firewall_policies_list_associations_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeInheritedPolicies {
+    if let Some(val) = includeInheritedPolicies.as_ref() {
         query_parts.push(format!("includeInheritedPolicies={}", val));
     }
-    if let Some(val) = targetResource {
+    if let Some(val) = targetResource.as_ref() {
         query_parts.push(format!("targetResource={}", val));
     }
 
@@ -12551,8 +12496,8 @@ pub fn compute_firewall_policies_list_associations(
 > {
     let builder = compute_firewall_policies_list_associations_builder(
         client,
-        args.includeInheritedPolicies.clone(),
-        args.targetResource.clone(),
+        &args.includeInheritedPolicies,
+        &args.targetResource,
     )?;
     compute_firewall_policies_list_associations_execute(builder)
 }
@@ -12565,22 +12510,22 @@ pub fn compute_firewall_policies_list_associations(
 
 pub fn compute_firewall_policies_move_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    parentId: Option<String>,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/move",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -12732,9 +12677,9 @@ pub fn compute_firewall_policies_move(
 > {
     let builder = compute_firewall_policies_move_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.parentId.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.parentId,
+        &args.requestId,
     )?;
     compute_firewall_policies_move_execute(builder)
 }
@@ -12747,23 +12692,23 @@ pub fn compute_firewall_policies_move(
 
 pub fn compute_firewall_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/patchRule",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -12919,9 +12864,9 @@ pub fn compute_firewall_policies_patch_rule(
 > {
     let builder = compute_firewall_policies_patch_rule_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
         &args.body,
     )?;
     compute_firewall_policies_patch_rule_execute(builder)
@@ -12935,22 +12880,22 @@ pub fn compute_firewall_policies_patch_rule(
 
 pub fn compute_firewall_policies_remove_association_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    name: Option<String>,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/removeAssociation",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -13102,9 +13047,9 @@ pub fn compute_firewall_policies_remove_association(
 > {
     let builder = compute_firewall_policies_remove_association_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.name.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.name,
+        &args.requestId,
     )?;
     compute_firewall_policies_remove_association_execute(builder)
 }
@@ -13117,22 +13062,22 @@ pub fn compute_firewall_policies_remove_association(
 
 pub fn compute_firewall_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/removeRule",
-        firewallPolicy.as_str(),
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -13284,9 +13229,9 @@ pub fn compute_firewall_policies_remove_rule(
 > {
     let builder = compute_firewall_policies_remove_rule_builder(
         client,
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
     )?;
     compute_firewall_policies_remove_rule_execute(builder)
 }
@@ -13299,13 +13244,13 @@ pub fn compute_firewall_policies_remove_rule(
 
 pub fn compute_firewall_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GlobalOrganizationSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/setIamPolicy",
-        resource.as_str(),
+        resource,
     );
 
     // Build request
@@ -13449,11 +13394,8 @@ pub fn compute_firewall_policies_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_firewall_policies_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_firewall_policies_set_iam_policy_builder(client, &args.resource, &args.body)?;
     compute_firewall_policies_set_iam_policy_execute(builder)
 }
 
@@ -13465,13 +13407,13 @@ pub fn compute_firewall_policies_set_iam_policy(
 
 pub fn compute_firewall_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/firewallPolicies/{}/testIamPermissions",
-        resource.as_str(),
+        resource,
     );
 
     // Build request
@@ -13619,11 +13561,8 @@ pub fn compute_firewall_policies_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = compute_firewall_policies_test_iam_permissions_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_firewall_policies_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     compute_firewall_policies_test_iam_permissions_execute(builder)
 }
 
@@ -13635,20 +13574,19 @@ pub fn compute_firewall_policies_test_iam_permissions(
 
 pub fn compute_firewalls_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewall: String,
-    requestId: Option<String>,
+    project: &String,
+    firewall: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}",
-        project.as_str(),
-        firewall.as_str(),
+        project, firewall,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -13798,12 +13736,8 @@ pub fn compute_firewalls_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_firewalls_delete_builder(
-        client,
-        args.project.clone(),
-        args.firewall.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_firewalls_delete_builder(client, &args.project, &args.firewall, &args.requestId)?;
     compute_firewalls_delete_execute(builder)
 }
 
@@ -13815,19 +13749,19 @@ pub fn compute_firewalls_delete(
 
 pub fn compute_firewalls_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Firewall,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -13979,12 +13913,8 @@ pub fn compute_firewalls_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_firewalls_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_firewalls_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_firewalls_insert_execute(builder)
 }
 
@@ -13996,15 +13926,15 @@ pub fn compute_firewalls_insert(
 
 pub fn compute_firewalls_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewalls/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -14156,8 +14086,8 @@ pub fn compute_firewalls_test_iam_permissions(
 > {
     let builder = compute_firewalls_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_firewalls_test_iam_permissions_execute(builder)
@@ -14171,42 +14101,42 @@ pub fn compute_firewalls_test_iam_permissions(
 
 pub fn compute_forwarding_rules_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/forwardingRules",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -14376,14 +14306,14 @@ pub fn compute_forwarding_rules_aggregated_list(
 > {
     let builder = compute_forwarding_rules_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_forwarding_rules_aggregated_list_execute(builder)
 }
@@ -14396,22 +14326,20 @@ pub fn compute_forwarding_rules_aggregated_list(
 
 pub fn compute_forwarding_rules_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    forwardingRule: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    forwardingRule: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}",
-        project.as_str(),
-        region.as_str(),
-        forwardingRule.as_str(),
+        project, region, forwardingRule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -14565,10 +14493,10 @@ pub fn compute_forwarding_rules_delete(
 > {
     let builder = compute_forwarding_rules_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.forwardingRule.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.forwardingRule,
+        &args.requestId,
     )?;
     compute_forwarding_rules_delete_execute(builder)
 }
@@ -14581,21 +14509,20 @@ pub fn compute_forwarding_rules_delete(
 
 pub fn compute_forwarding_rules_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &ForwardingRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -14751,9 +14678,9 @@ pub fn compute_forwarding_rules_insert(
 > {
     let builder = compute_forwarding_rules_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_forwarding_rules_insert_execute(builder)
@@ -14767,23 +14694,23 @@ pub fn compute_forwarding_rules_insert(
 
 pub fn compute_forwarding_rules_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -14941,10 +14868,10 @@ pub fn compute_forwarding_rules_set_labels(
 > {
     let builder = compute_forwarding_rules_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_forwarding_rules_set_labels_execute(builder)
@@ -14958,23 +14885,23 @@ pub fn compute_forwarding_rules_set_labels(
 
 pub fn compute_forwarding_rules_set_target_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    forwardingRule: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    forwardingRule: &String,
+    requestId: &Option<String>,
     body: &TargetReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/forwardingRules/{}/setTarget",
-        project.as_str(),
-        region.as_str(),
-        forwardingRule.as_str(),
+        project,
+        region,
+        forwardingRule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -15132,10 +15059,10 @@ pub fn compute_forwarding_rules_set_target(
 > {
     let builder = compute_forwarding_rules_set_target_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.forwardingRule.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.forwardingRule,
+        &args.requestId,
         &args.body,
     )?;
     compute_forwarding_rules_set_target_execute(builder)
@@ -15149,42 +15076,42 @@ pub fn compute_forwarding_rules_set_target(
 
 pub fn compute_future_reservations_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/futureReservations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -15354,14 +15281,14 @@ pub fn compute_future_reservations_aggregated_list(
 > {
     let builder = compute_future_reservations_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_future_reservations_aggregated_list_execute(builder)
 }
@@ -15374,22 +15301,22 @@ pub fn compute_future_reservations_aggregated_list(
 
 pub fn compute_future_reservations_cancel_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    futureReservation: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    futureReservation: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}/cancel",
-        project.as_str(),
-        zone.as_str(),
-        futureReservation.as_str(),
+        project,
+        zone,
+        futureReservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -15543,10 +15470,10 @@ pub fn compute_future_reservations_cancel(
 > {
     let builder = compute_future_reservations_cancel_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.futureReservation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.futureReservation,
+        &args.requestId,
     )?;
     compute_future_reservations_cancel_execute(builder)
 }
@@ -15559,22 +15486,20 @@ pub fn compute_future_reservations_cancel(
 
 pub fn compute_future_reservations_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    futureReservation: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    futureReservation: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations/{}",
-        project.as_str(),
-        zone.as_str(),
-        futureReservation.as_str(),
+        project, zone, futureReservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -15728,10 +15653,10 @@ pub fn compute_future_reservations_delete(
 > {
     let builder = compute_future_reservations_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.futureReservation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.futureReservation,
+        &args.requestId,
     )?;
     compute_future_reservations_delete_execute(builder)
 }
@@ -15744,21 +15669,20 @@ pub fn compute_future_reservations_delete(
 
 pub fn compute_future_reservations_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &FutureReservation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/futureReservations",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -15914,9 +15838,9 @@ pub fn compute_future_reservations_insert(
 > {
     let builder = compute_future_reservations_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_future_reservations_insert_execute(builder)
@@ -15930,20 +15854,19 @@ pub fn compute_future_reservations_insert(
 
 pub fn compute_global_addresses_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    address: String,
-    requestId: Option<String>,
+    project: &String,
+    address: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}",
-        project.as_str(),
-        address.as_str(),
+        project, address,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -16095,9 +16018,9 @@ pub fn compute_global_addresses_delete(
 > {
     let builder = compute_global_addresses_delete_builder(
         client,
-        args.project.clone(),
-        args.address.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.address,
+        &args.requestId,
     )?;
     compute_global_addresses_delete_execute(builder)
 }
@@ -16110,19 +16033,19 @@ pub fn compute_global_addresses_delete(
 
 pub fn compute_global_addresses_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Address,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -16276,8 +16199,8 @@ pub fn compute_global_addresses_insert(
 > {
     let builder = compute_global_addresses_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_addresses_insert_execute(builder)
@@ -16291,21 +16214,20 @@ pub fn compute_global_addresses_insert(
 
 pub fn compute_global_addresses_move_builder(
     client: &SimpleHttpClient,
-    project: String,
-    address: String,
-    requestId: Option<String>,
+    project: &String,
+    address: &String,
+    requestId: &Option<String>,
     body: &GlobalAddressesMoveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/move",
-        project.as_str(),
-        address.as_str(),
+        project, address,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -16461,9 +16383,9 @@ pub fn compute_global_addresses_move(
 > {
     let builder = compute_global_addresses_move_builder(
         client,
-        args.project.clone(),
-        args.address.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.address,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_addresses_move_execute(builder)
@@ -16477,15 +16399,14 @@ pub fn compute_global_addresses_move(
 
 pub fn compute_global_addresses_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -16633,8 +16554,8 @@ pub fn compute_global_addresses_set_labels(
 > {
     let builder = compute_global_addresses_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_global_addresses_set_labels_execute(builder)
@@ -16648,15 +16569,15 @@ pub fn compute_global_addresses_set_labels(
 
 pub fn compute_global_addresses_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/addresses/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -16808,8 +16729,8 @@ pub fn compute_global_addresses_test_iam_permissions(
 > {
     let builder = compute_global_addresses_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_global_addresses_test_iam_permissions_execute(builder)
@@ -16823,20 +16744,19 @@ pub fn compute_global_addresses_test_iam_permissions(
 
 pub fn compute_global_forwarding_rules_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    forwardingRule: String,
-    requestId: Option<String>,
+    project: &String,
+    forwardingRule: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}",
-        project.as_str(),
-        forwardingRule.as_str(),
+        project, forwardingRule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -16988,9 +16908,9 @@ pub fn compute_global_forwarding_rules_delete(
 > {
     let builder = compute_global_forwarding_rules_delete_builder(
         client,
-        args.project.clone(),
-        args.forwardingRule.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.forwardingRule,
+        &args.requestId,
     )?;
     compute_global_forwarding_rules_delete_execute(builder)
 }
@@ -17003,19 +16923,19 @@ pub fn compute_global_forwarding_rules_delete(
 
 pub fn compute_global_forwarding_rules_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ForwardingRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -17169,8 +17089,8 @@ pub fn compute_global_forwarding_rules_insert(
 > {
     let builder = compute_global_forwarding_rules_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_forwarding_rules_insert_execute(builder)
@@ -17184,15 +17104,14 @@ pub fn compute_global_forwarding_rules_insert(
 
 pub fn compute_global_forwarding_rules_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -17340,8 +17259,8 @@ pub fn compute_global_forwarding_rules_set_labels(
 > {
     let builder = compute_global_forwarding_rules_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_global_forwarding_rules_set_labels_execute(builder)
@@ -17355,21 +17274,20 @@ pub fn compute_global_forwarding_rules_set_labels(
 
 pub fn compute_global_forwarding_rules_set_target_builder(
     client: &SimpleHttpClient,
-    project: String,
-    forwardingRule: String,
-    requestId: Option<String>,
+    project: &String,
+    forwardingRule: &String,
+    requestId: &Option<String>,
     body: &TargetReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/forwardingRules/{}/setTarget",
-        project.as_str(),
-        forwardingRule.as_str(),
+        project, forwardingRule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -17525,9 +17443,9 @@ pub fn compute_global_forwarding_rules_set_target(
 > {
     let builder = compute_global_forwarding_rules_set_target_builder(
         client,
-        args.project.clone(),
-        args.forwardingRule.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.forwardingRule,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_forwarding_rules_set_target_execute(builder)
@@ -17541,21 +17459,21 @@ pub fn compute_global_forwarding_rules_set_target(
 
 pub fn compute_global_network_endpoint_groups_attach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &GlobalNetworkEndpointGroupsAttachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/attachNetworkEndpoints",
-        project.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -17711,9 +17629,9 @@ pub fn compute_global_network_endpoint_groups_attach_network_endpoints(
 > {
     let builder = compute_global_network_endpoint_groups_attach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_network_endpoint_groups_attach_network_endpoints_execute(builder)
@@ -17727,20 +17645,19 @@ pub fn compute_global_network_endpoint_groups_attach_network_endpoints(
 
 pub fn compute_global_network_endpoint_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}",
-        project.as_str(),
-        networkEndpointGroup.as_str(),
+        project, networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -17892,9 +17809,9 @@ pub fn compute_global_network_endpoint_groups_delete(
 > {
     let builder = compute_global_network_endpoint_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.networkEndpointGroup,
+        &args.requestId,
     )?;
     compute_global_network_endpoint_groups_delete_execute(builder)
 }
@@ -17907,21 +17824,21 @@ pub fn compute_global_network_endpoint_groups_delete(
 
 pub fn compute_global_network_endpoint_groups_detach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &GlobalNetworkEndpointGroupsDetachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/detachNetworkEndpoints",
-        project.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -18077,9 +17994,9 @@ pub fn compute_global_network_endpoint_groups_detach_network_endpoints(
 > {
     let builder = compute_global_network_endpoint_groups_detach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_network_endpoint_groups_detach_network_endpoints_execute(builder)
@@ -18093,19 +18010,19 @@ pub fn compute_global_network_endpoint_groups_detach_network_endpoints(
 
 pub fn compute_global_network_endpoint_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &NetworkEndpointGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -18259,8 +18176,8 @@ pub fn compute_global_network_endpoint_groups_insert(
 > {
     let builder = compute_global_network_endpoint_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_network_endpoint_groups_insert_execute(builder)
@@ -18274,36 +18191,36 @@ pub fn compute_global_network_endpoint_groups_insert(
 
 pub fn compute_global_network_endpoint_groups_list_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    networkEndpointGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    networkEndpointGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkEndpointGroups/{}/listNetworkEndpoints",
-        project.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -18471,13 +18388,13 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints(
 > {
     let builder = compute_global_network_endpoint_groups_list_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.networkEndpointGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.networkEndpointGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_global_network_endpoint_groups_list_network_endpoints_execute(builder)
 }
@@ -18490,42 +18407,42 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints(
 
 pub fn compute_global_operations_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/operations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -18691,14 +18608,14 @@ pub fn compute_global_operations_aggregated_list(
 > {
     let builder = compute_global_operations_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_global_operations_aggregated_list_execute(builder)
 }
@@ -18711,14 +18628,13 @@ pub fn compute_global_operations_aggregated_list(
 
 pub fn compute_global_operations_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    operation: String,
+    project: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations/{}",
-        project.as_str(),
-        operation.as_str(),
+        project, operation,
     );
 
     // Build request
@@ -18857,11 +18773,7 @@ pub fn compute_global_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_global_operations_delete_builder(
-        client,
-        args.project.clone(),
-        args.operation.clone(),
-    )?;
+    let builder = compute_global_operations_delete_builder(client, &args.project, &args.operation)?;
     compute_global_operations_delete_execute(builder)
 }
 
@@ -18873,34 +18785,34 @@ pub fn compute_global_operations_delete(
 
 pub fn compute_global_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -19062,12 +18974,12 @@ pub fn compute_global_operations_list(
 > {
     let builder = compute_global_operations_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_global_operations_list_execute(builder)
 }
@@ -19080,14 +18992,13 @@ pub fn compute_global_operations_list(
 
 pub fn compute_global_operations_wait_builder(
     client: &SimpleHttpClient,
-    project: String,
-    operation: String,
+    project: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/operations/{}/wait",
-        project.as_str(),
-        operation.as_str(),
+        project, operation,
     );
 
     // Build request
@@ -19229,11 +19140,7 @@ pub fn compute_global_operations_wait(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_global_operations_wait_builder(
-        client,
-        args.project.clone(),
-        args.operation.clone(),
-    )?;
+    let builder = compute_global_operations_wait_builder(client, &args.project, &args.operation)?;
     compute_global_operations_wait_execute(builder)
 }
 
@@ -19245,18 +19152,18 @@ pub fn compute_global_operations_wait(
 
 pub fn compute_global_organization_operations_delete_builder(
     client: &SimpleHttpClient,
-    operation: String,
-    parentId: Option<String>,
+    operation: &String,
+    parentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/operations/{}",
-        operation.as_str(),
+        operation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
 
@@ -19403,8 +19310,8 @@ pub fn compute_global_organization_operations_delete(
 > {
     let builder = compute_global_organization_operations_delete_builder(
         client,
-        args.operation.clone(),
-        args.parentId.clone(),
+        &args.operation,
+        &args.parentId,
     )?;
     compute_global_organization_operations_delete_execute(builder)
 }
@@ -19417,12 +19324,12 @@ pub fn compute_global_organization_operations_delete(
 
 pub fn compute_global_organization_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    parentId: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -19430,22 +19337,22 @@ pub fn compute_global_organization_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -19607,12 +19514,12 @@ pub fn compute_global_organization_operations_list(
 > {
     let builder = compute_global_organization_operations_list_builder(
         client,
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.parentId.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.parentId,
+        &args.returnPartialSuccess,
     )?;
     compute_global_organization_operations_list_execute(builder)
 }
@@ -19625,20 +19532,19 @@ pub fn compute_global_organization_operations_list(
 
 pub fn compute_global_public_delegated_prefixes_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    publicDelegatedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    publicDelegatedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes/{}",
-        project.as_str(),
-        publicDelegatedPrefix.as_str(),
+        project, publicDelegatedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -19790,9 +19696,9 @@ pub fn compute_global_public_delegated_prefixes_delete(
 > {
     let builder = compute_global_public_delegated_prefixes_delete_builder(
         client,
-        args.project.clone(),
-        args.publicDelegatedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.publicDelegatedPrefix,
+        &args.requestId,
     )?;
     compute_global_public_delegated_prefixes_delete_execute(builder)
 }
@@ -19805,19 +19711,19 @@ pub fn compute_global_public_delegated_prefixes_delete(
 
 pub fn compute_global_public_delegated_prefixes_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &PublicDelegatedPrefix,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicDelegatedPrefixes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -19971,8 +19877,8 @@ pub fn compute_global_public_delegated_prefixes_insert(
 > {
     let builder = compute_global_public_delegated_prefixes_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_global_public_delegated_prefixes_insert_execute(builder)
@@ -19986,42 +19892,42 @@ pub fn compute_global_public_delegated_prefixes_insert(
 
 pub fn compute_health_checks_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthChecks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -20191,14 +20097,14 @@ pub fn compute_health_checks_aggregated_list(
 > {
     let builder = compute_health_checks_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_health_checks_aggregated_list_execute(builder)
 }
@@ -20211,20 +20117,19 @@ pub fn compute_health_checks_aggregated_list(
 
 pub fn compute_health_checks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    healthCheck: String,
-    requestId: Option<String>,
+    project: &String,
+    healthCheck: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}",
-        project.as_str(),
-        healthCheck.as_str(),
+        project, healthCheck,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -20376,9 +20281,9 @@ pub fn compute_health_checks_delete(
 > {
     let builder = compute_health_checks_delete_builder(
         client,
-        args.project.clone(),
-        args.healthCheck.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.healthCheck,
+        &args.requestId,
     )?;
     compute_health_checks_delete_execute(builder)
 }
@@ -20391,19 +20296,19 @@ pub fn compute_health_checks_delete(
 
 pub fn compute_health_checks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &HealthCheck,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -20555,12 +20460,8 @@ pub fn compute_health_checks_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_health_checks_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_health_checks_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_health_checks_insert_execute(builder)
 }
 
@@ -20572,15 +20473,15 @@ pub fn compute_health_checks_insert(
 
 pub fn compute_health_checks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/healthChecks/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -20732,8 +20633,8 @@ pub fn compute_health_checks_test_iam_permissions(
 > {
     let builder = compute_health_checks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_health_checks_test_iam_permissions_execute(builder)
@@ -20747,20 +20648,19 @@ pub fn compute_health_checks_test_iam_permissions(
 
 pub fn compute_http_health_checks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    httpHealthCheck: String,
-    requestId: Option<String>,
+    project: &String,
+    httpHealthCheck: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}",
-        project.as_str(),
-        httpHealthCheck.as_str(),
+        project, httpHealthCheck,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -20912,9 +20812,9 @@ pub fn compute_http_health_checks_delete(
 > {
     let builder = compute_http_health_checks_delete_builder(
         client,
-        args.project.clone(),
-        args.httpHealthCheck.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.httpHealthCheck,
+        &args.requestId,
     )?;
     compute_http_health_checks_delete_execute(builder)
 }
@@ -20927,19 +20827,19 @@ pub fn compute_http_health_checks_delete(
 
 pub fn compute_http_health_checks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &HttpHealthCheck,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -21093,8 +20993,8 @@ pub fn compute_http_health_checks_insert(
 > {
     let builder = compute_http_health_checks_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_http_health_checks_insert_execute(builder)
@@ -21108,15 +21008,15 @@ pub fn compute_http_health_checks_insert(
 
 pub fn compute_http_health_checks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpHealthChecks/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -21268,8 +21168,8 @@ pub fn compute_http_health_checks_test_iam_permissions(
 > {
     let builder = compute_http_health_checks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_http_health_checks_test_iam_permissions_execute(builder)
@@ -21283,20 +21183,19 @@ pub fn compute_http_health_checks_test_iam_permissions(
 
 pub fn compute_https_health_checks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    httpsHealthCheck: String,
-    requestId: Option<String>,
+    project: &String,
+    httpsHealthCheck: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}",
-        project.as_str(),
-        httpsHealthCheck.as_str(),
+        project, httpsHealthCheck,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -21448,9 +21347,9 @@ pub fn compute_https_health_checks_delete(
 > {
     let builder = compute_https_health_checks_delete_builder(
         client,
-        args.project.clone(),
-        args.httpsHealthCheck.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.httpsHealthCheck,
+        &args.requestId,
     )?;
     compute_https_health_checks_delete_execute(builder)
 }
@@ -21463,19 +21362,19 @@ pub fn compute_https_health_checks_delete(
 
 pub fn compute_https_health_checks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &HttpsHealthCheck,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -21629,8 +21528,8 @@ pub fn compute_https_health_checks_insert(
 > {
     let builder = compute_https_health_checks_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_https_health_checks_insert_execute(builder)
@@ -21644,15 +21543,15 @@ pub fn compute_https_health_checks_insert(
 
 pub fn compute_https_health_checks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/httpsHealthChecks/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -21804,8 +21703,8 @@ pub fn compute_https_health_checks_test_iam_permissions(
 > {
     let builder = compute_https_health_checks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_https_health_checks_test_iam_permissions_execute(builder)
@@ -21819,16 +21718,14 @@ pub fn compute_https_health_checks_test_iam_permissions(
 
 pub fn compute_image_family_views_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    family: String,
+    project: &String,
+    zone: &String,
+    family: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/imageFamilyViews/{}",
-        project.as_str(),
-        zone.as_str(),
-        family.as_str(),
+        project, zone, family,
     );
 
     // Build request
@@ -21976,12 +21873,8 @@ pub fn compute_image_family_views_get(
         + 'static,
     ApiError,
 > {
-    let builder = compute_image_family_views_get_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.family.clone(),
-    )?;
+    let builder =
+        compute_image_family_views_get_builder(client, &args.project, &args.zone, &args.family)?;
     compute_image_family_views_get_execute(builder)
 }
 
@@ -21993,20 +21886,19 @@ pub fn compute_image_family_views_get(
 
 pub fn compute_images_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    image: String,
-    requestId: Option<String>,
+    project: &String,
+    image: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}",
-        project.as_str(),
-        image.as_str(),
+        project, image,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -22156,12 +22048,8 @@ pub fn compute_images_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_images_delete_builder(
-        client,
-        args.project.clone(),
-        args.image.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_images_delete_builder(client, &args.project, &args.image, &args.requestId)?;
     compute_images_delete_execute(builder)
 }
 
@@ -22173,21 +22061,20 @@ pub fn compute_images_delete(
 
 pub fn compute_images_deprecate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    image: String,
-    requestId: Option<String>,
+    project: &String,
+    image: &String,
+    requestId: &Option<String>,
     body: &DeprecationStatus,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/deprecate",
-        project.as_str(),
-        image.as_str(),
+        project, image,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -22343,9 +22230,9 @@ pub fn compute_images_deprecate(
 > {
     let builder = compute_images_deprecate_builder(
         client,
-        args.project.clone(),
-        args.image.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.image,
+        &args.requestId,
         &args.body,
     )?;
     compute_images_deprecate_execute(builder)
@@ -22359,14 +22246,13 @@ pub fn compute_images_deprecate(
 
 pub fn compute_images_get_from_family_builder(
     client: &SimpleHttpClient,
-    project: String,
-    family: String,
+    project: &String,
+    family: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/family/{}",
-        project.as_str(),
-        family.as_str(),
+        project, family,
     );
 
     // Build request
@@ -22508,8 +22394,7 @@ pub fn compute_images_get_from_family(
     impl StreamIterator<D = Result<ApiResponse<Image>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        compute_images_get_from_family_builder(client, args.project.clone(), args.family.clone())?;
+    let builder = compute_images_get_from_family_builder(client, &args.project, &args.family)?;
     compute_images_get_from_family_execute(builder)
 }
 
@@ -22521,20 +22406,19 @@ pub fn compute_images_get_from_family(
 
 pub fn compute_images_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -22686,9 +22570,9 @@ pub fn compute_images_get_iam_policy(
 > {
     let builder = compute_images_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_images_get_iam_policy_execute(builder)
 }
@@ -22701,23 +22585,23 @@ pub fn compute_images_get_iam_policy(
 
 pub fn compute_images_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    forceCreate: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    forceCreate: &Option<bool>,
+    requestId: &Option<String>,
     body: &Image,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = forceCreate {
+    if let Some(val) = forceCreate.as_ref() {
         query_parts.push(format!("forceCreate={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -22873,9 +22757,9 @@ pub fn compute_images_insert(
 > {
     let builder = compute_images_insert_builder(
         client,
-        args.project.clone(),
-        args.forceCreate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.forceCreate,
+        &args.requestId,
         &args.body,
     )?;
     compute_images_insert_execute(builder)
@@ -22889,15 +22773,14 @@ pub fn compute_images_insert(
 
 pub fn compute_images_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -23043,12 +22926,8 @@ pub fn compute_images_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_images_set_iam_policy_builder(
-        client,
-        args.project.clone(),
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_images_set_iam_policy_builder(client, &args.project, &args.resource, &args.body)?;
     compute_images_set_iam_policy_execute(builder)
 }
 
@@ -23060,15 +22939,14 @@ pub fn compute_images_set_iam_policy(
 
 pub fn compute_images_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -23214,12 +23092,8 @@ pub fn compute_images_set_labels(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_images_set_labels_builder(
-        client,
-        args.project.clone(),
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_images_set_labels_builder(client, &args.project, &args.resource, &args.body)?;
     compute_images_set_labels_execute(builder)
 }
 
@@ -23231,15 +23105,14 @@ pub fn compute_images_set_labels(
 
 pub fn compute_images_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/images/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -23391,8 +23264,8 @@ pub fn compute_images_test_iam_permissions(
 > {
     let builder = compute_images_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_images_test_iam_permissions_execute(builder)
@@ -23406,24 +23279,24 @@ pub fn compute_images_test_iam_permissions(
 
 pub fn compute_instance_group_manager_resize_requests_cancel_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    resizeRequest: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    resizeRequest: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests/{}/cancel",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
-        resizeRequest.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
+        resizeRequest,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -23579,11 +23452,11 @@ pub fn compute_instance_group_manager_resize_requests_cancel(
 > {
     let builder = compute_instance_group_manager_resize_requests_cancel_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.resizeRequest.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.resizeRequest,
+        &args.requestId,
     )?;
     compute_instance_group_manager_resize_requests_cancel_execute(builder)
 }
@@ -23596,24 +23469,24 @@ pub fn compute_instance_group_manager_resize_requests_cancel(
 
 pub fn compute_instance_group_manager_resize_requests_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    resizeRequest: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    resizeRequest: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests/{}",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
-        resizeRequest.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
+        resizeRequest,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -23769,11 +23642,11 @@ pub fn compute_instance_group_manager_resize_requests_delete(
 > {
     let builder = compute_instance_group_manager_resize_requests_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.resizeRequest.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.resizeRequest,
+        &args.requestId,
     )?;
     compute_instance_group_manager_resize_requests_delete_execute(builder)
 }
@@ -23786,23 +23659,23 @@ pub fn compute_instance_group_manager_resize_requests_delete(
 
 pub fn compute_instance_group_manager_resize_requests_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagerResizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resizeRequests",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -23960,10 +23833,10 @@ pub fn compute_instance_group_manager_resize_requests_insert(
 > {
     let builder = compute_instance_group_manager_resize_requests_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_manager_resize_requests_insert_execute(builder)
@@ -23977,23 +23850,23 @@ pub fn compute_instance_group_manager_resize_requests_insert(
 
 pub fn compute_instance_group_managers_abandon_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersAbandonInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/abandonInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -24151,10 +24024,10 @@ pub fn compute_instance_group_managers_abandon_instances(
 > {
     let builder = compute_instance_group_managers_abandon_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_abandon_instances_execute(builder)
@@ -24168,42 +24041,42 @@ pub fn compute_instance_group_managers_abandon_instances(
 
 pub fn compute_instance_group_managers_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceGroupManagers",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -24373,14 +24246,14 @@ pub fn compute_instance_group_managers_aggregated_list(
 > {
     let builder = compute_instance_group_managers_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_instance_group_managers_aggregated_list_execute(builder)
 }
@@ -24393,17 +24266,17 @@ pub fn compute_instance_group_managers_aggregated_list(
 
 pub fn compute_instance_group_managers_apply_updates_to_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
     body: &InstanceGroupManagersApplyUpdatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/applyUpdatesToInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
@@ -24553,9 +24426,9 @@ pub fn compute_instance_group_managers_apply_updates_to_instances(
 > {
     let builder = compute_instance_group_managers_apply_updates_to_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
         &args.body,
     )?;
     compute_instance_group_managers_apply_updates_to_instances_execute(builder)
@@ -24569,23 +24442,23 @@ pub fn compute_instance_group_managers_apply_updates_to_instances(
 
 pub fn compute_instance_group_managers_create_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersCreateInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/createInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -24743,10 +24616,10 @@ pub fn compute_instance_group_managers_create_instances(
 > {
     let builder = compute_instance_group_managers_create_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_create_instances_execute(builder)
@@ -24760,22 +24633,20 @@ pub fn compute_instance_group_managers_create_instances(
 
 pub fn compute_instance_group_managers_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project, zone, instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -24929,10 +24800,10 @@ pub fn compute_instance_group_managers_delete(
 > {
     let builder = compute_instance_group_managers_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
     )?;
     compute_instance_group_managers_delete_execute(builder)
 }
@@ -24945,23 +24816,23 @@ pub fn compute_instance_group_managers_delete(
 
 pub fn compute_instance_group_managers_delete_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersDeleteInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/deleteInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -25119,10 +24990,10 @@ pub fn compute_instance_group_managers_delete_instances(
 > {
     let builder = compute_instance_group_managers_delete_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_delete_instances_execute(builder)
@@ -25136,17 +25007,17 @@ pub fn compute_instance_group_managers_delete_instances(
 
 pub fn compute_instance_group_managers_delete_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
     body: &InstanceGroupManagersDeletePerInstanceConfigsReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/deletePerInstanceConfigs",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
@@ -25296,9 +25167,9 @@ pub fn compute_instance_group_managers_delete_per_instance_configs(
 > {
     let builder = compute_instance_group_managers_delete_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
         &args.body,
     )?;
     compute_instance_group_managers_delete_per_instance_configs_execute(builder)
@@ -25312,21 +25183,20 @@ pub fn compute_instance_group_managers_delete_per_instance_configs(
 
 pub fn compute_instance_group_managers_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManager,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -25482,9 +25352,9 @@ pub fn compute_instance_group_managers_insert(
 > {
     let builder = compute_instance_group_managers_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_insert_execute(builder)
@@ -25498,38 +25368,38 @@ pub fn compute_instance_group_managers_insert(
 
 pub fn compute_instance_group_managers_list_errors_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listErrors",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -25700,14 +25570,14 @@ pub fn compute_instance_group_managers_list_errors(
 > {
     let builder = compute_instance_group_managers_list_errors_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_instance_group_managers_list_errors_execute(builder)
 }
@@ -25720,38 +25590,38 @@ pub fn compute_instance_group_managers_list_errors(
 
 pub fn compute_instance_group_managers_list_managed_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listManagedInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -25925,14 +25795,14 @@ pub fn compute_instance_group_managers_list_managed_instances(
 > {
     let builder = compute_instance_group_managers_list_managed_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_instance_group_managers_list_managed_instances_execute(builder)
 }
@@ -25945,38 +25815,38 @@ pub fn compute_instance_group_managers_list_managed_instances(
 
 pub fn compute_instance_group_managers_list_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/listPerInstanceConfigs",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -26147,14 +26017,14 @@ pub fn compute_instance_group_managers_list_per_instance_configs(
 > {
     let builder = compute_instance_group_managers_list_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_instance_group_managers_list_per_instance_configs_execute(builder)
 }
@@ -26167,23 +26037,23 @@ pub fn compute_instance_group_managers_list_per_instance_configs(
 
 pub fn compute_instance_group_managers_patch_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersPatchPerInstanceConfigsReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/patchPerInstanceConfigs",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -26341,10 +26211,10 @@ pub fn compute_instance_group_managers_patch_per_instance_configs(
 > {
     let builder = compute_instance_group_managers_patch_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_patch_per_instance_configs_execute(builder)
@@ -26358,23 +26228,23 @@ pub fn compute_instance_group_managers_patch_per_instance_configs(
 
 pub fn compute_instance_group_managers_recreate_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersRecreateInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/recreateInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -26532,10 +26402,10 @@ pub fn compute_instance_group_managers_recreate_instances(
 > {
     let builder = compute_instance_group_managers_recreate_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_recreate_instances_execute(builder)
@@ -26549,23 +26419,23 @@ pub fn compute_instance_group_managers_recreate_instances(
 
 pub fn compute_instance_group_managers_resume_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersResumeInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/resumeInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -26723,10 +26593,10 @@ pub fn compute_instance_group_managers_resume_instances(
 > {
     let builder = compute_instance_group_managers_resume_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_resume_instances_execute(builder)
@@ -26740,23 +26610,23 @@ pub fn compute_instance_group_managers_resume_instances(
 
 pub fn compute_instance_group_managers_set_instance_template_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersSetInstanceTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/setInstanceTemplate",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -26914,10 +26784,10 @@ pub fn compute_instance_group_managers_set_instance_template(
 > {
     let builder = compute_instance_group_managers_set_instance_template_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_set_instance_template_execute(builder)
@@ -26931,23 +26801,23 @@ pub fn compute_instance_group_managers_set_instance_template(
 
 pub fn compute_instance_group_managers_set_target_pools_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersSetTargetPoolsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/setTargetPools",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -27105,10 +26975,10 @@ pub fn compute_instance_group_managers_set_target_pools(
 > {
     let builder = compute_instance_group_managers_set_target_pools_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_set_target_pools_execute(builder)
@@ -27122,23 +26992,23 @@ pub fn compute_instance_group_managers_set_target_pools(
 
 pub fn compute_instance_group_managers_start_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersStartInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/startInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -27296,10 +27166,10 @@ pub fn compute_instance_group_managers_start_instances(
 > {
     let builder = compute_instance_group_managers_start_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_start_instances_execute(builder)
@@ -27313,23 +27183,23 @@ pub fn compute_instance_group_managers_start_instances(
 
 pub fn compute_instance_group_managers_stop_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersStopInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/stopInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -27487,10 +27357,10 @@ pub fn compute_instance_group_managers_stop_instances(
 > {
     let builder = compute_instance_group_managers_stop_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_stop_instances_execute(builder)
@@ -27504,23 +27374,23 @@ pub fn compute_instance_group_managers_stop_instances(
 
 pub fn compute_instance_group_managers_suspend_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersSuspendInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/suspendInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -27678,10 +27548,10 @@ pub fn compute_instance_group_managers_suspend_instances(
 > {
     let builder = compute_instance_group_managers_suspend_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_suspend_instances_execute(builder)
@@ -27695,23 +27565,23 @@ pub fn compute_instance_group_managers_suspend_instances(
 
 pub fn compute_instance_group_managers_update_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManagersUpdatePerInstanceConfigsReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroupManagers/{}/updatePerInstanceConfigs",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        zone,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -27869,10 +27739,10 @@ pub fn compute_instance_group_managers_update_per_instance_configs(
 > {
     let builder = compute_instance_group_managers_update_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_group_managers_update_per_instance_configs_execute(builder)
@@ -27886,23 +27756,23 @@ pub fn compute_instance_group_managers_update_per_instance_configs(
 
 pub fn compute_instance_groups_add_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroup: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupsAddInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/addInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroup.as_str(),
+        project,
+        zone,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -28060,10 +27930,10 @@ pub fn compute_instance_groups_add_instances(
 > {
     let builder = compute_instance_groups_add_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_groups_add_instances_execute(builder)
@@ -28077,42 +27947,42 @@ pub fn compute_instance_groups_add_instances(
 
 pub fn compute_instance_groups_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -28282,14 +28152,14 @@ pub fn compute_instance_groups_aggregated_list(
 > {
     let builder = compute_instance_groups_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_instance_groups_aggregated_list_execute(builder)
 }
@@ -28302,22 +28172,20 @@ pub fn compute_instance_groups_aggregated_list(
 
 pub fn compute_instance_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroup.as_str(),
+        project, zone, instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -28471,10 +28339,10 @@ pub fn compute_instance_groups_delete(
 > {
     let builder = compute_instance_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroup,
+        &args.requestId,
     )?;
     compute_instance_groups_delete_execute(builder)
 }
@@ -28487,21 +28355,20 @@ pub fn compute_instance_groups_delete(
 
 pub fn compute_instance_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &InstanceGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -28657,9 +28524,9 @@ pub fn compute_instance_groups_insert(
 > {
     let builder = compute_instance_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_groups_insert_execute(builder)
@@ -28673,39 +28540,39 @@ pub fn compute_instance_groups_insert(
 
 pub fn compute_instance_groups_list_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    instanceGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
     body: &InstanceGroupsListInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/listInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroup.as_str(),
+        project,
+        zone,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -28879,14 +28746,14 @@ pub fn compute_instance_groups_list_instances(
 > {
     let builder = compute_instance_groups_list_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
         &args.body,
     )?;
     compute_instance_groups_list_instances_execute(builder)
@@ -28900,23 +28767,23 @@ pub fn compute_instance_groups_list_instances(
 
 pub fn compute_instance_groups_remove_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroup: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupsRemoveInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/removeInstances",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroup.as_str(),
+        project,
+        zone,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -29074,10 +28941,10 @@ pub fn compute_instance_groups_remove_instances(
 > {
     let builder = compute_instance_groups_remove_instances_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_groups_remove_instances_execute(builder)
@@ -29091,23 +28958,23 @@ pub fn compute_instance_groups_remove_instances(
 
 pub fn compute_instance_groups_set_named_ports_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instanceGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instanceGroup: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupsSetNamedPortsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/setNamedPorts",
-        project.as_str(),
-        zone.as_str(),
-        instanceGroup.as_str(),
+        project,
+        zone,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -29265,10 +29132,10 @@ pub fn compute_instance_groups_set_named_ports(
 > {
     let builder = compute_instance_groups_set_named_ports_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instanceGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instanceGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_groups_set_named_ports_execute(builder)
@@ -29282,17 +29149,17 @@ pub fn compute_instance_groups_set_named_ports(
 
 pub fn compute_instance_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceGroups/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -29446,9 +29313,9 @@ pub fn compute_instance_groups_test_iam_permissions(
 > {
     let builder = compute_instance_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_instance_groups_test_iam_permissions_execute(builder)
@@ -29462,14 +29329,13 @@ pub fn compute_instance_groups_test_iam_permissions(
 
 pub fn compute_instance_settings_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
+    project: &String,
+    zone: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instanceSettings",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
@@ -29615,8 +29481,7 @@ pub fn compute_instance_settings_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        compute_instance_settings_get_builder(client, args.project.clone(), args.zone.clone())?;
+    let builder = compute_instance_settings_get_builder(client, &args.project, &args.zone)?;
     compute_instance_settings_get_execute(builder)
 }
 
@@ -29628,42 +29493,42 @@ pub fn compute_instance_settings_get(
 
 pub fn compute_instance_templates_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instanceTemplates",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -29833,14 +29698,14 @@ pub fn compute_instance_templates_aggregated_list(
 > {
     let builder = compute_instance_templates_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_instance_templates_aggregated_list_execute(builder)
 }
@@ -29853,20 +29718,19 @@ pub fn compute_instance_templates_aggregated_list(
 
 pub fn compute_instance_templates_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instanceTemplate: String,
-    requestId: Option<String>,
+    project: &String,
+    instanceTemplate: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}",
-        project.as_str(),
-        instanceTemplate.as_str(),
+        project, instanceTemplate,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -30018,9 +29882,9 @@ pub fn compute_instance_templates_delete(
 > {
     let builder = compute_instance_templates_delete_builder(
         client,
-        args.project.clone(),
-        args.instanceTemplate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.instanceTemplate,
+        &args.requestId,
     )?;
     compute_instance_templates_delete_execute(builder)
 }
@@ -30033,20 +29897,20 @@ pub fn compute_instance_templates_delete(
 
 pub fn compute_instance_templates_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -30198,9 +30062,9 @@ pub fn compute_instance_templates_get_iam_policy(
 > {
     let builder = compute_instance_templates_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_instance_templates_get_iam_policy_execute(builder)
 }
@@ -30213,19 +30077,19 @@ pub fn compute_instance_templates_get_iam_policy(
 
 pub fn compute_instance_templates_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &InstanceTemplate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -30379,8 +30243,8 @@ pub fn compute_instance_templates_insert(
 > {
     let builder = compute_instance_templates_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_instance_templates_insert_execute(builder)
@@ -30394,15 +30258,15 @@ pub fn compute_instance_templates_insert(
 
 pub fn compute_instance_templates_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -30550,8 +30414,8 @@ pub fn compute_instance_templates_set_iam_policy(
 > {
     let builder = compute_instance_templates_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_instance_templates_set_iam_policy_execute(builder)
@@ -30565,15 +30429,15 @@ pub fn compute_instance_templates_set_iam_policy(
 
 pub fn compute_instance_templates_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/instanceTemplates/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -30725,8 +30589,8 @@ pub fn compute_instance_templates_test_iam_permissions(
 > {
     let builder = compute_instance_templates_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_instance_templates_test_iam_permissions_execute(builder)
@@ -30740,23 +30604,23 @@ pub fn compute_instance_templates_test_iam_permissions(
 
 pub fn compute_instances_add_network_interface_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &NetworkInterface,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/addNetworkInterface",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -30914,10 +30778,10 @@ pub fn compute_instances_add_network_interface(
 > {
     let builder = compute_instances_add_network_interface_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_add_network_interface_execute(builder)
@@ -30931,23 +30795,23 @@ pub fn compute_instances_add_network_interface(
 
 pub fn compute_instances_add_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesAddResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/addResourcePolicies",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -31105,10 +30969,10 @@ pub fn compute_instances_add_resource_policies(
 > {
     let builder = compute_instances_add_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_add_resource_policies_execute(builder)
@@ -31122,42 +30986,42 @@ pub fn compute_instances_add_resource_policies(
 
 pub fn compute_instances_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instances",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -31323,14 +31187,14 @@ pub fn compute_instances_aggregated_list(
 > {
     let builder = compute_instances_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_instances_aggregated_list_execute(builder)
 }
@@ -31343,27 +31207,25 @@ pub fn compute_instances_aggregated_list(
 
 pub fn compute_instances_attach_disk_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    forceAttach: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    forceAttach: &Option<bool>,
+    requestId: &Option<String>,
     body: &AttachedDisk,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/attachDisk",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = forceAttach {
+    if let Some(val) = forceAttach.as_ref() {
         query_parts.push(format!("forceAttach={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -31523,11 +31385,11 @@ pub fn compute_instances_attach_disk(
 > {
     let builder = compute_instances_attach_disk_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.forceAttach.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.forceAttach,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_attach_disk_execute(builder)
@@ -31541,21 +31403,20 @@ pub fn compute_instances_attach_disk(
 
 pub fn compute_instances_bulk_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &BulkInsertInstanceResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/bulkInsert",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -31711,9 +31572,9 @@ pub fn compute_instances_bulk_insert(
 > {
     let builder = compute_instances_bulk_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_bulk_insert_execute(builder)
@@ -31727,22 +31588,20 @@ pub fn compute_instances_bulk_insert(
 
 pub fn compute_instances_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -31896,10 +31755,10 @@ pub fn compute_instances_delete(
 > {
     let builder = compute_instances_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
     )?;
     compute_instances_delete_execute(builder)
 }
@@ -31912,26 +31771,26 @@ pub fn compute_instances_delete(
 
 pub fn compute_instances_get_guest_attributes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    queryPath: Option<String>,
-    variableKey: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    queryPath: &Option<String>,
+    variableKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getGuestAttributes",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = queryPath {
+    if let Some(val) = queryPath.as_ref() {
         query_parts.push(format!("queryPath={}", val));
     }
-    if let Some(val) = variableKey {
+    if let Some(val) = variableKey.as_ref() {
         query_parts.push(format!("variableKey={}", val));
     }
 
@@ -32091,11 +31950,11 @@ pub fn compute_instances_get_guest_attributes(
 > {
     let builder = compute_instances_get_guest_attributes_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.queryPath.clone(),
-        args.variableKey.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.queryPath,
+        &args.variableKey,
     )?;
     compute_instances_get_guest_attributes_execute(builder)
 }
@@ -32108,22 +31967,20 @@ pub fn compute_instances_get_guest_attributes(
 
 pub fn compute_instances_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -32277,10 +32134,10 @@ pub fn compute_instances_get_iam_policy(
 > {
     let builder = compute_instances_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_instances_get_iam_policy_execute(builder)
 }
@@ -32293,16 +32150,14 @@ pub fn compute_instances_get_iam_policy(
 
 pub fn compute_instances_get_screenshot_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
+    project: &String,
+    zone: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/screenshot",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
@@ -32448,9 +32303,9 @@ pub fn compute_instances_get_screenshot(
 > {
     let builder = compute_instances_get_screenshot_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
     )?;
     compute_instances_get_screenshot_execute(builder)
 }
@@ -32463,26 +32318,24 @@ pub fn compute_instances_get_screenshot(
 
 pub fn compute_instances_get_serial_port_output_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    port: Option<i32>,
-    start: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    port: &Option<i32>,
+    start: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/serialPort",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = port {
+    if let Some(val) = port.as_ref() {
         query_parts.push(format!("port={}", val));
     }
-    if let Some(val) = start {
+    if let Some(val) = start.as_ref() {
         query_parts.push(format!("start={}", val));
     }
 
@@ -32642,11 +32495,11 @@ pub fn compute_instances_get_serial_port_output(
 > {
     let builder = compute_instances_get_serial_port_output_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.port.clone(),
-        args.start.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.port,
+        &args.start,
     )?;
     compute_instances_get_serial_port_output_execute(builder)
 }
@@ -32659,16 +32512,16 @@ pub fn compute_instances_get_serial_port_output(
 
 pub fn compute_instances_get_shielded_instance_identity_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
+    project: &String,
+    zone: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/getShieldedInstanceIdentity",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
@@ -32818,9 +32671,9 @@ pub fn compute_instances_get_shielded_instance_identity(
 > {
     let builder = compute_instances_get_shielded_instance_identity_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
     )?;
     compute_instances_get_shielded_instance_identity_execute(builder)
 }
@@ -32833,29 +32686,28 @@ pub fn compute_instances_get_shielded_instance_identity(
 
 pub fn compute_instances_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
-    sourceInstanceTemplate: Option<String>,
-    sourceMachineImage: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
+    sourceInstanceTemplate: &Option<String>,
+    sourceMachineImage: &Option<String>,
     body: &Instance,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceInstanceTemplate {
+    if let Some(val) = sourceInstanceTemplate.as_ref() {
         query_parts.push(format!("sourceInstanceTemplate={}", val));
     }
-    if let Some(val) = sourceMachineImage {
+    if let Some(val) = sourceMachineImage.as_ref() {
         query_parts.push(format!("sourceMachineImage={}", val));
     }
 
@@ -33015,11 +32867,11 @@ pub fn compute_instances_insert(
 > {
     let builder = compute_instances_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
-        args.sourceInstanceTemplate.clone(),
-        args.sourceMachineImage.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
+        &args.sourceInstanceTemplate,
+        &args.sourceMachineImage,
         &args.body,
     )?;
     compute_instances_insert_execute(builder)
@@ -33033,38 +32885,36 @@ pub fn compute_instances_insert(
 
 pub fn compute_instances_list_referrers_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/referrers",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -33230,14 +33080,14 @@ pub fn compute_instances_list_referrers(
 > {
     let builder = compute_instances_list_referrers_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_instances_list_referrers_execute(builder)
 }
@@ -33250,22 +33100,22 @@ pub fn compute_instances_list_referrers(
 
 pub fn compute_instances_perform_maintenance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/performMaintenance",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -33419,10 +33269,10 @@ pub fn compute_instances_perform_maintenance(
 > {
     let builder = compute_instances_perform_maintenance_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
     )?;
     compute_instances_perform_maintenance_execute(builder)
 }
@@ -33435,23 +33285,23 @@ pub fn compute_instances_perform_maintenance(
 
 pub fn compute_instances_remove_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesRemoveResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/removeResourcePolicies",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -33609,10 +33459,10 @@ pub fn compute_instances_remove_resource_policies(
 > {
     let builder = compute_instances_remove_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_remove_resource_policies_execute(builder)
@@ -33626,23 +33476,23 @@ pub fn compute_instances_remove_resource_policies(
 
 pub fn compute_instances_report_host_as_faulty_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesReportHostAsFaultyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/reportHostAsFaulty",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -33800,10 +33650,10 @@ pub fn compute_instances_report_host_as_faulty(
 > {
     let builder = compute_instances_report_host_as_faulty_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_report_host_as_faulty_execute(builder)
@@ -33817,22 +33667,20 @@ pub fn compute_instances_report_host_as_faulty(
 
 pub fn compute_instances_reset_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/reset",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -33986,10 +33834,10 @@ pub fn compute_instances_reset(
 > {
     let builder = compute_instances_reset_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
     )?;
     compute_instances_reset_execute(builder)
 }
@@ -34002,22 +33850,20 @@ pub fn compute_instances_reset(
 
 pub fn compute_instances_resume_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/resume",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -34171,10 +34017,10 @@ pub fn compute_instances_resume(
 > {
     let builder = compute_instances_resume_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
     )?;
     compute_instances_resume_execute(builder)
 }
@@ -34187,16 +34033,16 @@ pub fn compute_instances_resume(
 
 pub fn compute_instances_send_diagnostic_interrupt_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
+    project: &String,
+    zone: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/sendDiagnosticInterrupt",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
@@ -34339,9 +34185,9 @@ pub fn compute_instances_send_diagnostic_interrupt(
 > {
     let builder = compute_instances_send_diagnostic_interrupt_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
     )?;
     compute_instances_send_diagnostic_interrupt_execute(builder)
 }
@@ -34354,26 +34200,26 @@ pub fn compute_instances_send_diagnostic_interrupt(
 
 pub fn compute_instances_set_deletion_protection_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    deletionProtection: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    deletionProtection: &Option<bool>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setDeletionProtection",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deletionProtection {
+    if let Some(val) = deletionProtection.as_ref() {
         query_parts.push(format!("deletionProtection={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -34529,11 +34375,11 @@ pub fn compute_instances_set_deletion_protection(
 > {
     let builder = compute_instances_set_deletion_protection_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.deletionProtection.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.deletionProtection,
+        &args.requestId,
     )?;
     compute_instances_set_deletion_protection_execute(builder)
 }
@@ -34546,17 +34392,15 @@ pub fn compute_instances_set_deletion_protection(
 
 pub fn compute_instances_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
@@ -34706,9 +34550,9 @@ pub fn compute_instances_set_iam_policy(
 > {
     let builder = compute_instances_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_instances_set_iam_policy_execute(builder)
@@ -34722,23 +34566,21 @@ pub fn compute_instances_set_iam_policy(
 
 pub fn compute_instances_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setLabels",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -34896,10 +34738,10 @@ pub fn compute_instances_set_labels(
 > {
     let builder = compute_instances_set_labels_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_labels_execute(builder)
@@ -34913,23 +34755,23 @@ pub fn compute_instances_set_labels(
 
 pub fn compute_instances_set_machine_resources_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetMachineResourcesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMachineResources",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -35087,10 +34929,10 @@ pub fn compute_instances_set_machine_resources(
 > {
     let builder = compute_instances_set_machine_resources_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_machine_resources_execute(builder)
@@ -35104,23 +34946,23 @@ pub fn compute_instances_set_machine_resources(
 
 pub fn compute_instances_set_machine_type_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetMachineTypeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMachineType",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -35278,10 +35120,10 @@ pub fn compute_instances_set_machine_type(
 > {
     let builder = compute_instances_set_machine_type_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_machine_type_execute(builder)
@@ -35295,23 +35137,21 @@ pub fn compute_instances_set_machine_type(
 
 pub fn compute_instances_set_metadata_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &Metadata,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMetadata",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -35469,10 +35309,10 @@ pub fn compute_instances_set_metadata(
 > {
     let builder = compute_instances_set_metadata_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_metadata_execute(builder)
@@ -35486,23 +35326,23 @@ pub fn compute_instances_set_metadata(
 
 pub fn compute_instances_set_min_cpu_platform_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetMinCpuPlatformRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setMinCpuPlatform",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -35660,10 +35500,10 @@ pub fn compute_instances_set_min_cpu_platform(
 > {
     let builder = compute_instances_set_min_cpu_platform_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_min_cpu_platform_execute(builder)
@@ -35677,23 +35517,21 @@ pub fn compute_instances_set_min_cpu_platform(
 
 pub fn compute_instances_set_name_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetNameRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setName",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -35851,10 +35689,10 @@ pub fn compute_instances_set_name(
 > {
     let builder = compute_instances_set_name_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_name_execute(builder)
@@ -35868,23 +35706,21 @@ pub fn compute_instances_set_name(
 
 pub fn compute_instances_set_scheduling_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &Scheduling,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setScheduling",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -36042,10 +35878,10 @@ pub fn compute_instances_set_scheduling(
 > {
     let builder = compute_instances_set_scheduling_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_scheduling_execute(builder)
@@ -36059,23 +35895,23 @@ pub fn compute_instances_set_scheduling(
 
 pub fn compute_instances_set_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetSecurityPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setSecurityPolicy",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -36233,10 +36069,10 @@ pub fn compute_instances_set_security_policy(
 > {
     let builder = compute_instances_set_security_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_security_policy_execute(builder)
@@ -36250,23 +36086,23 @@ pub fn compute_instances_set_security_policy(
 
 pub fn compute_instances_set_service_account_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesSetServiceAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setServiceAccount",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -36424,10 +36260,10 @@ pub fn compute_instances_set_service_account(
 > {
     let builder = compute_instances_set_service_account_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_service_account_execute(builder)
@@ -36441,23 +36277,23 @@ pub fn compute_instances_set_service_account(
 
 pub fn compute_instances_set_shielded_instance_integrity_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &ShieldedInstanceIntegrityPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setShieldedInstanceIntegrityPolicy",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -36615,10 +36451,10 @@ pub fn compute_instances_set_shielded_instance_integrity_policy(
 > {
     let builder = compute_instances_set_shielded_instance_integrity_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_shielded_instance_integrity_policy_execute(builder)
@@ -36632,23 +36468,21 @@ pub fn compute_instances_set_shielded_instance_integrity_policy(
 
 pub fn compute_instances_set_tags_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &Tags,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/setTags",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -36806,10 +36640,10 @@ pub fn compute_instances_set_tags(
 > {
     let builder = compute_instances_set_tags_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_set_tags_execute(builder)
@@ -36823,26 +36657,26 @@ pub fn compute_instances_set_tags(
 
 pub fn compute_instances_simulate_maintenance_event_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
-    withExtendedNotifications: Option<bool>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
+    withExtendedNotifications: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/simulateMaintenanceEvent",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = withExtendedNotifications {
+    if let Some(val) = withExtendedNotifications.as_ref() {
         query_parts.push(format!("withExtendedNotifications={}", val));
     }
 
@@ -36998,11 +36832,11 @@ pub fn compute_instances_simulate_maintenance_event(
 > {
     let builder = compute_instances_simulate_maintenance_event_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
-        args.withExtendedNotifications.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
+        &args.withExtendedNotifications,
     )?;
     compute_instances_simulate_maintenance_event_execute(builder)
 }
@@ -37015,22 +36849,20 @@ pub fn compute_instances_simulate_maintenance_event(
 
 pub fn compute_instances_start_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/start",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -37184,10 +37016,10 @@ pub fn compute_instances_start(
 > {
     let builder = compute_instances_start_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
     )?;
     compute_instances_start_execute(builder)
 }
@@ -37200,23 +37032,23 @@ pub fn compute_instances_start(
 
 pub fn compute_instances_start_with_encryption_key_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &InstancesStartWithEncryptionKeyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/startWithEncryptionKey",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -37374,10 +37206,10 @@ pub fn compute_instances_start_with_encryption_key(
 > {
     let builder = compute_instances_start_with_encryption_key_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_start_with_encryption_key_execute(builder)
@@ -37391,26 +37223,24 @@ pub fn compute_instances_start_with_encryption_key(
 
 pub fn compute_instances_stop_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    discardLocalSsd: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    discardLocalSsd: &Option<bool>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/stop",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = discardLocalSsd {
+    if let Some(val) = discardLocalSsd.as_ref() {
         query_parts.push(format!("discardLocalSsd={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -37566,11 +37396,11 @@ pub fn compute_instances_stop(
 > {
     let builder = compute_instances_stop_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.discardLocalSsd.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.discardLocalSsd,
+        &args.requestId,
     )?;
     compute_instances_stop_execute(builder)
 }
@@ -37583,26 +37413,24 @@ pub fn compute_instances_stop(
 
 pub fn compute_instances_suspend_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    discardLocalSsd: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    discardLocalSsd: &Option<bool>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/suspend",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project, zone, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = discardLocalSsd {
+    if let Some(val) = discardLocalSsd.as_ref() {
         query_parts.push(format!("discardLocalSsd={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -37758,11 +37586,11 @@ pub fn compute_instances_suspend(
 > {
     let builder = compute_instances_suspend_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.discardLocalSsd.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.discardLocalSsd,
+        &args.requestId,
     )?;
     compute_instances_suspend_execute(builder)
 }
@@ -37775,17 +37603,17 @@ pub fn compute_instances_suspend(
 
 pub fn compute_instances_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -37939,9 +37767,9 @@ pub fn compute_instances_test_iam_permissions(
 > {
     let builder = compute_instances_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_instances_test_iam_permissions_execute(builder)
@@ -37955,23 +37783,23 @@ pub fn compute_instances_test_iam_permissions(
 
 pub fn compute_instances_update_display_device_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &DisplayDevice,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateDisplayDevice",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -38129,10 +37957,10 @@ pub fn compute_instances_update_display_device(
 > {
     let builder = compute_instances_update_display_device_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_update_display_device_execute(builder)
@@ -38146,23 +37974,23 @@ pub fn compute_instances_update_display_device(
 
 pub fn compute_instances_update_shielded_instance_config_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instance: &String,
+    requestId: &Option<String>,
     body: &ShieldedInstanceConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instances/{}/updateShieldedInstanceConfig",
-        project.as_str(),
-        zone.as_str(),
-        instance.as_str(),
+        project,
+        zone,
+        instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -38320,10 +38148,10 @@ pub fn compute_instances_update_shielded_instance_config(
 > {
     let builder = compute_instances_update_shielded_instance_config_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instance,
+        &args.requestId,
         &args.body,
     )?;
     compute_instances_update_shielded_instance_config_execute(builder)
@@ -38337,42 +38165,42 @@ pub fn compute_instances_update_shielded_instance_config(
 
 pub fn compute_instant_snapshots_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/instantSnapshots",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -38542,14 +38370,14 @@ pub fn compute_instant_snapshots_aggregated_list(
 > {
     let builder = compute_instant_snapshots_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_instant_snapshots_aggregated_list_execute(builder)
 }
@@ -38562,22 +38390,20 @@ pub fn compute_instant_snapshots_aggregated_list(
 
 pub fn compute_instant_snapshots_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    instantSnapshot: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    instantSnapshot: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}",
-        project.as_str(),
-        zone.as_str(),
-        instantSnapshot.as_str(),
+        project, zone, instantSnapshot,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -38731,10 +38557,10 @@ pub fn compute_instant_snapshots_delete(
 > {
     let builder = compute_instant_snapshots_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.instantSnapshot.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.instantSnapshot,
+        &args.requestId,
     )?;
     compute_instant_snapshots_delete_execute(builder)
 }
@@ -38747,22 +38573,22 @@ pub fn compute_instant_snapshots_delete(
 
 pub fn compute_instant_snapshots_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -38916,10 +38742,10 @@ pub fn compute_instant_snapshots_get_iam_policy(
 > {
     let builder = compute_instant_snapshots_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_instant_snapshots_get_iam_policy_execute(builder)
 }
@@ -38932,21 +38758,20 @@ pub fn compute_instant_snapshots_get_iam_policy(
 
 pub fn compute_instant_snapshots_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &InstantSnapshot,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -39102,9 +38927,9 @@ pub fn compute_instant_snapshots_insert(
 > {
     let builder = compute_instant_snapshots_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_instant_snapshots_insert_execute(builder)
@@ -39118,17 +38943,17 @@ pub fn compute_instant_snapshots_insert(
 
 pub fn compute_instant_snapshots_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -39278,9 +39103,9 @@ pub fn compute_instant_snapshots_set_iam_policy(
 > {
     let builder = compute_instant_snapshots_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_instant_snapshots_set_iam_policy_execute(builder)
@@ -39294,23 +39119,23 @@ pub fn compute_instant_snapshots_set_iam_policy(
 
 pub fn compute_instant_snapshots_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &ZoneSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/setLabels",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -39468,10 +39293,10 @@ pub fn compute_instant_snapshots_set_labels(
 > {
     let builder = compute_instant_snapshots_set_labels_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_instant_snapshots_set_labels_execute(builder)
@@ -39485,17 +39310,17 @@ pub fn compute_instant_snapshots_set_labels(
 
 pub fn compute_instant_snapshots_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/instantSnapshots/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -39649,9 +39474,9 @@ pub fn compute_instant_snapshots_test_iam_permissions(
 > {
     let builder = compute_instant_snapshots_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_instant_snapshots_test_iam_permissions_execute(builder)
@@ -39665,20 +39490,20 @@ pub fn compute_instant_snapshots_test_iam_permissions(
 
 pub fn compute_interconnect_attachment_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectAttachmentGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    interconnectAttachmentGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}",
-        project.as_str(),
-        interconnectAttachmentGroup.as_str(),
+        project,
+        interconnectAttachmentGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -39830,9 +39655,9 @@ pub fn compute_interconnect_attachment_groups_delete(
 > {
     let builder = compute_interconnect_attachment_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.interconnectAttachmentGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.interconnectAttachmentGroup,
+        &args.requestId,
     )?;
     compute_interconnect_attachment_groups_delete_execute(builder)
 }
@@ -39845,20 +39670,20 @@ pub fn compute_interconnect_attachment_groups_delete(
 
 pub fn compute_interconnect_attachment_groups_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -40010,9 +39835,9 @@ pub fn compute_interconnect_attachment_groups_get_iam_policy(
 > {
     let builder = compute_interconnect_attachment_groups_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_interconnect_attachment_groups_get_iam_policy_execute(builder)
 }
@@ -40025,14 +39850,14 @@ pub fn compute_interconnect_attachment_groups_get_iam_policy(
 
 pub fn compute_interconnect_attachment_groups_get_operational_status_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectAttachmentGroup: String,
+    project: &String,
+    interconnectAttachmentGroup: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/getOperationalStatus",
-        project.as_str(),
-        interconnectAttachmentGroup.as_str(),
+        project,
+        interconnectAttachmentGroup,
     );
 
     // Build request
@@ -40194,8 +40019,8 @@ pub fn compute_interconnect_attachment_groups_get_operational_status(
 > {
     let builder = compute_interconnect_attachment_groups_get_operational_status_builder(
         client,
-        args.project.clone(),
-        args.interconnectAttachmentGroup.clone(),
+        &args.project,
+        &args.interconnectAttachmentGroup,
     )?;
     compute_interconnect_attachment_groups_get_operational_status_execute(builder)
 }
@@ -40208,19 +40033,19 @@ pub fn compute_interconnect_attachment_groups_get_operational_status(
 
 pub fn compute_interconnect_attachment_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &InterconnectAttachmentGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -40374,8 +40199,8 @@ pub fn compute_interconnect_attachment_groups_insert(
 > {
     let builder = compute_interconnect_attachment_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_interconnect_attachment_groups_insert_execute(builder)
@@ -40389,15 +40214,15 @@ pub fn compute_interconnect_attachment_groups_insert(
 
 pub fn compute_interconnect_attachment_groups_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -40545,8 +40370,8 @@ pub fn compute_interconnect_attachment_groups_set_iam_policy(
 > {
     let builder = compute_interconnect_attachment_groups_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_interconnect_attachment_groups_set_iam_policy_execute(builder)
@@ -40560,15 +40385,15 @@ pub fn compute_interconnect_attachment_groups_set_iam_policy(
 
 pub fn compute_interconnect_attachment_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectAttachmentGroups/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -40720,8 +40545,8 @@ pub fn compute_interconnect_attachment_groups_test_iam_permissions(
 > {
     let builder = compute_interconnect_attachment_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_interconnect_attachment_groups_test_iam_permissions_execute(builder)
@@ -40735,42 +40560,42 @@ pub fn compute_interconnect_attachment_groups_test_iam_permissions(
 
 pub fn compute_interconnect_attachments_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/interconnectAttachments",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -40940,14 +40765,14 @@ pub fn compute_interconnect_attachments_aggregated_list(
 > {
     let builder = compute_interconnect_attachments_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_interconnect_attachments_aggregated_list_execute(builder)
 }
@@ -40960,22 +40785,22 @@ pub fn compute_interconnect_attachments_aggregated_list(
 
 pub fn compute_interconnect_attachments_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    interconnectAttachment: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    interconnectAttachment: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}",
-        project.as_str(),
-        region.as_str(),
-        interconnectAttachment.as_str(),
+        project,
+        region,
+        interconnectAttachment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -41129,10 +40954,10 @@ pub fn compute_interconnect_attachments_delete(
 > {
     let builder = compute_interconnect_attachments_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.interconnectAttachment.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.interconnectAttachment,
+        &args.requestId,
     )?;
     compute_interconnect_attachments_delete_execute(builder)
 }
@@ -41145,25 +40970,24 @@ pub fn compute_interconnect_attachments_delete(
 
 pub fn compute_interconnect_attachments_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &InterconnectAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -41321,10 +41145,10 @@ pub fn compute_interconnect_attachments_insert(
 > {
     let builder = compute_interconnect_attachments_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_interconnect_attachments_insert_execute(builder)
@@ -41338,23 +41162,23 @@ pub fn compute_interconnect_attachments_insert(
 
 pub fn compute_interconnect_attachments_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/interconnectAttachments/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -41512,10 +41336,10 @@ pub fn compute_interconnect_attachments_set_labels(
 > {
     let builder = compute_interconnect_attachments_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_interconnect_attachments_set_labels_execute(builder)
@@ -41529,15 +41353,15 @@ pub fn compute_interconnect_attachments_set_labels(
 
 pub fn compute_interconnect_groups_create_members_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectGroup: String,
+    project: &String,
+    interconnectGroup: &String,
     body: &InterconnectGroupsCreateMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/createMembers",
-        project.as_str(),
-        interconnectGroup.as_str(),
+        project,
+        interconnectGroup,
     );
 
     // Build request
@@ -41685,8 +41509,8 @@ pub fn compute_interconnect_groups_create_members(
 > {
     let builder = compute_interconnect_groups_create_members_builder(
         client,
-        args.project.clone(),
-        args.interconnectGroup.clone(),
+        &args.project,
+        &args.interconnectGroup,
         &args.body,
     )?;
     compute_interconnect_groups_create_members_execute(builder)
@@ -41700,20 +41524,19 @@ pub fn compute_interconnect_groups_create_members(
 
 pub fn compute_interconnect_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    interconnectGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}",
-        project.as_str(),
-        interconnectGroup.as_str(),
+        project, interconnectGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -41865,9 +41688,9 @@ pub fn compute_interconnect_groups_delete(
 > {
     let builder = compute_interconnect_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.interconnectGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.interconnectGroup,
+        &args.requestId,
     )?;
     compute_interconnect_groups_delete_execute(builder)
 }
@@ -41880,20 +41703,20 @@ pub fn compute_interconnect_groups_delete(
 
 pub fn compute_interconnect_groups_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -42045,9 +41868,9 @@ pub fn compute_interconnect_groups_get_iam_policy(
 > {
     let builder = compute_interconnect_groups_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_interconnect_groups_get_iam_policy_execute(builder)
 }
@@ -42060,14 +41883,14 @@ pub fn compute_interconnect_groups_get_iam_policy(
 
 pub fn compute_interconnect_groups_get_operational_status_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectGroup: String,
+    project: &String,
+    interconnectGroup: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/getOperationalStatus",
-        project.as_str(),
-        interconnectGroup.as_str(),
+        project,
+        interconnectGroup,
     );
 
     // Build request
@@ -42220,8 +42043,8 @@ pub fn compute_interconnect_groups_get_operational_status(
 > {
     let builder = compute_interconnect_groups_get_operational_status_builder(
         client,
-        args.project.clone(),
-        args.interconnectGroup.clone(),
+        &args.project,
+        &args.interconnectGroup,
     )?;
     compute_interconnect_groups_get_operational_status_execute(builder)
 }
@@ -42234,19 +42057,19 @@ pub fn compute_interconnect_groups_get_operational_status(
 
 pub fn compute_interconnect_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &InterconnectGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -42400,8 +42223,8 @@ pub fn compute_interconnect_groups_insert(
 > {
     let builder = compute_interconnect_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_interconnect_groups_insert_execute(builder)
@@ -42415,15 +42238,15 @@ pub fn compute_interconnect_groups_insert(
 
 pub fn compute_interconnect_groups_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -42571,8 +42394,8 @@ pub fn compute_interconnect_groups_set_iam_policy(
 > {
     let builder = compute_interconnect_groups_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_interconnect_groups_set_iam_policy_execute(builder)
@@ -42586,15 +42409,15 @@ pub fn compute_interconnect_groups_set_iam_policy(
 
 pub fn compute_interconnect_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectGroups/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -42746,8 +42569,8 @@ pub fn compute_interconnect_groups_test_iam_permissions(
 > {
     let builder = compute_interconnect_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_interconnect_groups_test_iam_permissions_execute(builder)
@@ -42761,14 +42584,13 @@ pub fn compute_interconnect_groups_test_iam_permissions(
 
 pub fn compute_interconnect_locations_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectLocation: String,
+    project: &String,
+    interconnectLocation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectLocations/{}",
-        project.as_str(),
-        interconnectLocation.as_str(),
+        project, interconnectLocation,
     );
 
     // Build request
@@ -42916,8 +42738,8 @@ pub fn compute_interconnect_locations_get(
 > {
     let builder = compute_interconnect_locations_get_builder(
         client,
-        args.project.clone(),
-        args.interconnectLocation.clone(),
+        &args.project,
+        &args.interconnectLocation,
     )?;
     compute_interconnect_locations_get_execute(builder)
 }
@@ -42930,34 +42752,34 @@ pub fn compute_interconnect_locations_get(
 
 pub fn compute_interconnect_locations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectLocations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -43119,12 +42941,12 @@ pub fn compute_interconnect_locations_list(
 > {
     let builder = compute_interconnect_locations_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_interconnect_locations_list_execute(builder)
 }
@@ -43137,14 +42959,14 @@ pub fn compute_interconnect_locations_list(
 
 pub fn compute_interconnect_remote_locations_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnectRemoteLocation: String,
+    project: &String,
+    interconnectRemoteLocation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectRemoteLocations/{}",
-        project.as_str(),
-        interconnectRemoteLocation.as_str(),
+        project,
+        interconnectRemoteLocation,
     );
 
     // Build request
@@ -43296,8 +43118,8 @@ pub fn compute_interconnect_remote_locations_get(
 > {
     let builder = compute_interconnect_remote_locations_get_builder(
         client,
-        args.project.clone(),
-        args.interconnectRemoteLocation.clone(),
+        &args.project,
+        &args.interconnectRemoteLocation,
     )?;
     compute_interconnect_remote_locations_get_execute(builder)
 }
@@ -43310,34 +43132,34 @@ pub fn compute_interconnect_remote_locations_get(
 
 pub fn compute_interconnect_remote_locations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnectRemoteLocations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -43503,12 +43325,12 @@ pub fn compute_interconnect_remote_locations_list(
 > {
     let builder = compute_interconnect_remote_locations_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_interconnect_remote_locations_list_execute(builder)
 }
@@ -43521,20 +43343,19 @@ pub fn compute_interconnect_remote_locations_list(
 
 pub fn compute_interconnects_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnect: String,
-    requestId: Option<String>,
+    project: &String,
+    interconnect: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}",
-        project.as_str(),
-        interconnect.as_str(),
+        project, interconnect,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -43686,9 +43507,9 @@ pub fn compute_interconnects_delete(
 > {
     let builder = compute_interconnects_delete_builder(
         client,
-        args.project.clone(),
-        args.interconnect.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.interconnect,
+        &args.requestId,
     )?;
     compute_interconnects_delete_execute(builder)
 }
@@ -43701,14 +43522,14 @@ pub fn compute_interconnects_delete(
 
 pub fn compute_interconnects_get_diagnostics_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnect: String,
+    project: &String,
+    interconnect: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/getDiagnostics",
-        project.as_str(),
-        interconnect.as_str(),
+        project,
+        interconnect,
     );
 
     // Build request
@@ -43858,11 +43679,8 @@ pub fn compute_interconnects_get_diagnostics(
         + 'static,
     ApiError,
 > {
-    let builder = compute_interconnects_get_diagnostics_builder(
-        client,
-        args.project.clone(),
-        args.interconnect.clone(),
-    )?;
+    let builder =
+        compute_interconnects_get_diagnostics_builder(client, &args.project, &args.interconnect)?;
     compute_interconnects_get_diagnostics_execute(builder)
 }
 
@@ -43874,14 +43692,14 @@ pub fn compute_interconnects_get_diagnostics(
 
 pub fn compute_interconnects_get_macsec_config_builder(
     client: &SimpleHttpClient,
-    project: String,
-    interconnect: String,
+    project: &String,
+    interconnect: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/getMacsecConfig",
-        project.as_str(),
-        interconnect.as_str(),
+        project,
+        interconnect,
     );
 
     // Build request
@@ -44031,11 +43849,8 @@ pub fn compute_interconnects_get_macsec_config(
         + 'static,
     ApiError,
 > {
-    let builder = compute_interconnects_get_macsec_config_builder(
-        client,
-        args.project.clone(),
-        args.interconnect.clone(),
-    )?;
+    let builder =
+        compute_interconnects_get_macsec_config_builder(client, &args.project, &args.interconnect)?;
     compute_interconnects_get_macsec_config_execute(builder)
 }
 
@@ -44047,19 +43862,19 @@ pub fn compute_interconnects_get_macsec_config(
 
 pub fn compute_interconnects_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Interconnect,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -44211,12 +44026,8 @@ pub fn compute_interconnects_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_interconnects_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_interconnects_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_interconnects_insert_execute(builder)
 }
 
@@ -44228,15 +44039,14 @@ pub fn compute_interconnects_insert(
 
 pub fn compute_interconnects_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/interconnects/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -44384,8 +44194,8 @@ pub fn compute_interconnects_set_labels(
 > {
     let builder = compute_interconnects_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_interconnects_set_labels_execute(builder)
@@ -44399,14 +44209,13 @@ pub fn compute_interconnects_set_labels(
 
 pub fn compute_license_codes_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    licenseCode: String,
+    project: &String,
+    licenseCode: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenseCodes/{}",
-        project.as_str(),
-        licenseCode.as_str(),
+        project, licenseCode,
     );
 
     // Build request
@@ -44548,8 +44357,7 @@ pub fn compute_license_codes_get(
     impl StreamIterator<D = Result<ApiResponse<LicenseCode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        compute_license_codes_get_builder(client, args.project.clone(), args.licenseCode.clone())?;
+    let builder = compute_license_codes_get_builder(client, &args.project, &args.licenseCode)?;
     compute_license_codes_get_execute(builder)
 }
 
@@ -44561,15 +44369,15 @@ pub fn compute_license_codes_get(
 
 pub fn compute_license_codes_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenseCodes/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -44721,8 +44529,8 @@ pub fn compute_license_codes_test_iam_permissions(
 > {
     let builder = compute_license_codes_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_license_codes_test_iam_permissions_execute(builder)
@@ -44736,20 +44544,19 @@ pub fn compute_license_codes_test_iam_permissions(
 
 pub fn compute_licenses_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    license: String,
-    requestId: Option<String>,
+    project: &String,
+    license: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}",
-        project.as_str(),
-        license.as_str(),
+        project, license,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -44899,12 +44706,8 @@ pub fn compute_licenses_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_licenses_delete_builder(
-        client,
-        args.project.clone(),
-        args.license.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_licenses_delete_builder(client, &args.project, &args.license, &args.requestId)?;
     compute_licenses_delete_execute(builder)
 }
 
@@ -44916,20 +44719,19 @@ pub fn compute_licenses_delete(
 
 pub fn compute_licenses_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -45081,9 +44883,9 @@ pub fn compute_licenses_get_iam_policy(
 > {
     let builder = compute_licenses_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_licenses_get_iam_policy_execute(builder)
 }
@@ -45096,19 +44898,19 @@ pub fn compute_licenses_get_iam_policy(
 
 pub fn compute_licenses_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &License,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -45260,12 +45062,8 @@ pub fn compute_licenses_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_licenses_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_licenses_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_licenses_insert_execute(builder)
 }
 
@@ -45277,15 +45075,14 @@ pub fn compute_licenses_insert(
 
 pub fn compute_licenses_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -45431,12 +45228,8 @@ pub fn compute_licenses_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_licenses_set_iam_policy_builder(
-        client,
-        args.project.clone(),
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_licenses_set_iam_policy_builder(client, &args.project, &args.resource, &args.body)?;
     compute_licenses_set_iam_policy_execute(builder)
 }
 
@@ -45448,15 +45241,15 @@ pub fn compute_licenses_set_iam_policy(
 
 pub fn compute_licenses_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/licenses/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -45608,8 +45401,8 @@ pub fn compute_licenses_test_iam_permissions(
 > {
     let builder = compute_licenses_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_licenses_test_iam_permissions_execute(builder)
@@ -45623,20 +45416,19 @@ pub fn compute_licenses_test_iam_permissions(
 
 pub fn compute_machine_images_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    machineImage: String,
-    requestId: Option<String>,
+    project: &String,
+    machineImage: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}",
-        project.as_str(),
-        machineImage.as_str(),
+        project, machineImage,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -45788,9 +45580,9 @@ pub fn compute_machine_images_delete(
 > {
     let builder = compute_machine_images_delete_builder(
         client,
-        args.project.clone(),
-        args.machineImage.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.machineImage,
+        &args.requestId,
     )?;
     compute_machine_images_delete_execute(builder)
 }
@@ -45803,20 +45595,20 @@ pub fn compute_machine_images_delete(
 
 pub fn compute_machine_images_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -45968,9 +45760,9 @@ pub fn compute_machine_images_get_iam_policy(
 > {
     let builder = compute_machine_images_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_machine_images_get_iam_policy_execute(builder)
 }
@@ -45983,23 +45775,23 @@ pub fn compute_machine_images_get_iam_policy(
 
 pub fn compute_machine_images_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
-    sourceInstance: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
+    sourceInstance: &Option<String>,
     body: &MachineImage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceInstance {
+    if let Some(val) = sourceInstance.as_ref() {
         query_parts.push(format!("sourceInstance={}", val));
     }
 
@@ -46155,9 +45947,9 @@ pub fn compute_machine_images_insert(
 > {
     let builder = compute_machine_images_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
-        args.sourceInstance.clone(),
+        &args.project,
+        &args.requestId,
+        &args.sourceInstance,
         &args.body,
     )?;
     compute_machine_images_insert_execute(builder)
@@ -46171,15 +45963,15 @@ pub fn compute_machine_images_insert(
 
 pub fn compute_machine_images_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -46327,8 +46119,8 @@ pub fn compute_machine_images_set_iam_policy(
 > {
     let builder = compute_machine_images_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_machine_images_set_iam_policy_execute(builder)
@@ -46342,15 +46134,14 @@ pub fn compute_machine_images_set_iam_policy(
 
 pub fn compute_machine_images_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -46498,8 +46289,8 @@ pub fn compute_machine_images_set_labels(
 > {
     let builder = compute_machine_images_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_machine_images_set_labels_execute(builder)
@@ -46513,15 +46304,15 @@ pub fn compute_machine_images_set_labels(
 
 pub fn compute_machine_images_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/machineImages/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -46673,8 +46464,8 @@ pub fn compute_machine_images_test_iam_permissions(
 > {
     let builder = compute_machine_images_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_machine_images_test_iam_permissions_execute(builder)
@@ -46688,42 +46479,42 @@ pub fn compute_machine_images_test_iam_permissions(
 
 pub fn compute_machine_types_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/machineTypes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -46889,14 +46680,14 @@ pub fn compute_machine_types_aggregated_list(
 > {
     let builder = compute_machine_types_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_machine_types_aggregated_list_execute(builder)
 }
@@ -46909,16 +46700,14 @@ pub fn compute_machine_types_aggregated_list(
 
 pub fn compute_machine_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    machineType: String,
+    project: &String,
+    zone: &String,
+    machineType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/machineTypes/{}",
-        project.as_str(),
-        zone.as_str(),
-        machineType.as_str(),
+        project, zone, machineType,
     );
 
     // Build request
@@ -47062,12 +46851,8 @@ pub fn compute_machine_types_get(
     impl StreamIterator<D = Result<ApiResponse<MachineType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_machine_types_get_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.machineType.clone(),
-    )?;
+    let builder =
+        compute_machine_types_get_builder(client, &args.project, &args.zone, &args.machineType)?;
     compute_machine_types_get_execute(builder)
 }
 
@@ -47079,36 +46864,35 @@ pub fn compute_machine_types_get(
 
 pub fn compute_machine_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/machineTypes",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -47272,13 +47056,13 @@ pub fn compute_machine_types_list(
 > {
     let builder = compute_machine_types_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_machine_types_list_execute(builder)
 }
@@ -47291,42 +47075,42 @@ pub fn compute_machine_types_list(
 
 pub fn compute_network_attachments_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkAttachments",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -47496,14 +47280,14 @@ pub fn compute_network_attachments_aggregated_list(
 > {
     let builder = compute_network_attachments_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_network_attachments_aggregated_list_execute(builder)
 }
@@ -47516,22 +47300,20 @@ pub fn compute_network_attachments_aggregated_list(
 
 pub fn compute_network_attachments_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkAttachment: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    networkAttachment: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}",
-        project.as_str(),
-        region.as_str(),
-        networkAttachment.as_str(),
+        project, region, networkAttachment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -47685,10 +47467,10 @@ pub fn compute_network_attachments_delete(
 > {
     let builder = compute_network_attachments_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkAttachment.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.networkAttachment,
+        &args.requestId,
     )?;
     compute_network_attachments_delete_execute(builder)
 }
@@ -47701,22 +47483,22 @@ pub fn compute_network_attachments_delete(
 
 pub fn compute_network_attachments_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -47870,10 +47652,10 @@ pub fn compute_network_attachments_get_iam_policy(
 > {
     let builder = compute_network_attachments_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_network_attachments_get_iam_policy_execute(builder)
 }
@@ -47886,21 +47668,20 @@ pub fn compute_network_attachments_get_iam_policy(
 
 pub fn compute_network_attachments_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &NetworkAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -48056,9 +47837,9 @@ pub fn compute_network_attachments_insert(
 > {
     let builder = compute_network_attachments_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_attachments_insert_execute(builder)
@@ -48072,17 +47853,17 @@ pub fn compute_network_attachments_insert(
 
 pub fn compute_network_attachments_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -48232,9 +48013,9 @@ pub fn compute_network_attachments_set_iam_policy(
 > {
     let builder = compute_network_attachments_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_network_attachments_set_iam_policy_execute(builder)
@@ -48248,17 +48029,17 @@ pub fn compute_network_attachments_set_iam_policy(
 
 pub fn compute_network_attachments_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkAttachments/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -48412,9 +48193,9 @@ pub fn compute_network_attachments_test_iam_permissions(
 > {
     let builder = compute_network_attachments_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_network_attachments_test_iam_permissions_execute(builder)
@@ -48428,42 +48209,42 @@ pub fn compute_network_attachments_test_iam_permissions(
 
 pub fn compute_network_edge_security_services_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkEdgeSecurityServices",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -48633,14 +48414,14 @@ pub fn compute_network_edge_security_services_aggregated_list(
 > {
     let builder = compute_network_edge_security_services_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_network_edge_security_services_aggregated_list_execute(builder)
 }
@@ -48653,22 +48434,22 @@ pub fn compute_network_edge_security_services_aggregated_list(
 
 pub fn compute_network_edge_security_services_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkEdgeSecurityService: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    networkEdgeSecurityService: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices/{}",
-        project.as_str(),
-        region.as_str(),
-        networkEdgeSecurityService.as_str(),
+        project,
+        region,
+        networkEdgeSecurityService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -48822,10 +48603,10 @@ pub fn compute_network_edge_security_services_delete(
 > {
     let builder = compute_network_edge_security_services_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkEdgeSecurityService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.networkEdgeSecurityService,
+        &args.requestId,
     )?;
     compute_network_edge_security_services_delete_execute(builder)
 }
@@ -48838,25 +48619,25 @@ pub fn compute_network_edge_security_services_delete(
 
 pub fn compute_network_edge_security_services_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &NetworkEdgeSecurityService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEdgeSecurityServices",
-        project.as_str(),
-        region.as_str(),
+        project,
+        region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -49014,10 +48795,10 @@ pub fn compute_network_edge_security_services_insert(
 > {
     let builder = compute_network_edge_security_services_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_network_edge_security_services_insert_execute(builder)
@@ -49031,42 +48812,42 @@ pub fn compute_network_edge_security_services_insert(
 
 pub fn compute_network_endpoint_groups_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/networkEndpointGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -49236,14 +49017,14 @@ pub fn compute_network_endpoint_groups_aggregated_list(
 > {
     let builder = compute_network_endpoint_groups_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_network_endpoint_groups_aggregated_list_execute(builder)
 }
@@ -49256,23 +49037,23 @@ pub fn compute_network_endpoint_groups_aggregated_list(
 
 pub fn compute_network_endpoint_groups_attach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &NetworkEndpointGroupsAttachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/attachNetworkEndpoints",
-        project.as_str(),
-        zone.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        zone,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -49430,10 +49211,10 @@ pub fn compute_network_endpoint_groups_attach_network_endpoints(
 > {
     let builder = compute_network_endpoint_groups_attach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_endpoint_groups_attach_network_endpoints_execute(builder)
@@ -49447,22 +49228,20 @@ pub fn compute_network_endpoint_groups_attach_network_endpoints(
 
 pub fn compute_network_endpoint_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}",
-        project.as_str(),
-        zone.as_str(),
-        networkEndpointGroup.as_str(),
+        project, zone, networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -49616,10 +49395,10 @@ pub fn compute_network_endpoint_groups_delete(
 > {
     let builder = compute_network_endpoint_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.networkEndpointGroup,
+        &args.requestId,
     )?;
     compute_network_endpoint_groups_delete_execute(builder)
 }
@@ -49632,23 +49411,23 @@ pub fn compute_network_endpoint_groups_delete(
 
 pub fn compute_network_endpoint_groups_detach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &NetworkEndpointGroupsDetachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/detachNetworkEndpoints",
-        project.as_str(),
-        zone.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        zone,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -49806,10 +49585,10 @@ pub fn compute_network_endpoint_groups_detach_network_endpoints(
 > {
     let builder = compute_network_endpoint_groups_detach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_endpoint_groups_detach_network_endpoints_execute(builder)
@@ -49823,21 +49602,20 @@ pub fn compute_network_endpoint_groups_detach_network_endpoints(
 
 pub fn compute_network_endpoint_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &NetworkEndpointGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -49993,9 +49771,9 @@ pub fn compute_network_endpoint_groups_insert(
 > {
     let builder = compute_network_endpoint_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_endpoint_groups_insert_execute(builder)
@@ -50009,39 +49787,39 @@ pub fn compute_network_endpoint_groups_insert(
 
 pub fn compute_network_endpoint_groups_list_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    networkEndpointGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    networkEndpointGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
     body: &NetworkEndpointGroupsListEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/listNetworkEndpoints",
-        project.as_str(),
-        zone.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        zone,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -50215,14 +49993,14 @@ pub fn compute_network_endpoint_groups_list_network_endpoints(
 > {
     let builder = compute_network_endpoint_groups_list_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.networkEndpointGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.networkEndpointGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
         &args.body,
     )?;
     compute_network_endpoint_groups_list_network_endpoints_execute(builder)
@@ -50236,17 +50014,17 @@ pub fn compute_network_endpoint_groups_list_network_endpoints(
 
 pub fn compute_network_endpoint_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/networkEndpointGroups/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -50400,9 +50178,9 @@ pub fn compute_network_endpoint_groups_test_iam_permissions(
 > {
     let builder = compute_network_endpoint_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_network_endpoint_groups_test_iam_permissions_execute(builder)
@@ -50416,25 +50194,25 @@ pub fn compute_network_endpoint_groups_test_iam_permissions(
 
 pub fn compute_network_firewall_policies_add_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    replaceExistingAssociation: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    replaceExistingAssociation: &Option<bool>,
+    requestId: &Option<String>,
     body: &FirewallPolicyAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addAssociation",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = replaceExistingAssociation {
+    if let Some(val) = replaceExistingAssociation.as_ref() {
         query_parts.push(format!("replaceExistingAssociation={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -50592,10 +50370,10 @@ pub fn compute_network_firewall_policies_add_association(
 > {
     let builder = compute_network_firewall_policies_add_association_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.replaceExistingAssociation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.replaceExistingAssociation,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_add_association_execute(builder)
@@ -50609,29 +50387,29 @@ pub fn compute_network_firewall_policies_add_association(
 
 pub fn compute_network_firewall_policies_add_packet_mirroring_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    maxPriority: Option<i32>,
-    minPriority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    maxPriority: &Option<i32>,
+    minPriority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addPacketMirroringRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxPriority {
+    if let Some(val) = maxPriority.as_ref() {
         query_parts.push(format!("maxPriority={}", val));
     }
-    if let Some(val) = minPriority {
+    if let Some(val) = minPriority.as_ref() {
         query_parts.push(format!("minPriority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -50791,11 +50569,11 @@ pub fn compute_network_firewall_policies_add_packet_mirroring_rule(
 > {
     let builder = compute_network_firewall_policies_add_packet_mirroring_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.maxPriority.clone(),
-        args.minPriority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.maxPriority,
+        &args.minPriority,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_add_packet_mirroring_rule_execute(builder)
@@ -50809,29 +50587,28 @@ pub fn compute_network_firewall_policies_add_packet_mirroring_rule(
 
 pub fn compute_network_firewall_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    maxPriority: Option<i32>,
-    minPriority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    maxPriority: &Option<i32>,
+    minPriority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/addRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project, firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxPriority {
+    if let Some(val) = maxPriority.as_ref() {
         query_parts.push(format!("maxPriority={}", val));
     }
-    if let Some(val) = minPriority {
+    if let Some(val) = minPriority.as_ref() {
         query_parts.push(format!("minPriority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -50991,11 +50768,11 @@ pub fn compute_network_firewall_policies_add_rule(
 > {
     let builder = compute_network_firewall_policies_add_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.maxPriority.clone(),
-        args.minPriority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.maxPriority,
+        &args.minPriority,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_add_rule_execute(builder)
@@ -51009,42 +50786,42 @@ pub fn compute_network_firewall_policies_add_rule(
 
 pub fn compute_network_firewall_policies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/firewallPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -51214,14 +50991,14 @@ pub fn compute_network_firewall_policies_aggregated_list(
 > {
     let builder = compute_network_firewall_policies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_network_firewall_policies_aggregated_list_execute(builder)
 }
@@ -51234,24 +51011,24 @@ pub fn compute_network_firewall_policies_aggregated_list(
 
 pub fn compute_network_firewall_policies_clone_rules_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    requestId: Option<String>,
-    sourceFirewallPolicy: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/cloneRules",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceFirewallPolicy {
+    if let Some(val) = sourceFirewallPolicy.as_ref() {
         query_parts.push(format!("sourceFirewallPolicy={}", val));
     }
 
@@ -51405,10 +51182,10 @@ pub fn compute_network_firewall_policies_clone_rules(
 > {
     let builder = compute_network_firewall_policies_clone_rules_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
-        args.sourceFirewallPolicy.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.requestId,
+        &args.sourceFirewallPolicy,
     )?;
     compute_network_firewall_policies_clone_rules_execute(builder)
 }
@@ -51421,20 +51198,19 @@ pub fn compute_network_firewall_policies_clone_rules(
 
 pub fn compute_network_firewall_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project, firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -51586,9 +51362,9 @@ pub fn compute_network_firewall_policies_delete(
 > {
     let builder = compute_network_firewall_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.requestId,
     )?;
     compute_network_firewall_policies_delete_execute(builder)
 }
@@ -51601,20 +51377,20 @@ pub fn compute_network_firewall_policies_delete(
 
 pub fn compute_network_firewall_policies_get_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    name: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getAssociation",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -51770,9 +51546,9 @@ pub fn compute_network_firewall_policies_get_association(
 > {
     let builder = compute_network_firewall_policies_get_association_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.name.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.name,
     )?;
     compute_network_firewall_policies_get_association_execute(builder)
 }
@@ -51785,20 +51561,20 @@ pub fn compute_network_firewall_policies_get_association(
 
 pub fn compute_network_firewall_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -51950,9 +51726,9 @@ pub fn compute_network_firewall_policies_get_iam_policy(
 > {
     let builder = compute_network_firewall_policies_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_network_firewall_policies_get_iam_policy_execute(builder)
 }
@@ -51965,20 +51741,20 @@ pub fn compute_network_firewall_policies_get_iam_policy(
 
 pub fn compute_network_firewall_policies_get_packet_mirroring_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getPacketMirroringRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -52134,9 +51910,9 @@ pub fn compute_network_firewall_policies_get_packet_mirroring_rule(
 > {
     let builder = compute_network_firewall_policies_get_packet_mirroring_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
     )?;
     compute_network_firewall_policies_get_packet_mirroring_rule_execute(builder)
 }
@@ -52149,20 +51925,19 @@ pub fn compute_network_firewall_policies_get_packet_mirroring_rule(
 
 pub fn compute_network_firewall_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/getRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project, firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -52318,9 +52093,9 @@ pub fn compute_network_firewall_policies_get_rule(
 > {
     let builder = compute_network_firewall_policies_get_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
     )?;
     compute_network_firewall_policies_get_rule_execute(builder)
 }
@@ -52333,19 +52108,19 @@ pub fn compute_network_firewall_policies_get_rule(
 
 pub fn compute_network_firewall_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &FirewallPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -52499,8 +52274,8 @@ pub fn compute_network_firewall_policies_insert(
 > {
     let builder = compute_network_firewall_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_insert_execute(builder)
@@ -52514,25 +52289,25 @@ pub fn compute_network_firewall_policies_insert(
 
 pub fn compute_network_firewall_policies_patch_packet_mirroring_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/patchPacketMirroringRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -52690,10 +52465,10 @@ pub fn compute_network_firewall_policies_patch_packet_mirroring_rule(
 > {
     let builder = compute_network_firewall_policies_patch_packet_mirroring_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_patch_packet_mirroring_rule_execute(builder)
@@ -52707,25 +52482,25 @@ pub fn compute_network_firewall_policies_patch_packet_mirroring_rule(
 
 pub fn compute_network_firewall_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/patchRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -52883,10 +52658,10 @@ pub fn compute_network_firewall_policies_patch_rule(
 > {
     let builder = compute_network_firewall_policies_patch_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
         &args.body,
     )?;
     compute_network_firewall_policies_patch_rule_execute(builder)
@@ -52900,24 +52675,24 @@ pub fn compute_network_firewall_policies_patch_rule(
 
 pub fn compute_network_firewall_policies_remove_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    name: Option<String>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removeAssociation",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -53071,10 +52846,10 @@ pub fn compute_network_firewall_policies_remove_association(
 > {
     let builder = compute_network_firewall_policies_remove_association_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.name.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.name,
+        &args.requestId,
     )?;
     compute_network_firewall_policies_remove_association_execute(builder)
 }
@@ -53087,24 +52862,24 @@ pub fn compute_network_firewall_policies_remove_association(
 
 pub fn compute_network_firewall_policies_remove_packet_mirroring_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removePacketMirroringRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -53258,10 +53033,10 @@ pub fn compute_network_firewall_policies_remove_packet_mirroring_rule(
 > {
     let builder = compute_network_firewall_policies_remove_packet_mirroring_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
     )?;
     compute_network_firewall_policies_remove_packet_mirroring_rule_execute(builder)
 }
@@ -53274,24 +53049,24 @@ pub fn compute_network_firewall_policies_remove_packet_mirroring_rule(
 
 pub fn compute_network_firewall_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/removeRule",
-        project.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -53445,10 +53220,10 @@ pub fn compute_network_firewall_policies_remove_rule(
 > {
     let builder = compute_network_firewall_policies_remove_rule_builder(
         client,
-        args.project.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
     )?;
     compute_network_firewall_policies_remove_rule_execute(builder)
 }
@@ -53461,15 +53236,15 @@ pub fn compute_network_firewall_policies_remove_rule(
 
 pub fn compute_network_firewall_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -53617,8 +53392,8 @@ pub fn compute_network_firewall_policies_set_iam_policy(
 > {
     let builder = compute_network_firewall_policies_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_network_firewall_policies_set_iam_policy_execute(builder)
@@ -53632,15 +53407,15 @@ pub fn compute_network_firewall_policies_set_iam_policy(
 
 pub fn compute_network_firewall_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/firewallPolicies/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -53792,8 +53567,8 @@ pub fn compute_network_firewall_policies_test_iam_permissions(
 > {
     let builder = compute_network_firewall_policies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_network_firewall_policies_test_iam_permissions_execute(builder)
@@ -53807,14 +53582,13 @@ pub fn compute_network_firewall_policies_test_iam_permissions(
 
 pub fn compute_network_profiles_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    networkProfile: String,
+    project: &String,
+    networkProfile: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkProfiles/{}",
-        project.as_str(),
-        networkProfile.as_str(),
+        project, networkProfile,
     );
 
     // Build request
@@ -53960,11 +53734,8 @@ pub fn compute_network_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = compute_network_profiles_get_builder(
-        client,
-        args.project.clone(),
-        args.networkProfile.clone(),
-    )?;
+    let builder =
+        compute_network_profiles_get_builder(client, &args.project, &args.networkProfile)?;
     compute_network_profiles_get_execute(builder)
 }
 
@@ -53976,34 +53747,34 @@ pub fn compute_network_profiles_get(
 
 pub fn compute_network_profiles_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networkProfiles",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -54169,12 +53940,12 @@ pub fn compute_network_profiles_list(
 > {
     let builder = compute_network_profiles_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_network_profiles_list_execute(builder)
 }
@@ -54187,21 +53958,20 @@ pub fn compute_network_profiles_list(
 
 pub fn compute_networks_add_peering_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
     body: &NetworksAddPeeringRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/addPeering",
-        project.as_str(),
-        network.as_str(),
+        project, network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -54357,9 +54127,9 @@ pub fn compute_networks_add_peering(
 > {
     let builder = compute_networks_add_peering_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.network,
+        &args.requestId,
         &args.body,
     )?;
     compute_networks_add_peering_execute(builder)
@@ -54373,20 +54143,19 @@ pub fn compute_networks_add_peering(
 
 pub fn compute_networks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}",
-        project.as_str(),
-        network.as_str(),
+        project, network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -54536,12 +54305,8 @@ pub fn compute_networks_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_networks_delete_builder(
-        client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_networks_delete_builder(client, &args.project, &args.network, &args.requestId)?;
     compute_networks_delete_execute(builder)
 }
 
@@ -54553,14 +54318,14 @@ pub fn compute_networks_delete(
 
 pub fn compute_networks_get_effective_firewalls_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
+    project: &String,
+    network: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/getEffectiveFirewalls",
-        project.as_str(),
-        network.as_str(),
+        project,
+        network,
     );
 
     // Build request
@@ -54710,11 +54475,8 @@ pub fn compute_networks_get_effective_firewalls(
         + 'static,
     ApiError,
 > {
-    let builder = compute_networks_get_effective_firewalls_builder(
-        client,
-        args.project.clone(),
-        args.network.clone(),
-    )?;
+    let builder =
+        compute_networks_get_effective_firewalls_builder(client, &args.project, &args.network)?;
     compute_networks_get_effective_firewalls_execute(builder)
 }
 
@@ -54726,19 +54488,19 @@ pub fn compute_networks_get_effective_firewalls(
 
 pub fn compute_networks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Network,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -54890,12 +54652,8 @@ pub fn compute_networks_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_networks_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_networks_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_networks_insert_execute(builder)
 }
 
@@ -54907,48 +54665,48 @@ pub fn compute_networks_insert(
 
 pub fn compute_networks_list_peering_routes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    direction: Option<String>,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    peeringName: Option<String>,
-    region: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    network: &String,
+    direction: &Option<String>,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    peeringName: &Option<String>,
+    region: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/listPeeringRoutes",
-        project.as_str(),
-        network.as_str(),
+        project,
+        network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = direction {
+    if let Some(val) = direction.as_ref() {
         query_parts.push(format!("direction={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = peeringName {
+    if let Some(val) = peeringName.as_ref() {
         query_parts.push(format!("peeringName={}", val));
     }
-    if let Some(val) = region {
+    if let Some(val) = region.as_ref() {
         query_parts.push(format!("region={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -55122,16 +54880,16 @@ pub fn compute_networks_list_peering_routes(
 > {
     let builder = compute_networks_list_peering_routes_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.direction.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.peeringName.clone(),
-        args.region.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.network,
+        &args.direction,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.peeringName,
+        &args.region,
+        &args.returnPartialSuccess,
     )?;
     compute_networks_list_peering_routes_execute(builder)
 }
@@ -55144,21 +54902,20 @@ pub fn compute_networks_list_peering_routes(
 
 pub fn compute_networks_remove_peering_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
     body: &NetworksRemovePeeringRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/removePeering",
-        project.as_str(),
-        network.as_str(),
+        project, network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -55314,9 +55071,9 @@ pub fn compute_networks_remove_peering(
 > {
     let builder = compute_networks_remove_peering_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.network,
+        &args.requestId,
         &args.body,
     )?;
     compute_networks_remove_peering_execute(builder)
@@ -55330,21 +55087,21 @@ pub fn compute_networks_remove_peering(
 
 pub fn compute_networks_request_remove_peering_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
     body: &NetworksRequestRemovePeeringRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/requestRemovePeering",
-        project.as_str(),
-        network.as_str(),
+        project,
+        network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -55500,9 +55257,9 @@ pub fn compute_networks_request_remove_peering(
 > {
     let builder = compute_networks_request_remove_peering_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.network,
+        &args.requestId,
         &args.body,
     )?;
     compute_networks_request_remove_peering_execute(builder)
@@ -55516,20 +55273,20 @@ pub fn compute_networks_request_remove_peering(
 
 pub fn compute_networks_switch_to_custom_mode_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/switchToCustomMode",
-        project.as_str(),
-        network.as_str(),
+        project,
+        network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -55681,9 +55438,9 @@ pub fn compute_networks_switch_to_custom_mode(
 > {
     let builder = compute_networks_switch_to_custom_mode_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.network,
+        &args.requestId,
     )?;
     compute_networks_switch_to_custom_mode_execute(builder)
 }
@@ -55696,21 +55453,20 @@ pub fn compute_networks_switch_to_custom_mode(
 
 pub fn compute_networks_update_peering_builder(
     client: &SimpleHttpClient,
-    project: String,
-    network: String,
-    requestId: Option<String>,
+    project: &String,
+    network: &String,
+    requestId: &Option<String>,
     body: &NetworksUpdatePeeringRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/networks/{}/updatePeering",
-        project.as_str(),
-        network.as_str(),
+        project, network,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -55866,9 +55622,9 @@ pub fn compute_networks_update_peering(
 > {
     let builder = compute_networks_update_peering_builder(
         client,
-        args.project.clone(),
-        args.network.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.network,
+        &args.requestId,
         &args.body,
     )?;
     compute_networks_update_peering_execute(builder)
@@ -55882,23 +55638,21 @@ pub fn compute_networks_update_peering(
 
 pub fn compute_node_groups_add_nodes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
     body: &NodeGroupsAddNodesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/addNodes",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project, zone, nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -56056,10 +55810,10 @@ pub fn compute_node_groups_add_nodes(
 > {
     let builder = compute_node_groups_add_nodes_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_groups_add_nodes_execute(builder)
@@ -56073,42 +55827,42 @@ pub fn compute_node_groups_add_nodes(
 
 pub fn compute_node_groups_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeGroups",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -56274,14 +56028,14 @@ pub fn compute_node_groups_aggregated_list(
 > {
     let builder = compute_node_groups_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_node_groups_aggregated_list_execute(builder)
 }
@@ -56294,22 +56048,20 @@ pub fn compute_node_groups_aggregated_list(
 
 pub fn compute_node_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project, zone, nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -56463,10 +56215,10 @@ pub fn compute_node_groups_delete(
 > {
     let builder = compute_node_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
     )?;
     compute_node_groups_delete_execute(builder)
 }
@@ -56479,23 +56231,21 @@ pub fn compute_node_groups_delete(
 
 pub fn compute_node_groups_delete_nodes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
     body: &NodeGroupsDeleteNodesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/deleteNodes",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project, zone, nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -56653,10 +56403,10 @@ pub fn compute_node_groups_delete_nodes(
 > {
     let builder = compute_node_groups_delete_nodes_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_groups_delete_nodes_execute(builder)
@@ -56670,22 +56420,20 @@ pub fn compute_node_groups_delete_nodes(
 
 pub fn compute_node_groups_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -56839,10 +56587,10 @@ pub fn compute_node_groups_get_iam_policy(
 > {
     let builder = compute_node_groups_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_node_groups_get_iam_policy_execute(builder)
 }
@@ -56855,36 +56603,35 @@ pub fn compute_node_groups_get_iam_policy(
 
 pub fn compute_node_groups_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -57048,13 +56795,13 @@ pub fn compute_node_groups_list(
 > {
     let builder = compute_node_groups_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_node_groups_list_execute(builder)
 }
@@ -57067,38 +56814,36 @@ pub fn compute_node_groups_list(
 
 pub fn compute_node_groups_list_nodes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/listNodes",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project, zone, nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -57264,14 +57009,14 @@ pub fn compute_node_groups_list_nodes(
 > {
     let builder = compute_node_groups_list_nodes_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_node_groups_list_nodes_execute(builder)
 }
@@ -57284,23 +57029,23 @@ pub fn compute_node_groups_list_nodes(
 
 pub fn compute_node_groups_perform_maintenance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
     body: &NodeGroupsPerformMaintenanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/performMaintenance",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project,
+        zone,
+        nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -57458,10 +57203,10 @@ pub fn compute_node_groups_perform_maintenance(
 > {
     let builder = compute_node_groups_perform_maintenance_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_groups_perform_maintenance_execute(builder)
@@ -57475,17 +57220,15 @@ pub fn compute_node_groups_perform_maintenance(
 
 pub fn compute_node_groups_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project, zone, resource,
     );
 
     // Build request
@@ -57635,9 +57378,9 @@ pub fn compute_node_groups_set_iam_policy(
 > {
     let builder = compute_node_groups_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_node_groups_set_iam_policy_execute(builder)
@@ -57651,23 +57394,23 @@ pub fn compute_node_groups_set_iam_policy(
 
 pub fn compute_node_groups_set_node_template_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
     body: &NodeGroupsSetNodeTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/setNodeTemplate",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project,
+        zone,
+        nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -57825,10 +57568,10 @@ pub fn compute_node_groups_set_node_template(
 > {
     let builder = compute_node_groups_set_node_template_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_groups_set_node_template_execute(builder)
@@ -57842,23 +57585,23 @@ pub fn compute_node_groups_set_node_template(
 
 pub fn compute_node_groups_simulate_maintenance_event_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    nodeGroup: &String,
+    requestId: &Option<String>,
     body: &NodeGroupsSimulateMaintenanceEventRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/simulateMaintenanceEvent",
-        project.as_str(),
-        zone.as_str(),
-        nodeGroup.as_str(),
+        project,
+        zone,
+        nodeGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -58016,10 +57759,10 @@ pub fn compute_node_groups_simulate_maintenance_event(
 > {
     let builder = compute_node_groups_simulate_maintenance_event_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.nodeGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_groups_simulate_maintenance_event_execute(builder)
@@ -58033,17 +57776,17 @@ pub fn compute_node_groups_simulate_maintenance_event(
 
 pub fn compute_node_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeGroups/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -58197,9 +57940,9 @@ pub fn compute_node_groups_test_iam_permissions(
 > {
     let builder = compute_node_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_node_groups_test_iam_permissions_execute(builder)
@@ -58213,42 +57956,42 @@ pub fn compute_node_groups_test_iam_permissions(
 
 pub fn compute_node_templates_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeTemplates",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -58418,14 +58161,14 @@ pub fn compute_node_templates_aggregated_list(
 > {
     let builder = compute_node_templates_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_node_templates_aggregated_list_execute(builder)
 }
@@ -58438,22 +58181,20 @@ pub fn compute_node_templates_aggregated_list(
 
 pub fn compute_node_templates_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    nodeTemplate: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    nodeTemplate: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}",
-        project.as_str(),
-        region.as_str(),
-        nodeTemplate.as_str(),
+        project, region, nodeTemplate,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -58607,10 +58348,10 @@ pub fn compute_node_templates_delete(
 > {
     let builder = compute_node_templates_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.nodeTemplate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.nodeTemplate,
+        &args.requestId,
     )?;
     compute_node_templates_delete_execute(builder)
 }
@@ -58623,22 +58364,22 @@ pub fn compute_node_templates_delete(
 
 pub fn compute_node_templates_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -58792,10 +58533,10 @@ pub fn compute_node_templates_get_iam_policy(
 > {
     let builder = compute_node_templates_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_node_templates_get_iam_policy_execute(builder)
 }
@@ -58808,21 +58549,20 @@ pub fn compute_node_templates_get_iam_policy(
 
 pub fn compute_node_templates_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &NodeTemplate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -58978,9 +58718,9 @@ pub fn compute_node_templates_insert(
 > {
     let builder = compute_node_templates_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_node_templates_insert_execute(builder)
@@ -58994,17 +58734,17 @@ pub fn compute_node_templates_insert(
 
 pub fn compute_node_templates_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -59154,9 +58894,9 @@ pub fn compute_node_templates_set_iam_policy(
 > {
     let builder = compute_node_templates_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_node_templates_set_iam_policy_execute(builder)
@@ -59170,17 +58910,17 @@ pub fn compute_node_templates_set_iam_policy(
 
 pub fn compute_node_templates_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/nodeTemplates/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -59334,9 +59074,9 @@ pub fn compute_node_templates_test_iam_permissions(
 > {
     let builder = compute_node_templates_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_node_templates_test_iam_permissions_execute(builder)
@@ -59350,42 +59090,42 @@ pub fn compute_node_templates_test_iam_permissions(
 
 pub fn compute_node_types_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/nodeTypes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -59551,14 +59291,14 @@ pub fn compute_node_types_aggregated_list(
 > {
     let builder = compute_node_types_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_node_types_aggregated_list_execute(builder)
 }
@@ -59571,16 +59311,14 @@ pub fn compute_node_types_aggregated_list(
 
 pub fn compute_node_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    nodeType: String,
+    project: &String,
+    zone: &String,
+    nodeType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeTypes/{}",
-        project.as_str(),
-        zone.as_str(),
-        nodeType.as_str(),
+        project, zone, nodeType,
     );
 
     // Build request
@@ -59724,12 +59462,8 @@ pub fn compute_node_types_get(
     impl StreamIterator<D = Result<ApiResponse<NodeType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_node_types_get_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.nodeType.clone(),
-    )?;
+    let builder =
+        compute_node_types_get_builder(client, &args.project, &args.zone, &args.nodeType)?;
     compute_node_types_get_execute(builder)
 }
 
@@ -59741,36 +59475,35 @@ pub fn compute_node_types_get(
 
 pub fn compute_node_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/nodeTypes",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -59934,13 +59667,13 @@ pub fn compute_node_types_list(
 > {
     let builder = compute_node_types_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_node_types_list_execute(builder)
 }
@@ -59953,23 +59686,23 @@ pub fn compute_node_types_list(
 
 pub fn compute_organization_security_policies_add_association_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    replaceExistingAssociation: Option<bool>,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    replaceExistingAssociation: &Option<bool>,
+    requestId: &Option<String>,
     body: &SecurityPolicyAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/addAssociation",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = replaceExistingAssociation {
+    if let Some(val) = replaceExistingAssociation.as_ref() {
         query_parts.push(format!("replaceExistingAssociation={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -60125,9 +59858,9 @@ pub fn compute_organization_security_policies_add_association(
 > {
     let builder = compute_organization_security_policies_add_association_builder(
         client,
-        args.securityPolicy.clone(),
-        args.replaceExistingAssociation.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.replaceExistingAssociation,
+        &args.requestId,
         &args.body,
     )?;
     compute_organization_security_policies_add_association_execute(builder)
@@ -60141,19 +59874,19 @@ pub fn compute_organization_security_policies_add_association(
 
 pub fn compute_organization_security_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/addRule",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -60307,8 +60040,8 @@ pub fn compute_organization_security_policies_add_rule(
 > {
     let builder = compute_organization_security_policies_add_rule_builder(
         client,
-        args.securityPolicy.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.requestId,
         &args.body,
     )?;
     compute_organization_security_policies_add_rule_execute(builder)
@@ -60322,22 +60055,22 @@ pub fn compute_organization_security_policies_add_rule(
 
 pub fn compute_organization_security_policies_copy_rules_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    requestId: Option<String>,
-    sourceSecurityPolicy: Option<String>,
+    securityPolicy: &String,
+    requestId: &Option<String>,
+    sourceSecurityPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/copyRules",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceSecurityPolicy {
+    if let Some(val) = sourceSecurityPolicy.as_ref() {
         query_parts.push(format!("sourceSecurityPolicy={}", val));
     }
 
@@ -60489,9 +60222,9 @@ pub fn compute_organization_security_policies_copy_rules(
 > {
     let builder = compute_organization_security_policies_copy_rules_builder(
         client,
-        args.securityPolicy.clone(),
-        args.requestId.clone(),
-        args.sourceSecurityPolicy.clone(),
+        &args.securityPolicy,
+        &args.requestId,
+        &args.sourceSecurityPolicy,
     )?;
     compute_organization_security_policies_copy_rules_execute(builder)
 }
@@ -60504,18 +60237,18 @@ pub fn compute_organization_security_policies_copy_rules(
 
 pub fn compute_organization_security_policies_delete_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -60665,8 +60398,8 @@ pub fn compute_organization_security_policies_delete(
 > {
     let builder = compute_organization_security_policies_delete_builder(
         client,
-        args.securityPolicy.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.requestId,
     )?;
     compute_organization_security_policies_delete_execute(builder)
 }
@@ -60679,18 +60412,18 @@ pub fn compute_organization_security_policies_delete(
 
 pub fn compute_organization_security_policies_get_association_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    name: Option<String>,
+    securityPolicy: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/getAssociation",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -60844,8 +60577,8 @@ pub fn compute_organization_security_policies_get_association(
 > {
     let builder = compute_organization_security_policies_get_association_builder(
         client,
-        args.securityPolicy.clone(),
-        args.name.clone(),
+        &args.securityPolicy,
+        &args.name,
     )?;
     compute_organization_security_policies_get_association_execute(builder)
 }
@@ -60858,18 +60591,18 @@ pub fn compute_organization_security_policies_get_association(
 
 pub fn compute_organization_security_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    priority: Option<i32>,
+    securityPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/getRule",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -61023,8 +60756,8 @@ pub fn compute_organization_security_policies_get_rule(
 > {
     let builder = compute_organization_security_policies_get_rule_builder(
         client,
-        args.securityPolicy.clone(),
-        args.priority.clone(),
+        &args.securityPolicy,
+        &args.priority,
     )?;
     compute_organization_security_policies_get_rule_execute(builder)
 }
@@ -61037,8 +60770,8 @@ pub fn compute_organization_security_policies_get_rule(
 
 pub fn compute_organization_security_policies_insert_builder(
     client: &SimpleHttpClient,
-    parentId: Option<String>,
-    requestId: Option<String>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
     body: &SecurityPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -61047,10 +60780,10 @@ pub fn compute_organization_security_policies_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -61204,8 +60937,8 @@ pub fn compute_organization_security_policies_insert(
 > {
     let builder = compute_organization_security_policies_insert_builder(
         client,
-        args.parentId.clone(),
-        args.requestId.clone(),
+        &args.parentId,
+        &args.requestId,
         &args.body,
     )?;
     compute_organization_security_policies_insert_execute(builder)
@@ -61219,7 +60952,7 @@ pub fn compute_organization_security_policies_insert(
 
 pub fn compute_organization_security_policies_list_associations_builder(
     client: &SimpleHttpClient,
-    targetResource: Option<String>,
+    targetResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -61228,7 +60961,7 @@ pub fn compute_organization_security_policies_list_associations_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = targetResource {
+    if let Some(val) = targetResource.as_ref() {
         query_parts.push(format!("targetResource={}", val));
     }
 
@@ -61388,7 +61121,7 @@ pub fn compute_organization_security_policies_list_associations(
 > {
     let builder = compute_organization_security_policies_list_associations_builder(
         client,
-        args.targetResource.clone(),
+        &args.targetResource,
     )?;
     compute_organization_security_policies_list_associations_execute(builder)
 }
@@ -61401,12 +61134,12 @@ pub fn compute_organization_security_policies_list_associations(
 
 pub fn compute_organization_security_policies_list_preconfigured_expression_sets_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    parentId: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -61415,22 +61148,22 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -61608,12 +61341,12 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
     let builder =
         compute_organization_security_policies_list_preconfigured_expression_sets_builder(
             client,
-            args.filter.clone(),
-            args.maxResults.clone(),
-            args.orderBy.clone(),
-            args.pageToken.clone(),
-            args.parentId.clone(),
-            args.returnPartialSuccess.clone(),
+            &args.filter,
+            &args.maxResults,
+            &args.orderBy,
+            &args.pageToken,
+            &args.parentId,
+            &args.returnPartialSuccess,
         )?;
     compute_organization_security_policies_list_preconfigured_expression_sets_execute(builder)
 }
@@ -61626,22 +61359,22 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
 
 pub fn compute_organization_security_policies_move_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    parentId: Option<String>,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/move",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parentId {
+    if let Some(val) = parentId.as_ref() {
         query_parts.push(format!("parentId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -61793,9 +61526,9 @@ pub fn compute_organization_security_policies_move(
 > {
     let builder = compute_organization_security_policies_move_builder(
         client,
-        args.securityPolicy.clone(),
-        args.parentId.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.parentId,
+        &args.requestId,
     )?;
     compute_organization_security_policies_move_execute(builder)
 }
@@ -61808,23 +61541,23 @@ pub fn compute_organization_security_policies_move(
 
 pub fn compute_organization_security_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/patchRule",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -61980,9 +61713,9 @@ pub fn compute_organization_security_policies_patch_rule(
 > {
     let builder = compute_organization_security_policies_patch_rule_builder(
         client,
-        args.securityPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.priority,
+        &args.requestId,
         &args.body,
     )?;
     compute_organization_security_policies_patch_rule_execute(builder)
@@ -61996,22 +61729,22 @@ pub fn compute_organization_security_policies_patch_rule(
 
 pub fn compute_organization_security_policies_remove_association_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    name: Option<String>,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/removeAssociation",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -62163,9 +61896,9 @@ pub fn compute_organization_security_policies_remove_association(
 > {
     let builder = compute_organization_security_policies_remove_association_builder(
         client,
-        args.securityPolicy.clone(),
-        args.name.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.name,
+        &args.requestId,
     )?;
     compute_organization_security_policies_remove_association_execute(builder)
 }
@@ -62178,22 +61911,22 @@ pub fn compute_organization_security_policies_remove_association(
 
 pub fn compute_organization_security_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    securityPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    securityPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/locations/global/securityPolicies/{}/removeRule",
-        securityPolicy.as_str(),
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -62345,9 +62078,9 @@ pub fn compute_organization_security_policies_remove_rule(
 > {
     let builder = compute_organization_security_policies_remove_rule_builder(
         client,
-        args.securityPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.securityPolicy,
+        &args.priority,
+        &args.requestId,
     )?;
     compute_organization_security_policies_remove_rule_execute(builder)
 }
@@ -62360,42 +62093,42 @@ pub fn compute_organization_security_policies_remove_rule(
 
 pub fn compute_packet_mirrorings_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/packetMirrorings",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -62565,14 +62298,14 @@ pub fn compute_packet_mirrorings_aggregated_list(
 > {
     let builder = compute_packet_mirrorings_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_packet_mirrorings_aggregated_list_execute(builder)
 }
@@ -62585,22 +62318,20 @@ pub fn compute_packet_mirrorings_aggregated_list(
 
 pub fn compute_packet_mirrorings_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    packetMirroring: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    packetMirroring: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}",
-        project.as_str(),
-        region.as_str(),
-        packetMirroring.as_str(),
+        project, region, packetMirroring,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -62754,10 +62485,10 @@ pub fn compute_packet_mirrorings_delete(
 > {
     let builder = compute_packet_mirrorings_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.packetMirroring.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.packetMirroring,
+        &args.requestId,
     )?;
     compute_packet_mirrorings_delete_execute(builder)
 }
@@ -62770,21 +62501,20 @@ pub fn compute_packet_mirrorings_delete(
 
 pub fn compute_packet_mirrorings_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &PacketMirroring,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -62940,9 +62670,9 @@ pub fn compute_packet_mirrorings_insert(
 > {
     let builder = compute_packet_mirrorings_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_packet_mirrorings_insert_execute(builder)
@@ -62956,17 +62686,17 @@ pub fn compute_packet_mirrorings_insert(
 
 pub fn compute_packet_mirrorings_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/packetMirrorings/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -63120,9 +62850,9 @@ pub fn compute_packet_mirrorings_test_iam_permissions(
 > {
     let builder = compute_packet_mirrorings_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_packet_mirrorings_test_iam_permissions_execute(builder)
@@ -63136,14 +62866,13 @@ pub fn compute_packet_mirrorings_test_iam_permissions(
 
 pub fn compute_preview_features_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    previewFeature: String,
+    project: &String,
+    previewFeature: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/previewFeatures/{}",
-        project.as_str(),
-        previewFeature.as_str(),
+        project, previewFeature,
     );
 
     // Build request
@@ -63289,11 +63018,8 @@ pub fn compute_preview_features_get(
         + 'static,
     ApiError,
 > {
-    let builder = compute_preview_features_get_builder(
-        client,
-        args.project.clone(),
-        args.previewFeature.clone(),
-    )?;
+    let builder =
+        compute_preview_features_get_builder(client, &args.project, &args.previewFeature)?;
     compute_preview_features_get_execute(builder)
 }
 
@@ -63305,34 +63031,34 @@ pub fn compute_preview_features_get(
 
 pub fn compute_preview_features_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/previewFeatures",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -63494,12 +63220,12 @@ pub fn compute_preview_features_list(
 > {
     let builder = compute_preview_features_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_preview_features_list_execute(builder)
 }
@@ -63512,18 +63238,18 @@ pub fn compute_preview_features_list(
 
 pub fn compute_projects_disable_xpn_host_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/disableXpnHost",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -63671,11 +63397,8 @@ pub fn compute_projects_disable_xpn_host(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_disable_xpn_host_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_projects_disable_xpn_host_builder(client, &args.project, &args.requestId)?;
     compute_projects_disable_xpn_host_execute(builder)
 }
 
@@ -63687,19 +63410,19 @@ pub fn compute_projects_disable_xpn_host(
 
 pub fn compute_projects_disable_xpn_resource_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ProjectsDisableXpnResourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/disableXpnResource",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -63853,8 +63576,8 @@ pub fn compute_projects_disable_xpn_resource(
 > {
     let builder = compute_projects_disable_xpn_resource_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_disable_xpn_resource_execute(builder)
@@ -63868,18 +63591,18 @@ pub fn compute_projects_disable_xpn_resource(
 
 pub fn compute_projects_enable_xpn_host_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/enableXpnHost",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -64027,11 +63750,7 @@ pub fn compute_projects_enable_xpn_host(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_enable_xpn_host_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder = compute_projects_enable_xpn_host_builder(client, &args.project, &args.requestId)?;
     compute_projects_enable_xpn_host_execute(builder)
 }
 
@@ -64043,19 +63762,19 @@ pub fn compute_projects_enable_xpn_host(
 
 pub fn compute_projects_enable_xpn_resource_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ProjectsEnableXpnResourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/enableXpnResource",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -64209,8 +63928,8 @@ pub fn compute_projects_enable_xpn_resource(
 > {
     let builder = compute_projects_enable_xpn_resource_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_enable_xpn_resource_execute(builder)
@@ -64224,12 +63943,12 @@ pub fn compute_projects_enable_xpn_resource(
 
 pub fn compute_projects_get_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}",
-        project.as_str(),
+        project,
     );
 
     // Build request
@@ -64369,7 +64088,7 @@ pub fn compute_projects_get(
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_get_builder(client, args.project.clone())?;
+    let builder = compute_projects_get_builder(client, &args.project)?;
     compute_projects_get_execute(builder)
 }
 
@@ -64381,12 +64100,12 @@ pub fn compute_projects_get(
 
 pub fn compute_projects_get_xpn_host_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/getXpnHost",
-        project.as_str(),
+        project,
     );
 
     // Build request
@@ -64526,7 +64245,7 @@ pub fn compute_projects_get_xpn_host(
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_get_xpn_host_builder(client, args.project.clone())?;
+    let builder = compute_projects_get_xpn_host_builder(client, &args.project)?;
     compute_projects_get_xpn_host_execute(builder)
 }
 
@@ -64538,34 +64257,34 @@ pub fn compute_projects_get_xpn_host(
 
 pub fn compute_projects_get_xpn_resources_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/getXpnResources",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -64727,12 +64446,12 @@ pub fn compute_projects_get_xpn_resources(
 > {
     let builder = compute_projects_get_xpn_resources_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_projects_get_xpn_resources_execute(builder)
 }
@@ -64745,35 +64464,35 @@ pub fn compute_projects_get_xpn_resources(
 
 pub fn compute_projects_list_xpn_hosts_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
     body: &ProjectsListXpnHostsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/listXpnHosts",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -64935,12 +64654,12 @@ pub fn compute_projects_list_xpn_hosts(
 > {
     let builder = compute_projects_list_xpn_hosts_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
         &args.body,
     )?;
     compute_projects_list_xpn_hosts_execute(builder)
@@ -64954,19 +64673,19 @@ pub fn compute_projects_list_xpn_hosts(
 
 pub fn compute_projects_move_disk_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &DiskMoveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/moveDisk",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -65118,12 +64837,8 @@ pub fn compute_projects_move_disk(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_move_disk_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_projects_move_disk_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_projects_move_disk_execute(builder)
 }
 
@@ -65135,19 +64850,19 @@ pub fn compute_projects_move_disk(
 
 pub fn compute_projects_move_instance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &InstanceMoveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/moveInstance",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -65299,12 +65014,8 @@ pub fn compute_projects_move_instance(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_projects_move_instance_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_projects_move_instance_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_projects_move_instance_execute(builder)
 }
 
@@ -65316,19 +65027,19 @@ pub fn compute_projects_move_instance(
 
 pub fn compute_projects_set_cloud_armor_tier_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ProjectsSetCloudArmorTierRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setCloudArmorTier",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -65482,8 +65193,8 @@ pub fn compute_projects_set_cloud_armor_tier(
 > {
     let builder = compute_projects_set_cloud_armor_tier_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_set_cloud_armor_tier_execute(builder)
@@ -65497,19 +65208,19 @@ pub fn compute_projects_set_cloud_armor_tier(
 
 pub fn compute_projects_set_common_instance_metadata_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Metadata,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setCommonInstanceMetadata",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -65663,8 +65374,8 @@ pub fn compute_projects_set_common_instance_metadata(
 > {
     let builder = compute_projects_set_common_instance_metadata_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_set_common_instance_metadata_execute(builder)
@@ -65678,19 +65389,19 @@ pub fn compute_projects_set_common_instance_metadata(
 
 pub fn compute_projects_set_default_network_tier_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &ProjectsSetDefaultNetworkTierRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setDefaultNetworkTier",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -65844,8 +65555,8 @@ pub fn compute_projects_set_default_network_tier(
 > {
     let builder = compute_projects_set_default_network_tier_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_set_default_network_tier_execute(builder)
@@ -65859,19 +65570,19 @@ pub fn compute_projects_set_default_network_tier(
 
 pub fn compute_projects_set_usage_export_bucket_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &UsageExportLocation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/setUsageExportBucket",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -66025,8 +65736,8 @@ pub fn compute_projects_set_usage_export_bucket(
 > {
     let builder = compute_projects_set_usage_export_bucket_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_projects_set_usage_export_bucket_execute(builder)
@@ -66040,20 +65751,20 @@ pub fn compute_projects_set_usage_export_bucket(
 
 pub fn compute_public_advertised_prefixes_announce_builder(
     client: &SimpleHttpClient,
-    project: String,
-    publicAdvertisedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    publicAdvertisedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}/announce",
-        project.as_str(),
-        publicAdvertisedPrefix.as_str(),
+        project,
+        publicAdvertisedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -66205,9 +65916,9 @@ pub fn compute_public_advertised_prefixes_announce(
 > {
     let builder = compute_public_advertised_prefixes_announce_builder(
         client,
-        args.project.clone(),
-        args.publicAdvertisedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.publicAdvertisedPrefix,
+        &args.requestId,
     )?;
     compute_public_advertised_prefixes_announce_execute(builder)
 }
@@ -66220,20 +65931,19 @@ pub fn compute_public_advertised_prefixes_announce(
 
 pub fn compute_public_advertised_prefixes_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    publicAdvertisedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    publicAdvertisedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}",
-        project.as_str(),
-        publicAdvertisedPrefix.as_str(),
+        project, publicAdvertisedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -66385,9 +66095,9 @@ pub fn compute_public_advertised_prefixes_delete(
 > {
     let builder = compute_public_advertised_prefixes_delete_builder(
         client,
-        args.project.clone(),
-        args.publicAdvertisedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.publicAdvertisedPrefix,
+        &args.requestId,
     )?;
     compute_public_advertised_prefixes_delete_execute(builder)
 }
@@ -66400,19 +66110,19 @@ pub fn compute_public_advertised_prefixes_delete(
 
 pub fn compute_public_advertised_prefixes_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &PublicAdvertisedPrefix,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -66566,8 +66276,8 @@ pub fn compute_public_advertised_prefixes_insert(
 > {
     let builder = compute_public_advertised_prefixes_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_public_advertised_prefixes_insert_execute(builder)
@@ -66581,20 +66291,20 @@ pub fn compute_public_advertised_prefixes_insert(
 
 pub fn compute_public_advertised_prefixes_withdraw_builder(
     client: &SimpleHttpClient,
-    project: String,
-    publicAdvertisedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    publicAdvertisedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/publicAdvertisedPrefixes/{}/withdraw",
-        project.as_str(),
-        publicAdvertisedPrefix.as_str(),
+        project,
+        publicAdvertisedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -66746,9 +66456,9 @@ pub fn compute_public_advertised_prefixes_withdraw(
 > {
     let builder = compute_public_advertised_prefixes_withdraw_builder(
         client,
-        args.project.clone(),
-        args.publicAdvertisedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.publicAdvertisedPrefix,
+        &args.requestId,
     )?;
     compute_public_advertised_prefixes_withdraw_execute(builder)
 }
@@ -66761,42 +66471,42 @@ pub fn compute_public_advertised_prefixes_withdraw(
 
 pub fn compute_public_delegated_prefixes_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/publicDelegatedPrefixes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -66966,14 +66676,14 @@ pub fn compute_public_delegated_prefixes_aggregated_list(
 > {
     let builder = compute_public_delegated_prefixes_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_public_delegated_prefixes_aggregated_list_execute(builder)
 }
@@ -66986,22 +66696,22 @@ pub fn compute_public_delegated_prefixes_aggregated_list(
 
 pub fn compute_public_delegated_prefixes_announce_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    publicDelegatedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    publicDelegatedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}/announce",
-        project.as_str(),
-        region.as_str(),
-        publicDelegatedPrefix.as_str(),
+        project,
+        region,
+        publicDelegatedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -67155,10 +66865,10 @@ pub fn compute_public_delegated_prefixes_announce(
 > {
     let builder = compute_public_delegated_prefixes_announce_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.publicDelegatedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.publicDelegatedPrefix,
+        &args.requestId,
     )?;
     compute_public_delegated_prefixes_announce_execute(builder)
 }
@@ -67171,22 +66881,22 @@ pub fn compute_public_delegated_prefixes_announce(
 
 pub fn compute_public_delegated_prefixes_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    publicDelegatedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    publicDelegatedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}",
-        project.as_str(),
-        region.as_str(),
-        publicDelegatedPrefix.as_str(),
+        project,
+        region,
+        publicDelegatedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -67340,10 +67050,10 @@ pub fn compute_public_delegated_prefixes_delete(
 > {
     let builder = compute_public_delegated_prefixes_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.publicDelegatedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.publicDelegatedPrefix,
+        &args.requestId,
     )?;
     compute_public_delegated_prefixes_delete_execute(builder)
 }
@@ -67356,21 +67066,20 @@ pub fn compute_public_delegated_prefixes_delete(
 
 pub fn compute_public_delegated_prefixes_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &PublicDelegatedPrefix,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -67526,9 +67235,9 @@ pub fn compute_public_delegated_prefixes_insert(
 > {
     let builder = compute_public_delegated_prefixes_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_public_delegated_prefixes_insert_execute(builder)
@@ -67542,22 +67251,22 @@ pub fn compute_public_delegated_prefixes_insert(
 
 pub fn compute_public_delegated_prefixes_withdraw_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    publicDelegatedPrefix: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    publicDelegatedPrefix: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/publicDelegatedPrefixes/{}/withdraw",
-        project.as_str(),
-        region.as_str(),
-        publicDelegatedPrefix.as_str(),
+        project,
+        region,
+        publicDelegatedPrefix,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -67711,10 +67420,10 @@ pub fn compute_public_delegated_prefixes_withdraw(
 > {
     let builder = compute_public_delegated_prefixes_withdraw_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.publicDelegatedPrefix.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.publicDelegatedPrefix,
+        &args.requestId,
     )?;
     compute_public_delegated_prefixes_withdraw_execute(builder)
 }
@@ -67727,22 +67436,20 @@ pub fn compute_public_delegated_prefixes_withdraw(
 
 pub fn compute_region_autoscalers_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    autoscaler: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    autoscaler: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers/{}",
-        project.as_str(),
-        region.as_str(),
-        autoscaler.as_str(),
+        project, region, autoscaler,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -67896,10 +67603,10 @@ pub fn compute_region_autoscalers_delete(
 > {
     let builder = compute_region_autoscalers_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.autoscaler.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.autoscaler,
+        &args.requestId,
     )?;
     compute_region_autoscalers_delete_execute(builder)
 }
@@ -67912,21 +67619,20 @@ pub fn compute_region_autoscalers_delete(
 
 pub fn compute_region_autoscalers_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &Autoscaler,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -68082,9 +67788,9 @@ pub fn compute_region_autoscalers_insert(
 > {
     let builder = compute_region_autoscalers_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_autoscalers_insert_execute(builder)
@@ -68098,17 +67804,17 @@ pub fn compute_region_autoscalers_insert(
 
 pub fn compute_region_autoscalers_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/autoscalers/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -68262,9 +67968,9 @@ pub fn compute_region_autoscalers_test_iam_permissions(
 > {
     let builder = compute_region_autoscalers_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_autoscalers_test_iam_permissions_execute(builder)
@@ -68278,22 +67984,20 @@ pub fn compute_region_autoscalers_test_iam_permissions(
 
 pub fn compute_region_backend_services_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    backendService: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}",
-        project.as_str(),
-        region.as_str(),
-        backendService.as_str(),
+        project, region, backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -68447,10 +68151,10 @@ pub fn compute_region_backend_services_delete(
 > {
     let builder = compute_region_backend_services_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.backendService,
+        &args.requestId,
     )?;
     compute_region_backend_services_delete_execute(builder)
 }
@@ -68463,17 +68167,17 @@ pub fn compute_region_backend_services_delete(
 
 pub fn compute_region_backend_services_get_health_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    backendService: String,
+    project: &String,
+    region: &String,
+    backendService: &String,
     body: &ResourceGroupReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/getHealth",
-        project.as_str(),
-        region.as_str(),
-        backendService.as_str(),
+        project,
+        region,
+        backendService,
     );
 
     // Build request
@@ -68627,9 +68331,9 @@ pub fn compute_region_backend_services_get_health(
 > {
     let builder = compute_region_backend_services_get_health_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.backendService.clone(),
+        &args.project,
+        &args.region,
+        &args.backendService,
         &args.body,
     )?;
     compute_region_backend_services_get_health_execute(builder)
@@ -68643,22 +68347,22 @@ pub fn compute_region_backend_services_get_health(
 
 pub fn compute_region_backend_services_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -68812,10 +68516,10 @@ pub fn compute_region_backend_services_get_iam_policy(
 > {
     let builder = compute_region_backend_services_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_region_backend_services_get_iam_policy_execute(builder)
 }
@@ -68828,21 +68532,20 @@ pub fn compute_region_backend_services_get_iam_policy(
 
 pub fn compute_region_backend_services_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &BackendService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -68998,9 +68701,9 @@ pub fn compute_region_backend_services_insert(
 > {
     let builder = compute_region_backend_services_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_backend_services_insert_execute(builder)
@@ -69014,36 +68717,36 @@ pub fn compute_region_backend_services_insert(
 
 pub fn compute_region_backend_services_list_usable_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/listUsable",
-        project.as_str(),
-        region.as_str(),
+        project,
+        region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -69207,13 +68910,13 @@ pub fn compute_region_backend_services_list_usable(
 > {
     let builder = compute_region_backend_services_list_usable_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_backend_services_list_usable_execute(builder)
 }
@@ -69226,17 +68929,17 @@ pub fn compute_region_backend_services_list_usable(
 
 pub fn compute_region_backend_services_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -69386,9 +69089,9 @@ pub fn compute_region_backend_services_set_iam_policy(
 > {
     let builder = compute_region_backend_services_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_backend_services_set_iam_policy_execute(builder)
@@ -69402,23 +69105,23 @@ pub fn compute_region_backend_services_set_iam_policy(
 
 pub fn compute_region_backend_services_set_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    backendService: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    backendService: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/setSecurityPolicy",
-        project.as_str(),
-        region.as_str(),
-        backendService.as_str(),
+        project,
+        region,
+        backendService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -69576,10 +69279,10 @@ pub fn compute_region_backend_services_set_security_policy(
 > {
     let builder = compute_region_backend_services_set_security_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.backendService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.backendService,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_backend_services_set_security_policy_execute(builder)
@@ -69593,17 +69296,17 @@ pub fn compute_region_backend_services_set_security_policy(
 
 pub fn compute_region_backend_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/backendServices/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -69757,9 +69460,9 @@ pub fn compute_region_backend_services_test_iam_permissions(
 > {
     let builder = compute_region_backend_services_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_backend_services_test_iam_permissions_execute(builder)
@@ -69773,42 +69476,42 @@ pub fn compute_region_backend_services_test_iam_permissions(
 
 pub fn compute_region_commitments_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/commitments",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -69974,14 +69677,14 @@ pub fn compute_region_commitments_aggregated_list(
 > {
     let builder = compute_region_commitments_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_commitments_aggregated_list_execute(builder)
 }
@@ -69994,16 +69697,14 @@ pub fn compute_region_commitments_aggregated_list(
 
 pub fn compute_region_commitments_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    commitment: String,
+    project: &String,
+    region: &String,
+    commitment: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments/{}",
-        project.as_str(),
-        region.as_str(),
-        commitment.as_str(),
+        project, region, commitment,
     );
 
     // Build request
@@ -70149,9 +69850,9 @@ pub fn compute_region_commitments_get(
 > {
     let builder = compute_region_commitments_get_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.commitment.clone(),
+        &args.project,
+        &args.region,
+        &args.commitment,
     )?;
     compute_region_commitments_get_execute(builder)
 }
@@ -70164,21 +69865,20 @@ pub fn compute_region_commitments_get(
 
 pub fn compute_region_commitments_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &Commitment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/commitments",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -70334,9 +70034,9 @@ pub fn compute_region_commitments_insert(
 > {
     let builder = compute_region_commitments_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_commitments_insert_execute(builder)
@@ -70350,42 +70050,42 @@ pub fn compute_region_commitments_insert(
 
 pub fn compute_region_composite_health_checks_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/compositeHealthChecks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -70555,14 +70255,14 @@ pub fn compute_region_composite_health_checks_aggregated_list(
 > {
     let builder = compute_region_composite_health_checks_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_composite_health_checks_aggregated_list_execute(builder)
 }
@@ -70575,22 +70275,20 @@ pub fn compute_region_composite_health_checks_aggregated_list(
 
 pub fn compute_region_composite_health_checks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    compositeHealthCheck: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    compositeHealthCheck: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}",
-        project.as_str(),
-        region.as_str(),
-        compositeHealthCheck.as_str(),
+        project, region, compositeHealthCheck,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -70744,10 +70442,10 @@ pub fn compute_region_composite_health_checks_delete(
 > {
     let builder = compute_region_composite_health_checks_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.compositeHealthCheck.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.compositeHealthCheck,
+        &args.requestId,
     )?;
     compute_region_composite_health_checks_delete_execute(builder)
 }
@@ -70760,21 +70458,20 @@ pub fn compute_region_composite_health_checks_delete(
 
 pub fn compute_region_composite_health_checks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &CompositeHealthCheck,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -70930,9 +70627,9 @@ pub fn compute_region_composite_health_checks_insert(
 > {
     let builder = compute_region_composite_health_checks_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_composite_health_checks_insert_execute(builder)
@@ -70946,17 +70643,17 @@ pub fn compute_region_composite_health_checks_insert(
 
 pub fn compute_region_composite_health_checks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/compositeHealthChecks/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -71110,9 +70807,9 @@ pub fn compute_region_composite_health_checks_test_iam_permissions(
 > {
     let builder = compute_region_composite_health_checks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_composite_health_checks_test_iam_permissions_execute(builder)
@@ -71126,16 +70823,14 @@ pub fn compute_region_composite_health_checks_test_iam_permissions(
 
 pub fn compute_region_disk_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    diskType: String,
+    project: &String,
+    region: &String,
+    diskType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/diskTypes/{}",
-        project.as_str(),
-        region.as_str(),
-        diskType.as_str(),
+        project, region, diskType,
     );
 
     // Build request
@@ -71279,12 +70974,8 @@ pub fn compute_region_disk_types_get(
     impl StreamIterator<D = Result<ApiResponse<DiskType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_region_disk_types_get_builder(
-        client,
-        args.project.clone(),
-        args.region.clone(),
-        args.diskType.clone(),
-    )?;
+    let builder =
+        compute_region_disk_types_get_builder(client, &args.project, &args.region, &args.diskType)?;
     compute_region_disk_types_get_execute(builder)
 }
 
@@ -71296,36 +70987,35 @@ pub fn compute_region_disk_types_get(
 
 pub fn compute_region_disk_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/diskTypes",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -71489,13 +71179,13 @@ pub fn compute_region_disk_types_list(
 > {
     let builder = compute_region_disk_types_list_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_disk_types_list_execute(builder)
 }
@@ -71508,23 +71198,23 @@ pub fn compute_region_disk_types_list(
 
 pub fn compute_region_disks_add_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &RegionDisksAddResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/addResourcePolicies",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project,
+        region,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -71682,10 +71372,10 @@ pub fn compute_region_disks_add_resource_policies(
 > {
     let builder = compute_region_disks_add_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_add_resource_policies_execute(builder)
@@ -71699,21 +71389,20 @@ pub fn compute_region_disks_add_resource_policies(
 
 pub fn compute_region_disks_bulk_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &BulkInsertDiskResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/bulkInsert",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -71869,9 +71558,9 @@ pub fn compute_region_disks_bulk_insert(
 > {
     let builder = compute_region_disks_bulk_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_bulk_insert_execute(builder)
@@ -71885,23 +71574,21 @@ pub fn compute_region_disks_bulk_insert(
 
 pub fn compute_region_disks_create_snapshot_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &Snapshot,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/createSnapshot",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project, region, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -72059,10 +71746,10 @@ pub fn compute_region_disks_create_snapshot(
 > {
     let builder = compute_region_disks_create_snapshot_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_create_snapshot_execute(builder)
@@ -72076,22 +71763,20 @@ pub fn compute_region_disks_create_snapshot(
 
 pub fn compute_region_disks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project, region, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -72245,10 +71930,10 @@ pub fn compute_region_disks_delete(
 > {
     let builder = compute_region_disks_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
     )?;
     compute_region_disks_delete_execute(builder)
 }
@@ -72261,22 +71946,20 @@ pub fn compute_region_disks_delete(
 
 pub fn compute_region_disks_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -72430,10 +72113,10 @@ pub fn compute_region_disks_get_iam_policy(
 > {
     let builder = compute_region_disks_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_region_disks_get_iam_policy_execute(builder)
 }
@@ -72446,25 +72129,24 @@ pub fn compute_region_disks_get_iam_policy(
 
 pub fn compute_region_disks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
-    sourceImage: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
+    sourceImage: &Option<String>,
     body: &Disk,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceImage {
+    if let Some(val) = sourceImage.as_ref() {
         query_parts.push(format!("sourceImage={}", val));
     }
 
@@ -72622,10 +72304,10 @@ pub fn compute_region_disks_insert(
 > {
     let builder = compute_region_disks_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
-        args.sourceImage.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
+        &args.sourceImage,
         &args.body,
     )?;
     compute_region_disks_insert_execute(builder)
@@ -72639,23 +72321,23 @@ pub fn compute_region_disks_insert(
 
 pub fn compute_region_disks_remove_resource_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &RegionDisksRemoveResourcePoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/removeResourcePolicies",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project,
+        region,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -72813,10 +72495,10 @@ pub fn compute_region_disks_remove_resource_policies(
 > {
     let builder = compute_region_disks_remove_resource_policies_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_remove_resource_policies_execute(builder)
@@ -72830,23 +72512,21 @@ pub fn compute_region_disks_remove_resource_policies(
 
 pub fn compute_region_disks_resize_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &RegionDisksResizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/resize",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project, region, disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -73004,10 +72684,10 @@ pub fn compute_region_disks_resize(
 > {
     let builder = compute_region_disks_resize_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_resize_execute(builder)
@@ -73021,17 +72701,15 @@ pub fn compute_region_disks_resize(
 
 pub fn compute_region_disks_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
@@ -73181,9 +72859,9 @@ pub fn compute_region_disks_set_iam_policy(
 > {
     let builder = compute_region_disks_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_disks_set_iam_policy_execute(builder)
@@ -73197,23 +72875,21 @@ pub fn compute_region_disks_set_iam_policy(
 
 pub fn compute_region_disks_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -73371,10 +73047,10 @@ pub fn compute_region_disks_set_labels(
 > {
     let builder = compute_region_disks_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_set_labels_execute(builder)
@@ -73388,23 +73064,23 @@ pub fn compute_region_disks_set_labels(
 
 pub fn compute_region_disks_start_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
     body: &RegionDisksStartAsyncReplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/startAsyncReplication",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project,
+        region,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -73562,10 +73238,10 @@ pub fn compute_region_disks_start_async_replication(
 > {
     let builder = compute_region_disks_start_async_replication_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_start_async_replication_execute(builder)
@@ -73579,22 +73255,22 @@ pub fn compute_region_disks_start_async_replication(
 
 pub fn compute_region_disks_stop_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    disk: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    disk: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/stopAsyncReplication",
-        project.as_str(),
-        region.as_str(),
-        disk.as_str(),
+        project,
+        region,
+        disk,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -73748,10 +73424,10 @@ pub fn compute_region_disks_stop_async_replication(
 > {
     let builder = compute_region_disks_stop_async_replication_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.disk.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.disk,
+        &args.requestId,
     )?;
     compute_region_disks_stop_async_replication_execute(builder)
 }
@@ -73764,21 +73440,21 @@ pub fn compute_region_disks_stop_async_replication(
 
 pub fn compute_region_disks_stop_group_async_replication_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &DisksStopGroupAsyncReplicationResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/stopGroupAsyncReplication",
-        project.as_str(),
-        region.as_str(),
+        project,
+        region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -73934,9 +73610,9 @@ pub fn compute_region_disks_stop_group_async_replication(
 > {
     let builder = compute_region_disks_stop_group_async_replication_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_disks_stop_group_async_replication_execute(builder)
@@ -73950,17 +73626,17 @@ pub fn compute_region_disks_stop_group_async_replication(
 
 pub fn compute_region_disks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/disks/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -74114,9 +73790,9 @@ pub fn compute_region_disks_test_iam_permissions(
 > {
     let builder = compute_region_disks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_disks_test_iam_permissions_execute(builder)
@@ -74130,42 +73806,42 @@ pub fn compute_region_disks_test_iam_permissions(
 
 pub fn compute_region_health_aggregation_policies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthAggregationPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -74335,14 +74011,14 @@ pub fn compute_region_health_aggregation_policies_aggregated_list(
 > {
     let builder = compute_region_health_aggregation_policies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_health_aggregation_policies_aggregated_list_execute(builder)
 }
@@ -74355,22 +74031,22 @@ pub fn compute_region_health_aggregation_policies_aggregated_list(
 
 pub fn compute_region_health_aggregation_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    healthAggregationPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    healthAggregationPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}",
-        project.as_str(),
-        region.as_str(),
-        healthAggregationPolicy.as_str(),
+        project,
+        region,
+        healthAggregationPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -74524,10 +74200,10 @@ pub fn compute_region_health_aggregation_policies_delete(
 > {
     let builder = compute_region_health_aggregation_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.healthAggregationPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.healthAggregationPolicy,
+        &args.requestId,
     )?;
     compute_region_health_aggregation_policies_delete_execute(builder)
 }
@@ -74540,21 +74216,21 @@ pub fn compute_region_health_aggregation_policies_delete(
 
 pub fn compute_region_health_aggregation_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &HealthAggregationPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies",
-        project.as_str(),
-        region.as_str(),
+        project,
+        region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -74710,9 +74386,9 @@ pub fn compute_region_health_aggregation_policies_insert(
 > {
     let builder = compute_region_health_aggregation_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_health_aggregation_policies_insert_execute(builder)
@@ -74726,17 +74402,17 @@ pub fn compute_region_health_aggregation_policies_insert(
 
 pub fn compute_region_health_aggregation_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthAggregationPolicies/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -74890,9 +74566,9 @@ pub fn compute_region_health_aggregation_policies_test_iam_permissions(
 > {
     let builder = compute_region_health_aggregation_policies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_health_aggregation_policies_test_iam_permissions_execute(builder)
@@ -74906,42 +74582,42 @@ pub fn compute_region_health_aggregation_policies_test_iam_permissions(
 
 pub fn compute_region_health_check_services_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthCheckServices",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -75111,14 +74787,14 @@ pub fn compute_region_health_check_services_aggregated_list(
 > {
     let builder = compute_region_health_check_services_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_health_check_services_aggregated_list_execute(builder)
 }
@@ -75131,22 +74807,20 @@ pub fn compute_region_health_check_services_aggregated_list(
 
 pub fn compute_region_health_check_services_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    healthCheckService: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    healthCheckService: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}",
-        project.as_str(),
-        region.as_str(),
-        healthCheckService.as_str(),
+        project, region, healthCheckService,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -75300,10 +74974,10 @@ pub fn compute_region_health_check_services_delete(
 > {
     let builder = compute_region_health_check_services_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.healthCheckService.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.healthCheckService,
+        &args.requestId,
     )?;
     compute_region_health_check_services_delete_execute(builder)
 }
@@ -75316,21 +74990,20 @@ pub fn compute_region_health_check_services_delete(
 
 pub fn compute_region_health_check_services_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &HealthCheckService,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -75486,9 +75159,9 @@ pub fn compute_region_health_check_services_insert(
 > {
     let builder = compute_region_health_check_services_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_health_check_services_insert_execute(builder)
@@ -75502,17 +75175,17 @@ pub fn compute_region_health_check_services_insert(
 
 pub fn compute_region_health_check_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthCheckServices/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -75666,9 +75339,9 @@ pub fn compute_region_health_check_services_test_iam_permissions(
 > {
     let builder = compute_region_health_check_services_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_health_check_services_test_iam_permissions_execute(builder)
@@ -75682,22 +75355,20 @@ pub fn compute_region_health_check_services_test_iam_permissions(
 
 pub fn compute_region_health_checks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    healthCheck: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    healthCheck: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}",
-        project.as_str(),
-        region.as_str(),
-        healthCheck.as_str(),
+        project, region, healthCheck,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -75851,10 +75522,10 @@ pub fn compute_region_health_checks_delete(
 > {
     let builder = compute_region_health_checks_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.healthCheck.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.healthCheck,
+        &args.requestId,
     )?;
     compute_region_health_checks_delete_execute(builder)
 }
@@ -75867,21 +75538,20 @@ pub fn compute_region_health_checks_delete(
 
 pub fn compute_region_health_checks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &HealthCheck,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -76037,9 +75707,9 @@ pub fn compute_region_health_checks_insert(
 > {
     let builder = compute_region_health_checks_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_health_checks_insert_execute(builder)
@@ -76053,17 +75723,17 @@ pub fn compute_region_health_checks_insert(
 
 pub fn compute_region_health_checks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthChecks/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -76217,9 +75887,9 @@ pub fn compute_region_health_checks_test_iam_permissions(
 > {
     let builder = compute_region_health_checks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_health_checks_test_iam_permissions_execute(builder)
@@ -76233,42 +75903,42 @@ pub fn compute_region_health_checks_test_iam_permissions(
 
 pub fn compute_region_health_sources_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/healthSources",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -76438,14 +76108,14 @@ pub fn compute_region_health_sources_aggregated_list(
 > {
     let builder = compute_region_health_sources_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_health_sources_aggregated_list_execute(builder)
 }
@@ -76458,22 +76128,20 @@ pub fn compute_region_health_sources_aggregated_list(
 
 pub fn compute_region_health_sources_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    healthSource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    healthSource: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}",
-        project.as_str(),
-        region.as_str(),
-        healthSource.as_str(),
+        project, region, healthSource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -76627,10 +76295,10 @@ pub fn compute_region_health_sources_delete(
 > {
     let builder = compute_region_health_sources_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.healthSource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.healthSource,
+        &args.requestId,
     )?;
     compute_region_health_sources_delete_execute(builder)
 }
@@ -76643,21 +76311,20 @@ pub fn compute_region_health_sources_delete(
 
 pub fn compute_region_health_sources_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &HealthSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -76813,9 +76480,9 @@ pub fn compute_region_health_sources_insert(
 > {
     let builder = compute_region_health_sources_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_health_sources_insert_execute(builder)
@@ -76829,17 +76496,17 @@ pub fn compute_region_health_sources_insert(
 
 pub fn compute_region_health_sources_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/healthSources/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -76993,9 +76660,9 @@ pub fn compute_region_health_sources_test_iam_permissions(
 > {
     let builder = compute_region_health_sources_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_health_sources_test_iam_permissions_execute(builder)
@@ -77009,23 +76676,23 @@ pub fn compute_region_health_sources_test_iam_permissions(
 
 pub fn compute_region_instance_group_managers_abandon_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersAbandonInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/abandonInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -77183,10 +76850,10 @@ pub fn compute_region_instance_group_managers_abandon_instances(
 > {
     let builder = compute_region_instance_group_managers_abandon_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_abandon_instances_execute(builder)
@@ -77200,17 +76867,17 @@ pub fn compute_region_instance_group_managers_abandon_instances(
 
 pub fn compute_region_instance_group_managers_apply_updates_to_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
     body: &RegionInstanceGroupManagersApplyUpdatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/applyUpdatesToInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
@@ -77360,9 +77027,9 @@ pub fn compute_region_instance_group_managers_apply_updates_to_instances(
 > {
     let builder = compute_region_instance_group_managers_apply_updates_to_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
         &args.body,
     )?;
     compute_region_instance_group_managers_apply_updates_to_instances_execute(builder)
@@ -77376,23 +77043,23 @@ pub fn compute_region_instance_group_managers_apply_updates_to_instances(
 
 pub fn compute_region_instance_group_managers_create_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersCreateInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/createInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -77550,10 +77217,10 @@ pub fn compute_region_instance_group_managers_create_instances(
 > {
     let builder = compute_region_instance_group_managers_create_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_create_instances_execute(builder)
@@ -77567,22 +77234,20 @@ pub fn compute_region_instance_group_managers_create_instances(
 
 pub fn compute_region_instance_group_managers_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project, region, instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -77736,10 +77401,10 @@ pub fn compute_region_instance_group_managers_delete(
 > {
     let builder = compute_region_instance_group_managers_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
     )?;
     compute_region_instance_group_managers_delete_execute(builder)
 }
@@ -77752,23 +77417,23 @@ pub fn compute_region_instance_group_managers_delete(
 
 pub fn compute_region_instance_group_managers_delete_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersDeleteInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/deleteInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -77926,10 +77591,10 @@ pub fn compute_region_instance_group_managers_delete_instances(
 > {
     let builder = compute_region_instance_group_managers_delete_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_delete_instances_execute(builder)
@@ -77943,17 +77608,17 @@ pub fn compute_region_instance_group_managers_delete_instances(
 
 pub fn compute_region_instance_group_managers_delete_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
     body: &RegionInstanceGroupManagerDeleteInstanceConfigReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/deletePerInstanceConfigs",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
@@ -78103,9 +77768,9 @@ pub fn compute_region_instance_group_managers_delete_per_instance_configs(
 > {
     let builder = compute_region_instance_group_managers_delete_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
         &args.body,
     )?;
     compute_region_instance_group_managers_delete_per_instance_configs_execute(builder)
@@ -78119,21 +77784,20 @@ pub fn compute_region_instance_group_managers_delete_per_instance_configs(
 
 pub fn compute_region_instance_group_managers_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &InstanceGroupManager,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -78289,9 +77953,9 @@ pub fn compute_region_instance_group_managers_insert(
 > {
     let builder = compute_region_instance_group_managers_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_insert_execute(builder)
@@ -78305,38 +77969,38 @@ pub fn compute_region_instance_group_managers_insert(
 
 pub fn compute_region_instance_group_managers_list_errors_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listErrors",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -78507,14 +78171,14 @@ pub fn compute_region_instance_group_managers_list_errors(
 > {
     let builder = compute_region_instance_group_managers_list_errors_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_instance_group_managers_list_errors_execute(builder)
 }
@@ -78527,38 +78191,38 @@ pub fn compute_region_instance_group_managers_list_errors(
 
 pub fn compute_region_instance_group_managers_list_managed_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listManagedInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -78729,14 +78393,14 @@ pub fn compute_region_instance_group_managers_list_managed_instances(
 > {
     let builder = compute_region_instance_group_managers_list_managed_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_instance_group_managers_list_managed_instances_execute(builder)
 }
@@ -78749,38 +78413,38 @@ pub fn compute_region_instance_group_managers_list_managed_instances(
 
 pub fn compute_region_instance_group_managers_list_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/listPerInstanceConfigs",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -78954,14 +78618,14 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs(
 > {
     let builder = compute_region_instance_group_managers_list_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_instance_group_managers_list_per_instance_configs_execute(builder)
 }
@@ -78974,23 +78638,23 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs(
 
 pub fn compute_region_instance_group_managers_patch_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagerPatchInstanceConfigReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/patchPerInstanceConfigs",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -79148,10 +78812,10 @@ pub fn compute_region_instance_group_managers_patch_per_instance_configs(
 > {
     let builder = compute_region_instance_group_managers_patch_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_patch_per_instance_configs_execute(builder)
@@ -79165,23 +78829,23 @@ pub fn compute_region_instance_group_managers_patch_per_instance_configs(
 
 pub fn compute_region_instance_group_managers_recreate_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersRecreateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/recreateInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -79339,10 +79003,10 @@ pub fn compute_region_instance_group_managers_recreate_instances(
 > {
     let builder = compute_region_instance_group_managers_recreate_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_recreate_instances_execute(builder)
@@ -79356,23 +79020,23 @@ pub fn compute_region_instance_group_managers_recreate_instances(
 
 pub fn compute_region_instance_group_managers_resume_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersResumeInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/resumeInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -79530,10 +79194,10 @@ pub fn compute_region_instance_group_managers_resume_instances(
 > {
     let builder = compute_region_instance_group_managers_resume_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_resume_instances_execute(builder)
@@ -79547,23 +79211,23 @@ pub fn compute_region_instance_group_managers_resume_instances(
 
 pub fn compute_region_instance_group_managers_set_instance_template_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersSetTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/setInstanceTemplate",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -79721,10 +79385,10 @@ pub fn compute_region_instance_group_managers_set_instance_template(
 > {
     let builder = compute_region_instance_group_managers_set_instance_template_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_set_instance_template_execute(builder)
@@ -79738,23 +79402,23 @@ pub fn compute_region_instance_group_managers_set_instance_template(
 
 pub fn compute_region_instance_group_managers_set_target_pools_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersSetTargetPoolsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/setTargetPools",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -79912,10 +79576,10 @@ pub fn compute_region_instance_group_managers_set_target_pools(
 > {
     let builder = compute_region_instance_group_managers_set_target_pools_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_set_target_pools_execute(builder)
@@ -79929,23 +79593,23 @@ pub fn compute_region_instance_group_managers_set_target_pools(
 
 pub fn compute_region_instance_group_managers_start_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersStartInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/startInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -80103,10 +79767,10 @@ pub fn compute_region_instance_group_managers_start_instances(
 > {
     let builder = compute_region_instance_group_managers_start_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_start_instances_execute(builder)
@@ -80120,23 +79784,23 @@ pub fn compute_region_instance_group_managers_start_instances(
 
 pub fn compute_region_instance_group_managers_stop_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersStopInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/stopInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -80294,10 +79958,10 @@ pub fn compute_region_instance_group_managers_stop_instances(
 > {
     let builder = compute_region_instance_group_managers_stop_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_stop_instances_execute(builder)
@@ -80311,23 +79975,23 @@ pub fn compute_region_instance_group_managers_stop_instances(
 
 pub fn compute_region_instance_group_managers_suspend_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagersSuspendInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/suspendInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -80485,10 +80149,10 @@ pub fn compute_region_instance_group_managers_suspend_instances(
 > {
     let builder = compute_region_instance_group_managers_suspend_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_suspend_instances_execute(builder)
@@ -80502,23 +80166,23 @@ pub fn compute_region_instance_group_managers_suspend_instances(
 
 pub fn compute_region_instance_group_managers_update_per_instance_configs_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroupManager: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroupManager: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupManagerUpdateInstanceConfigReq,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroupManagers/{}/updatePerInstanceConfigs",
-        project.as_str(),
-        region.as_str(),
-        instanceGroupManager.as_str(),
+        project,
+        region,
+        instanceGroupManager,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -80676,10 +80340,10 @@ pub fn compute_region_instance_group_managers_update_per_instance_configs(
 > {
     let builder = compute_region_instance_group_managers_update_per_instance_configs_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroupManager.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroupManager,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_group_managers_update_per_instance_configs_execute(builder)
@@ -80693,16 +80357,14 @@ pub fn compute_region_instance_group_managers_update_per_instance_configs(
 
 pub fn compute_region_instance_groups_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroup: String,
+    project: &String,
+    region: &String,
+    instanceGroup: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}",
-        project.as_str(),
-        region.as_str(),
-        instanceGroup.as_str(),
+        project, region, instanceGroup,
     );
 
     // Build request
@@ -80852,9 +80514,9 @@ pub fn compute_region_instance_groups_get(
 > {
     let builder = compute_region_instance_groups_get_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroup.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroup,
     )?;
     compute_region_instance_groups_get_execute(builder)
 }
@@ -80867,36 +80529,35 @@ pub fn compute_region_instance_groups_get(
 
 pub fn compute_region_instance_groups_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -81060,13 +80721,13 @@ pub fn compute_region_instance_groups_list(
 > {
     let builder = compute_region_instance_groups_list_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_instance_groups_list_execute(builder)
 }
@@ -81079,39 +80740,39 @@ pub fn compute_region_instance_groups_list(
 
 pub fn compute_region_instance_groups_list_instances_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    instanceGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
     body: &RegionInstanceGroupsListInstancesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/listInstances",
-        project.as_str(),
-        region.as_str(),
-        instanceGroup.as_str(),
+        project,
+        region,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -81285,14 +80946,14 @@ pub fn compute_region_instance_groups_list_instances(
 > {
     let builder = compute_region_instance_groups_list_instances_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
         &args.body,
     )?;
     compute_region_instance_groups_list_instances_execute(builder)
@@ -81306,23 +80967,23 @@ pub fn compute_region_instance_groups_list_instances(
 
 pub fn compute_region_instance_groups_set_named_ports_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceGroup: &String,
+    requestId: &Option<String>,
     body: &RegionInstanceGroupsSetNamedPortsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/setNamedPorts",
-        project.as_str(),
-        region.as_str(),
-        instanceGroup.as_str(),
+        project,
+        region,
+        instanceGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -81480,10 +81141,10 @@ pub fn compute_region_instance_groups_set_named_ports(
 > {
     let builder = compute_region_instance_groups_set_named_ports_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_groups_set_named_ports_execute(builder)
@@ -81497,17 +81158,17 @@ pub fn compute_region_instance_groups_set_named_ports(
 
 pub fn compute_region_instance_groups_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceGroups/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -81661,9 +81322,9 @@ pub fn compute_region_instance_groups_test_iam_permissions(
 > {
     let builder = compute_region_instance_groups_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_instance_groups_test_iam_permissions_execute(builder)
@@ -81677,22 +81338,20 @@ pub fn compute_region_instance_groups_test_iam_permissions(
 
 pub fn compute_region_instance_templates_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instanceTemplate: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instanceTemplate: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates/{}",
-        project.as_str(),
-        region.as_str(),
-        instanceTemplate.as_str(),
+        project, region, instanceTemplate,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -81846,10 +81505,10 @@ pub fn compute_region_instance_templates_delete(
 > {
     let builder = compute_region_instance_templates_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instanceTemplate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instanceTemplate,
+        &args.requestId,
     )?;
     compute_region_instance_templates_delete_execute(builder)
 }
@@ -81862,21 +81521,20 @@ pub fn compute_region_instance_templates_delete(
 
 pub fn compute_region_instance_templates_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &InstanceTemplate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instanceTemplates",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -82032,9 +81690,9 @@ pub fn compute_region_instance_templates_insert(
 > {
     let builder = compute_region_instance_templates_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instance_templates_insert_execute(builder)
@@ -82048,21 +81706,20 @@ pub fn compute_region_instance_templates_insert(
 
 pub fn compute_region_instances_bulk_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &BulkInsertInstanceResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instances/bulkInsert",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -82218,9 +81875,9 @@ pub fn compute_region_instances_bulk_insert(
 > {
     let builder = compute_region_instances_bulk_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instances_bulk_insert_execute(builder)
@@ -82234,22 +81891,20 @@ pub fn compute_region_instances_bulk_insert(
 
 pub fn compute_region_instant_snapshots_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    instantSnapshot: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    instantSnapshot: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}",
-        project.as_str(),
-        region.as_str(),
-        instantSnapshot.as_str(),
+        project, region, instantSnapshot,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -82403,10 +82058,10 @@ pub fn compute_region_instant_snapshots_delete(
 > {
     let builder = compute_region_instant_snapshots_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.instantSnapshot.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.instantSnapshot,
+        &args.requestId,
     )?;
     compute_region_instant_snapshots_delete_execute(builder)
 }
@@ -82419,22 +82074,22 @@ pub fn compute_region_instant_snapshots_delete(
 
 pub fn compute_region_instant_snapshots_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -82588,10 +82243,10 @@ pub fn compute_region_instant_snapshots_get_iam_policy(
 > {
     let builder = compute_region_instant_snapshots_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_region_instant_snapshots_get_iam_policy_execute(builder)
 }
@@ -82604,21 +82259,20 @@ pub fn compute_region_instant_snapshots_get_iam_policy(
 
 pub fn compute_region_instant_snapshots_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &InstantSnapshot,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -82774,9 +82428,9 @@ pub fn compute_region_instant_snapshots_insert(
 > {
     let builder = compute_region_instant_snapshots_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instant_snapshots_insert_execute(builder)
@@ -82790,17 +82444,17 @@ pub fn compute_region_instant_snapshots_insert(
 
 pub fn compute_region_instant_snapshots_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -82950,9 +82604,9 @@ pub fn compute_region_instant_snapshots_set_iam_policy(
 > {
     let builder = compute_region_instant_snapshots_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_instant_snapshots_set_iam_policy_execute(builder)
@@ -82966,23 +82620,23 @@ pub fn compute_region_instant_snapshots_set_iam_policy(
 
 pub fn compute_region_instant_snapshots_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -83140,10 +82794,10 @@ pub fn compute_region_instant_snapshots_set_labels(
 > {
     let builder = compute_region_instant_snapshots_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_instant_snapshots_set_labels_execute(builder)
@@ -83157,17 +82811,17 @@ pub fn compute_region_instant_snapshots_set_labels(
 
 pub fn compute_region_instant_snapshots_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/instantSnapshots/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -83321,9 +82975,9 @@ pub fn compute_region_instant_snapshots_test_iam_permissions(
 > {
     let builder = compute_region_instant_snapshots_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_instant_snapshots_test_iam_permissions_execute(builder)
@@ -83337,23 +82991,23 @@ pub fn compute_region_instant_snapshots_test_iam_permissions(
 
 pub fn compute_region_network_endpoint_groups_attach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &RegionNetworkEndpointGroupsAttachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/attachNetworkEndpoints",
-        project.as_str(),
-        region.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        region,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -83511,10 +83165,10 @@ pub fn compute_region_network_endpoint_groups_attach_network_endpoints(
 > {
     let builder = compute_region_network_endpoint_groups_attach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_endpoint_groups_attach_network_endpoints_execute(builder)
@@ -83528,22 +83182,20 @@ pub fn compute_region_network_endpoint_groups_attach_network_endpoints(
 
 pub fn compute_region_network_endpoint_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}",
-        project.as_str(),
-        region.as_str(),
-        networkEndpointGroup.as_str(),
+        project, region, networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -83697,10 +83349,10 @@ pub fn compute_region_network_endpoint_groups_delete(
 > {
     let builder = compute_region_network_endpoint_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.networkEndpointGroup,
+        &args.requestId,
     )?;
     compute_region_network_endpoint_groups_delete_execute(builder)
 }
@@ -83713,23 +83365,23 @@ pub fn compute_region_network_endpoint_groups_delete(
 
 pub fn compute_region_network_endpoint_groups_detach_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkEndpointGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    networkEndpointGroup: &String,
+    requestId: &Option<String>,
     body: &RegionNetworkEndpointGroupsDetachEndpointsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/detachNetworkEndpoints",
-        project.as_str(),
-        region.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        region,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -83887,10 +83539,10 @@ pub fn compute_region_network_endpoint_groups_detach_network_endpoints(
 > {
     let builder = compute_region_network_endpoint_groups_detach_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkEndpointGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.networkEndpointGroup,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_endpoint_groups_detach_network_endpoints_execute(builder)
@@ -83904,21 +83556,20 @@ pub fn compute_region_network_endpoint_groups_detach_network_endpoints(
 
 pub fn compute_region_network_endpoint_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &NetworkEndpointGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -84074,9 +83725,9 @@ pub fn compute_region_network_endpoint_groups_insert(
 > {
     let builder = compute_region_network_endpoint_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_endpoint_groups_insert_execute(builder)
@@ -84090,38 +83741,38 @@ pub fn compute_region_network_endpoint_groups_insert(
 
 pub fn compute_region_network_endpoint_groups_list_network_endpoints_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    networkEndpointGroup: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    networkEndpointGroup: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/networkEndpointGroups/{}/listNetworkEndpoints",
-        project.as_str(),
-        region.as_str(),
-        networkEndpointGroup.as_str(),
+        project,
+        region,
+        networkEndpointGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -84291,14 +83942,14 @@ pub fn compute_region_network_endpoint_groups_list_network_endpoints(
 > {
     let builder = compute_region_network_endpoint_groups_list_network_endpoints_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.networkEndpointGroup.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.networkEndpointGroup,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_network_endpoint_groups_list_network_endpoints_execute(builder)
 }
@@ -84311,27 +83962,27 @@ pub fn compute_region_network_endpoint_groups_list_network_endpoints(
 
 pub fn compute_region_network_firewall_policies_add_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    replaceExistingAssociation: Option<bool>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    replaceExistingAssociation: &Option<bool>,
+    requestId: &Option<String>,
     body: &FirewallPolicyAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/addAssociation",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = replaceExistingAssociation {
+    if let Some(val) = replaceExistingAssociation.as_ref() {
         query_parts.push(format!("replaceExistingAssociation={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -84491,11 +84142,11 @@ pub fn compute_region_network_firewall_policies_add_association(
 > {
     let builder = compute_region_network_firewall_policies_add_association_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.replaceExistingAssociation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.replaceExistingAssociation,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_firewall_policies_add_association_execute(builder)
@@ -84509,31 +84160,31 @@ pub fn compute_region_network_firewall_policies_add_association(
 
 pub fn compute_region_network_firewall_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    maxPriority: Option<i32>,
-    minPriority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    maxPriority: &Option<i32>,
+    minPriority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/addRule",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxPriority {
+    if let Some(val) = maxPriority.as_ref() {
         query_parts.push(format!("maxPriority={}", val));
     }
-    if let Some(val) = minPriority {
+    if let Some(val) = minPriority.as_ref() {
         query_parts.push(format!("minPriority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -84695,12 +84346,12 @@ pub fn compute_region_network_firewall_policies_add_rule(
 > {
     let builder = compute_region_network_firewall_policies_add_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.maxPriority.clone(),
-        args.minPriority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.maxPriority,
+        &args.minPriority,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_firewall_policies_add_rule_execute(builder)
@@ -84714,26 +84365,26 @@ pub fn compute_region_network_firewall_policies_add_rule(
 
 pub fn compute_region_network_firewall_policies_clone_rules_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    requestId: Option<String>,
-    sourceFirewallPolicy: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/cloneRules",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = sourceFirewallPolicy {
+    if let Some(val) = sourceFirewallPolicy.as_ref() {
         query_parts.push(format!("sourceFirewallPolicy={}", val));
     }
 
@@ -84889,11 +84540,11 @@ pub fn compute_region_network_firewall_policies_clone_rules(
 > {
     let builder = compute_region_network_firewall_policies_clone_rules_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
-        args.sourceFirewallPolicy.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.requestId,
+        &args.sourceFirewallPolicy,
     )?;
     compute_region_network_firewall_policies_clone_rules_execute(builder)
 }
@@ -84906,22 +84557,20 @@ pub fn compute_region_network_firewall_policies_clone_rules(
 
 pub fn compute_region_network_firewall_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project, region, firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -85075,10 +84724,10 @@ pub fn compute_region_network_firewall_policies_delete(
 > {
     let builder = compute_region_network_firewall_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.requestId,
     )?;
     compute_region_network_firewall_policies_delete_execute(builder)
 }
@@ -85091,22 +84740,22 @@ pub fn compute_region_network_firewall_policies_delete(
 
 pub fn compute_region_network_firewall_policies_get_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    name: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getAssociation",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -85264,10 +84913,10 @@ pub fn compute_region_network_firewall_policies_get_association(
 > {
     let builder = compute_region_network_firewall_policies_get_association_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.name.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.name,
     )?;
     compute_region_network_firewall_policies_get_association_execute(builder)
 }
@@ -85280,22 +84929,22 @@ pub fn compute_region_network_firewall_policies_get_association(
 
 pub fn compute_region_network_firewall_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -85449,10 +85098,10 @@ pub fn compute_region_network_firewall_policies_get_iam_policy(
 > {
     let builder = compute_region_network_firewall_policies_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_region_network_firewall_policies_get_iam_policy_execute(builder)
 }
@@ -85465,22 +85114,22 @@ pub fn compute_region_network_firewall_policies_get_iam_policy(
 
 pub fn compute_region_network_firewall_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/getRule",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -85638,10 +85287,10 @@ pub fn compute_region_network_firewall_policies_get_rule(
 > {
     let builder = compute_region_network_firewall_policies_get_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.priority,
     )?;
     compute_region_network_firewall_policies_get_rule_execute(builder)
 }
@@ -85654,21 +85303,20 @@ pub fn compute_region_network_firewall_policies_get_rule(
 
 pub fn compute_region_network_firewall_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &FirewallPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -85824,9 +85472,9 @@ pub fn compute_region_network_firewall_policies_insert(
 > {
     let builder = compute_region_network_firewall_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_firewall_policies_insert_execute(builder)
@@ -85840,27 +85488,27 @@ pub fn compute_region_network_firewall_policies_insert(
 
 pub fn compute_region_network_firewall_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
     body: &FirewallPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/patchRule",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -86020,11 +85668,11 @@ pub fn compute_region_network_firewall_policies_patch_rule(
 > {
     let builder = compute_region_network_firewall_policies_patch_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_network_firewall_policies_patch_rule_execute(builder)
@@ -86038,26 +85686,26 @@ pub fn compute_region_network_firewall_policies_patch_rule(
 
 pub fn compute_region_network_firewall_policies_remove_association_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    name: Option<String>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/removeAssociation",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -86213,11 +85861,11 @@ pub fn compute_region_network_firewall_policies_remove_association(
 > {
     let builder = compute_region_network_firewall_policies_remove_association_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.name.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.name,
+        &args.requestId,
     )?;
     compute_region_network_firewall_policies_remove_association_execute(builder)
 }
@@ -86230,26 +85878,26 @@ pub fn compute_region_network_firewall_policies_remove_association(
 
 pub fn compute_region_network_firewall_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    firewallPolicy: String,
-    priority: Option<i32>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    firewallPolicy: &String,
+    priority: &Option<i32>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/removeRule",
-        project.as_str(),
-        region.as_str(),
-        firewallPolicy.as_str(),
+        project,
+        region,
+        firewallPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -86405,11 +86053,11 @@ pub fn compute_region_network_firewall_policies_remove_rule(
 > {
     let builder = compute_region_network_firewall_policies_remove_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.firewallPolicy.clone(),
-        args.priority.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.firewallPolicy,
+        &args.priority,
+        &args.requestId,
     )?;
     compute_region_network_firewall_policies_remove_rule_execute(builder)
 }
@@ -86422,17 +86070,17 @@ pub fn compute_region_network_firewall_policies_remove_rule(
 
 pub fn compute_region_network_firewall_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -86582,9 +86230,9 @@ pub fn compute_region_network_firewall_policies_set_iam_policy(
 > {
     let builder = compute_region_network_firewall_policies_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_network_firewall_policies_set_iam_policy_execute(builder)
@@ -86598,17 +86246,17 @@ pub fn compute_region_network_firewall_policies_set_iam_policy(
 
 pub fn compute_region_network_firewall_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/firewallPolicies/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -86762,9 +86410,9 @@ pub fn compute_region_network_firewall_policies_test_iam_permissions(
 > {
     let builder = compute_region_network_firewall_policies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_network_firewall_policies_test_iam_permissions_execute(builder)
@@ -86778,42 +86426,42 @@ pub fn compute_region_network_firewall_policies_test_iam_permissions(
 
 pub fn compute_region_notification_endpoints_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/notificationEndpoints",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -86983,14 +86631,14 @@ pub fn compute_region_notification_endpoints_aggregated_list(
 > {
     let builder = compute_region_notification_endpoints_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_region_notification_endpoints_aggregated_list_execute(builder)
 }
@@ -87003,22 +86651,20 @@ pub fn compute_region_notification_endpoints_aggregated_list(
 
 pub fn compute_region_notification_endpoints_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    notificationEndpoint: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    notificationEndpoint: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints/{}",
-        project.as_str(),
-        region.as_str(),
-        notificationEndpoint.as_str(),
+        project, region, notificationEndpoint,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -87172,10 +86818,10 @@ pub fn compute_region_notification_endpoints_delete(
 > {
     let builder = compute_region_notification_endpoints_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.notificationEndpoint.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.notificationEndpoint,
+        &args.requestId,
     )?;
     compute_region_notification_endpoints_delete_execute(builder)
 }
@@ -87188,21 +86834,20 @@ pub fn compute_region_notification_endpoints_delete(
 
 pub fn compute_region_notification_endpoints_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &NotificationEndpoint,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -87358,9 +87003,9 @@ pub fn compute_region_notification_endpoints_insert(
 > {
     let builder = compute_region_notification_endpoints_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_notification_endpoints_insert_execute(builder)
@@ -87374,17 +87019,17 @@ pub fn compute_region_notification_endpoints_insert(
 
 pub fn compute_region_notification_endpoints_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/notificationEndpoints/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -87538,9 +87183,9 @@ pub fn compute_region_notification_endpoints_test_iam_permissions(
 > {
     let builder = compute_region_notification_endpoints_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_region_notification_endpoints_test_iam_permissions_execute(builder)
@@ -87554,16 +87199,14 @@ pub fn compute_region_notification_endpoints_test_iam_permissions(
 
 pub fn compute_region_operations_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    operation: String,
+    project: &String,
+    region: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations/{}",
-        project.as_str(),
-        region.as_str(),
-        operation.as_str(),
+        project, region, operation,
     );
 
     // Build request
@@ -87706,9 +87349,9 @@ pub fn compute_region_operations_delete(
 > {
     let builder = compute_region_operations_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.operation.clone(),
+        &args.project,
+        &args.region,
+        &args.operation,
     )?;
     compute_region_operations_delete_execute(builder)
 }
@@ -87721,36 +87364,35 @@ pub fn compute_region_operations_delete(
 
 pub fn compute_region_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -87914,13 +87556,13 @@ pub fn compute_region_operations_list(
 > {
     let builder = compute_region_operations_list_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_operations_list_execute(builder)
 }
@@ -87933,16 +87575,14 @@ pub fn compute_region_operations_list(
 
 pub fn compute_region_operations_wait_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    operation: String,
+    project: &String,
+    region: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/operations/{}/wait",
-        project.as_str(),
-        region.as_str(),
-        operation.as_str(),
+        project, region, operation,
     );
 
     // Build request
@@ -88088,9 +87728,9 @@ pub fn compute_region_operations_wait(
 > {
     let builder = compute_region_operations_wait_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.operation.clone(),
+        &args.project,
+        &args.region,
+        &args.operation,
     )?;
     compute_region_operations_wait_execute(builder)
 }
@@ -88103,23 +87743,23 @@ pub fn compute_region_operations_wait(
 
 pub fn compute_region_security_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    securityPolicy: String,
-    validateOnly: Option<bool>,
+    project: &String,
+    region: &String,
+    securityPolicy: &String,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/addRule",
-        project.as_str(),
-        region.as_str(),
-        securityPolicy.as_str(),
+        project,
+        region,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -88277,10 +87917,10 @@ pub fn compute_region_security_policies_add_rule(
 > {
     let builder = compute_region_security_policies_add_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.securityPolicy.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.region,
+        &args.securityPolicy,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_region_security_policies_add_rule_execute(builder)
@@ -88294,22 +87934,20 @@ pub fn compute_region_security_policies_add_rule(
 
 pub fn compute_region_security_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    securityPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    securityPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}",
-        project.as_str(),
-        region.as_str(),
-        securityPolicy.as_str(),
+        project, region, securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -88463,10 +88101,10 @@ pub fn compute_region_security_policies_delete(
 > {
     let builder = compute_region_security_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.securityPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.securityPolicy,
+        &args.requestId,
     )?;
     compute_region_security_policies_delete_execute(builder)
 }
@@ -88479,22 +88117,22 @@ pub fn compute_region_security_policies_delete(
 
 pub fn compute_region_security_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    securityPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    region: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/getRule",
-        project.as_str(),
-        region.as_str(),
-        securityPolicy.as_str(),
+        project,
+        region,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -88652,10 +88290,10 @@ pub fn compute_region_security_policies_get_rule(
 > {
     let builder = compute_region_security_policies_get_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.region,
+        &args.securityPolicy,
+        &args.priority,
     )?;
     compute_region_security_policies_get_rule_execute(builder)
 }
@@ -88668,25 +88306,24 @@ pub fn compute_region_security_policies_get_rule(
 
 pub fn compute_region_security_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -88844,10 +88481,10 @@ pub fn compute_region_security_policies_insert(
 > {
     let builder = compute_region_security_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_region_security_policies_insert_execute(builder)
@@ -88861,31 +88498,31 @@ pub fn compute_region_security_policies_insert(
 
 pub fn compute_region_security_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    securityPolicy: String,
-    priority: Option<i32>,
-    updateMask: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    region: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/patchRule",
-        project.as_str(),
-        region.as_str(),
-        securityPolicy.as_str(),
+        project,
+        region,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -89047,12 +88684,12 @@ pub fn compute_region_security_policies_patch_rule(
 > {
     let builder = compute_region_security_policies_patch_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
-        args.updateMask.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.region,
+        &args.securityPolicy,
+        &args.priority,
+        &args.updateMask,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_region_security_policies_patch_rule_execute(builder)
@@ -89066,22 +88703,22 @@ pub fn compute_region_security_policies_patch_rule(
 
 pub fn compute_region_security_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    securityPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    region: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/removeRule",
-        project.as_str(),
-        region.as_str(),
-        securityPolicy.as_str(),
+        project,
+        region,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -89235,10 +88872,10 @@ pub fn compute_region_security_policies_remove_rule(
 > {
     let builder = compute_region_security_policies_remove_rule_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.region,
+        &args.securityPolicy,
+        &args.priority,
     )?;
     compute_region_security_policies_remove_rule_execute(builder)
 }
@@ -89251,23 +88888,23 @@ pub fn compute_region_security_policies_remove_rule(
 
 pub fn compute_region_security_policies_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/securityPolicies/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -89425,10 +89062,10 @@ pub fn compute_region_security_policies_set_labels(
 > {
     let builder = compute_region_security_policies_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_security_policies_set_labels_execute(builder)
@@ -89442,22 +89079,20 @@ pub fn compute_region_security_policies_set_labels(
 
 pub fn compute_region_ssl_certificates_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    sslCertificate: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    sslCertificate: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates/{}",
-        project.as_str(),
-        region.as_str(),
-        sslCertificate.as_str(),
+        project, region, sslCertificate,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -89611,10 +89246,10 @@ pub fn compute_region_ssl_certificates_delete(
 > {
     let builder = compute_region_ssl_certificates_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.sslCertificate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.sslCertificate,
+        &args.requestId,
     )?;
     compute_region_ssl_certificates_delete_execute(builder)
 }
@@ -89627,21 +89262,20 @@ pub fn compute_region_ssl_certificates_delete(
 
 pub fn compute_region_ssl_certificates_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &SslCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslCertificates",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -89797,9 +89431,9 @@ pub fn compute_region_ssl_certificates_insert(
 > {
     let builder = compute_region_ssl_certificates_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_ssl_certificates_insert_execute(builder)
@@ -89813,22 +89447,20 @@ pub fn compute_region_ssl_certificates_insert(
 
 pub fn compute_region_ssl_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    sslPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    sslPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/{}",
-        project.as_str(),
-        region.as_str(),
-        sslPolicy.as_str(),
+        project, region, sslPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -89982,10 +89614,10 @@ pub fn compute_region_ssl_policies_delete(
 > {
     let builder = compute_region_ssl_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.sslPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.sslPolicy,
+        &args.requestId,
     )?;
     compute_region_ssl_policies_delete_execute(builder)
 }
@@ -89998,21 +89630,20 @@ pub fn compute_region_ssl_policies_delete(
 
 pub fn compute_region_ssl_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &SslPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -90168,9 +89799,9 @@ pub fn compute_region_ssl_policies_insert(
 > {
     let builder = compute_region_ssl_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_ssl_policies_insert_execute(builder)
@@ -90184,36 +89815,36 @@ pub fn compute_region_ssl_policies_insert(
 
 pub fn compute_region_ssl_policies_list_available_features_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/sslPolicies/listAvailableFeatures",
-        project.as_str(),
-        region.as_str(),
+        project,
+        region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -90381,13 +90012,13 @@ pub fn compute_region_ssl_policies_list_available_features(
 > {
     let builder = compute_region_ssl_policies_list_available_features_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_ssl_policies_list_available_features_execute(builder)
 }
@@ -90400,22 +90031,20 @@ pub fn compute_region_ssl_policies_list_available_features(
 
 pub fn compute_region_target_http_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetHttpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetHttpProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies/{}",
-        project.as_str(),
-        region.as_str(),
-        targetHttpProxy.as_str(),
+        project, region, targetHttpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -90569,10 +90198,10 @@ pub fn compute_region_target_http_proxies_delete(
 > {
     let builder = compute_region_target_http_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetHttpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetHttpProxy,
+        &args.requestId,
     )?;
     compute_region_target_http_proxies_delete_execute(builder)
 }
@@ -90585,21 +90214,20 @@ pub fn compute_region_target_http_proxies_delete(
 
 pub fn compute_region_target_http_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &TargetHttpProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -90755,9 +90383,9 @@ pub fn compute_region_target_http_proxies_insert(
 > {
     let builder = compute_region_target_http_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_http_proxies_insert_execute(builder)
@@ -90771,23 +90399,23 @@ pub fn compute_region_target_http_proxies_insert(
 
 pub fn compute_region_target_http_proxies_set_url_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetHttpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetHttpProxy: &String,
+    requestId: &Option<String>,
     body: &UrlMapReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpProxies/{}/setUrlMap",
-        project.as_str(),
-        region.as_str(),
-        targetHttpProxy.as_str(),
+        project,
+        region,
+        targetHttpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -90945,10 +90573,10 @@ pub fn compute_region_target_http_proxies_set_url_map(
 > {
     let builder = compute_region_target_http_proxies_set_url_map_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetHttpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetHttpProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_http_proxies_set_url_map_execute(builder)
@@ -90962,22 +90590,20 @@ pub fn compute_region_target_http_proxies_set_url_map(
 
 pub fn compute_region_target_https_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}",
-        project.as_str(),
-        region.as_str(),
-        targetHttpsProxy.as_str(),
+        project, region, targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -91131,10 +90757,10 @@ pub fn compute_region_target_https_proxies_delete(
 > {
     let builder = compute_region_target_https_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetHttpsProxy,
+        &args.requestId,
     )?;
     compute_region_target_https_proxies_delete_execute(builder)
 }
@@ -91147,21 +90773,20 @@ pub fn compute_region_target_https_proxies_delete(
 
 pub fn compute_region_target_https_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &TargetHttpsProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -91317,9 +90942,9 @@ pub fn compute_region_target_https_proxies_insert(
 > {
     let builder = compute_region_target_https_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_https_proxies_insert_execute(builder)
@@ -91333,23 +90958,23 @@ pub fn compute_region_target_https_proxies_insert(
 
 pub fn compute_region_target_https_proxies_set_ssl_certificates_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &RegionTargetHttpsProxiesSetSslCertificatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}/setSslCertificates",
-        project.as_str(),
-        region.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        region,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -91507,10 +91132,10 @@ pub fn compute_region_target_https_proxies_set_ssl_certificates(
 > {
     let builder = compute_region_target_https_proxies_set_ssl_certificates_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_https_proxies_set_ssl_certificates_execute(builder)
@@ -91524,23 +91149,23 @@ pub fn compute_region_target_https_proxies_set_ssl_certificates(
 
 pub fn compute_region_target_https_proxies_set_url_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &UrlMapReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetHttpsProxies/{}/setUrlMap",
-        project.as_str(),
-        region.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        region,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -91698,10 +91323,10 @@ pub fn compute_region_target_https_proxies_set_url_map(
 > {
     let builder = compute_region_target_https_proxies_set_url_map_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_https_proxies_set_url_map_execute(builder)
@@ -91715,22 +91340,20 @@ pub fn compute_region_target_https_proxies_set_url_map(
 
 pub fn compute_region_target_tcp_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetTcpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetTcpProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies/{}",
-        project.as_str(),
-        region.as_str(),
-        targetTcpProxy.as_str(),
+        project, region, targetTcpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -91884,10 +91507,10 @@ pub fn compute_region_target_tcp_proxies_delete(
 > {
     let builder = compute_region_target_tcp_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetTcpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetTcpProxy,
+        &args.requestId,
     )?;
     compute_region_target_tcp_proxies_delete_execute(builder)
 }
@@ -91900,21 +91523,20 @@ pub fn compute_region_target_tcp_proxies_delete(
 
 pub fn compute_region_target_tcp_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &TargetTcpProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetTcpProxies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -92070,9 +91692,9 @@ pub fn compute_region_target_tcp_proxies_insert(
 > {
     let builder = compute_region_target_tcp_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_target_tcp_proxies_insert_execute(builder)
@@ -92086,22 +91708,20 @@ pub fn compute_region_target_tcp_proxies_insert(
 
 pub fn compute_region_url_maps_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    urlMap: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    urlMap: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}",
-        project.as_str(),
-        region.as_str(),
-        urlMap.as_str(),
+        project, region, urlMap,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -92255,10 +91875,10 @@ pub fn compute_region_url_maps_delete(
 > {
     let builder = compute_region_url_maps_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.urlMap.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.urlMap,
+        &args.requestId,
     )?;
     compute_region_url_maps_delete_execute(builder)
 }
@@ -92271,21 +91891,20 @@ pub fn compute_region_url_maps_delete(
 
 pub fn compute_region_url_maps_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &UrlMap,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -92441,9 +92060,9 @@ pub fn compute_region_url_maps_insert(
 > {
     let builder = compute_region_url_maps_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_region_url_maps_insert_execute(builder)
@@ -92457,17 +92076,15 @@ pub fn compute_region_url_maps_insert(
 
 pub fn compute_region_url_maps_validate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    urlMap: String,
+    project: &String,
+    region: &String,
+    urlMap: &String,
     body: &RegionUrlMapsValidateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/urlMaps/{}/validate",
-        project.as_str(),
-        region.as_str(),
-        urlMap.as_str(),
+        project, region, urlMap,
     );
 
     // Build request
@@ -92621,9 +92238,9 @@ pub fn compute_region_url_maps_validate(
 > {
     let builder = compute_region_url_maps_validate_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.urlMap.clone(),
+        &args.project,
+        &args.region,
+        &args.urlMap,
         &args.body,
     )?;
     compute_region_url_maps_validate_execute(builder)
@@ -92637,36 +92254,35 @@ pub fn compute_region_url_maps_validate(
 
 pub fn compute_region_zones_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/zones",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -92826,13 +92442,13 @@ pub fn compute_region_zones_list(
 > {
     let builder = compute_region_zones_list_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_region_zones_list_execute(builder)
 }
@@ -92845,14 +92461,13 @@ pub fn compute_region_zones_list(
 
 pub fn compute_regions_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
+    project: &String,
+    region: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
@@ -92994,7 +92609,7 @@ pub fn compute_regions_get(
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_regions_get_builder(client, args.project.clone(), args.region.clone())?;
+    let builder = compute_regions_get_builder(client, &args.project, &args.region)?;
     compute_regions_get_execute(builder)
 }
 
@@ -93006,34 +92621,34 @@ pub fn compute_regions_get(
 
 pub fn compute_regions_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -93191,12 +92806,12 @@ pub fn compute_regions_list(
 > {
     let builder = compute_regions_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_regions_list_execute(builder)
 }
@@ -93209,24 +92824,24 @@ pub fn compute_regions_list(
 
 pub fn compute_reservation_blocks_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    reservationBlock: String,
-    view: Option<String>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    reservationBlock: &String,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
-        reservationBlock.as_str(),
+        project,
+        zone,
+        reservation,
+        reservationBlock,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -93390,11 +93005,11 @@ pub fn compute_reservation_blocks_get(
 > {
     let builder = compute_reservation_blocks_get_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.reservationBlock.clone(),
-        args.view.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.reservationBlock,
+        &args.view,
     )?;
     compute_reservation_blocks_get_execute(builder)
 }
@@ -93407,24 +93022,24 @@ pub fn compute_reservation_blocks_get(
 
 pub fn compute_reservation_blocks_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    parentResource: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    parentResource: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        parentResource.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        parentResource,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -93580,11 +93195,11 @@ pub fn compute_reservation_blocks_get_iam_policy(
 > {
     let builder = compute_reservation_blocks_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.parentResource.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.parentResource,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_reservation_blocks_get_iam_policy_execute(builder)
 }
@@ -93597,38 +93212,38 @@ pub fn compute_reservation_blocks_get_iam_policy(
 
 pub fn compute_reservation_blocks_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
+        project,
+        zone,
+        reservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -93798,14 +93413,14 @@ pub fn compute_reservation_blocks_list(
 > {
     let builder = compute_reservation_blocks_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_reservation_blocks_list_execute(builder)
 }
@@ -93818,25 +93433,25 @@ pub fn compute_reservation_blocks_list(
 
 pub fn compute_reservation_blocks_perform_maintenance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    reservationBlock: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    reservationBlock: &String,
+    requestId: &Option<String>,
     body: &ReservationsBlocksPerformMaintenanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/performMaintenance",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
-        reservationBlock.as_str(),
+        project,
+        zone,
+        reservation,
+        reservationBlock,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -93996,11 +93611,11 @@ pub fn compute_reservation_blocks_perform_maintenance(
 > {
     let builder = compute_reservation_blocks_perform_maintenance_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.reservationBlock.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.reservationBlock,
+        &args.requestId,
         &args.body,
     )?;
     compute_reservation_blocks_perform_maintenance_execute(builder)
@@ -94014,19 +93629,19 @@ pub fn compute_reservation_blocks_perform_maintenance(
 
 pub fn compute_reservation_blocks_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    parentResource: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    parentResource: &String,
+    resource: &String,
     body: &ZoneSetNestedPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        parentResource.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        parentResource,
+        resource,
     );
 
     // Build request
@@ -94178,10 +93793,10 @@ pub fn compute_reservation_blocks_set_iam_policy(
 > {
     let builder = compute_reservation_blocks_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.parentResource.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.parentResource,
+        &args.resource,
         &args.body,
     )?;
     compute_reservation_blocks_set_iam_policy_execute(builder)
@@ -94195,19 +93810,19 @@ pub fn compute_reservation_blocks_set_iam_policy(
 
 pub fn compute_reservation_blocks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    parentResource: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    parentResource: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/reservationBlocks/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        parentResource.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        parentResource,
+        resource,
     );
 
     // Build request
@@ -94363,10 +93978,10 @@ pub fn compute_reservation_blocks_test_iam_permissions(
 > {
     let builder = compute_reservation_blocks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.parentResource.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.parentResource,
+        &args.resource,
         &args.body,
     )?;
     compute_reservation_blocks_test_iam_permissions_execute(builder)
@@ -94380,42 +93995,42 @@ pub fn compute_reservation_blocks_test_iam_permissions(
 
 pub fn compute_reservations_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/reservations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -94581,14 +94196,14 @@ pub fn compute_reservations_aggregated_list(
 > {
     let builder = compute_reservations_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_reservations_aggregated_list_execute(builder)
 }
@@ -94601,22 +94216,20 @@ pub fn compute_reservations_aggregated_list(
 
 pub fn compute_reservations_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
+        project, zone, reservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -94770,10 +94383,10 @@ pub fn compute_reservations_delete(
 > {
     let builder = compute_reservations_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.requestId,
     )?;
     compute_reservations_delete_execute(builder)
 }
@@ -94786,22 +94399,22 @@ pub fn compute_reservations_delete(
 
 pub fn compute_reservations_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -94955,10 +94568,10 @@ pub fn compute_reservations_get_iam_policy(
 > {
     let builder = compute_reservations_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_reservations_get_iam_policy_execute(builder)
 }
@@ -94971,21 +94584,20 @@ pub fn compute_reservations_get_iam_policy(
 
 pub fn compute_reservations_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &Reservation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -95141,9 +94753,9 @@ pub fn compute_reservations_insert(
 > {
     let builder = compute_reservations_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_reservations_insert_execute(builder)
@@ -95157,23 +94769,23 @@ pub fn compute_reservations_insert(
 
 pub fn compute_reservations_perform_maintenance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    requestId: &Option<String>,
     body: &ReservationsPerformMaintenanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/performMaintenance",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
+        project,
+        zone,
+        reservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -95331,10 +94943,10 @@ pub fn compute_reservations_perform_maintenance(
 > {
     let builder = compute_reservations_perform_maintenance_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.requestId,
         &args.body,
     )?;
     compute_reservations_perform_maintenance_execute(builder)
@@ -95348,23 +94960,21 @@ pub fn compute_reservations_perform_maintenance(
 
 pub fn compute_reservations_resize_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    reservation: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    reservation: &String,
+    requestId: &Option<String>,
     body: &ReservationsResizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/resize",
-        project.as_str(),
-        zone.as_str(),
-        reservation.as_str(),
+        project, zone, reservation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -95522,10 +95132,10 @@ pub fn compute_reservations_resize(
 > {
     let builder = compute_reservations_resize_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.reservation.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.reservation,
+        &args.requestId,
         &args.body,
     )?;
     compute_reservations_resize_execute(builder)
@@ -95539,17 +95149,17 @@ pub fn compute_reservations_resize(
 
 pub fn compute_reservations_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -95699,9 +95309,9 @@ pub fn compute_reservations_set_iam_policy(
 > {
     let builder = compute_reservations_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_reservations_set_iam_policy_execute(builder)
@@ -95715,17 +95325,17 @@ pub fn compute_reservations_set_iam_policy(
 
 pub fn compute_reservations_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/reservations/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -95879,9 +95489,9 @@ pub fn compute_reservations_test_iam_permissions(
 > {
     let builder = compute_reservations_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_reservations_test_iam_permissions_execute(builder)
@@ -95895,42 +95505,42 @@ pub fn compute_reservations_test_iam_permissions(
 
 pub fn compute_resource_policies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/resourcePolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -96100,14 +95710,14 @@ pub fn compute_resource_policies_aggregated_list(
 > {
     let builder = compute_resource_policies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_resource_policies_aggregated_list_execute(builder)
 }
@@ -96120,22 +95730,20 @@ pub fn compute_resource_policies_aggregated_list(
 
 pub fn compute_resource_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resourcePolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resourcePolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}",
-        project.as_str(),
-        region.as_str(),
-        resourcePolicy.as_str(),
+        project, region, resourcePolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -96289,10 +95897,10 @@ pub fn compute_resource_policies_delete(
 > {
     let builder = compute_resource_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resourcePolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resourcePolicy,
+        &args.requestId,
     )?;
     compute_resource_policies_delete_execute(builder)
 }
@@ -96305,22 +95913,22 @@ pub fn compute_resource_policies_delete(
 
 pub fn compute_resource_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -96474,10 +96082,10 @@ pub fn compute_resource_policies_get_iam_policy(
 > {
     let builder = compute_resource_policies_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_resource_policies_get_iam_policy_execute(builder)
 }
@@ -96490,21 +96098,20 @@ pub fn compute_resource_policies_get_iam_policy(
 
 pub fn compute_resource_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &ResourcePolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -96660,9 +96267,9 @@ pub fn compute_resource_policies_insert(
 > {
     let builder = compute_resource_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_resource_policies_insert_execute(builder)
@@ -96676,17 +96283,17 @@ pub fn compute_resource_policies_insert(
 
 pub fn compute_resource_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -96836,9 +96443,9 @@ pub fn compute_resource_policies_set_iam_policy(
 > {
     let builder = compute_resource_policies_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_resource_policies_set_iam_policy_execute(builder)
@@ -96852,17 +96459,17 @@ pub fn compute_resource_policies_set_iam_policy(
 
 pub fn compute_resource_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/resourcePolicies/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -97016,9 +96623,9 @@ pub fn compute_resource_policies_test_iam_permissions(
 > {
     let builder = compute_resource_policies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_resource_policies_test_iam_permissions_execute(builder)
@@ -97032,42 +96639,42 @@ pub fn compute_resource_policies_test_iam_permissions(
 
 pub fn compute_routers_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/routers",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -97233,14 +96840,14 @@ pub fn compute_routers_aggregated_list(
 > {
     let builder = compute_routers_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_routers_aggregated_list_execute(builder)
 }
@@ -97253,22 +96860,20 @@ pub fn compute_routers_aggregated_list(
 
 pub fn compute_routers_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project, region, router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -97422,10 +97027,10 @@ pub fn compute_routers_delete(
 > {
     let builder = compute_routers_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.requestId,
     )?;
     compute_routers_delete_execute(builder)
 }
@@ -97438,26 +97043,26 @@ pub fn compute_routers_delete(
 
 pub fn compute_routers_delete_route_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    policy: Option<String>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    policy: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/deleteRoutePolicy",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policy {
+    if let Some(val) = policy.as_ref() {
         query_parts.push(format!("policy={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -97613,11 +97218,11 @@ pub fn compute_routers_delete_route_policy(
 > {
     let builder = compute_routers_delete_route_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.policy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.policy,
+        &args.requestId,
     )?;
     compute_routers_delete_route_policy_execute(builder)
 }
@@ -97630,22 +97235,20 @@ pub fn compute_routers_delete_route_policy(
 
 pub fn compute_routers_get_nat_ip_info_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    natName: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    natName: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getNatIpInfo",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project, region, router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = natName {
+    if let Some(val) = natName.as_ref() {
         query_parts.push(format!("natName={}", val));
     }
 
@@ -97803,10 +97406,10 @@ pub fn compute_routers_get_nat_ip_info(
 > {
     let builder = compute_routers_get_nat_ip_info_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.natName.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.natName,
     )?;
     compute_routers_get_nat_ip_info_execute(builder)
 }
@@ -97819,42 +97422,42 @@ pub fn compute_routers_get_nat_ip_info(
 
 pub fn compute_routers_get_nat_mapping_info_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    natName: Option<String>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    router: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    natName: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getNatMappingInfo",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = natName {
+    if let Some(val) = natName.as_ref() {
         query_parts.push(format!("natName={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -98022,15 +97625,15 @@ pub fn compute_routers_get_nat_mapping_info(
 > {
     let builder = compute_routers_get_nat_mapping_info_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.natName.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.filter,
+        &args.maxResults,
+        &args.natName,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_routers_get_nat_mapping_info_execute(builder)
 }
@@ -98043,22 +97646,22 @@ pub fn compute_routers_get_nat_mapping_info(
 
 pub fn compute_routers_get_route_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    policy: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    policy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getRoutePolicy",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policy {
+    if let Some(val) = policy.as_ref() {
         query_parts.push(format!("policy={}", val));
     }
 
@@ -98220,10 +97823,10 @@ pub fn compute_routers_get_route_policy(
 > {
     let builder = compute_routers_get_route_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.policy.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.policy,
     )?;
     compute_routers_get_route_policy_execute(builder)
 }
@@ -98236,16 +97839,16 @@ pub fn compute_routers_get_route_policy(
 
 pub fn compute_routers_get_router_status_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
+    project: &String,
+    region: &String,
+    router: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/getRouterStatus",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
@@ -98395,9 +97998,9 @@ pub fn compute_routers_get_router_status(
 > {
     let builder = compute_routers_get_router_status_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
     )?;
     compute_routers_get_router_status_execute(builder)
 }
@@ -98410,21 +98013,20 @@ pub fn compute_routers_get_router_status(
 
 pub fn compute_routers_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &Router,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -98580,9 +98182,9 @@ pub fn compute_routers_insert(
 > {
     let builder = compute_routers_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_routers_insert_execute(builder)
@@ -98596,58 +98198,56 @@ pub fn compute_routers_insert(
 
 pub fn compute_routers_list_bgp_routes_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    addressFamily: Option<String>,
-    destinationPrefix: Option<String>,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    peer: Option<String>,
-    policyApplied: Option<bool>,
-    returnPartialSuccess: Option<bool>,
-    routeType: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    addressFamily: &Option<String>,
+    destinationPrefix: &Option<String>,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    peer: &Option<String>,
+    policyApplied: &Option<bool>,
+    returnPartialSuccess: &Option<bool>,
+    routeType: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/listBgpRoutes",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project, region, router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addressFamily {
+    if let Some(val) = addressFamily.as_ref() {
         query_parts.push(format!("addressFamily={}", val));
     }
-    if let Some(val) = destinationPrefix {
+    if let Some(val) = destinationPrefix.as_ref() {
         query_parts.push(format!("destinationPrefix={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = peer {
+    if let Some(val) = peer.as_ref() {
         query_parts.push(format!("peer={}", val));
     }
-    if let Some(val) = policyApplied {
+    if let Some(val) = policyApplied.as_ref() {
         query_parts.push(format!("policyApplied={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = routeType {
+    if let Some(val) = routeType.as_ref() {
         query_parts.push(format!("routeType={}", val));
     }
 
@@ -98823,19 +98423,19 @@ pub fn compute_routers_list_bgp_routes(
 > {
     let builder = compute_routers_list_bgp_routes_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.addressFamily.clone(),
-        args.destinationPrefix.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.peer.clone(),
-        args.policyApplied.clone(),
-        args.returnPartialSuccess.clone(),
-        args.routeType.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.addressFamily,
+        &args.destinationPrefix,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.peer,
+        &args.policyApplied,
+        &args.returnPartialSuccess,
+        &args.routeType,
     )?;
     compute_routers_list_bgp_routes_execute(builder)
 }
@@ -98848,38 +98448,38 @@ pub fn compute_routers_list_bgp_routes(
 
 pub fn compute_routers_list_route_policies_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    region: &String,
+    router: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/listRoutePolicies",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -99045,14 +98645,14 @@ pub fn compute_routers_list_route_policies(
 > {
     let builder = compute_routers_list_route_policies_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_routers_list_route_policies_execute(builder)
 }
@@ -99065,23 +98665,23 @@ pub fn compute_routers_list_route_policies(
 
 pub fn compute_routers_patch_route_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    requestId: &Option<String>,
     body: &RoutePolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/patchRoutePolicy",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -99239,10 +98839,10 @@ pub fn compute_routers_patch_route_policy(
 > {
     let builder = compute_routers_patch_route_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.requestId,
         &args.body,
     )?;
     compute_routers_patch_route_policy_execute(builder)
@@ -99256,17 +98856,15 @@ pub fn compute_routers_patch_route_policy(
 
 pub fn compute_routers_preview_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
+    project: &String,
+    region: &String,
+    router: &String,
     body: &Router,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/preview",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project, region, router,
     );
 
     // Build request
@@ -99420,9 +99018,9 @@ pub fn compute_routers_preview(
 > {
     let builder = compute_routers_preview_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
         &args.body,
     )?;
     compute_routers_preview_execute(builder)
@@ -99436,23 +99034,23 @@ pub fn compute_routers_preview(
 
 pub fn compute_routers_update_route_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    router: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    router: &String,
+    requestId: &Option<String>,
     body: &RoutePolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/routers/{}/updateRoutePolicy",
-        project.as_str(),
-        region.as_str(),
-        router.as_str(),
+        project,
+        region,
+        router,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -99610,10 +99208,10 @@ pub fn compute_routers_update_route_policy(
 > {
     let builder = compute_routers_update_route_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.router.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.router,
+        &args.requestId,
         &args.body,
     )?;
     compute_routers_update_route_policy_execute(builder)
@@ -99627,20 +99225,19 @@ pub fn compute_routers_update_route_policy(
 
 pub fn compute_routes_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    route: String,
-    requestId: Option<String>,
+    project: &String,
+    route: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes/{}",
-        project.as_str(),
-        route.as_str(),
+        project, route,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -99790,12 +99387,8 @@ pub fn compute_routes_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_routes_delete_builder(
-        client,
-        args.project.clone(),
-        args.route.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_routes_delete_builder(client, &args.project, &args.route, &args.requestId)?;
     compute_routes_delete_execute(builder)
 }
 
@@ -99807,19 +99400,19 @@ pub fn compute_routes_delete(
 
 pub fn compute_routes_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Route,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -99971,12 +99564,8 @@ pub fn compute_routes_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_routes_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_routes_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_routes_insert_execute(builder)
 }
 
@@ -99988,15 +99577,14 @@ pub fn compute_routes_insert(
 
 pub fn compute_routes_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/routes/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -100148,8 +99736,8 @@ pub fn compute_routes_test_iam_permissions(
 > {
     let builder = compute_routes_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_routes_test_iam_permissions_execute(builder)
@@ -100163,21 +99751,20 @@ pub fn compute_routes_test_iam_permissions(
 
 pub fn compute_security_policies_add_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    securityPolicy: String,
-    validateOnly: Option<bool>,
+    project: &String,
+    securityPolicy: &String,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/addRule",
-        project.as_str(),
-        securityPolicy.as_str(),
+        project, securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -100333,9 +99920,9 @@ pub fn compute_security_policies_add_rule(
 > {
     let builder = compute_security_policies_add_rule_builder(
         client,
-        args.project.clone(),
-        args.securityPolicy.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.securityPolicy,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_security_policies_add_rule_execute(builder)
@@ -100349,42 +99936,42 @@ pub fn compute_security_policies_add_rule(
 
 pub fn compute_security_policies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/securityPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -100554,14 +100141,14 @@ pub fn compute_security_policies_aggregated_list(
 > {
     let builder = compute_security_policies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_security_policies_aggregated_list_execute(builder)
 }
@@ -100574,20 +100161,19 @@ pub fn compute_security_policies_aggregated_list(
 
 pub fn compute_security_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    securityPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    securityPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}",
-        project.as_str(),
-        securityPolicy.as_str(),
+        project, securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -100739,9 +100325,9 @@ pub fn compute_security_policies_delete(
 > {
     let builder = compute_security_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.securityPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.securityPolicy,
+        &args.requestId,
     )?;
     compute_security_policies_delete_execute(builder)
 }
@@ -100754,20 +100340,19 @@ pub fn compute_security_policies_delete(
 
 pub fn compute_security_policies_get_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    securityPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/getRule",
-        project.as_str(),
-        securityPolicy.as_str(),
+        project, securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -100923,9 +100508,9 @@ pub fn compute_security_policies_get_rule(
 > {
     let builder = compute_security_policies_get_rule_builder(
         client,
-        args.project.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.securityPolicy,
+        &args.priority,
     )?;
     compute_security_policies_get_rule_execute(builder)
 }
@@ -100938,23 +100523,23 @@ pub fn compute_security_policies_get_rule(
 
 pub fn compute_security_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -101110,9 +100695,9 @@ pub fn compute_security_policies_insert(
 > {
     let builder = compute_security_policies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_security_policies_insert_execute(builder)
@@ -101126,34 +100711,34 @@ pub fn compute_security_policies_insert(
 
 pub fn compute_security_policies_list_preconfigured_expression_sets_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/listPreconfiguredExpressionSets",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -101329,12 +100914,12 @@ pub fn compute_security_policies_list_preconfigured_expression_sets(
 > {
     let builder = compute_security_policies_list_preconfigured_expression_sets_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_security_policies_list_preconfigured_expression_sets_execute(builder)
 }
@@ -101347,29 +100932,29 @@ pub fn compute_security_policies_list_preconfigured_expression_sets(
 
 pub fn compute_security_policies_patch_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    securityPolicy: String,
-    priority: Option<i32>,
-    updateMask: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &SecurityPolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/patchRule",
-        project.as_str(),
-        securityPolicy.as_str(),
+        project,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -101529,11 +101114,11 @@ pub fn compute_security_policies_patch_rule(
 > {
     let builder = compute_security_policies_patch_rule_builder(
         client,
-        args.project.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
-        args.updateMask.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.securityPolicy,
+        &args.priority,
+        &args.updateMask,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_security_policies_patch_rule_execute(builder)
@@ -101547,20 +101132,20 @@ pub fn compute_security_policies_patch_rule(
 
 pub fn compute_security_policies_remove_rule_builder(
     client: &SimpleHttpClient,
-    project: String,
-    securityPolicy: String,
-    priority: Option<i32>,
+    project: &String,
+    securityPolicy: &String,
+    priority: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/removeRule",
-        project.as_str(),
-        securityPolicy.as_str(),
+        project,
+        securityPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = priority {
+    if let Some(val) = priority.as_ref() {
         query_parts.push(format!("priority={}", val));
     }
 
@@ -101712,9 +101297,9 @@ pub fn compute_security_policies_remove_rule(
 > {
     let builder = compute_security_policies_remove_rule_builder(
         client,
-        args.project.clone(),
-        args.securityPolicy.clone(),
-        args.priority.clone(),
+        &args.project,
+        &args.securityPolicy,
+        &args.priority,
     )?;
     compute_security_policies_remove_rule_execute(builder)
 }
@@ -101727,15 +101312,15 @@ pub fn compute_security_policies_remove_rule(
 
 pub fn compute_security_policies_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/securityPolicies/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -101883,8 +101468,8 @@ pub fn compute_security_policies_set_labels(
 > {
     let builder = compute_security_policies_set_labels_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_security_policies_set_labels_execute(builder)
@@ -101898,42 +101483,42 @@ pub fn compute_security_policies_set_labels(
 
 pub fn compute_service_attachments_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/serviceAttachments",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -102103,14 +101688,14 @@ pub fn compute_service_attachments_aggregated_list(
 > {
     let builder = compute_service_attachments_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_service_attachments_aggregated_list_execute(builder)
 }
@@ -102123,22 +101708,20 @@ pub fn compute_service_attachments_aggregated_list(
 
 pub fn compute_service_attachments_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    serviceAttachment: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    serviceAttachment: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}",
-        project.as_str(),
-        region.as_str(),
-        serviceAttachment.as_str(),
+        project, region, serviceAttachment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -102292,10 +101875,10 @@ pub fn compute_service_attachments_delete(
 > {
     let builder = compute_service_attachments_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.serviceAttachment.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.serviceAttachment,
+        &args.requestId,
     )?;
     compute_service_attachments_delete_execute(builder)
 }
@@ -102308,22 +101891,22 @@ pub fn compute_service_attachments_delete(
 
 pub fn compute_service_attachments_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -102477,10 +102060,10 @@ pub fn compute_service_attachments_get_iam_policy(
 > {
     let builder = compute_service_attachments_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_service_attachments_get_iam_policy_execute(builder)
 }
@@ -102493,21 +102076,20 @@ pub fn compute_service_attachments_get_iam_policy(
 
 pub fn compute_service_attachments_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &ServiceAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -102663,9 +102245,9 @@ pub fn compute_service_attachments_insert(
 > {
     let builder = compute_service_attachments_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_service_attachments_insert_execute(builder)
@@ -102679,17 +102261,17 @@ pub fn compute_service_attachments_insert(
 
 pub fn compute_service_attachments_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -102839,9 +102421,9 @@ pub fn compute_service_attachments_set_iam_policy(
 > {
     let builder = compute_service_attachments_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_service_attachments_set_iam_policy_execute(builder)
@@ -102855,17 +102437,17 @@ pub fn compute_service_attachments_set_iam_policy(
 
 pub fn compute_service_attachments_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/serviceAttachments/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -103019,9 +102601,9 @@ pub fn compute_service_attachments_test_iam_permissions(
 > {
     let builder = compute_service_attachments_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_service_attachments_test_iam_permissions_execute(builder)
@@ -103035,12 +102617,12 @@ pub fn compute_service_attachments_test_iam_permissions(
 
 pub fn compute_snapshot_settings_get_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshotSettings",
-        project.as_str(),
+        project,
     );
 
     // Build request
@@ -103184,7 +102766,7 @@ pub fn compute_snapshot_settings_get(
         + 'static,
     ApiError,
 > {
-    let builder = compute_snapshot_settings_get_builder(client, args.project.clone())?;
+    let builder = compute_snapshot_settings_get_builder(client, &args.project)?;
     compute_snapshot_settings_get_execute(builder)
 }
 
@@ -103196,20 +102778,19 @@ pub fn compute_snapshot_settings_get(
 
 pub fn compute_snapshots_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    snapshot: String,
-    requestId: Option<String>,
+    project: &String,
+    snapshot: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}",
-        project.as_str(),
-        snapshot.as_str(),
+        project, snapshot,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -103359,12 +102940,8 @@ pub fn compute_snapshots_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_snapshots_delete_builder(
-        client,
-        args.project.clone(),
-        args.snapshot.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_snapshots_delete_builder(client, &args.project, &args.snapshot, &args.requestId)?;
     compute_snapshots_delete_execute(builder)
 }
 
@@ -103376,20 +102953,19 @@ pub fn compute_snapshots_delete(
 
 pub fn compute_snapshots_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -103541,9 +103117,9 @@ pub fn compute_snapshots_get_iam_policy(
 > {
     let builder = compute_snapshots_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_snapshots_get_iam_policy_execute(builder)
 }
@@ -103556,19 +103132,19 @@ pub fn compute_snapshots_get_iam_policy(
 
 pub fn compute_snapshots_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &Snapshot,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -103720,12 +103296,8 @@ pub fn compute_snapshots_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_snapshots_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_snapshots_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_snapshots_insert_execute(builder)
 }
 
@@ -103737,15 +103309,14 @@ pub fn compute_snapshots_insert(
 
 pub fn compute_snapshots_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -103893,8 +103464,8 @@ pub fn compute_snapshots_set_iam_policy(
 > {
     let builder = compute_snapshots_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_snapshots_set_iam_policy_execute(builder)
@@ -103908,15 +103479,14 @@ pub fn compute_snapshots_set_iam_policy(
 
 pub fn compute_snapshots_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/setLabels",
-        project.as_str(),
-        resource.as_str(),
+        project, resource,
     );
 
     // Build request
@@ -104062,12 +103632,8 @@ pub fn compute_snapshots_set_labels(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_snapshots_set_labels_builder(
-        client,
-        args.project.clone(),
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_snapshots_set_labels_builder(client, &args.project, &args.resource, &args.body)?;
     compute_snapshots_set_labels_execute(builder)
 }
 
@@ -104079,15 +103645,15 @@ pub fn compute_snapshots_set_labels(
 
 pub fn compute_snapshots_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/snapshots/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -104239,8 +103805,8 @@ pub fn compute_snapshots_test_iam_permissions(
 > {
     let builder = compute_snapshots_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_snapshots_test_iam_permissions_execute(builder)
@@ -104254,42 +103820,42 @@ pub fn compute_snapshots_test_iam_permissions(
 
 pub fn compute_ssl_certificates_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/sslCertificates",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -104459,14 +104025,14 @@ pub fn compute_ssl_certificates_aggregated_list(
 > {
     let builder = compute_ssl_certificates_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_ssl_certificates_aggregated_list_execute(builder)
 }
@@ -104479,20 +104045,19 @@ pub fn compute_ssl_certificates_aggregated_list(
 
 pub fn compute_ssl_certificates_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    sslCertificate: String,
-    requestId: Option<String>,
+    project: &String,
+    sslCertificate: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates/{}",
-        project.as_str(),
-        sslCertificate.as_str(),
+        project, sslCertificate,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -104644,9 +104209,9 @@ pub fn compute_ssl_certificates_delete(
 > {
     let builder = compute_ssl_certificates_delete_builder(
         client,
-        args.project.clone(),
-        args.sslCertificate.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.sslCertificate,
+        &args.requestId,
     )?;
     compute_ssl_certificates_delete_execute(builder)
 }
@@ -104659,19 +104224,19 @@ pub fn compute_ssl_certificates_delete(
 
 pub fn compute_ssl_certificates_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &SslCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslCertificates",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -104825,8 +104390,8 @@ pub fn compute_ssl_certificates_insert(
 > {
     let builder = compute_ssl_certificates_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_ssl_certificates_insert_execute(builder)
@@ -104840,42 +104405,42 @@ pub fn compute_ssl_certificates_insert(
 
 pub fn compute_ssl_policies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/sslPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -105041,14 +104606,14 @@ pub fn compute_ssl_policies_aggregated_list(
 > {
     let builder = compute_ssl_policies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_ssl_policies_aggregated_list_execute(builder)
 }
@@ -105061,20 +104626,19 @@ pub fn compute_ssl_policies_aggregated_list(
 
 pub fn compute_ssl_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    sslPolicy: String,
-    requestId: Option<String>,
+    project: &String,
+    sslPolicy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/{}",
-        project.as_str(),
-        sslPolicy.as_str(),
+        project, sslPolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -105226,9 +104790,9 @@ pub fn compute_ssl_policies_delete(
 > {
     let builder = compute_ssl_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.sslPolicy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.sslPolicy,
+        &args.requestId,
     )?;
     compute_ssl_policies_delete_execute(builder)
 }
@@ -105241,19 +104805,19 @@ pub fn compute_ssl_policies_delete(
 
 pub fn compute_ssl_policies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &SslPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -105405,12 +104969,8 @@ pub fn compute_ssl_policies_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_ssl_policies_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_ssl_policies_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_ssl_policies_insert_execute(builder)
 }
 
@@ -105422,34 +104982,34 @@ pub fn compute_ssl_policies_insert(
 
 pub fn compute_ssl_policies_list_available_features_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/sslPolicies/listAvailableFeatures",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -105615,12 +105175,12 @@ pub fn compute_ssl_policies_list_available_features(
 > {
     let builder = compute_ssl_policies_list_available_features_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_ssl_policies_list_available_features_execute(builder)
 }
@@ -105633,42 +105193,42 @@ pub fn compute_ssl_policies_list_available_features(
 
 pub fn compute_storage_pool_types_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/storagePoolTypes",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -105838,14 +105398,14 @@ pub fn compute_storage_pool_types_aggregated_list(
 > {
     let builder = compute_storage_pool_types_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_storage_pool_types_aggregated_list_execute(builder)
 }
@@ -105858,16 +105418,14 @@ pub fn compute_storage_pool_types_aggregated_list(
 
 pub fn compute_storage_pool_types_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    storagePoolType: String,
+    project: &String,
+    zone: &String,
+    storagePoolType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePoolTypes/{}",
-        project.as_str(),
-        zone.as_str(),
-        storagePoolType.as_str(),
+        project, zone, storagePoolType,
     );
 
     // Build request
@@ -106017,9 +105575,9 @@ pub fn compute_storage_pool_types_get(
 > {
     let builder = compute_storage_pool_types_get_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.storagePoolType.clone(),
+        &args.project,
+        &args.zone,
+        &args.storagePoolType,
     )?;
     compute_storage_pool_types_get_execute(builder)
 }
@@ -106032,36 +105590,35 @@ pub fn compute_storage_pool_types_get(
 
 pub fn compute_storage_pool_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePoolTypes",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -106225,13 +105782,13 @@ pub fn compute_storage_pool_types_list(
 > {
     let builder = compute_storage_pool_types_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_storage_pool_types_list_execute(builder)
 }
@@ -106244,42 +105801,42 @@ pub fn compute_storage_pool_types_list(
 
 pub fn compute_storage_pools_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/storagePools",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -106445,14 +106002,14 @@ pub fn compute_storage_pools_aggregated_list(
 > {
     let builder = compute_storage_pools_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_storage_pools_aggregated_list_execute(builder)
 }
@@ -106465,22 +106022,20 @@ pub fn compute_storage_pools_aggregated_list(
 
 pub fn compute_storage_pools_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    storagePool: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    storagePool: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}",
-        project.as_str(),
-        zone.as_str(),
-        storagePool.as_str(),
+        project, zone, storagePool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -106634,10 +106189,10 @@ pub fn compute_storage_pools_delete(
 > {
     let builder = compute_storage_pools_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.storagePool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.storagePool,
+        &args.requestId,
     )?;
     compute_storage_pools_delete_execute(builder)
 }
@@ -106650,22 +106205,22 @@ pub fn compute_storage_pools_delete(
 
 pub fn compute_storage_pools_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    zone: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/getIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -106819,10 +106374,10 @@ pub fn compute_storage_pools_get_iam_policy(
 > {
     let builder = compute_storage_pools_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_storage_pools_get_iam_policy_execute(builder)
 }
@@ -106835,21 +106390,20 @@ pub fn compute_storage_pools_get_iam_policy(
 
 pub fn compute_storage_pools_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &StoragePool,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -107005,9 +106559,9 @@ pub fn compute_storage_pools_insert(
 > {
     let builder = compute_storage_pools_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_storage_pools_insert_execute(builder)
@@ -107021,38 +106575,36 @@ pub fn compute_storage_pools_insert(
 
 pub fn compute_storage_pools_list_disks_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    storagePool: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    storagePool: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/listDisks",
-        project.as_str(),
-        zone.as_str(),
-        storagePool.as_str(),
+        project, zone, storagePool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -107218,14 +106770,14 @@ pub fn compute_storage_pools_list_disks(
 > {
     let builder = compute_storage_pools_list_disks_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.storagePool.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.storagePool,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_storage_pools_list_disks_execute(builder)
 }
@@ -107238,17 +106790,17 @@ pub fn compute_storage_pools_list_disks(
 
 pub fn compute_storage_pools_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &ZoneSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/setIamPolicy",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -107398,9 +106950,9 @@ pub fn compute_storage_pools_set_iam_policy(
 > {
     let builder = compute_storage_pools_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_storage_pools_set_iam_policy_execute(builder)
@@ -107414,17 +106966,17 @@ pub fn compute_storage_pools_set_iam_policy(
 
 pub fn compute_storage_pools_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/storagePools/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -107578,9 +107130,9 @@ pub fn compute_storage_pools_test_iam_permissions(
 > {
     let builder = compute_storage_pools_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_storage_pools_test_iam_permissions_execute(builder)
@@ -107594,46 +107146,46 @@ pub fn compute_storage_pools_test_iam_permissions(
 
 pub fn compute_subnetworks_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
-    views: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
+    views: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/subnetworks",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
-    if let Some(val) = views {
+    if let Some(val) = views.as_ref() {
         query_parts.push(format!("views={}", val));
     }
 
@@ -107801,15 +107353,15 @@ pub fn compute_subnetworks_aggregated_list(
 > {
     let builder = compute_subnetworks_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
-        args.views.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
+        &args.views,
     )?;
     compute_subnetworks_aggregated_list_execute(builder)
 }
@@ -107822,22 +107374,20 @@ pub fn compute_subnetworks_aggregated_list(
 
 pub fn compute_subnetworks_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    subnetwork: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    subnetwork: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}",
-        project.as_str(),
-        region.as_str(),
-        subnetwork.as_str(),
+        project, region, subnetwork,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -107991,10 +107541,10 @@ pub fn compute_subnetworks_delete(
 > {
     let builder = compute_subnetworks_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.subnetwork.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.subnetwork,
+        &args.requestId,
     )?;
     compute_subnetworks_delete_execute(builder)
 }
@@ -108007,23 +107557,23 @@ pub fn compute_subnetworks_delete(
 
 pub fn compute_subnetworks_expand_ip_cidr_range_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    subnetwork: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    subnetwork: &String,
+    requestId: &Option<String>,
     body: &SubnetworksExpandIpCidrRangeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/expandIpCidrRange",
-        project.as_str(),
-        region.as_str(),
-        subnetwork.as_str(),
+        project,
+        region,
+        subnetwork,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -108181,10 +107731,10 @@ pub fn compute_subnetworks_expand_ip_cidr_range(
 > {
     let builder = compute_subnetworks_expand_ip_cidr_range_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.subnetwork.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.subnetwork,
+        &args.requestId,
         &args.body,
     )?;
     compute_subnetworks_expand_ip_cidr_range_execute(builder)
@@ -108198,22 +107748,22 @@ pub fn compute_subnetworks_expand_ip_cidr_range(
 
 pub fn compute_subnetworks_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/getIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -108367,10 +107917,10 @@ pub fn compute_subnetworks_get_iam_policy(
 > {
     let builder = compute_subnetworks_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.optionsRequestedPolicyVersion,
     )?;
     compute_subnetworks_get_iam_policy_execute(builder)
 }
@@ -108383,21 +107933,20 @@ pub fn compute_subnetworks_get_iam_policy(
 
 pub fn compute_subnetworks_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &Subnetwork,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -108553,9 +108102,9 @@ pub fn compute_subnetworks_insert(
 > {
     let builder = compute_subnetworks_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_subnetworks_insert_execute(builder)
@@ -108569,38 +108118,38 @@ pub fn compute_subnetworks_insert(
 
 pub fn compute_subnetworks_list_usable_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProject: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/subnetworks/listUsable",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProject {
+    if let Some(val) = serviceProject.as_ref() {
         query_parts.push(format!("serviceProject={}", val));
     }
 
@@ -108768,13 +108317,13 @@ pub fn compute_subnetworks_list_usable(
 > {
     let builder = compute_subnetworks_list_usable_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProject.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProject,
     )?;
     compute_subnetworks_list_usable_execute(builder)
 }
@@ -108787,17 +108336,17 @@ pub fn compute_subnetworks_list_usable(
 
 pub fn compute_subnetworks_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &RegionSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/setIamPolicy",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -108947,9 +108496,9 @@ pub fn compute_subnetworks_set_iam_policy(
 > {
     let builder = compute_subnetworks_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_subnetworks_set_iam_policy_execute(builder)
@@ -108963,23 +108512,23 @@ pub fn compute_subnetworks_set_iam_policy(
 
 pub fn compute_subnetworks_set_private_ip_google_access_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    subnetwork: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    subnetwork: &String,
+    requestId: &Option<String>,
     body: &SubnetworksSetPrivateIpGoogleAccessRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/setPrivateIpGoogleAccess",
-        project.as_str(),
-        region.as_str(),
-        subnetwork.as_str(),
+        project,
+        region,
+        subnetwork,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -109137,10 +108686,10 @@ pub fn compute_subnetworks_set_private_ip_google_access(
 > {
     let builder = compute_subnetworks_set_private_ip_google_access_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.subnetwork.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.subnetwork,
+        &args.requestId,
         &args.body,
     )?;
     compute_subnetworks_set_private_ip_google_access_execute(builder)
@@ -109154,17 +108703,17 @@ pub fn compute_subnetworks_set_private_ip_google_access(
 
 pub fn compute_subnetworks_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/subnetworks/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -109318,9 +108867,9 @@ pub fn compute_subnetworks_test_iam_permissions(
 > {
     let builder = compute_subnetworks_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_subnetworks_test_iam_permissions_execute(builder)
@@ -109334,20 +108883,19 @@ pub fn compute_subnetworks_test_iam_permissions(
 
 pub fn compute_target_grpc_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetGrpcProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetGrpcProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies/{}",
-        project.as_str(),
-        targetGrpcProxy.as_str(),
+        project, targetGrpcProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -109499,9 +109047,9 @@ pub fn compute_target_grpc_proxies_delete(
 > {
     let builder = compute_target_grpc_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.targetGrpcProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetGrpcProxy,
+        &args.requestId,
     )?;
     compute_target_grpc_proxies_delete_execute(builder)
 }
@@ -109514,19 +109062,19 @@ pub fn compute_target_grpc_proxies_delete(
 
 pub fn compute_target_grpc_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &TargetGrpcProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetGrpcProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -109680,8 +109228,8 @@ pub fn compute_target_grpc_proxies_insert(
 > {
     let builder = compute_target_grpc_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_grpc_proxies_insert_execute(builder)
@@ -109695,42 +109243,42 @@ pub fn compute_target_grpc_proxies_insert(
 
 pub fn compute_target_http_proxies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetHttpProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -109900,14 +109448,14 @@ pub fn compute_target_http_proxies_aggregated_list(
 > {
     let builder = compute_target_http_proxies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_http_proxies_aggregated_list_execute(builder)
 }
@@ -109920,20 +109468,19 @@ pub fn compute_target_http_proxies_aggregated_list(
 
 pub fn compute_target_http_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies/{}",
-        project.as_str(),
-        targetHttpProxy.as_str(),
+        project, targetHttpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -110085,9 +109632,9 @@ pub fn compute_target_http_proxies_delete(
 > {
     let builder = compute_target_http_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.targetHttpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpProxy,
+        &args.requestId,
     )?;
     compute_target_http_proxies_delete_execute(builder)
 }
@@ -110100,19 +109647,19 @@ pub fn compute_target_http_proxies_delete(
 
 pub fn compute_target_http_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &TargetHttpProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -110266,8 +109813,8 @@ pub fn compute_target_http_proxies_insert(
 > {
     let builder = compute_target_http_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_http_proxies_insert_execute(builder)
@@ -110281,21 +109828,20 @@ pub fn compute_target_http_proxies_insert(
 
 pub fn compute_target_http_proxies_set_url_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpProxy: &String,
+    requestId: &Option<String>,
     body: &UrlMapReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpProxies/{}/setUrlMap",
-        project.as_str(),
-        targetHttpProxy.as_str(),
+        project, targetHttpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -110451,9 +109997,9 @@ pub fn compute_target_http_proxies_set_url_map(
 > {
     let builder = compute_target_http_proxies_set_url_map_builder(
         client,
-        args.project.clone(),
-        args.targetHttpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_http_proxies_set_url_map_execute(builder)
@@ -110467,42 +110013,42 @@ pub fn compute_target_http_proxies_set_url_map(
 
 pub fn compute_target_https_proxies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetHttpsProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -110672,14 +110218,14 @@ pub fn compute_target_https_proxies_aggregated_list(
 > {
     let builder = compute_target_https_proxies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_https_proxies_aggregated_list_execute(builder)
 }
@@ -110692,20 +110238,19 @@ pub fn compute_target_https_proxies_aggregated_list(
 
 pub fn compute_target_https_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project, targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -110857,9 +110402,9 @@ pub fn compute_target_https_proxies_delete(
 > {
     let builder = compute_target_https_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
     )?;
     compute_target_https_proxies_delete_execute(builder)
 }
@@ -110872,19 +110417,19 @@ pub fn compute_target_https_proxies_delete(
 
 pub fn compute_target_https_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &TargetHttpsProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111038,8 +110583,8 @@ pub fn compute_target_https_proxies_insert(
 > {
     let builder = compute_target_https_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_insert_execute(builder)
@@ -111053,21 +110598,21 @@ pub fn compute_target_https_proxies_insert(
 
 pub fn compute_target_https_proxies_set_certificate_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &TargetHttpsProxiesSetCertificateMapRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setCertificateMap",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111223,9 +110768,9 @@ pub fn compute_target_https_proxies_set_certificate_map(
 > {
     let builder = compute_target_https_proxies_set_certificate_map_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_set_certificate_map_execute(builder)
@@ -111239,21 +110784,21 @@ pub fn compute_target_https_proxies_set_certificate_map(
 
 pub fn compute_target_https_proxies_set_quic_override_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &TargetHttpsProxiesSetQuicOverrideRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setQuicOverride",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111409,9 +110954,9 @@ pub fn compute_target_https_proxies_set_quic_override(
 > {
     let builder = compute_target_https_proxies_set_quic_override_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_set_quic_override_execute(builder)
@@ -111425,21 +110970,21 @@ pub fn compute_target_https_proxies_set_quic_override(
 
 pub fn compute_target_https_proxies_set_ssl_certificates_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &TargetHttpsProxiesSetSslCertificatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpsProxies/{}/setSslCertificates",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111595,9 +111140,9 @@ pub fn compute_target_https_proxies_set_ssl_certificates(
 > {
     let builder = compute_target_https_proxies_set_ssl_certificates_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_set_ssl_certificates_execute(builder)
@@ -111611,21 +111156,21 @@ pub fn compute_target_https_proxies_set_ssl_certificates(
 
 pub fn compute_target_https_proxies_set_ssl_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &SslPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetHttpsProxies/{}/setSslPolicy",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project,
+        targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111781,9 +111326,9 @@ pub fn compute_target_https_proxies_set_ssl_policy(
 > {
     let builder = compute_target_https_proxies_set_ssl_policy_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_set_ssl_policy_execute(builder)
@@ -111797,21 +111342,20 @@ pub fn compute_target_https_proxies_set_ssl_policy(
 
 pub fn compute_target_https_proxies_set_url_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetHttpsProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetHttpsProxy: &String,
+    requestId: &Option<String>,
     body: &UrlMapReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/targetHttpsProxies/{}/setUrlMap",
-        project.as_str(),
-        targetHttpsProxy.as_str(),
+        project, targetHttpsProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -111967,9 +111511,9 @@ pub fn compute_target_https_proxies_set_url_map(
 > {
     let builder = compute_target_https_proxies_set_url_map_builder(
         client,
-        args.project.clone(),
-        args.targetHttpsProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetHttpsProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_https_proxies_set_url_map_execute(builder)
@@ -111983,42 +111527,42 @@ pub fn compute_target_https_proxies_set_url_map(
 
 pub fn compute_target_instances_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetInstances",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -112188,14 +111732,14 @@ pub fn compute_target_instances_aggregated_list(
 > {
     let builder = compute_target_instances_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_instances_aggregated_list_execute(builder)
 }
@@ -112208,22 +111752,20 @@ pub fn compute_target_instances_aggregated_list(
 
 pub fn compute_target_instances_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    targetInstance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    targetInstance: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}",
-        project.as_str(),
-        zone.as_str(),
-        targetInstance.as_str(),
+        project, zone, targetInstance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -112377,10 +111919,10 @@ pub fn compute_target_instances_delete(
 > {
     let builder = compute_target_instances_delete_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.targetInstance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.targetInstance,
+        &args.requestId,
     )?;
     compute_target_instances_delete_execute(builder)
 }
@@ -112393,21 +111935,20 @@ pub fn compute_target_instances_delete(
 
 pub fn compute_target_instances_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    requestId: &Option<String>,
     body: &TargetInstance,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -112563,9 +112104,9 @@ pub fn compute_target_instances_insert(
 > {
     let builder = compute_target_instances_insert_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_instances_insert_execute(builder)
@@ -112579,23 +112120,23 @@ pub fn compute_target_instances_insert(
 
 pub fn compute_target_instances_set_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    targetInstance: String,
-    requestId: Option<String>,
+    project: &String,
+    zone: &String,
+    targetInstance: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}/setSecurityPolicy",
-        project.as_str(),
-        zone.as_str(),
-        targetInstance.as_str(),
+        project,
+        zone,
+        targetInstance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -112753,10 +112294,10 @@ pub fn compute_target_instances_set_security_policy(
 > {
     let builder = compute_target_instances_set_security_policy_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.targetInstance.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.zone,
+        &args.targetInstance,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_instances_set_security_policy_execute(builder)
@@ -112770,17 +112311,17 @@ pub fn compute_target_instances_set_security_policy(
 
 pub fn compute_target_instances_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    resource: String,
+    project: &String,
+    zone: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/targetInstances/{}/testIamPermissions",
-        project.as_str(),
-        zone.as_str(),
-        resource.as_str(),
+        project,
+        zone,
+        resource,
     );
 
     // Build request
@@ -112934,9 +112475,9 @@ pub fn compute_target_instances_test_iam_permissions(
 > {
     let builder = compute_target_instances_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.zone,
+        &args.resource,
         &args.body,
     )?;
     compute_target_instances_test_iam_permissions_execute(builder)
@@ -112950,23 +112491,23 @@ pub fn compute_target_instances_test_iam_permissions(
 
 pub fn compute_target_pools_add_health_check_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
     body: &TargetPoolsAddHealthCheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/addHealthCheck",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project,
+        region,
+        targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -113124,10 +112665,10 @@ pub fn compute_target_pools_add_health_check(
 > {
     let builder = compute_target_pools_add_health_check_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_add_health_check_execute(builder)
@@ -113141,23 +112682,23 @@ pub fn compute_target_pools_add_health_check(
 
 pub fn compute_target_pools_add_instance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
     body: &TargetPoolsAddInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/addInstance",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project,
+        region,
+        targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -113315,10 +112856,10 @@ pub fn compute_target_pools_add_instance(
 > {
     let builder = compute_target_pools_add_instance_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_add_instance_execute(builder)
@@ -113332,42 +112873,42 @@ pub fn compute_target_pools_add_instance(
 
 pub fn compute_target_pools_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetPools",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -113533,14 +113074,14 @@ pub fn compute_target_pools_aggregated_list(
 > {
     let builder = compute_target_pools_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_pools_aggregated_list_execute(builder)
 }
@@ -113553,22 +113094,20 @@ pub fn compute_target_pools_aggregated_list(
 
 pub fn compute_target_pools_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project, region, targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -113722,10 +113261,10 @@ pub fn compute_target_pools_delete(
 > {
     let builder = compute_target_pools_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
     )?;
     compute_target_pools_delete_execute(builder)
 }
@@ -113738,17 +113277,15 @@ pub fn compute_target_pools_delete(
 
 pub fn compute_target_pools_get_health_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
+    project: &String,
+    region: &String,
+    targetPool: &String,
     body: &InstanceReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/getHealth",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project, region, targetPool,
     );
 
     // Build request
@@ -113902,9 +113439,9 @@ pub fn compute_target_pools_get_health(
 > {
     let builder = compute_target_pools_get_health_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
         &args.body,
     )?;
     compute_target_pools_get_health_execute(builder)
@@ -113918,21 +113455,20 @@ pub fn compute_target_pools_get_health(
 
 pub fn compute_target_pools_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &TargetPool,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -114088,9 +113624,9 @@ pub fn compute_target_pools_insert(
 > {
     let builder = compute_target_pools_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_insert_execute(builder)
@@ -114104,23 +113640,23 @@ pub fn compute_target_pools_insert(
 
 pub fn compute_target_pools_remove_health_check_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
     body: &TargetPoolsRemoveHealthCheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/removeHealthCheck",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project,
+        region,
+        targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -114278,10 +113814,10 @@ pub fn compute_target_pools_remove_health_check(
 > {
     let builder = compute_target_pools_remove_health_check_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_remove_health_check_execute(builder)
@@ -114295,23 +113831,23 @@ pub fn compute_target_pools_remove_health_check(
 
 pub fn compute_target_pools_remove_instance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
     body: &TargetPoolsRemoveInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/removeInstance",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project,
+        region,
+        targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -114469,10 +114005,10 @@ pub fn compute_target_pools_remove_instance(
 > {
     let builder = compute_target_pools_remove_instance_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_remove_instance_execute(builder)
@@ -114486,27 +114022,25 @@ pub fn compute_target_pools_remove_instance(
 
 pub fn compute_target_pools_set_backup_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    failoverRatio: Option<f32>,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    failoverRatio: &Option<f32>,
+    requestId: &Option<String>,
     body: &TargetReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/setBackup",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project, region, targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = failoverRatio {
+    if let Some(val) = failoverRatio.as_ref() {
         query_parts.push(format!("failoverRatio={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -114666,11 +114200,11 @@ pub fn compute_target_pools_set_backup(
 > {
     let builder = compute_target_pools_set_backup_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.failoverRatio.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.failoverRatio,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_set_backup_execute(builder)
@@ -114684,23 +114218,23 @@ pub fn compute_target_pools_set_backup(
 
 pub fn compute_target_pools_set_security_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetPool: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetPool: &String,
+    requestId: &Option<String>,
     body: &SecurityPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/setSecurityPolicy",
-        project.as_str(),
-        region.as_str(),
-        targetPool.as_str(),
+        project,
+        region,
+        targetPool,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -114858,10 +114392,10 @@ pub fn compute_target_pools_set_security_policy(
 > {
     let builder = compute_target_pools_set_security_policy_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetPool.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetPool,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_pools_set_security_policy_execute(builder)
@@ -114875,17 +114409,17 @@ pub fn compute_target_pools_set_security_policy(
 
 pub fn compute_target_pools_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetPools/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -115039,9 +114573,9 @@ pub fn compute_target_pools_test_iam_permissions(
 > {
     let builder = compute_target_pools_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_target_pools_test_iam_permissions_execute(builder)
@@ -115055,20 +114589,19 @@ pub fn compute_target_pools_test_iam_permissions(
 
 pub fn compute_target_ssl_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project, targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -115220,9 +114753,9 @@ pub fn compute_target_ssl_proxies_delete(
 > {
     let builder = compute_target_ssl_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
     )?;
     compute_target_ssl_proxies_delete_execute(builder)
 }
@@ -115235,19 +114768,19 @@ pub fn compute_target_ssl_proxies_delete(
 
 pub fn compute_target_ssl_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &TargetSslProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -115401,8 +114934,8 @@ pub fn compute_target_ssl_proxies_insert(
 > {
     let builder = compute_target_ssl_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_insert_execute(builder)
@@ -115416,21 +114949,21 @@ pub fn compute_target_ssl_proxies_insert(
 
 pub fn compute_target_ssl_proxies_set_backend_service_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
     body: &TargetSslProxiesSetBackendServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setBackendService",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project,
+        targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -115586,9 +115119,9 @@ pub fn compute_target_ssl_proxies_set_backend_service(
 > {
     let builder = compute_target_ssl_proxies_set_backend_service_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_set_backend_service_execute(builder)
@@ -115602,21 +115135,21 @@ pub fn compute_target_ssl_proxies_set_backend_service(
 
 pub fn compute_target_ssl_proxies_set_certificate_map_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
     body: &TargetSslProxiesSetCertificateMapRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setCertificateMap",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project,
+        targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -115772,9 +115305,9 @@ pub fn compute_target_ssl_proxies_set_certificate_map(
 > {
     let builder = compute_target_ssl_proxies_set_certificate_map_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_set_certificate_map_execute(builder)
@@ -115788,21 +115321,21 @@ pub fn compute_target_ssl_proxies_set_certificate_map(
 
 pub fn compute_target_ssl_proxies_set_proxy_header_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
     body: &TargetSslProxiesSetProxyHeaderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setProxyHeader",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project,
+        targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -115958,9 +115491,9 @@ pub fn compute_target_ssl_proxies_set_proxy_header(
 > {
     let builder = compute_target_ssl_proxies_set_proxy_header_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_set_proxy_header_execute(builder)
@@ -115974,21 +115507,21 @@ pub fn compute_target_ssl_proxies_set_proxy_header(
 
 pub fn compute_target_ssl_proxies_set_ssl_certificates_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
     body: &TargetSslProxiesSetSslCertificatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setSslCertificates",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project,
+        targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -116144,9 +115677,9 @@ pub fn compute_target_ssl_proxies_set_ssl_certificates(
 > {
     let builder = compute_target_ssl_proxies_set_ssl_certificates_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_set_ssl_certificates_execute(builder)
@@ -116160,21 +115693,21 @@ pub fn compute_target_ssl_proxies_set_ssl_certificates(
 
 pub fn compute_target_ssl_proxies_set_ssl_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetSslProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetSslProxy: &String,
+    requestId: &Option<String>,
     body: &SslPolicyReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/setSslPolicy",
-        project.as_str(),
-        targetSslProxy.as_str(),
+        project,
+        targetSslProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -116330,9 +115863,9 @@ pub fn compute_target_ssl_proxies_set_ssl_policy(
 > {
     let builder = compute_target_ssl_proxies_set_ssl_policy_builder(
         client,
-        args.project.clone(),
-        args.targetSslProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetSslProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_ssl_proxies_set_ssl_policy_execute(builder)
@@ -116346,15 +115879,15 @@ pub fn compute_target_ssl_proxies_set_ssl_policy(
 
 pub fn compute_target_ssl_proxies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetSslProxies/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -116506,8 +116039,8 @@ pub fn compute_target_ssl_proxies_test_iam_permissions(
 > {
     let builder = compute_target_ssl_proxies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_target_ssl_proxies_test_iam_permissions_execute(builder)
@@ -116521,42 +116054,42 @@ pub fn compute_target_ssl_proxies_test_iam_permissions(
 
 pub fn compute_target_tcp_proxies_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetTcpProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -116726,14 +116259,14 @@ pub fn compute_target_tcp_proxies_aggregated_list(
 > {
     let builder = compute_target_tcp_proxies_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_tcp_proxies_aggregated_list_execute(builder)
 }
@@ -116746,20 +116279,19 @@ pub fn compute_target_tcp_proxies_aggregated_list(
 
 pub fn compute_target_tcp_proxies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetTcpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetTcpProxy: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}",
-        project.as_str(),
-        targetTcpProxy.as_str(),
+        project, targetTcpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -116911,9 +116443,9 @@ pub fn compute_target_tcp_proxies_delete(
 > {
     let builder = compute_target_tcp_proxies_delete_builder(
         client,
-        args.project.clone(),
-        args.targetTcpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetTcpProxy,
+        &args.requestId,
     )?;
     compute_target_tcp_proxies_delete_execute(builder)
 }
@@ -116926,19 +116458,19 @@ pub fn compute_target_tcp_proxies_delete(
 
 pub fn compute_target_tcp_proxies_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &TargetTcpProxy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -117092,8 +116624,8 @@ pub fn compute_target_tcp_proxies_insert(
 > {
     let builder = compute_target_tcp_proxies_insert_builder(
         client,
-        args.project.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_tcp_proxies_insert_execute(builder)
@@ -117107,21 +116639,21 @@ pub fn compute_target_tcp_proxies_insert(
 
 pub fn compute_target_tcp_proxies_set_backend_service_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetTcpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetTcpProxy: &String,
+    requestId: &Option<String>,
     body: &TargetTcpProxiesSetBackendServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/setBackendService",
-        project.as_str(),
-        targetTcpProxy.as_str(),
+        project,
+        targetTcpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -117277,9 +116809,9 @@ pub fn compute_target_tcp_proxies_set_backend_service(
 > {
     let builder = compute_target_tcp_proxies_set_backend_service_builder(
         client,
-        args.project.clone(),
-        args.targetTcpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetTcpProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_tcp_proxies_set_backend_service_execute(builder)
@@ -117293,21 +116825,21 @@ pub fn compute_target_tcp_proxies_set_backend_service(
 
 pub fn compute_target_tcp_proxies_set_proxy_header_builder(
     client: &SimpleHttpClient,
-    project: String,
-    targetTcpProxy: String,
-    requestId: Option<String>,
+    project: &String,
+    targetTcpProxy: &String,
+    requestId: &Option<String>,
     body: &TargetTcpProxiesSetProxyHeaderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/setProxyHeader",
-        project.as_str(),
-        targetTcpProxy.as_str(),
+        project,
+        targetTcpProxy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -117463,9 +116995,9 @@ pub fn compute_target_tcp_proxies_set_proxy_header(
 > {
     let builder = compute_target_tcp_proxies_set_proxy_header_builder(
         client,
-        args.project.clone(),
-        args.targetTcpProxy.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.targetTcpProxy,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_tcp_proxies_set_proxy_header_execute(builder)
@@ -117479,15 +117011,15 @@ pub fn compute_target_tcp_proxies_set_proxy_header(
 
 pub fn compute_target_tcp_proxies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/targetTcpProxies/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -117639,8 +117171,8 @@ pub fn compute_target_tcp_proxies_test_iam_permissions(
 > {
     let builder = compute_target_tcp_proxies_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_target_tcp_proxies_test_iam_permissions_execute(builder)
@@ -117654,42 +117186,42 @@ pub fn compute_target_tcp_proxies_test_iam_permissions(
 
 pub fn compute_target_vpn_gateways_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/targetVpnGateways",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -117859,14 +117391,14 @@ pub fn compute_target_vpn_gateways_aggregated_list(
 > {
     let builder = compute_target_vpn_gateways_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_target_vpn_gateways_aggregated_list_execute(builder)
 }
@@ -117879,22 +117411,20 @@ pub fn compute_target_vpn_gateways_aggregated_list(
 
 pub fn compute_target_vpn_gateways_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    targetVpnGateway: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    targetVpnGateway: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways/{}",
-        project.as_str(),
-        region.as_str(),
-        targetVpnGateway.as_str(),
+        project, region, targetVpnGateway,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -118048,10 +117578,10 @@ pub fn compute_target_vpn_gateways_delete(
 > {
     let builder = compute_target_vpn_gateways_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.targetVpnGateway.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.targetVpnGateway,
+        &args.requestId,
     )?;
     compute_target_vpn_gateways_delete_execute(builder)
 }
@@ -118064,21 +117594,20 @@ pub fn compute_target_vpn_gateways_delete(
 
 pub fn compute_target_vpn_gateways_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &TargetVpnGateway,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -118234,9 +117763,9 @@ pub fn compute_target_vpn_gateways_insert(
 > {
     let builder = compute_target_vpn_gateways_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_vpn_gateways_insert_execute(builder)
@@ -118250,23 +117779,23 @@ pub fn compute_target_vpn_gateways_insert(
 
 pub fn compute_target_vpn_gateways_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/targetVpnGateways/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -118424,10 +117953,10 @@ pub fn compute_target_vpn_gateways_set_labels(
 > {
     let builder = compute_target_vpn_gateways_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_target_vpn_gateways_set_labels_execute(builder)
@@ -118441,42 +117970,42 @@ pub fn compute_target_vpn_gateways_set_labels(
 
 pub fn compute_url_maps_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/urlMaps",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -118642,14 +118171,14 @@ pub fn compute_url_maps_aggregated_list(
 > {
     let builder = compute_url_maps_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_url_maps_aggregated_list_execute(builder)
 }
@@ -118662,20 +118191,19 @@ pub fn compute_url_maps_aggregated_list(
 
 pub fn compute_url_maps_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    urlMap: String,
-    requestId: Option<String>,
+    project: &String,
+    urlMap: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}",
-        project.as_str(),
-        urlMap.as_str(),
+        project, urlMap,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -118825,12 +118353,8 @@ pub fn compute_url_maps_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_url_maps_delete_builder(
-        client,
-        args.project.clone(),
-        args.urlMap.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder =
+        compute_url_maps_delete_builder(client, &args.project, &args.urlMap, &args.requestId)?;
     compute_url_maps_delete_execute(builder)
 }
 
@@ -118842,19 +118366,19 @@ pub fn compute_url_maps_delete(
 
 pub fn compute_url_maps_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    requestId: Option<String>,
+    project: &String,
+    requestId: &Option<String>,
     body: &UrlMap,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -119006,12 +118530,8 @@ pub fn compute_url_maps_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_url_maps_insert_builder(
-        client,
-        args.project.clone(),
-        args.requestId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_url_maps_insert_builder(client, &args.project, &args.requestId, &args.body)?;
     compute_url_maps_insert_execute(builder)
 }
 
@@ -119023,21 +118543,20 @@ pub fn compute_url_maps_insert(
 
 pub fn compute_url_maps_invalidate_cache_builder(
     client: &SimpleHttpClient,
-    project: String,
-    urlMap: String,
-    requestId: Option<String>,
+    project: &String,
+    urlMap: &String,
+    requestId: &Option<String>,
     body: &CacheInvalidationRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/invalidateCache",
-        project.as_str(),
-        urlMap.as_str(),
+        project, urlMap,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -119193,9 +118712,9 @@ pub fn compute_url_maps_invalidate_cache(
 > {
     let builder = compute_url_maps_invalidate_cache_builder(
         client,
-        args.project.clone(),
-        args.urlMap.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.urlMap,
+        &args.requestId,
         &args.body,
     )?;
     compute_url_maps_invalidate_cache_execute(builder)
@@ -119209,15 +118728,15 @@ pub fn compute_url_maps_invalidate_cache(
 
 pub fn compute_url_maps_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -119369,8 +118888,8 @@ pub fn compute_url_maps_test_iam_permissions(
 > {
     let builder = compute_url_maps_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     compute_url_maps_test_iam_permissions_execute(builder)
@@ -119384,15 +118903,14 @@ pub fn compute_url_maps_test_iam_permissions(
 
 pub fn compute_url_maps_validate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    urlMap: String,
+    project: &String,
+    urlMap: &String,
     body: &UrlMapsValidateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/urlMaps/{}/validate",
-        project.as_str(),
-        urlMap.as_str(),
+        project, urlMap,
     );
 
     // Build request
@@ -119542,12 +119060,8 @@ pub fn compute_url_maps_validate(
         + 'static,
     ApiError,
 > {
-    let builder = compute_url_maps_validate_builder(
-        client,
-        args.project.clone(),
-        args.urlMap.clone(),
-        &args.body,
-    )?;
+    let builder =
+        compute_url_maps_validate_builder(client, &args.project, &args.urlMap, &args.body)?;
     compute_url_maps_validate_execute(builder)
 }
 
@@ -119559,42 +119073,42 @@ pub fn compute_url_maps_validate(
 
 pub fn compute_vpn_gateways_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/vpnGateways",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -119760,14 +119274,14 @@ pub fn compute_vpn_gateways_aggregated_list(
 > {
     let builder = compute_vpn_gateways_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_vpn_gateways_aggregated_list_execute(builder)
 }
@@ -119780,22 +119294,20 @@ pub fn compute_vpn_gateways_aggregated_list(
 
 pub fn compute_vpn_gateways_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    vpnGateway: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    vpnGateway: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}",
-        project.as_str(),
-        region.as_str(),
-        vpnGateway.as_str(),
+        project, region, vpnGateway,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -119949,10 +119461,10 @@ pub fn compute_vpn_gateways_delete(
 > {
     let builder = compute_vpn_gateways_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.vpnGateway.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.vpnGateway,
+        &args.requestId,
     )?;
     compute_vpn_gateways_delete_execute(builder)
 }
@@ -119965,16 +119477,14 @@ pub fn compute_vpn_gateways_delete(
 
 pub fn compute_vpn_gateways_get_status_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    vpnGateway: String,
+    project: &String,
+    region: &String,
+    vpnGateway: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/getStatus",
-        project.as_str(),
-        region.as_str(),
-        vpnGateway.as_str(),
+        project, region, vpnGateway,
     );
 
     // Build request
@@ -120128,9 +119638,9 @@ pub fn compute_vpn_gateways_get_status(
 > {
     let builder = compute_vpn_gateways_get_status_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.vpnGateway.clone(),
+        &args.project,
+        &args.region,
+        &args.vpnGateway,
     )?;
     compute_vpn_gateways_get_status_execute(builder)
 }
@@ -120143,21 +119653,20 @@ pub fn compute_vpn_gateways_get_status(
 
 pub fn compute_vpn_gateways_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &VpnGateway,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -120313,9 +119822,9 @@ pub fn compute_vpn_gateways_insert(
 > {
     let builder = compute_vpn_gateways_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_vpn_gateways_insert_execute(builder)
@@ -120329,23 +119838,21 @@ pub fn compute_vpn_gateways_insert(
 
 pub fn compute_vpn_gateways_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -120503,10 +120010,10 @@ pub fn compute_vpn_gateways_set_labels(
 > {
     let builder = compute_vpn_gateways_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_vpn_gateways_set_labels_execute(builder)
@@ -120520,17 +120027,17 @@ pub fn compute_vpn_gateways_set_labels(
 
 pub fn compute_vpn_gateways_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
+    project: &String,
+    region: &String,
+    resource: &String,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnGateways/{}/testIamPermissions",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project,
+        region,
+        resource,
     );
 
     // Build request
@@ -120684,9 +120191,9 @@ pub fn compute_vpn_gateways_test_iam_permissions(
 > {
     let builder = compute_vpn_gateways_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
         &args.body,
     )?;
     compute_vpn_gateways_test_iam_permissions_execute(builder)
@@ -120700,42 +120207,42 @@ pub fn compute_vpn_gateways_test_iam_permissions(
 
 pub fn compute_vpn_tunnels_aggregated_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    includeAllScopes: Option<bool>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
-    serviceProjectNumber: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    includeAllScopes: &Option<bool>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/aggregated/vpnTunnels",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = includeAllScopes {
+    if let Some(val) = includeAllScopes.as_ref() {
         query_parts.push(format!("includeAllScopes={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
-    if let Some(val) = serviceProjectNumber {
+    if let Some(val) = serviceProjectNumber.as_ref() {
         query_parts.push(format!("serviceProjectNumber={}", val));
     }
 
@@ -120901,14 +120408,14 @@ pub fn compute_vpn_tunnels_aggregated_list(
 > {
     let builder = compute_vpn_tunnels_aggregated_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.includeAllScopes.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
-        args.serviceProjectNumber.clone(),
+        &args.project,
+        &args.filter,
+        &args.includeAllScopes,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+        &args.serviceProjectNumber,
     )?;
     compute_vpn_tunnels_aggregated_list_execute(builder)
 }
@@ -120921,22 +120428,20 @@ pub fn compute_vpn_tunnels_aggregated_list(
 
 pub fn compute_vpn_tunnels_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    vpnTunnel: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    vpnTunnel: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels/{}",
-        project.as_str(),
-        region.as_str(),
-        vpnTunnel.as_str(),
+        project, region, vpnTunnel,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -121090,10 +120595,10 @@ pub fn compute_vpn_tunnels_delete(
 > {
     let builder = compute_vpn_tunnels_delete_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.vpnTunnel.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.vpnTunnel,
+        &args.requestId,
     )?;
     compute_vpn_tunnels_delete_execute(builder)
 }
@@ -121106,21 +120611,20 @@ pub fn compute_vpn_tunnels_delete(
 
 pub fn compute_vpn_tunnels_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    requestId: &Option<String>,
     body: &VpnTunnel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels",
-        project.as_str(),
-        region.as_str(),
+        project, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -121276,9 +120780,9 @@ pub fn compute_vpn_tunnels_insert(
 > {
     let builder = compute_vpn_tunnels_insert_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.requestId,
         &args.body,
     )?;
     compute_vpn_tunnels_insert_execute(builder)
@@ -121292,23 +120796,21 @@ pub fn compute_vpn_tunnels_insert(
 
 pub fn compute_vpn_tunnels_set_labels_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    resource: String,
-    requestId: Option<String>,
+    project: &String,
+    region: &String,
+    resource: &String,
+    requestId: &Option<String>,
     body: &RegionSetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/regions/{}/vpnTunnels/{}/setLabels",
-        project.as_str(),
-        region.as_str(),
-        resource.as_str(),
+        project, region, resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -121466,10 +120968,10 @@ pub fn compute_vpn_tunnels_set_labels(
 > {
     let builder = compute_vpn_tunnels_set_labels_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.resource.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.region,
+        &args.resource,
+        &args.requestId,
         &args.body,
     )?;
     compute_vpn_tunnels_set_labels_execute(builder)
@@ -121483,22 +120985,22 @@ pub fn compute_vpn_tunnels_set_labels(
 
 pub fn compute_wire_groups_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    crossSiteNetwork: String,
-    wireGroup: String,
-    requestId: Option<String>,
+    project: &String,
+    crossSiteNetwork: &String,
+    wireGroup: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups/{}",
-        project.as_str(),
-        crossSiteNetwork.as_str(),
-        wireGroup.as_str(),
+        project,
+        crossSiteNetwork,
+        wireGroup,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -121652,10 +121154,10 @@ pub fn compute_wire_groups_delete(
 > {
     let builder = compute_wire_groups_delete_builder(
         client,
-        args.project.clone(),
-        args.crossSiteNetwork.clone(),
-        args.wireGroup.clone(),
-        args.requestId.clone(),
+        &args.project,
+        &args.crossSiteNetwork,
+        &args.wireGroup,
+        &args.requestId,
     )?;
     compute_wire_groups_delete_execute(builder)
 }
@@ -121668,25 +121170,25 @@ pub fn compute_wire_groups_delete(
 
 pub fn compute_wire_groups_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    crossSiteNetwork: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    project: &String,
+    crossSiteNetwork: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &WireGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/global/crossSiteNetworks/{}/wireGroups",
-        project.as_str(),
-        crossSiteNetwork.as_str(),
+        project,
+        crossSiteNetwork,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -121844,10 +121346,10 @@ pub fn compute_wire_groups_insert(
 > {
     let builder = compute_wire_groups_insert_builder(
         client,
-        args.project.clone(),
-        args.crossSiteNetwork.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.project,
+        &args.crossSiteNetwork,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     compute_wire_groups_insert_execute(builder)
@@ -121861,16 +121363,14 @@ pub fn compute_wire_groups_insert(
 
 pub fn compute_zone_operations_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    operation: String,
+    project: &String,
+    zone: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations/{}",
-        project.as_str(),
-        zone.as_str(),
-        operation.as_str(),
+        project, zone, operation,
     );
 
     // Build request
@@ -122011,12 +121511,8 @@ pub fn compute_zone_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_zone_operations_delete_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.operation.clone(),
-    )?;
+    let builder =
+        compute_zone_operations_delete_builder(client, &args.project, &args.zone, &args.operation)?;
     compute_zone_operations_delete_execute(builder)
 }
 
@@ -122028,36 +121524,35 @@ pub fn compute_zone_operations_delete(
 
 pub fn compute_zone_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    zone: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -122221,13 +121716,13 @@ pub fn compute_zone_operations_list(
 > {
     let builder = compute_zone_operations_list_builder(
         client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.zone,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_zone_operations_list_execute(builder)
 }
@@ -122240,16 +121735,14 @@ pub fn compute_zone_operations_list(
 
 pub fn compute_zone_operations_wait_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
-    operation: String,
+    project: &String,
+    zone: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}/operations/{}/wait",
-        project.as_str(),
-        zone.as_str(),
-        operation.as_str(),
+        project, zone, operation,
     );
 
     // Build request
@@ -122393,12 +121886,8 @@ pub fn compute_zone_operations_wait(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_zone_operations_wait_builder(
-        client,
-        args.project.clone(),
-        args.zone.clone(),
-        args.operation.clone(),
-    )?;
+    let builder =
+        compute_zone_operations_wait_builder(client, &args.project, &args.zone, &args.operation)?;
     compute_zone_operations_wait_execute(builder)
 }
 
@@ -122410,14 +121899,13 @@ pub fn compute_zone_operations_wait(
 
 pub fn compute_zones_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    zone: String,
+    project: &String,
+    zone: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones/{}",
-        project.as_str(),
-        zone.as_str(),
+        project, zone,
     );
 
     // Build request
@@ -122559,7 +122047,7 @@ pub fn compute_zones_get(
     impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = compute_zones_get_builder(client, args.project.clone(), args.zone.clone())?;
+    let builder = compute_zones_get_builder(client, &args.project, &args.zone)?;
     compute_zones_get_execute(builder)
 }
 
@@ -122571,34 +122059,34 @@ pub fn compute_zones_get(
 
 pub fn compute_zones_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://compute.googleapis.com/compute/v1/projects/{}/zones",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -122756,12 +122244,12 @@ pub fn compute_zones_list(
 > {
     let builder = compute_zones_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     compute_zones_list_execute(builder)
 }

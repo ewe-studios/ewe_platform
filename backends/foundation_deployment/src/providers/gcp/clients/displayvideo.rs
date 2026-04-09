@@ -29,15 +29,15 @@ use serde::Serialize;
 
 pub fn displayvideo_advertisers_audit_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    readMask: Option<String>,
+    advertiserId: &String,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}:audit",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -189,11 +189,8 @@ pub fn displayvideo_advertisers_audit(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_audit_builder(
-        client,
-        args.advertiserId.clone(),
-        args.readMask.clone(),
-    )?;
+    let builder =
+        displayvideo_advertisers_audit_builder(client, &args.advertiserId, &args.readMask)?;
     displayvideo_advertisers_audit_execute(builder)
 }
 
@@ -361,7 +358,7 @@ pub fn displayvideo_advertisers_create(
 
 pub fn displayvideo_advertisers_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}",);
@@ -503,7 +500,7 @@ pub fn displayvideo_advertisers_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_delete_builder(client, args.advertiserId.clone())?;
+    let builder = displayvideo_advertisers_delete_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_delete_execute(builder)
 }
 
@@ -515,7 +512,7 @@ pub fn displayvideo_advertisers_delete(
 
 pub fn displayvideo_advertisers_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &BulkEditAdvertiserAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -678,7 +675,7 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_edit_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_edit_assigned_targeting_options_execute(builder)
@@ -692,11 +689,11 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -705,16 +702,16 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -882,11 +879,11 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_list_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_advertisers_list_assigned_targeting_options_execute(builder)
 }
@@ -899,7 +896,7 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_ad_assets_bulk_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &BulkCreateAdAssetsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1057,7 +1054,7 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
 > {
     let builder = displayvideo_advertisers_ad_assets_bulk_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_ad_assets_bulk_create_execute(builder)
@@ -1071,7 +1068,7 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
 
 pub fn displayvideo_advertisers_ad_assets_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &CreateAdAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1218,11 +1215,8 @@ pub fn displayvideo_advertisers_ad_assets_create(
     impl StreamIterator<D = Result<ApiResponse<AdAsset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_create_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_ad_assets_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_assets_create_execute(builder)
 }
 
@@ -1234,8 +1228,8 @@ pub fn displayvideo_advertisers_ad_assets_create(
 
 pub fn displayvideo_advertisers_ad_assets_get_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adAssetId: String,
+    advertiserId: &String,
+    adAssetId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1382,8 +1376,8 @@ pub fn displayvideo_advertisers_ad_assets_get(
 > {
     let builder = displayvideo_advertisers_ad_assets_get_builder(
         client,
-        args.advertiserId.clone(),
-        args.adAssetId.clone(),
+        &args.advertiserId,
+        &args.adAssetId,
     )?;
     displayvideo_advertisers_ad_assets_get_execute(builder)
 }
@@ -1396,7 +1390,7 @@ pub fn displayvideo_advertisers_ad_assets_get(
 
 pub fn displayvideo_advertisers_ad_assets_upload_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &UploadAdAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1548,11 +1542,8 @@ pub fn displayvideo_advertisers_ad_assets_upload(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_upload_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_ad_assets_upload_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_assets_upload_execute(builder)
 }
 
@@ -1564,7 +1555,7 @@ pub fn displayvideo_advertisers_ad_assets_upload(
 
 pub fn displayvideo_advertisers_ad_group_ads_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &AdGroupAd,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1713,7 +1704,7 @@ pub fn displayvideo_advertisers_ad_group_ads_create(
 > {
     let builder = displayvideo_advertisers_ad_group_ads_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_ad_group_ads_create_execute(builder)
@@ -1727,8 +1718,8 @@ pub fn displayvideo_advertisers_ad_group_ads_create(
 
 pub fn displayvideo_advertisers_ad_group_ads_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupAdId: String,
+    advertiserId: &String,
+    adGroupAdId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1875,8 +1866,8 @@ pub fn displayvideo_advertisers_ad_group_ads_delete(
 > {
     let builder = displayvideo_advertisers_ad_group_ads_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.adGroupAdId.clone(),
+        &args.advertiserId,
+        &args.adGroupAdId,
     )?;
     displayvideo_advertisers_ad_group_ads_delete_execute(builder)
 }
@@ -1889,7 +1880,7 @@ pub fn displayvideo_advertisers_ad_group_ads_delete(
 
 pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &BulkEditAdGroupAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2050,7 +2041,7 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute(builder)
@@ -2064,12 +2055,12 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupIds: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &String,
+    adGroupIds: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2078,19 +2069,19 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_b
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = adGroupIds {
+    if let Some(val) = adGroupIds.as_ref() {
         query_parts.push(format!("adGroupIds={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2258,12 +2249,12 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
-        args.adGroupIds.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.adGroupIds,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_execute(builder)
 }
@@ -2276,7 +2267,7 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_ad_groups_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &AdGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2423,11 +2414,8 @@ pub fn displayvideo_advertisers_ad_groups_create(
     impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_create_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_ad_groups_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_groups_create_execute(builder)
 }
 
@@ -2439,8 +2427,8 @@ pub fn displayvideo_advertisers_ad_groups_create(
 
 pub fn displayvideo_advertisers_ad_groups_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupId: String,
+    advertiserId: &String,
+    adGroupId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2587,8 +2575,8 @@ pub fn displayvideo_advertisers_ad_groups_delete(
 > {
     let builder = displayvideo_advertisers_ad_groups_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.adGroupId.clone(),
+        &args.advertiserId,
+        &args.adGroupId,
     )?;
     displayvideo_advertisers_ad_groups_delete_execute(builder)
 }
@@ -2601,9 +2589,9 @@ pub fn displayvideo_advertisers_ad_groups_delete(
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupId: String,
-    targetingType: String,
+    advertiserId: &String,
+    adGroupId: &String,
+    targetingType: &String,
     body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2763,7 +2751,7 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, args.advertiserId.clone(), args.adGroupId.clone(), args.targetingType.clone(), &args.body)?;
+    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType, &args.body)?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
@@ -2777,10 +2765,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupId: String,
-    targetingType: String,
-    assignedTargetingOptionId: String,
+    advertiserId: &String,
+    adGroupId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2933,7 +2921,7 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(client, args.advertiserId.clone(), args.adGroupId.clone(), args.targetingType.clone(), args.assignedTargetingOptionId.clone())?;
+    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType, &args.assignedTargetingOptionId)?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_execute(
         builder,
     )
@@ -2947,10 +2935,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupId: String,
-    youtubeAssetType: String,
-    linkedEntity_lineItemId: Option<String>,
+    advertiserId: &String,
+    adGroupId: &String,
+    youtubeAssetType: &String,
+    linkedEntity_lineItemId: &Option<String>,
     body: &YoutubeAssetAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2960,7 +2948,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = linkedEntity_lineItemId {
+    if let Some(val) = linkedEntity_lineItemId.as_ref() {
         query_parts.push(format!("linkedEntity.lineItemId={}", val));
     }
 
@@ -3120,7 +3108,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, args.advertiserId.clone(), args.adGroupId.clone(), args.youtubeAssetType.clone(), args.linkedEntity_lineItemId.clone(), &args.body)?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.linkedEntity_lineItemId, &args.body)?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_execute(
         builder,
     )
@@ -3134,11 +3122,11 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
 pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    adGroupId: String,
-    youtubeAssetType: String,
-    youtubeAssetAssociationId: String,
-    linkedEntity_lineItemId: Option<String>,
+    advertiserId: &String,
+    adGroupId: &String,
+    youtubeAssetType: &String,
+    youtubeAssetAssociationId: &String,
+    linkedEntity_lineItemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3147,7 +3135,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = linkedEntity_lineItemId {
+    if let Some(val) = linkedEntity_lineItemId.as_ref() {
         query_parts.push(format!("linkedEntity.lineItemId={}", val));
     }
 
@@ -3301,7 +3289,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(client, args.advertiserId.clone(), args.adGroupId.clone(), args.youtubeAssetType.clone(), args.youtubeAssetAssociationId.clone(), args.linkedEntity_lineItemId.clone())?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.youtubeAssetAssociationId, &args.linkedEntity_lineItemId)?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_execute(
         builder,
     )
@@ -3315,7 +3303,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
 pub fn displayvideo_advertisers_assets_upload_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &CreateAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3466,11 +3454,8 @@ pub fn displayvideo_advertisers_assets_upload(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_assets_upload_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_assets_upload_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_assets_upload_execute(builder)
 }
 
@@ -3482,7 +3467,7 @@ pub fn displayvideo_advertisers_assets_upload(
 
 pub fn displayvideo_advertisers_campaigns_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &Campaign,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3629,11 +3614,8 @@ pub fn displayvideo_advertisers_campaigns_create(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_campaigns_create_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_campaigns_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_campaigns_create_execute(builder)
 }
 
@@ -3645,8 +3627,8 @@ pub fn displayvideo_advertisers_campaigns_create(
 
 pub fn displayvideo_advertisers_campaigns_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    campaignId: String,
+    advertiserId: &String,
+    campaignId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3793,8 +3775,8 @@ pub fn displayvideo_advertisers_campaigns_delete(
 > {
     let builder = displayvideo_advertisers_campaigns_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.campaignId.clone(),
+        &args.advertiserId,
+        &args.campaignId,
     )?;
     displayvideo_advertisers_campaigns_delete_execute(builder)
 }
@@ -3807,8 +3789,8 @@ pub fn displayvideo_advertisers_campaigns_delete(
 
 pub fn displayvideo_advertisers_channels_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    partnerId: Option<String>,
+    advertiserId: &String,
+    partnerId: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3816,7 +3798,7 @@ pub fn displayvideo_advertisers_channels_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -3970,8 +3952,8 @@ pub fn displayvideo_advertisers_channels_create(
 > {
     let builder = displayvideo_advertisers_channels_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_advertisers_channels_create_execute(builder)
@@ -3985,9 +3967,9 @@ pub fn displayvideo_advertisers_channels_create(
 
 pub fn displayvideo_advertisers_channels_get_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
-    partnerId: Option<String>,
+    advertiserId: &String,
+    channelId: &String,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3995,7 +3977,7 @@ pub fn displayvideo_advertisers_channels_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -4147,9 +4129,9 @@ pub fn displayvideo_advertisers_channels_get(
 > {
     let builder = displayvideo_advertisers_channels_get_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.channelId,
+        &args.partnerId,
     )?;
     displayvideo_advertisers_channels_get_execute(builder)
 }
@@ -4162,24 +4144,24 @@ pub fn displayvideo_advertisers_channels_get(
 
 pub fn displayvideo_advertisers_channels_patch_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
-    partnerId: Option<String>,
-    updateMask: Option<String>,
+    advertiserId: &String,
+    channelId: &String,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",
-        channelId.as_str(),
+        channelId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -4337,10 +4319,10 @@ pub fn displayvideo_advertisers_channels_patch(
 > {
     let builder = displayvideo_advertisers_channels_patch_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
-        args.partnerId.clone(),
-        args.updateMask.clone(),
+        &args.advertiserId,
+        &args.channelId,
+        &args.partnerId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_advertisers_channels_patch_execute(builder)
@@ -4354,14 +4336,14 @@ pub fn displayvideo_advertisers_channels_patch(
 
 pub fn displayvideo_advertisers_channels_sites_bulk_edit_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
+    advertiserId: &String,
+    channelId: &String,
     body: &BulkEditSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:bulkEdit",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -4513,8 +4495,8 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit(
 > {
     let builder = displayvideo_advertisers_channels_sites_bulk_edit_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
+        &args.advertiserId,
+        &args.channelId,
         &args.body,
     )?;
     displayvideo_advertisers_channels_sites_bulk_edit_execute(builder)
@@ -4528,20 +4510,20 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit(
 
 pub fn displayvideo_advertisers_channels_sites_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
-    partnerId: Option<String>,
+    advertiserId: &String,
+    channelId: &String,
+    partnerId: &Option<String>,
     body: &Site,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -4697,9 +4679,9 @@ pub fn displayvideo_advertisers_channels_sites_create(
 > {
     let builder = displayvideo_advertisers_channels_sites_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.channelId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_advertisers_channels_sites_create_execute(builder)
@@ -4713,20 +4695,20 @@ pub fn displayvideo_advertisers_channels_sites_create(
 
 pub fn displayvideo_advertisers_channels_sites_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
-    urlOrAppId: String,
-    partnerId: Option<String>,
+    advertiserId: &String,
+    channelId: &String,
+    urlOrAppId: &String,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites/{}",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -4880,10 +4862,10 @@ pub fn displayvideo_advertisers_channels_sites_delete(
 > {
     let builder = displayvideo_advertisers_channels_sites_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
-        args.urlOrAppId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.channelId,
+        &args.urlOrAppId,
+        &args.partnerId,
     )?;
     displayvideo_advertisers_channels_sites_delete_execute(builder)
 }
@@ -4896,13 +4878,13 @@ pub fn displayvideo_advertisers_channels_sites_delete(
 
 pub fn displayvideo_advertisers_channels_sites_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &String,
+    channelId: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4910,19 +4892,19 @@ pub fn displayvideo_advertisers_channels_sites_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -5086,13 +5068,13 @@ pub fn displayvideo_advertisers_channels_sites_list(
 > {
     let builder = displayvideo_advertisers_channels_sites_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.channelId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
     )?;
     displayvideo_advertisers_channels_sites_list_execute(builder)
 }
@@ -5105,14 +5087,14 @@ pub fn displayvideo_advertisers_channels_sites_list(
 
 pub fn displayvideo_advertisers_channels_sites_replace_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    channelId: String,
+    advertiserId: &String,
+    channelId: &String,
     body: &ReplaceSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:replace",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -5264,8 +5246,8 @@ pub fn displayvideo_advertisers_channels_sites_replace(
 > {
     let builder = displayvideo_advertisers_channels_sites_replace_builder(
         client,
-        args.advertiserId.clone(),
-        args.channelId.clone(),
+        &args.advertiserId,
+        &args.channelId,
         &args.body,
     )?;
     displayvideo_advertisers_channels_sites_replace_execute(builder)
@@ -5279,7 +5261,7 @@ pub fn displayvideo_advertisers_channels_sites_replace(
 
 pub fn displayvideo_advertisers_creatives_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5426,11 +5408,8 @@ pub fn displayvideo_advertisers_creatives_create(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_creatives_create_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_creatives_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_creatives_create_execute(builder)
 }
 
@@ -5442,8 +5421,8 @@ pub fn displayvideo_advertisers_creatives_create(
 
 pub fn displayvideo_advertisers_creatives_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    creativeId: String,
+    advertiserId: &String,
+    creativeId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5590,8 +5569,8 @@ pub fn displayvideo_advertisers_creatives_delete(
 > {
     let builder = displayvideo_advertisers_creatives_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.creativeId.clone(),
+        &args.advertiserId,
+        &args.creativeId,
     )?;
     displayvideo_advertisers_creatives_delete_execute(builder)
 }
@@ -5604,7 +5583,7 @@ pub fn displayvideo_advertisers_creatives_delete(
 
 pub fn displayvideo_advertisers_insertion_orders_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &InsertionOrder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5758,7 +5737,7 @@ pub fn displayvideo_advertisers_insertion_orders_create(
 > {
     let builder = displayvideo_advertisers_insertion_orders_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_insertion_orders_create_execute(builder)
@@ -5772,8 +5751,8 @@ pub fn displayvideo_advertisers_insertion_orders_create(
 
 pub fn displayvideo_advertisers_insertion_orders_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    insertionOrderId: String,
+    advertiserId: &String,
+    insertionOrderId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5920,8 +5899,8 @@ pub fn displayvideo_advertisers_insertion_orders_delete(
 > {
     let builder = displayvideo_advertisers_insertion_orders_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.insertionOrderId.clone(),
+        &args.advertiserId,
+        &args.insertionOrderId,
     )?;
     displayvideo_advertisers_insertion_orders_delete_execute(builder)
 }
@@ -5934,27 +5913,27 @@ pub fn displayvideo_advertisers_insertion_orders_delete(
 
 pub fn displayvideo_advertisers_invoices_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    issueMonth: Option<String>,
-    loiSapinInvoiceType: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &String,
+    issueMonth: &Option<String>,
+    loiSapinInvoiceType: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/invoices",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = issueMonth {
+    if let Some(val) = issueMonth.as_ref() {
         query_parts.push(format!("issueMonth={}", val));
     }
-    if let Some(val) = loiSapinInvoiceType {
+    if let Some(val) = loiSapinInvoiceType.as_ref() {
         query_parts.push(format!("loiSapinInvoiceType={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6114,11 +6093,11 @@ pub fn displayvideo_advertisers_invoices_list(
 > {
     let builder = displayvideo_advertisers_invoices_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.issueMonth.clone(),
-        args.loiSapinInvoiceType.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.issueMonth,
+        &args.loiSapinInvoiceType,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_advertisers_invoices_list_execute(builder)
 }
@@ -6131,8 +6110,8 @@ pub fn displayvideo_advertisers_invoices_list(
 
 pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    invoiceMonth: Option<String>,
+    advertiserId: &String,
+    invoiceMonth: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6141,7 +6120,7 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = invoiceMonth {
+    if let Some(val) = invoiceMonth.as_ref() {
         query_parts.push(format!("invoiceMonth={}", val));
     }
 
@@ -6299,8 +6278,8 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
 > {
     let builder = displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
         client,
-        args.advertiserId.clone(),
-        args.invoiceMonth.clone(),
+        &args.advertiserId,
+        &args.invoiceMonth,
     )?;
     displayvideo_advertisers_invoices_lookup_invoice_currency_execute(builder)
 }
@@ -6313,7 +6292,7 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
 
 pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &BulkEditAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6473,7 +6452,7 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_execute(builder)
@@ -6487,12 +6466,12 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    filter: Option<String>,
-    lineItemIds: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &String,
+    filter: &Option<String>,
+    lineItemIds: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6501,19 +6480,19 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = lineItemIds {
+    if let Some(val) = lineItemIds.as_ref() {
         query_parts.push(format!("lineItemIds={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6680,12 +6659,12 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder(
         client,
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.lineItemIds.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.filter,
+        &args.lineItemIds,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_execute(builder)
 }
@@ -6698,7 +6677,7 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
 
 pub fn displayvideo_advertisers_line_items_bulk_update_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &BulkUpdateLineItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6856,7 +6835,7 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
 > {
     let builder = displayvideo_advertisers_line_items_bulk_update_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_line_items_bulk_update_execute(builder)
@@ -6870,7 +6849,7 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
 
 pub fn displayvideo_advertisers_line_items_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &LineItem,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7017,11 +6996,8 @@ pub fn displayvideo_advertisers_line_items_create(
     impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_create_builder(
-        client,
-        args.advertiserId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_line_items_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_line_items_create_execute(builder)
 }
 
@@ -7033,8 +7009,8 @@ pub fn displayvideo_advertisers_line_items_create(
 
 pub fn displayvideo_advertisers_line_items_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
+    advertiserId: &String,
+    lineItemId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -7181,8 +7157,8 @@ pub fn displayvideo_advertisers_line_items_delete(
 > {
     let builder = displayvideo_advertisers_line_items_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.lineItemId.clone(),
+        &args.advertiserId,
+        &args.lineItemId,
     )?;
     displayvideo_advertisers_line_items_delete_execute(builder)
 }
@@ -7195,8 +7171,8 @@ pub fn displayvideo_advertisers_line_items_delete(
 
 pub fn displayvideo_advertisers_line_items_duplicate_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
+    advertiserId: &String,
+    lineItemId: &String,
     body: &DuplicateLineItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7352,8 +7328,8 @@ pub fn displayvideo_advertisers_line_items_duplicate(
 > {
     let builder = displayvideo_advertisers_line_items_duplicate_builder(
         client,
-        args.advertiserId.clone(),
-        args.lineItemId.clone(),
+        &args.advertiserId,
+        &args.lineItemId,
         &args.body,
     )?;
     displayvideo_advertisers_line_items_duplicate_execute(builder)
@@ -7367,9 +7343,9 @@ pub fn displayvideo_advertisers_line_items_duplicate(
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
-    targetingType: String,
+    advertiserId: &String,
+    lineItemId: &String,
+    targetingType: &String,
     body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7529,7 +7505,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, args.advertiserId.clone(), args.lineItemId.clone(), args.targetingType.clone(), &args.body)?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.body)?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
@@ -7543,10 +7519,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
-    targetingType: String,
-    assignedTargetingOptionId: String,
+    advertiserId: &String,
+    lineItemId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7699,7 +7675,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(client, args.advertiserId.clone(), args.lineItemId.clone(), args.targetingType.clone(), args.assignedTargetingOptionId.clone())?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.assignedTargetingOptionId)?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_execute(
         builder,
     )
@@ -7713,10 +7689,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
-    youtubeAssetType: String,
-    linkedEntity_adGroupId: Option<String>,
+    advertiserId: &String,
+    lineItemId: &String,
+    youtubeAssetType: &String,
+    linkedEntity_adGroupId: &Option<String>,
     body: &YoutubeAssetAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7726,7 +7702,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = linkedEntity_adGroupId {
+    if let Some(val) = linkedEntity_adGroupId.as_ref() {
         query_parts.push(format!("linkedEntity.adGroupId={}", val));
     }
 
@@ -7886,7 +7862,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, args.advertiserId.clone(), args.lineItemId.clone(), args.youtubeAssetType.clone(), args.linkedEntity_adGroupId.clone(), &args.body)?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.linkedEntity_adGroupId, &args.body)?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_execute(builder)
 }
 
@@ -7898,11 +7874,11 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
 pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    lineItemId: String,
-    youtubeAssetType: String,
-    youtubeAssetAssociationId: String,
-    linkedEntity_adGroupId: Option<String>,
+    advertiserId: &String,
+    lineItemId: &String,
+    youtubeAssetType: &String,
+    youtubeAssetAssociationId: &String,
+    linkedEntity_adGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7911,7 +7887,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = linkedEntity_adGroupId {
+    if let Some(val) = linkedEntity_adGroupId.as_ref() {
         query_parts.push(format!("linkedEntity.adGroupId={}", val));
     }
 
@@ -8065,7 +8041,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(client, args.advertiserId.clone(), args.lineItemId.clone(), args.youtubeAssetType.clone(), args.youtubeAssetAssociationId.clone(), args.linkedEntity_adGroupId.clone())?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.youtubeAssetAssociationId, &args.linkedEntity_adGroupId)?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_execute(builder)
 }
 
@@ -8077,7 +8053,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
 pub fn displayvideo_advertisers_location_lists_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &LocationList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8231,7 +8207,7 @@ pub fn displayvideo_advertisers_location_lists_create(
 > {
     let builder = displayvideo_advertisers_location_lists_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_location_lists_create_execute(builder)
@@ -8245,8 +8221,8 @@ pub fn displayvideo_advertisers_location_lists_create(
 
 pub fn displayvideo_advertisers_location_lists_get_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    locationListId: String,
+    advertiserId: &String,
+    locationListId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -8397,8 +8373,8 @@ pub fn displayvideo_advertisers_location_lists_get(
 > {
     let builder = displayvideo_advertisers_location_lists_get_builder(
         client,
-        args.advertiserId.clone(),
-        args.locationListId.clone(),
+        &args.advertiserId,
+        &args.locationListId,
     )?;
     displayvideo_advertisers_location_lists_get_execute(builder)
 }
@@ -8411,20 +8387,20 @@ pub fn displayvideo_advertisers_location_lists_get(
 
 pub fn displayvideo_advertisers_location_lists_patch_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    locationListId: String,
-    updateMask: Option<String>,
+    advertiserId: &String,
+    locationListId: &String,
+    updateMask: &Option<String>,
     body: &LocationList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",
-        locationListId.as_str(),
+        locationListId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -8584,9 +8560,9 @@ pub fn displayvideo_advertisers_location_lists_patch(
 > {
     let builder = displayvideo_advertisers_location_lists_patch_builder(
         client,
-        args.advertiserId.clone(),
-        args.locationListId.clone(),
-        args.updateMask.clone(),
+        &args.advertiserId,
+        &args.locationListId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_advertisers_location_lists_patch_execute(builder)
@@ -8600,14 +8576,14 @@ pub fn displayvideo_advertisers_location_lists_patch(
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    locationListId: String,
+    advertiserId: &String,
+    locationListId: &String,
     body: &BulkEditAssignedLocationsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations:bulkEdit",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -8763,8 +8739,8 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_builder(
         client,
-        args.advertiserId.clone(),
-        args.locationListId.clone(),
+        &args.advertiserId,
+        &args.locationListId,
         &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_execute(builder)
@@ -8778,15 +8754,14 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    locationListId: String,
+    advertiserId: &String,
+    locationListId: &String,
     body: &AssignedLocation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations",
-        advertiserId.as_str(),
-        locationListId.as_str(),
+        advertiserId, locationListId,
     );
 
     // Build request
@@ -8938,8 +8913,8 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.locationListId.clone(),
+        &args.advertiserId,
+        &args.locationListId,
         &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_create_execute(builder)
@@ -8953,15 +8928,15 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    locationListId: String,
-    assignedLocationId: String,
+    advertiserId: &String,
+    locationListId: &String,
+    assignedLocationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations/{}",
-        advertiserId.as_str(),
-        locationListId.as_str(),
+        advertiserId,
+        locationListId,
     );
 
     // Build request
@@ -9107,9 +9082,9 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.locationListId.clone(),
-        args.assignedLocationId.clone(),
+        &args.advertiserId,
+        &args.locationListId,
+        &args.assignedLocationId,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_delete_execute(builder)
 }
@@ -9122,7 +9097,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
+    advertiserId: &String,
     body: &NegativeKeywordList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -9276,7 +9251,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_create_execute(builder)
@@ -9290,8 +9265,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -9438,8 +9413,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.negativeKeywordListId.clone(),
+        &args.advertiserId,
+        &args.negativeKeywordListId,
     )?;
     displayvideo_advertisers_negative_keyword_lists_delete_execute(builder)
 }
@@ -9452,20 +9427,20 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
-    updateMask: Option<String>,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
+    updateMask: &Option<String>,
     body: &NegativeKeywordList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
-        negativeKeywordListId.as_str(),
+        negativeKeywordListId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -9625,9 +9600,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_patch_builder(
         client,
-        args.advertiserId.clone(),
-        args.negativeKeywordListId.clone(),
-        args.updateMask.clone(),
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_patch_execute(builder)
@@ -9641,14 +9616,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
     body: &BulkEditNegativeKeywordsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:bulkEdit",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -9806,8 +9781,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
     let builder =
         displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_builder(
             client,
-            args.advertiserId.clone(),
-            args.negativeKeywordListId.clone(),
+            &args.advertiserId,
+            &args.negativeKeywordListId,
             &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_execute(builder)
@@ -9821,14 +9796,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
     body: &NegativeKeyword,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -9981,8 +9956,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.negativeKeywordListId.clone(),
+        &args.advertiserId,
+        &args.negativeKeywordListId,
         &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_execute(builder)
@@ -9996,14 +9971,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
-    keywordValue: String,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
+    keywordValue: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords/{}",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -10150,9 +10125,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_builder(
         client,
-        args.advertiserId.clone(),
-        args.negativeKeywordListId.clone(),
-        args.keywordValue.clone(),
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        &args.keywordValue,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_execute(builder)
 }
@@ -10165,12 +10140,12 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10179,16 +10154,16 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_bu
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -10355,12 +10330,12 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.negativeKeywordListId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_execute(builder)
 }
@@ -10373,14 +10348,14 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    negativeKeywordListId: String,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
     body: &ReplaceNegativeKeywordsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:replace",
-        advertiserId.as_str(),
+        advertiserId,
     );
 
     // Build request
@@ -10538,8 +10513,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
     let builder =
         displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_builder(
             client,
-            args.advertiserId.clone(),
-            args.negativeKeywordListId.clone(),
+            &args.advertiserId,
+            &args.negativeKeywordListId,
             &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_execute(builder)
@@ -10553,8 +10528,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    targetingType: String,
+    advertiserId: &String,
+    targetingType: &String,
     body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -10713,8 +10688,8 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
     let builder =
         displayvideo_advertisers_targeting_types_assigned_targeting_options_create_builder(
             client,
-            args.advertiserId.clone(),
-            args.targetingType.clone(),
+            &args.advertiserId,
+            &args.targetingType,
             &args.body,
         )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_create_execute(builder)
@@ -10728,9 +10703,9 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_builder(
     client: &SimpleHttpClient,
-    advertiserId: String,
-    targetingType: String,
-    assignedTargetingOptionId: String,
+    advertiserId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10882,9 +10857,9 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
     let builder =
         displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_builder(
             client,
-            args.advertiserId.clone(),
-            args.targetingType.clone(),
-            args.assignedTargetingOptionId.clone(),
+            &args.advertiserId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
         )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
@@ -10897,19 +10872,19 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
 
 pub fn displayvideo_combined_audiences_get_builder(
     client: &SimpleHttpClient,
-    combinedAudienceId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    combinedAudienceId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/combinedAudiences/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -11065,9 +11040,9 @@ pub fn displayvideo_combined_audiences_get(
 > {
     let builder = displayvideo_combined_audiences_get_builder(
         client,
-        args.combinedAudienceId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.combinedAudienceId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_combined_audiences_get_execute(builder)
 }
@@ -11080,34 +11055,34 @@ pub fn displayvideo_combined_audiences_get(
 
 pub fn displayvideo_combined_audiences_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/combinedAudiences",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -11273,12 +11248,12 @@ pub fn displayvideo_combined_audiences_list(
 > {
     let builder = displayvideo_combined_audiences_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
     )?;
     displayvideo_combined_audiences_list_execute(builder)
 }
@@ -11451,9 +11426,9 @@ pub fn displayvideo_custom_bidding_algorithms_create(
 
 pub fn displayvideo_custom_bidding_algorithms_get_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -11461,10 +11436,10 @@ pub fn displayvideo_custom_bidding_algorithms_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -11620,9 +11595,9 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_get_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_custom_bidding_algorithms_get_execute(builder)
 }
@@ -11635,9 +11610,9 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 
 pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -11645,10 +11620,10 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -11808,9 +11783,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 > {
     let builder = displayvideo_custom_bidding_algorithms_upload_rules_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_custom_bidding_algorithms_upload_rules_execute(builder)
 }
@@ -11823,9 +11798,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 
 pub fn displayvideo_custom_bidding_algorithms_upload_script_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -11833,10 +11808,10 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -11992,9 +11967,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 > {
     let builder = displayvideo_custom_bidding_algorithms_upload_script_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_custom_bidding_algorithms_upload_script_execute(builder)
 }
@@ -12007,9 +11982,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 
 pub fn displayvideo_custom_bidding_algorithms_rules_create_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &CustomBiddingAlgorithmRules,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -12018,10 +11993,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -12185,9 +12160,9 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create(
 > {
     let builder = displayvideo_custom_bidding_algorithms_rules_create_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_rules_create_execute(builder)
@@ -12201,10 +12176,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create(
 
 pub fn displayvideo_custom_bidding_algorithms_rules_get_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    customBiddingAlgorithmRulesId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    customBiddingAlgorithmRulesId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -12212,10 +12187,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -12377,10 +12352,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_rules_get_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.customBiddingAlgorithmRulesId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.customBiddingAlgorithmRulesId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_custom_bidding_algorithms_rules_get_execute(builder)
 }
@@ -12393,9 +12368,9 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 
 pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &CustomBiddingScript,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -12404,10 +12379,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -12567,9 +12542,9 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create(
 > {
     let builder = displayvideo_custom_bidding_algorithms_scripts_create_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_scripts_create_execute(builder)
@@ -12583,10 +12558,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create(
 
 pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: String,
-    customBiddingScriptId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    customBiddingAlgorithmId: &String,
+    customBiddingScriptId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -12594,10 +12569,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -12755,10 +12730,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_scripts_get_builder(
         client,
-        args.customBiddingAlgorithmId.clone(),
-        args.customBiddingScriptId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.customBiddingAlgorithmId,
+        &args.customBiddingScriptId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_custom_bidding_algorithms_scripts_get_execute(builder)
 }
@@ -12771,15 +12746,15 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 
 pub fn displayvideo_custom_lists_get_builder(
     client: &SimpleHttpClient,
-    customListId: String,
-    advertiserId: Option<String>,
+    customListId: &String,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customLists/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -12927,11 +12902,8 @@ pub fn displayvideo_custom_lists_get(
     impl StreamIterator<D = Result<ApiResponse<CustomList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_custom_lists_get_builder(
-        client,
-        args.customListId.clone(),
-        args.advertiserId.clone(),
-    )?;
+    let builder =
+        displayvideo_custom_lists_get_builder(client, &args.customListId, &args.advertiserId)?;
     displayvideo_custom_lists_get_execute(builder)
 }
 
@@ -12943,30 +12915,30 @@ pub fn displayvideo_custom_lists_get(
 
 pub fn displayvideo_custom_lists_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customLists",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -13126,11 +13098,11 @@ pub fn displayvideo_custom_lists_list(
 > {
     let builder = displayvideo_custom_lists_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_custom_lists_list_execute(builder)
 }
@@ -13143,7 +13115,7 @@ pub fn displayvideo_custom_lists_list(
 
 pub fn displayvideo_first_party_and_partner_audiences_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
+    advertiserId: &Option<String>,
     body: &FirstPartyAndPartnerAudience,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -13152,7 +13124,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -13312,7 +13284,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
 > {
     let builder = displayvideo_first_party_and_partner_audiences_create_builder(
         client,
-        args.advertiserId.clone(),
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_first_party_and_partner_audiences_create_execute(builder)
@@ -13326,7 +13298,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
 
 pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
     client: &SimpleHttpClient,
-    firstPartyAndPartnerAudienceId: String,
+    firstPartyAndPartnerAudienceId: &String,
     body: &EditCustomerMatchMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -13487,7 +13459,7 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
     let builder =
         displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
             client,
-            args.firstPartyAndPartnerAudienceId.clone(),
+            &args.firstPartyAndPartnerAudienceId,
             &args.body,
         )?;
     displayvideo_first_party_and_partner_audiences_edit_customer_match_members_execute(builder)
@@ -13501,9 +13473,9 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 
 pub fn displayvideo_first_party_and_partner_audiences_get_builder(
     client: &SimpleHttpClient,
-    firstPartyAndPartnerAudienceId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    firstPartyAndPartnerAudienceId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -13511,10 +13483,10 @@ pub fn displayvideo_first_party_and_partner_audiences_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -13674,9 +13646,9 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 > {
     let builder = displayvideo_first_party_and_partner_audiences_get_builder(
         client,
-        args.firstPartyAndPartnerAudienceId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.firstPartyAndPartnerAudienceId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_first_party_and_partner_audiences_get_execute(builder)
 }
@@ -13689,15 +13661,15 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 
 pub fn displayvideo_floodlight_groups_get_builder(
     client: &SimpleHttpClient,
-    floodlightGroupId: String,
-    partnerId: Option<String>,
+    floodlightGroupId: &String,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/floodlightGroups/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -13851,8 +13823,8 @@ pub fn displayvideo_floodlight_groups_get(
 > {
     let builder = displayvideo_floodlight_groups_get_builder(
         client,
-        args.floodlightGroupId.clone(),
-        args.partnerId.clone(),
+        &args.floodlightGroupId,
+        &args.partnerId,
     )?;
     displayvideo_floodlight_groups_get_execute(builder)
 }
@@ -13865,23 +13837,23 @@ pub fn displayvideo_floodlight_groups_get(
 
 pub fn displayvideo_floodlight_groups_patch_builder(
     client: &SimpleHttpClient,
-    floodlightGroupId: String,
-    partnerId: Option<String>,
-    updateMask: Option<String>,
+    floodlightGroupId: &String,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
     body: &FloodlightGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}",
-        floodlightGroupId.as_str(),
+        floodlightGroupId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -14041,9 +14013,9 @@ pub fn displayvideo_floodlight_groups_patch(
 > {
     let builder = displayvideo_floodlight_groups_patch_builder(
         client,
-        args.floodlightGroupId.clone(),
-        args.partnerId.clone(),
-        args.updateMask.clone(),
+        &args.floodlightGroupId,
+        &args.partnerId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_floodlight_groups_patch_execute(builder)
@@ -14057,9 +14029,9 @@ pub fn displayvideo_floodlight_groups_patch(
 
 pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder(
     client: &SimpleHttpClient,
-    floodlightGroupId: String,
-    floodlightActivityId: String,
-    partnerId: Option<String>,
+    floodlightGroupId: &String,
+    floodlightActivityId: &String,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14068,7 +14040,7 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -14224,9 +14196,9 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 > {
     let builder = displayvideo_floodlight_groups_floodlight_activities_get_builder(
         client,
-        args.floodlightGroupId.clone(),
-        args.floodlightActivityId.clone(),
-        args.partnerId.clone(),
+        &args.floodlightGroupId,
+        &args.floodlightActivityId,
+        &args.partnerId,
     )?;
     displayvideo_floodlight_groups_floodlight_activities_get_execute(builder)
 }
@@ -14239,11 +14211,11 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 
 pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder(
     client: &SimpleHttpClient,
-    floodlightGroupId: String,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    partnerId: Option<String>,
+    floodlightGroupId: &String,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -14251,16 +14223,16 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -14424,11 +14396,11 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 > {
     let builder = displayvideo_floodlight_groups_floodlight_activities_list_builder(
         client,
-        args.floodlightGroupId.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.partnerId.clone(),
+        &args.floodlightGroupId,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
     )?;
     displayvideo_floodlight_groups_floodlight_activities_list_execute(builder)
 }
@@ -14441,19 +14413,19 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 
 pub fn displayvideo_google_audiences_get_builder(
     client: &SimpleHttpClient,
-    googleAudienceId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    googleAudienceId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/googleAudiences/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -14609,9 +14581,9 @@ pub fn displayvideo_google_audiences_get(
 > {
     let builder = displayvideo_google_audiences_get_builder(
         client,
-        args.googleAudienceId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.googleAudienceId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_google_audiences_get_execute(builder)
 }
@@ -14624,34 +14596,34 @@ pub fn displayvideo_google_audiences_get(
 
 pub fn displayvideo_google_audiences_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/googleAudiences",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -14817,12 +14789,12 @@ pub fn displayvideo_google_audiences_list(
 > {
     let builder = displayvideo_google_audiences_list_builder(
         client,
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
     )?;
     displayvideo_google_audiences_list_execute(builder)
 }
@@ -14835,8 +14807,8 @@ pub fn displayvideo_google_audiences_list(
 
 pub fn displayvideo_guaranteed_orders_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &GuaranteedOrder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -14844,10 +14816,10 @@ pub fn displayvideo_guaranteed_orders_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -15005,8 +14977,8 @@ pub fn displayvideo_guaranteed_orders_create(
 > {
     let builder = displayvideo_guaranteed_orders_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_guaranteed_orders_create_execute(builder)
@@ -15020,7 +14992,7 @@ pub fn displayvideo_guaranteed_orders_create(
 
 pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
     client: &SimpleHttpClient,
-    guaranteedOrderId: String,
+    guaranteedOrderId: &String,
     body: &EditGuaranteedOrderReadAccessorsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -15179,7 +15151,7 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 > {
     let builder = displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
         client,
-        args.guaranteedOrderId.clone(),
+        &args.guaranteedOrderId,
         &args.body,
     )?;
     displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execute(builder)
@@ -15193,19 +15165,19 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 
 pub fn displayvideo_guaranteed_orders_get_builder(
     client: &SimpleHttpClient,
-    guaranteedOrderId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    guaranteedOrderId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -15361,9 +15333,9 @@ pub fn displayvideo_guaranteed_orders_get(
 > {
     let builder = displayvideo_guaranteed_orders_get_builder(
         client,
-        args.guaranteedOrderId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.guaranteedOrderId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_guaranteed_orders_get_execute(builder)
 }
@@ -15376,8 +15348,8 @@ pub fn displayvideo_guaranteed_orders_get(
 
 pub fn displayvideo_inventory_source_groups_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &InventorySourceGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -15385,10 +15357,10 @@ pub fn displayvideo_inventory_source_groups_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -15546,8 +15518,8 @@ pub fn displayvideo_inventory_source_groups_create(
 > {
     let builder = displayvideo_inventory_source_groups_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_inventory_source_groups_create_execute(builder)
@@ -15561,19 +15533,19 @@ pub fn displayvideo_inventory_source_groups_create(
 
 pub fn displayvideo_inventory_source_groups_delete_builder(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    inventorySourceGroupId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -15725,9 +15697,9 @@ pub fn displayvideo_inventory_source_groups_delete(
 > {
     let builder = displayvideo_inventory_source_groups_delete_builder(
         client,
-        args.inventorySourceGroupId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.inventorySourceGroupId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_inventory_source_groups_delete_execute(builder)
 }
@@ -15740,27 +15712,27 @@ pub fn displayvideo_inventory_source_groups_delete(
 
 pub fn displayvideo_inventory_source_groups_patch_builder(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
-    updateMask: Option<String>,
+    inventorySourceGroupId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
     body: &InventorySourceGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
-        inventorySourceGroupId.as_str(),
+        inventorySourceGroupId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -15922,10 +15894,10 @@ pub fn displayvideo_inventory_source_groups_patch(
 > {
     let builder = displayvideo_inventory_source_groups_patch_builder(
         client,
-        args.inventorySourceGroupId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
-        args.updateMask.clone(),
+        &args.inventorySourceGroupId,
+        &args.advertiserId,
+        &args.partnerId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_inventory_source_groups_patch_execute(builder)
@@ -15939,7 +15911,7 @@ pub fn displayvideo_inventory_source_groups_patch(
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: String,
+    inventorySourceGroupId: &String,
     body: &BulkEditAssignedInventorySourcesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -16100,7 +16072,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
     let builder =
         displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
             client,
-            args.inventorySourceGroupId.clone(),
+            &args.inventorySourceGroupId,
             &args.body,
         )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_execute(builder)
@@ -16114,9 +16086,9 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    inventorySourceGroupId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &AssignedInventorySource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -16126,10 +16098,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_bu
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -16290,9 +16262,9 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
 > {
     let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder(
         client,
-        args.inventorySourceGroupId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.inventorySourceGroupId,
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_create_execute(builder)
@@ -16306,10 +16278,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_builder(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: String,
-    assignedInventorySourceId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    inventorySourceGroupId: &String,
+    assignedInventorySourceId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -16318,10 +16290,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_bu
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -16476,10 +16448,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
 > {
     let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_delete_builder(
         client,
-        args.inventorySourceGroupId.clone(),
-        args.assignedInventorySourceId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.inventorySourceGroupId,
+        &args.assignedInventorySourceId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_delete_execute(builder)
 }
@@ -16492,8 +16464,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
 
 pub fn displayvideo_inventory_sources_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
     body: &InventorySource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -16501,10 +16473,10 @@ pub fn displayvideo_inventory_sources_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -16662,8 +16634,8 @@ pub fn displayvideo_inventory_sources_create(
 > {
     let builder = displayvideo_inventory_sources_create_builder(
         client,
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.advertiserId,
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_inventory_sources_create_execute(builder)
@@ -16677,7 +16649,7 @@ pub fn displayvideo_inventory_sources_create(
 
 pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
     client: &SimpleHttpClient,
-    inventorySourceId: String,
+    inventorySourceId: &String,
     body: &EditInventorySourceReadWriteAccessorsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -16834,7 +16806,7 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
     let builder =
         displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
             client,
-            args.inventorySourceId.clone(),
+            &args.inventorySourceId,
             &args.body,
         )?;
     displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_execute(builder)
@@ -16848,19 +16820,19 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 
 pub fn displayvideo_inventory_sources_get_builder(
     client: &SimpleHttpClient,
-    inventorySourceId: String,
-    advertiserId: Option<String>,
-    partnerId: Option<String>,
+    inventorySourceId: &String,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = partnerId {
+    if let Some(val) = partnerId.as_ref() {
         query_parts.push(format!("partnerId={}", val));
     }
 
@@ -17016,9 +16988,9 @@ pub fn displayvideo_inventory_sources_get(
 > {
     let builder = displayvideo_inventory_sources_get_builder(
         client,
-        args.inventorySourceId.clone(),
-        args.advertiserId.clone(),
-        args.partnerId.clone(),
+        &args.inventorySourceId,
+        &args.advertiserId,
+        &args.partnerId,
     )?;
     displayvideo_inventory_sources_get_execute(builder)
 }
@@ -17031,7 +17003,7 @@ pub fn displayvideo_inventory_sources_get(
 
 pub fn displayvideo_media_download_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/download/{}",);
@@ -17177,7 +17149,7 @@ pub fn displayvideo_media_download(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_media_download_builder(client, args.resourceName.clone())?;
+    let builder = displayvideo_media_download_builder(client, &args.resourceName)?;
     displayvideo_media_download_execute(builder)
 }
 
@@ -17189,7 +17161,7 @@ pub fn displayvideo_media_download(
 
 pub fn displayvideo_media_upload_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
     body: &GoogleBytestreamMedia,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -17340,7 +17312,7 @@ pub fn displayvideo_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_media_upload_builder(client, args.resourceName.clone(), &args.body)?;
+    let builder = displayvideo_media_upload_builder(client, &args.resourceName, &args.body)?;
     displayvideo_media_upload_execute(builder)
 }
 
@@ -17352,7 +17324,7 @@ pub fn displayvideo_media_upload(
 
 pub fn displayvideo_partners_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &BulkEditPartnerAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -17511,7 +17483,7 @@ pub fn displayvideo_partners_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_partners_edit_assigned_targeting_options_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     displayvideo_partners_edit_assigned_targeting_options_execute(builder)
@@ -17525,7 +17497,7 @@ pub fn displayvideo_partners_edit_assigned_targeting_options(
 
 pub fn displayvideo_partners_get_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners/{}",);
@@ -17667,7 +17639,7 @@ pub fn displayvideo_partners_get(
     impl StreamIterator<D = Result<ApiResponse<Partner>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_partners_get_builder(client, args.partnerId.clone())?;
+    let builder = displayvideo_partners_get_builder(client, &args.partnerId)?;
     displayvideo_partners_get_execute(builder)
 }
 
@@ -17679,26 +17651,26 @@ pub fn displayvideo_partners_get(
 
 pub fn displayvideo_partners_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -17856,10 +17828,10 @@ pub fn displayvideo_partners_list(
 > {
     let builder = displayvideo_partners_list_builder(
         client,
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_partners_list_execute(builder)
 }
@@ -17872,8 +17844,8 @@ pub fn displayvideo_partners_list(
 
 pub fn displayvideo_partners_channels_create_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    advertiserId: Option<String>,
+    partnerId: &String,
+    advertiserId: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -17881,7 +17853,7 @@ pub fn displayvideo_partners_channels_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -18035,8 +18007,8 @@ pub fn displayvideo_partners_channels_create(
 > {
     let builder = displayvideo_partners_channels_create_builder(
         client,
-        args.partnerId.clone(),
-        args.advertiserId.clone(),
+        &args.partnerId,
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_partners_channels_create_execute(builder)
@@ -18050,16 +18022,16 @@ pub fn displayvideo_partners_channels_create(
 
 pub fn displayvideo_partners_channels_get_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
-    advertiserId: Option<String>,
+    partnerId: &String,
+    channelId: &String,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -18211,9 +18183,9 @@ pub fn displayvideo_partners_channels_get(
 > {
     let builder = displayvideo_partners_channels_get_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
-        args.advertiserId.clone(),
+        &args.partnerId,
+        &args.channelId,
+        &args.advertiserId,
     )?;
     displayvideo_partners_channels_get_execute(builder)
 }
@@ -18226,24 +18198,24 @@ pub fn displayvideo_partners_channels_get(
 
 pub fn displayvideo_partners_channels_patch_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
-    advertiserId: Option<String>,
-    updateMask: Option<String>,
+    partnerId: &String,
+    channelId: &String,
+    advertiserId: &Option<String>,
+    updateMask: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",
-        channelId.as_str(),
+        channelId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -18401,10 +18373,10 @@ pub fn displayvideo_partners_channels_patch(
 > {
     let builder = displayvideo_partners_channels_patch_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
-        args.advertiserId.clone(),
-        args.updateMask.clone(),
+        &args.partnerId,
+        &args.channelId,
+        &args.advertiserId,
+        &args.updateMask,
         &args.body,
     )?;
     displayvideo_partners_channels_patch_execute(builder)
@@ -18418,14 +18390,14 @@ pub fn displayvideo_partners_channels_patch(
 
 pub fn displayvideo_partners_channels_sites_bulk_edit_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
+    partnerId: &String,
+    channelId: &String,
     body: &BulkEditSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:bulkEdit",
-        partnerId.as_str(),
+        partnerId,
     );
 
     // Build request
@@ -18577,8 +18549,8 @@ pub fn displayvideo_partners_channels_sites_bulk_edit(
 > {
     let builder = displayvideo_partners_channels_sites_bulk_edit_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
+        &args.partnerId,
+        &args.channelId,
         &args.body,
     )?;
     displayvideo_partners_channels_sites_bulk_edit_execute(builder)
@@ -18592,20 +18564,20 @@ pub fn displayvideo_partners_channels_sites_bulk_edit(
 
 pub fn displayvideo_partners_channels_sites_create_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
-    advertiserId: Option<String>,
+    partnerId: &String,
+    channelId: &String,
+    advertiserId: &Option<String>,
     body: &Site,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",
-        partnerId.as_str(),
+        partnerId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -18761,9 +18733,9 @@ pub fn displayvideo_partners_channels_sites_create(
 > {
     let builder = displayvideo_partners_channels_sites_create_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
-        args.advertiserId.clone(),
+        &args.partnerId,
+        &args.channelId,
+        &args.advertiserId,
         &args.body,
     )?;
     displayvideo_partners_channels_sites_create_execute(builder)
@@ -18777,20 +18749,20 @@ pub fn displayvideo_partners_channels_sites_create(
 
 pub fn displayvideo_partners_channels_sites_delete_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
-    urlOrAppId: String,
-    advertiserId: Option<String>,
+    partnerId: &String,
+    channelId: &String,
+    urlOrAppId: &String,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites/{}",
-        partnerId.as_str(),
+        partnerId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -18944,10 +18916,10 @@ pub fn displayvideo_partners_channels_sites_delete(
 > {
     let builder = displayvideo_partners_channels_sites_delete_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
-        args.urlOrAppId.clone(),
-        args.advertiserId.clone(),
+        &args.partnerId,
+        &args.channelId,
+        &args.urlOrAppId,
+        &args.advertiserId,
     )?;
     displayvideo_partners_channels_sites_delete_execute(builder)
 }
@@ -18960,13 +18932,13 @@ pub fn displayvideo_partners_channels_sites_delete(
 
 pub fn displayvideo_partners_channels_sites_list_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
-    advertiserId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    partnerId: &String,
+    channelId: &String,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -18974,19 +18946,19 @@ pub fn displayvideo_partners_channels_sites_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -19150,13 +19122,13 @@ pub fn displayvideo_partners_channels_sites_list(
 > {
     let builder = displayvideo_partners_channels_sites_list_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.partnerId,
+        &args.channelId,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_partners_channels_sites_list_execute(builder)
 }
@@ -19169,14 +19141,14 @@ pub fn displayvideo_partners_channels_sites_list(
 
 pub fn displayvideo_partners_channels_sites_replace_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    channelId: String,
+    partnerId: &String,
+    channelId: &String,
     body: &ReplaceSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:replace",
-        partnerId.as_str(),
+        partnerId,
     );
 
     // Build request
@@ -19328,8 +19300,8 @@ pub fn displayvideo_partners_channels_sites_replace(
 > {
     let builder = displayvideo_partners_channels_sites_replace_builder(
         client,
-        args.partnerId.clone(),
-        args.channelId.clone(),
+        &args.partnerId,
+        &args.channelId,
         &args.body,
     )?;
     displayvideo_partners_channels_sites_replace_execute(builder)
@@ -19343,8 +19315,8 @@ pub fn displayvideo_partners_channels_sites_replace(
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    targetingType: String,
+    partnerId: &String,
+    targetingType: &String,
     body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -19502,8 +19474,8 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_create_builder(
         client,
-        args.partnerId.clone(),
-        args.targetingType.clone(),
+        &args.partnerId,
+        &args.targetingType,
         &args.body,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_create_execute(builder)
@@ -19517,9 +19489,9 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
-    targetingType: String,
-    assignedTargetingOptionId: String,
+    partnerId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -19670,9 +19642,9 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete(
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_delete_builder(
         client,
-        args.partnerId.clone(),
-        args.targetingType.clone(),
-        args.assignedTargetingOptionId.clone(),
+        &args.partnerId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
@@ -19841,7 +19813,7 @@ pub fn displayvideo_sdfdownloadtasks_create(
 
 pub fn displayvideo_sdfdownloadtasks_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -19984,7 +19956,7 @@ pub fn displayvideo_sdfdownloadtasks_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfdownloadtasks_operations_get_builder(client, args.name.clone())?;
+    let builder = displayvideo_sdfdownloadtasks_operations_get_builder(client, &args.name)?;
     displayvideo_sdfdownloadtasks_operations_get_execute(builder)
 }
 
@@ -19996,7 +19968,7 @@ pub fn displayvideo_sdfdownloadtasks_operations_get(
 
 pub fn displayvideo_sdfuploadtasks_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -20139,7 +20111,7 @@ pub fn displayvideo_sdfuploadtasks_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfuploadtasks_operations_get_builder(client, args.name.clone())?;
+    let builder = displayvideo_sdfuploadtasks_operations_get_builder(client, &args.name)?;
     displayvideo_sdfuploadtasks_operations_get_execute(builder)
 }
 
@@ -20151,9 +20123,9 @@ pub fn displayvideo_sdfuploadtasks_operations_get(
 
 pub fn displayvideo_targeting_types_targeting_options_get_builder(
     client: &SimpleHttpClient,
-    targetingType: String,
-    targetingOptionId: String,
-    advertiserId: Option<String>,
+    targetingType: &String,
+    targetingOptionId: &String,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -20161,7 +20133,7 @@ pub fn displayvideo_targeting_types_targeting_options_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
 
@@ -20317,9 +20289,9 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 > {
     let builder = displayvideo_targeting_types_targeting_options_get_builder(
         client,
-        args.targetingType.clone(),
-        args.targetingOptionId.clone(),
-        args.advertiserId.clone(),
+        &args.targetingType,
+        &args.targetingOptionId,
+        &args.advertiserId,
     )?;
     displayvideo_targeting_types_targeting_options_get_execute(builder)
 }
@@ -20332,12 +20304,12 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 
 pub fn displayvideo_targeting_types_targeting_options_list_builder(
     client: &SimpleHttpClient,
-    targetingType: String,
-    advertiserId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    targetingType: &String,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -20345,19 +20317,19 @@ pub fn displayvideo_targeting_types_targeting_options_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = advertiserId {
+    if let Some(val) = advertiserId.as_ref() {
         query_parts.push(format!("advertiserId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -20523,12 +20495,12 @@ pub fn displayvideo_targeting_types_targeting_options_list(
 > {
     let builder = displayvideo_targeting_types_targeting_options_list_builder(
         client,
-        args.targetingType.clone(),
-        args.advertiserId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.targetingType,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     displayvideo_targeting_types_targeting_options_list_execute(builder)
 }
@@ -20541,7 +20513,7 @@ pub fn displayvideo_targeting_types_targeting_options_list(
 
 pub fn displayvideo_targeting_types_targeting_options_search_builder(
     client: &SimpleHttpClient,
-    targetingType: String,
+    targetingType: &String,
     body: &SearchTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -20700,7 +20672,7 @@ pub fn displayvideo_targeting_types_targeting_options_search(
 > {
     let builder = displayvideo_targeting_types_targeting_options_search_builder(
         client,
-        args.targetingType.clone(),
+        &args.targetingType,
         &args.body,
     )?;
     displayvideo_targeting_types_targeting_options_search_execute(builder)
@@ -20714,7 +20686,7 @@ pub fn displayvideo_targeting_types_targeting_options_search(
 
 pub fn displayvideo_users_bulk_edit_assigned_user_roles_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &BulkEditAssignedUserRolesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -20870,11 +20842,8 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_bulk_edit_assigned_user_roles_builder(
-        client,
-        args.userId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_users_bulk_edit_assigned_user_roles_builder(client, &args.userId, &args.body)?;
     displayvideo_users_bulk_edit_assigned_user_roles_execute(builder)
 }
 
@@ -21042,7 +21011,7 @@ pub fn displayvideo_users_create(
 
 pub fn displayvideo_users_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}",);
@@ -21184,6 +21153,6 @@ pub fn displayvideo_users_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_delete_builder(client, args.userId.clone())?;
+    let builder = displayvideo_users_delete_builder(client, &args.userId)?;
     displayvideo_users_delete_execute(builder)
 }

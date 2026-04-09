@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn mybusinessnotifications_accounts_get_notification_setting_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -177,9 +177,7 @@ pub fn mybusinessnotifications_accounts_get_notification_setting(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessnotifications_accounts_get_notification_setting_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        mybusinessnotifications_accounts_get_notification_setting_builder(client, &args.name)?;
     mybusinessnotifications_accounts_get_notification_setting_execute(builder)
 }

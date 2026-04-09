@@ -29,9 +29,9 @@ use serde::Serialize;
 
 pub fn cloudsupport_case_classifications_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -39,13 +39,13 @@ pub fn cloudsupport_case_classifications_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -205,9 +205,9 @@ pub fn cloudsupport_case_classifications_search(
 > {
     let builder = cloudsupport_case_classifications_search_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudsupport_case_classifications_search_execute(builder)
 }

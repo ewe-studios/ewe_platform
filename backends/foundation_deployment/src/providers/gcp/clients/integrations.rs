@@ -29,30 +29,30 @@ use serde::Serialize;
 
 pub fn integrations_callback_generate_token_builder(
     client: &SimpleHttpClient,
-    code: Option<String>,
-    gcpProjectId: Option<String>,
-    product: Option<String>,
-    redirectUri: Option<String>,
-    state: Option<String>,
+    code: &Option<String>,
+    gcpProjectId: &Option<String>,
+    product: &Option<String>,
+    redirectUri: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://integrations.googleapis.com/v1/callback:generateToken",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = code {
+    if let Some(val) = code.as_ref() {
         query_parts.push(format!("code={}", val));
     }
-    if let Some(val) = gcpProjectId {
+    if let Some(val) = gcpProjectId.as_ref() {
         query_parts.push(format!("gcpProjectId={}", val));
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = redirectUri {
+    if let Some(val) = redirectUri.as_ref() {
         query_parts.push(format!("redirectUri={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
 
@@ -220,11 +220,11 @@ pub fn integrations_callback_generate_token(
 > {
     let builder = integrations_callback_generate_token_builder(
         client,
-        args.code.clone(),
-        args.gcpProjectId.clone(),
-        args.product.clone(),
-        args.redirectUri.clone(),
-        args.state.clone(),
+        &args.code,
+        &args.gcpProjectId,
+        &args.product,
+        &args.redirectUri,
+        &args.state,
     )?;
     integrations_callback_generate_token_execute(builder)
 }
@@ -401,7 +401,7 @@ pub fn integrations_connector_platform_regions_enumerate(
 
 pub fn integrations_projects_get_clientmetadata_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -562,6 +562,6 @@ pub fn integrations_projects_get_clientmetadata(
         + 'static,
     ApiError,
 > {
-    let builder = integrations_projects_get_clientmetadata_builder(client, args.parent.clone())?;
+    let builder = integrations_projects_get_clientmetadata_builder(client, &args.parent)?;
     integrations_projects_get_clientmetadata_execute(builder)
 }

@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn manufacturers_accounts_products_delete_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    name: String,
+    parent: &String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",);
@@ -174,11 +174,7 @@ pub fn manufacturers_accounts_products_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = manufacturers_accounts_products_delete_builder(
-        client,
-        args.parent.clone(),
-        args.name.clone(),
-    )?;
+    let builder = manufacturers_accounts_products_delete_builder(client, &args.parent, &args.name)?;
     manufacturers_accounts_products_delete_execute(builder)
 }
 
@@ -190,23 +186,23 @@ pub fn manufacturers_accounts_products_delete(
 
 pub fn manufacturers_accounts_products_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    include: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    include: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://manufacturers.googleapis.com/v1/accounts/{}/products",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = include {
+    if let Some(val) = include.as_ref() {
         query_parts.push(format!("include={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -364,10 +360,10 @@ pub fn manufacturers_accounts_products_list(
 > {
     let builder = manufacturers_accounts_products_list_builder(
         client,
-        args.parent.clone(),
-        args.include.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.include,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     manufacturers_accounts_products_list_execute(builder)
 }

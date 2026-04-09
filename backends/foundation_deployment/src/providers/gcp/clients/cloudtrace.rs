@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudtrace_projects_traces_batch_write_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &BatchWriteSpansRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -177,7 +177,6 @@ pub fn cloudtrace_projects_traces_batch_write(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudtrace_projects_traces_batch_write_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudtrace_projects_traces_batch_write_builder(client, &args.name, &args.body)?;
     cloudtrace_projects_traces_batch_write_execute(builder)
 }

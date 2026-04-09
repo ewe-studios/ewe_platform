@@ -29,14 +29,14 @@ use serde::Serialize;
 
 pub fn get_v1_account_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/account",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -184,7 +184,7 @@ pub fn get_v1_account(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_account_builder(client, args.expand.clone())?;
+    let builder = get_v1_account_builder(client, &args.expand)?;
     get_v1_account_execute(builder)
 }
 
@@ -490,32 +490,32 @@ pub fn post_v1_account_sessions(
 
 pub fn get_v1_accounts_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -668,11 +668,11 @@ pub fn get_v1_accounts(
 > {
     let builder = get_v1_accounts_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_accounts_execute(builder)
 }
@@ -826,15 +826,15 @@ pub fn post_v1_accounts(
 
 pub fn get_v1_accounts_account_builder(
     client: &SimpleHttpClient,
-    account: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -984,8 +984,7 @@ pub fn get_v1_accounts_account(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_accounts_account_builder(client, args.account.clone(), args.expand.clone())?;
+    let builder = get_v1_accounts_account_builder(client, &args.account, &args.expand)?;
     get_v1_accounts_account_execute(builder)
 }
 
@@ -997,10 +996,10 @@ pub fn get_v1_accounts_account(
 
 pub fn post_v1_accounts_account_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account,);
 
     // Build request
     let builder = client
@@ -1139,7 +1138,7 @@ pub fn post_v1_accounts_account(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_builder(client, &args.account)?;
     post_v1_accounts_account_execute(builder)
 }
 
@@ -1151,10 +1150,10 @@ pub fn post_v1_accounts_account(
 
 pub fn delete_v1_accounts_account_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}", account,);
 
     // Build request
     let builder = client
@@ -1297,7 +1296,7 @@ pub fn delete_v1_accounts_account(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_accounts_account_builder(client, args.account.clone())?;
+    let builder = delete_v1_accounts_account_builder(client, &args.account)?;
     delete_v1_accounts_account_execute(builder)
 }
 
@@ -1309,12 +1308,12 @@ pub fn delete_v1_accounts_account(
 
 pub fn post_v1_accounts_account_bank_accounts_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/bank_accounts",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -1458,7 +1457,7 @@ pub fn post_v1_accounts_account_bank_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_bank_accounts_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_bank_accounts_builder(client, &args.account)?;
     post_v1_accounts_account_bank_accounts_execute(builder)
 }
 
@@ -1470,20 +1469,19 @@ pub fn post_v1_accounts_account_bank_accounts(
 
 pub fn get_v1_accounts_account_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/bank_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -1641,9 +1639,9 @@ pub fn get_v1_accounts_account_bank_accounts_id(
 > {
     let builder = get_v1_accounts_account_bank_accounts_id_builder(
         client,
-        args.account.clone(),
-        args.id.clone(),
-        args.expand.clone(),
+        &args.account,
+        &args.id,
+        &args.expand,
     )?;
     get_v1_accounts_account_bank_accounts_id_execute(builder)
 }
@@ -1655,14 +1653,13 @@ pub fn get_v1_accounts_account_bank_accounts_id(
 
 pub fn post_v1_accounts_account_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
+    account: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/bank_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
@@ -1805,11 +1802,8 @@ pub fn post_v1_accounts_account_bank_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_bank_accounts_id_builder(
-        client,
-        args.account.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_accounts_account_bank_accounts_id_builder(client, &args.account, &args.id)?;
     post_v1_accounts_account_bank_accounts_id_execute(builder)
 }
 
@@ -1821,14 +1815,13 @@ pub fn post_v1_accounts_account_bank_accounts_id(
 
 pub fn delete_v1_accounts_account_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
+    account: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/bank_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
@@ -1974,11 +1967,8 @@ pub fn delete_v1_accounts_account_bank_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_accounts_account_bank_accounts_id_builder(
-        client,
-        args.account.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        delete_v1_accounts_account_bank_accounts_id_builder(client, &args.account, &args.id)?;
     delete_v1_accounts_account_bank_accounts_id_execute(builder)
 }
 
@@ -1990,18 +1980,18 @@ pub fn delete_v1_accounts_account_bank_accounts_id(
 
 pub fn get_v1_accounts_account_capabilities_builder(
     client: &SimpleHttpClient,
-    account: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/capabilities",
-        account.as_str(),
+        account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -2148,11 +2138,8 @@ pub fn get_v1_accounts_account_capabilities(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_accounts_account_capabilities_builder(
-        client,
-        args.account.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_accounts_account_capabilities_builder(client, &args.account, &args.expand)?;
     get_v1_accounts_account_capabilities_execute(builder)
 }
 
@@ -2164,20 +2151,19 @@ pub fn get_v1_accounts_account_capabilities(
 
 pub fn get_v1_accounts_account_capabilities_capability_builder(
     client: &SimpleHttpClient,
-    account: String,
-    capability: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    capability: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/capabilities/{}",
-        account.as_str(),
-        capability.as_str(),
+        account, capability,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -2331,9 +2317,9 @@ pub fn get_v1_accounts_account_capabilities_capability(
 > {
     let builder = get_v1_accounts_account_capabilities_capability_builder(
         client,
-        args.account.clone(),
-        args.capability.clone(),
-        args.expand.clone(),
+        &args.account,
+        &args.capability,
+        &args.expand,
     )?;
     get_v1_accounts_account_capabilities_capability_execute(builder)
 }
@@ -2346,14 +2332,13 @@ pub fn get_v1_accounts_account_capabilities_capability(
 
 pub fn post_v1_accounts_account_capabilities_capability_builder(
     client: &SimpleHttpClient,
-    account: String,
-    capability: String,
+    account: &String,
+    capability: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/capabilities/{}",
-        account.as_str(),
-        capability.as_str(),
+        account, capability,
     );
 
     // Build request
@@ -2497,8 +2482,8 @@ pub fn post_v1_accounts_account_capabilities_capability(
 > {
     let builder = post_v1_accounts_account_capabilities_capability_builder(
         client,
-        args.account.clone(),
-        args.capability.clone(),
+        &args.account,
+        &args.capability,
     )?;
     post_v1_accounts_account_capabilities_capability_execute(builder)
 }
@@ -2511,36 +2496,36 @@ pub fn post_v1_accounts_account_capabilities_capability(
 
 pub fn get_v1_accounts_account_external_accounts_builder(
     client: &SimpleHttpClient,
-    account: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    object: Option<String>,
-    starting_after: Option<String>,
+    account: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    object: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/external_accounts",
-        account.as_str(),
+        account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = object {
+    if let Some(val) = object.as_ref() {
         query_parts.push(format!("object={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -2695,12 +2680,12 @@ pub fn get_v1_accounts_account_external_accounts(
 > {
     let builder = get_v1_accounts_account_external_accounts_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.object.clone(),
-        args.starting_after.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.object,
+        &args.starting_after,
     )?;
     get_v1_accounts_account_external_accounts_execute(builder)
 }
@@ -2713,12 +2698,12 @@ pub fn get_v1_accounts_account_external_accounts(
 
 pub fn post_v1_accounts_account_external_accounts_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/external_accounts",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -2862,7 +2847,7 @@ pub fn post_v1_accounts_account_external_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_external_accounts_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_external_accounts_builder(client, &args.account)?;
     post_v1_accounts_account_external_accounts_execute(builder)
 }
 
@@ -2874,20 +2859,19 @@ pub fn post_v1_accounts_account_external_accounts(
 
 pub fn get_v1_accounts_account_external_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/external_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -3045,9 +3029,9 @@ pub fn get_v1_accounts_account_external_accounts_id(
 > {
     let builder = get_v1_accounts_account_external_accounts_id_builder(
         client,
-        args.account.clone(),
-        args.id.clone(),
-        args.expand.clone(),
+        &args.account,
+        &args.id,
+        &args.expand,
     )?;
     get_v1_accounts_account_external_accounts_id_execute(builder)
 }
@@ -3059,14 +3043,13 @@ pub fn get_v1_accounts_account_external_accounts_id(
 
 pub fn post_v1_accounts_account_external_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
+    account: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/external_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
@@ -3209,11 +3192,8 @@ pub fn post_v1_accounts_account_external_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_external_accounts_id_builder(
-        client,
-        args.account.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_accounts_account_external_accounts_id_builder(client, &args.account, &args.id)?;
     post_v1_accounts_account_external_accounts_id_execute(builder)
 }
 
@@ -3225,14 +3205,13 @@ pub fn post_v1_accounts_account_external_accounts_id(
 
 pub fn delete_v1_accounts_account_external_accounts_id_builder(
     client: &SimpleHttpClient,
-    account: String,
-    id: String,
+    account: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/external_accounts/{}",
-        account.as_str(),
-        id.as_str(),
+        account, id,
     );
 
     // Build request
@@ -3378,11 +3357,8 @@ pub fn delete_v1_accounts_account_external_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_accounts_account_external_accounts_id_builder(
-        client,
-        args.account.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        delete_v1_accounts_account_external_accounts_id_builder(client, &args.account, &args.id)?;
     delete_v1_accounts_account_external_accounts_id_execute(builder)
 }
 
@@ -3394,12 +3370,12 @@ pub fn delete_v1_accounts_account_external_accounts_id(
 
 pub fn post_v1_accounts_account_login_links_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/login_links",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -3539,7 +3515,7 @@ pub fn post_v1_accounts_account_login_links(
     impl StreamIterator<D = Result<ApiResponse<LoginLink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_login_links_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_login_links_builder(client, &args.account)?;
     post_v1_accounts_account_login_links_execute(builder)
 }
 
@@ -3551,36 +3527,33 @@ pub fn post_v1_accounts_account_login_links(
 
 pub fn get_v1_accounts_account_people_builder(
     client: &SimpleHttpClient,
-    account: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    relationship: Option<String>,
-    starting_after: Option<String>,
+    account: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    relationship: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/accounts/{}/people",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}/people", account,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = relationship {
+    if let Some(val) = relationship.as_ref() {
         query_parts.push(format!("relationship={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -3735,12 +3708,12 @@ pub fn get_v1_accounts_account_people(
 > {
     let builder = get_v1_accounts_account_people_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.relationship.clone(),
-        args.starting_after.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.relationship,
+        &args.starting_after,
     )?;
     get_v1_accounts_account_people_execute(builder)
 }
@@ -3753,13 +3726,10 @@ pub fn get_v1_accounts_account_people(
 
 pub fn post_v1_accounts_account_people_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/accounts/{}/people",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}/people", account,);
 
     // Build request
     let builder = client
@@ -3898,7 +3868,7 @@ pub fn post_v1_accounts_account_people(
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_people_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_people_builder(client, &args.account)?;
     post_v1_accounts_account_people_execute(builder)
 }
 
@@ -3910,20 +3880,19 @@ pub fn post_v1_accounts_account_people(
 
 pub fn get_v1_accounts_account_people_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    person: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/people/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -4077,9 +4046,9 @@ pub fn get_v1_accounts_account_people_person(
 > {
     let builder = get_v1_accounts_account_people_person_builder(
         client,
-        args.account.clone(),
-        args.person.clone(),
-        args.expand.clone(),
+        &args.account,
+        &args.person,
+        &args.expand,
     )?;
     get_v1_accounts_account_people_person_execute(builder)
 }
@@ -4092,14 +4061,13 @@ pub fn get_v1_accounts_account_people_person(
 
 pub fn post_v1_accounts_account_people_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
+    account: &String,
+    person: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/people/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
@@ -4241,11 +4209,8 @@ pub fn post_v1_accounts_account_people_person(
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_people_person_builder(
-        client,
-        args.account.clone(),
-        args.person.clone(),
-    )?;
+    let builder =
+        post_v1_accounts_account_people_person_builder(client, &args.account, &args.person)?;
     post_v1_accounts_account_people_person_execute(builder)
 }
 
@@ -4257,14 +4222,13 @@ pub fn post_v1_accounts_account_people_person(
 
 pub fn delete_v1_accounts_account_people_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
+    account: &String,
+    person: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/people/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
@@ -4410,11 +4374,8 @@ pub fn delete_v1_accounts_account_people_person(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_accounts_account_people_person_builder(
-        client,
-        args.account.clone(),
-        args.person.clone(),
-    )?;
+    let builder =
+        delete_v1_accounts_account_people_person_builder(client, &args.account, &args.person)?;
     delete_v1_accounts_account_people_person_execute(builder)
 }
 
@@ -4426,36 +4387,33 @@ pub fn delete_v1_accounts_account_people_person(
 
 pub fn get_v1_accounts_account_persons_builder(
     client: &SimpleHttpClient,
-    account: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    relationship: Option<String>,
-    starting_after: Option<String>,
+    account: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    relationship: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/accounts/{}/persons",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}/persons", account,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = relationship {
+    if let Some(val) = relationship.as_ref() {
         query_parts.push(format!("relationship={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -4610,12 +4568,12 @@ pub fn get_v1_accounts_account_persons(
 > {
     let builder = get_v1_accounts_account_persons_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.relationship.clone(),
-        args.starting_after.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.relationship,
+        &args.starting_after,
     )?;
     get_v1_accounts_account_persons_execute(builder)
 }
@@ -4628,13 +4586,10 @@ pub fn get_v1_accounts_account_persons(
 
 pub fn post_v1_accounts_account_persons_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/accounts/{}/persons",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}/persons", account,);
 
     // Build request
     let builder = client
@@ -4773,7 +4728,7 @@ pub fn post_v1_accounts_account_persons(
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_persons_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_persons_builder(client, &args.account)?;
     post_v1_accounts_account_persons_execute(builder)
 }
 
@@ -4785,20 +4740,19 @@ pub fn post_v1_accounts_account_persons(
 
 pub fn get_v1_accounts_account_persons_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    person: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/persons/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -4952,9 +4906,9 @@ pub fn get_v1_accounts_account_persons_person(
 > {
     let builder = get_v1_accounts_account_persons_person_builder(
         client,
-        args.account.clone(),
-        args.person.clone(),
-        args.expand.clone(),
+        &args.account,
+        &args.person,
+        &args.expand,
     )?;
     get_v1_accounts_account_persons_person_execute(builder)
 }
@@ -4967,14 +4921,13 @@ pub fn get_v1_accounts_account_persons_person(
 
 pub fn post_v1_accounts_account_persons_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
+    account: &String,
+    person: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/persons/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
@@ -5116,11 +5069,8 @@ pub fn post_v1_accounts_account_persons_person(
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_persons_person_builder(
-        client,
-        args.account.clone(),
-        args.person.clone(),
-    )?;
+    let builder =
+        post_v1_accounts_account_persons_person_builder(client, &args.account, &args.person)?;
     post_v1_accounts_account_persons_person_execute(builder)
 }
 
@@ -5132,14 +5082,13 @@ pub fn post_v1_accounts_account_persons_person(
 
 pub fn delete_v1_accounts_account_persons_person_builder(
     client: &SimpleHttpClient,
-    account: String,
-    person: String,
+    account: &String,
+    person: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/accounts/{}/persons/{}",
-        account.as_str(),
-        person.as_str(),
+        account, person,
     );
 
     // Build request
@@ -5285,11 +5234,8 @@ pub fn delete_v1_accounts_account_persons_person(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_accounts_account_persons_person_builder(
-        client,
-        args.account.clone(),
-        args.person.clone(),
-    )?;
+    let builder =
+        delete_v1_accounts_account_persons_person_builder(client, &args.account, &args.person)?;
     delete_v1_accounts_account_persons_person_execute(builder)
 }
 
@@ -5301,13 +5247,10 @@ pub fn delete_v1_accounts_account_persons_person(
 
 pub fn post_v1_accounts_account_reject_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/accounts/{}/reject",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/accounts/{}/reject", account,);
 
     // Build request
     let builder = client
@@ -5446,7 +5389,7 @@ pub fn post_v1_accounts_account_reject(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_accounts_account_reject_builder(client, args.account.clone())?;
+    let builder = post_v1_accounts_account_reject_builder(client, &args.account)?;
     post_v1_accounts_account_reject_execute(builder)
 }
 
@@ -5457,32 +5400,32 @@ pub fn post_v1_accounts_account_reject(
 
 pub fn get_v1_apple_pay_domains_builder(
     client: &SimpleHttpClient,
-    domain_name: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    domain_name: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/apple_pay/domains",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = domain_name {
+    if let Some(val) = domain_name.as_ref() {
         query_parts.push(format!("domain_name={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -5632,11 +5575,11 @@ pub fn get_v1_apple_pay_domains(
 > {
     let builder = get_v1_apple_pay_domains_builder(
         client,
-        args.domain_name.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.domain_name,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_apple_pay_domains_execute(builder)
 }
@@ -5793,18 +5736,15 @@ pub fn post_v1_apple_pay_domains(
 
 pub fn get_v1_apple_pay_domains_domain_builder(
     client: &SimpleHttpClient,
-    domain: String,
-    expand: Option<Vec<String>>,
+    domain: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/apple_pay/domains/{}",
-        domain.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/apple_pay/domains/{}", domain,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -5955,8 +5895,7 @@ pub fn get_v1_apple_pay_domains_domain(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_apple_pay_domains_domain_builder(client, args.domain.clone(), args.expand.clone())?;
+    let builder = get_v1_apple_pay_domains_domain_builder(client, &args.domain, &args.expand)?;
     get_v1_apple_pay_domains_domain_execute(builder)
 }
 
@@ -5967,13 +5906,10 @@ pub fn get_v1_apple_pay_domains_domain(
 
 pub fn delete_v1_apple_pay_domains_domain_builder(
     client: &SimpleHttpClient,
-    domain: String,
+    domain: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/apple_pay/domains/{}",
-        domain.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/apple_pay/domains/{}", domain,);
 
     // Build request
     let builder = client
@@ -6113,7 +6049,7 @@ pub fn delete_v1_apple_pay_domains_domain(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_apple_pay_domains_domain_builder(client, args.domain.clone())?;
+    let builder = delete_v1_apple_pay_domains_domain_builder(client, &args.domain)?;
     delete_v1_apple_pay_domains_domain_execute(builder)
 }
 
@@ -6125,36 +6061,36 @@ pub fn delete_v1_apple_pay_domains_domain(
 
 pub fn get_v1_application_fees_builder(
     client: &SimpleHttpClient,
-    charge: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/application_fees",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = charge {
+    if let Some(val) = charge.as_ref() {
         query_parts.push(format!("charge={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -6309,12 +6245,12 @@ pub fn get_v1_application_fees(
 > {
     let builder = get_v1_application_fees_builder(
         client,
-        args.charge.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.charge,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_application_fees_execute(builder)
 }
@@ -6327,20 +6263,19 @@ pub fn get_v1_application_fees(
 
 pub fn get_v1_application_fees_fee_refunds_id_builder(
     client: &SimpleHttpClient,
-    fee: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    fee: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{}/refunds/{}",
-        fee.as_str(),
-        id.as_str(),
+        fee, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -6492,12 +6427,8 @@ pub fn get_v1_application_fees_fee_refunds_id(
     impl StreamIterator<D = Result<ApiResponse<FeeRefund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_application_fees_fee_refunds_id_builder(
-        client,
-        args.fee.clone(),
-        args.id.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_application_fees_fee_refunds_id_builder(client, &args.fee, &args.id, &args.expand)?;
     get_v1_application_fees_fee_refunds_id_execute(builder)
 }
 
@@ -6509,14 +6440,13 @@ pub fn get_v1_application_fees_fee_refunds_id(
 
 pub fn post_v1_application_fees_fee_refunds_id_builder(
     client: &SimpleHttpClient,
-    fee: String,
-    id: String,
+    fee: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/application_fees/{}/refunds/{}",
-        fee.as_str(),
-        id.as_str(),
+        fee, id,
     );
 
     // Build request
@@ -6658,8 +6588,7 @@ pub fn post_v1_application_fees_fee_refunds_id(
     impl StreamIterator<D = Result<ApiResponse<FeeRefund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_application_fees_fee_refunds_id_builder(client, args.fee.clone(), args.id.clone())?;
+    let builder = post_v1_application_fees_fee_refunds_id_builder(client, &args.fee, &args.id)?;
     post_v1_application_fees_fee_refunds_id_execute(builder)
 }
 
@@ -6671,18 +6600,15 @@ pub fn post_v1_application_fees_fee_refunds_id(
 
 pub fn get_v1_application_fees_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/application_fees/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/application_fees/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -6836,7 +6762,7 @@ pub fn get_v1_application_fees_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_application_fees_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_application_fees_id_builder(client, &args.id, &args.expand)?;
     get_v1_application_fees_id_execute(builder)
 }
 
@@ -6847,13 +6773,10 @@ pub fn get_v1_application_fees_id(
 
 pub fn post_v1_application_fees_id_refund_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/application_fees/{}/refund",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/application_fees/{}/refund", id,);
 
     // Build request
     let builder = client
@@ -6993,7 +6916,7 @@ pub fn post_v1_application_fees_id_refund(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_application_fees_id_refund_builder(client, args.id.clone())?;
+    let builder = post_v1_application_fees_id_refund_builder(client, &args.id)?;
     post_v1_application_fees_id_refund_execute(builder)
 }
 
@@ -7005,32 +6928,29 @@ pub fn post_v1_application_fees_id_refund(
 
 pub fn get_v1_application_fees_id_refunds_builder(
     client: &SimpleHttpClient,
-    id: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    id: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/application_fees/{}/refunds",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/application_fees/{}/refunds", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -7183,11 +7103,11 @@ pub fn get_v1_application_fees_id_refunds(
 > {
     let builder = get_v1_application_fees_id_refunds_builder(
         client,
-        args.id.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.id,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_application_fees_id_refunds_execute(builder)
 }
@@ -7200,13 +7120,10 @@ pub fn get_v1_application_fees_id_refunds(
 
 pub fn post_v1_application_fees_id_refunds_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/application_fees/{}/refunds",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/application_fees/{}/refunds", id,);
 
     // Build request
     let builder = client
@@ -7345,7 +7262,7 @@ pub fn post_v1_application_fees_id_refunds(
     impl StreamIterator<D = Result<ApiResponse<FeeRefund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_application_fees_id_refunds_builder(client, args.id.clone())?;
+    let builder = post_v1_application_fees_id_refunds_builder(client, &args.id)?;
     post_v1_application_fees_id_refunds_execute(builder)
 }
 
@@ -7357,32 +7274,32 @@ pub fn post_v1_application_fees_id_refunds(
 
 pub fn get_v1_apps_secrets_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    scope: Option<String>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    scope: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/apps/secrets",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = scope {
+    if let Some(val) = scope.as_ref() {
         query_parts.push(format!("scope={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -7535,11 +7452,11 @@ pub fn get_v1_apps_secrets(
 > {
     let builder = get_v1_apps_secrets_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.scope.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.scope,
+        &args.starting_after,
     )?;
     get_v1_apps_secrets_execute(builder)
 }
@@ -7842,24 +7759,24 @@ pub fn post_v1_apps_secrets_delete(
 
 pub fn get_v1_apps_secrets_find_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    name: Option<String>,
-    scope: Option<String>,
+    expand: &Option<Vec<String>>,
+    name: &Option<String>,
+    scope: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/apps/secrets/find",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = scope {
+    if let Some(val) = scope.as_ref() {
         query_parts.push(format!("scope={}", val));
     }
 
@@ -8009,12 +7926,7 @@ pub fn get_v1_apps_secrets_find(
     impl StreamIterator<D = Result<ApiResponse<AppsSecret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_apps_secrets_find_builder(
-        client,
-        args.expand.clone(),
-        args.name.clone(),
-        args.scope.clone(),
-    )?;
+    let builder = get_v1_apps_secrets_find_builder(client, &args.expand, &args.name, &args.scope)?;
     get_v1_apps_secrets_find_execute(builder)
 }
 
@@ -8026,14 +7938,14 @@ pub fn get_v1_apps_secrets_find(
 
 pub fn get_v1_balance_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/balance",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -8181,7 +8093,7 @@ pub fn get_v1_balance(
     impl StreamIterator<D = Result<ApiResponse<Balance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_balance_builder(client, args.expand.clone())?;
+    let builder = get_v1_balance_builder(client, &args.expand)?;
     get_v1_balance_execute(builder)
 }
 
@@ -8193,48 +8105,48 @@ pub fn get_v1_balance(
 
 pub fn get_v1_balance_history_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    currency: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payout: Option<String>,
-    source: Option<String>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payout: &Option<String>,
+    source: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/balance/history",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = currency {
+    if let Some(val) = currency.as_ref() {
         query_parts.push(format!("currency={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payout {
+    if let Some(val) = payout.as_ref() {
         query_parts.push(format!("payout={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -8395,15 +8307,15 @@ pub fn get_v1_balance_history(
 > {
     let builder = get_v1_balance_history_builder(
         client,
-        args.created.clone(),
-        args.currency.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payout.clone(),
-        args.source.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.created,
+        &args.currency,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payout,
+        &args.source,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_balance_history_execute(builder)
 }
@@ -8416,15 +8328,15 @@ pub fn get_v1_balance_history(
 
 pub fn get_v1_balance_history_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/balance/history/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/balance/history/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -8578,7 +8490,7 @@ pub fn get_v1_balance_history_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_balance_history_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_balance_history_id_builder(client, &args.id, &args.expand)?;
     get_v1_balance_history_id_execute(builder)
 }
 
@@ -8590,14 +8502,14 @@ pub fn get_v1_balance_history_id(
 
 pub fn get_v1_balance_settings_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/balance_settings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -8749,7 +8661,7 @@ pub fn get_v1_balance_settings(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_balance_settings_builder(client, args.expand.clone())?;
+    let builder = get_v1_balance_settings_builder(client, &args.expand)?;
     get_v1_balance_settings_execute(builder)
 }
 
@@ -8910,48 +8822,48 @@ pub fn post_v1_balance_settings(
 
 pub fn get_v1_balance_transactions_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    currency: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payout: Option<String>,
-    source: Option<String>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payout: &Option<String>,
+    source: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/balance_transactions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = currency {
+    if let Some(val) = currency.as_ref() {
         query_parts.push(format!("currency={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payout {
+    if let Some(val) = payout.as_ref() {
         query_parts.push(format!("payout={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -9112,15 +9024,15 @@ pub fn get_v1_balance_transactions(
 > {
     let builder = get_v1_balance_transactions_builder(
         client,
-        args.created.clone(),
-        args.currency.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payout.clone(),
-        args.source.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.created,
+        &args.currency,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payout,
+        &args.source,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_balance_transactions_execute(builder)
 }
@@ -9133,18 +9045,15 @@ pub fn get_v1_balance_transactions(
 
 pub fn get_v1_balance_transactions_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/balance_transactions/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/balance_transactions/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -9298,8 +9207,7 @@ pub fn get_v1_balance_transactions_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_balance_transactions_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_balance_transactions_id_builder(client, &args.id, &args.expand)?;
     get_v1_balance_transactions_id_execute(builder)
 }
 
@@ -9311,36 +9219,36 @@ pub fn get_v1_balance_transactions_id(
 
 pub fn get_v1_billing_alerts_builder(
     client: &SimpleHttpClient,
-    alert_type: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    meter: Option<String>,
-    starting_after: Option<String>,
+    alert_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    meter: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = alert_type {
+    if let Some(val) = alert_type.as_ref() {
         query_parts.push(format!("alert_type={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = meter {
+    if let Some(val) = meter.as_ref() {
         query_parts.push(format!("meter={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -9495,12 +9403,12 @@ pub fn get_v1_billing_alerts(
 > {
     let builder = get_v1_billing_alerts_builder(
         client,
-        args.alert_type.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.meter.clone(),
-        args.starting_after.clone(),
+        &args.alert_type,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.meter,
+        &args.starting_after,
     )?;
     get_v1_billing_alerts_execute(builder)
 }
@@ -9662,15 +9570,15 @@ pub fn post_v1_billing_alerts(
 
 pub fn get_v1_billing_alerts_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/billing/alerts/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/alerts/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -9824,7 +9732,7 @@ pub fn get_v1_billing_alerts_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_billing_alerts_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_billing_alerts_id_builder(client, &args.id, &args.expand)?;
     get_v1_billing_alerts_id_execute(builder)
 }
 
@@ -9836,13 +9744,10 @@ pub fn get_v1_billing_alerts_id(
 
 pub fn post_v1_billing_alerts_id_activate_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing/alerts/{}/activate",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/alerts/{}/activate", id,);
 
     // Build request
     let builder = client
@@ -9985,7 +9890,7 @@ pub fn post_v1_billing_alerts_id_activate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_alerts_id_activate_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_alerts_id_activate_builder(client, &args.id)?;
     post_v1_billing_alerts_id_activate_execute(builder)
 }
 
@@ -9997,13 +9902,10 @@ pub fn post_v1_billing_alerts_id_activate(
 
 pub fn post_v1_billing_alerts_id_archive_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing/alerts/{}/archive",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/alerts/{}/archive", id,);
 
     // Build request
     let builder = client
@@ -10146,7 +10048,7 @@ pub fn post_v1_billing_alerts_id_archive(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_alerts_id_archive_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_alerts_id_archive_builder(client, &args.id)?;
     post_v1_billing_alerts_id_archive_execute(builder)
 }
 
@@ -10158,12 +10060,12 @@ pub fn post_v1_billing_alerts_id_archive(
 
 pub fn post_v1_billing_alerts_id_deactivate_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/alerts/{}/deactivate",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -10307,7 +10209,7 @@ pub fn post_v1_billing_alerts_id_deactivate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_alerts_id_deactivate_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_alerts_id_deactivate_builder(client, &args.id)?;
     post_v1_billing_alerts_id_deactivate_execute(builder)
 }
 
@@ -10319,28 +10221,28 @@ pub fn post_v1_billing_alerts_id_deactivate(
 
 pub fn get_v1_billing_credit_balance_summary_builder(
     client: &SimpleHttpClient,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    expand: Option<Vec<String>>,
-    filter: Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    expand: &Option<Vec<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing/credit_balance_summary",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
 
@@ -10502,10 +10404,10 @@ pub fn get_v1_billing_credit_balance_summary(
 > {
     let builder = get_v1_billing_credit_balance_summary_builder(
         client,
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.expand.clone(),
-        args.filter.clone(),
+        &args.customer,
+        &args.customer_account,
+        &args.expand,
+        &args.filter,
     )?;
     get_v1_billing_credit_balance_summary_execute(builder)
 }
@@ -10518,40 +10420,40 @@ pub fn get_v1_billing_credit_balance_summary(
 
 pub fn get_v1_billing_credit_balance_transactions_builder(
     client: &SimpleHttpClient,
-    credit_grant: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    credit_grant: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing/credit_balance_transactions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = credit_grant {
+    if let Some(val) = credit_grant.as_ref() {
         query_parts.push(format!("credit_grant={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -10708,13 +10610,13 @@ pub fn get_v1_billing_credit_balance_transactions(
 > {
     let builder = get_v1_billing_credit_balance_transactions_builder(
         client,
-        args.credit_grant.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.credit_grant,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_billing_credit_balance_transactions_execute(builder)
 }
@@ -10727,18 +10629,18 @@ pub fn get_v1_billing_credit_balance_transactions(
 
 pub fn get_v1_billing_credit_balance_transactions_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/credit_balance_transactions/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -10896,11 +10798,8 @@ pub fn get_v1_billing_credit_balance_transactions_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_billing_credit_balance_transactions_id_builder(
-        client,
-        args.id.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_billing_credit_balance_transactions_id_builder(client, &args.id, &args.expand)?;
     get_v1_billing_credit_balance_transactions_id_execute(builder)
 }
 
@@ -10912,36 +10811,36 @@ pub fn get_v1_billing_credit_balance_transactions_id(
 
 pub fn get_v1_billing_credit_grants_builder(
     client: &SimpleHttpClient,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing/credit_grants",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -11096,12 +10995,12 @@ pub fn get_v1_billing_credit_grants(
 > {
     let builder = get_v1_billing_credit_grants_builder(
         client,
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_billing_credit_grants_execute(builder)
 }
@@ -11263,18 +11162,15 @@ pub fn post_v1_billing_credit_grants(
 
 pub fn get_v1_billing_credit_grants_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing/credit_grants/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/credit_grants/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -11428,8 +11324,7 @@ pub fn get_v1_billing_credit_grants_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_billing_credit_grants_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_billing_credit_grants_id_builder(client, &args.id, &args.expand)?;
     get_v1_billing_credit_grants_id_execute(builder)
 }
 
@@ -11441,13 +11336,10 @@ pub fn get_v1_billing_credit_grants_id(
 
 pub fn post_v1_billing_credit_grants_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing/credit_grants/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/credit_grants/{}", id,);
 
     // Build request
     let builder = client
@@ -11590,7 +11482,7 @@ pub fn post_v1_billing_credit_grants_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_credit_grants_id_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_credit_grants_id_builder(client, &args.id)?;
     post_v1_billing_credit_grants_id_execute(builder)
 }
 
@@ -11602,12 +11494,12 @@ pub fn post_v1_billing_credit_grants_id(
 
 pub fn post_v1_billing_credit_grants_id_expire_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/credit_grants/{}/expire",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -11751,7 +11643,7 @@ pub fn post_v1_billing_credit_grants_id_expire(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_credit_grants_id_expire_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_credit_grants_id_expire_builder(client, &args.id)?;
     post_v1_billing_credit_grants_id_expire_execute(builder)
 }
 
@@ -11763,12 +11655,12 @@ pub fn post_v1_billing_credit_grants_id_expire(
 
 pub fn post_v1_billing_credit_grants_id_void_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/credit_grants/{}/void",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -11912,7 +11804,7 @@ pub fn post_v1_billing_credit_grants_id_void(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_credit_grants_id_void_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_credit_grants_id_void_builder(client, &args.id)?;
     post_v1_billing_credit_grants_id_void_execute(builder)
 }
 
@@ -12226,32 +12118,32 @@ pub fn post_v1_billing_meter_events(
 
 pub fn get_v1_billing_meters_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing/meters",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -12404,11 +12296,11 @@ pub fn get_v1_billing_meters(
 > {
     let builder = get_v1_billing_meters_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_billing_meters_execute(builder)
 }
@@ -12570,15 +12462,15 @@ pub fn post_v1_billing_meters(
 
 pub fn get_v1_billing_meters_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/billing/meters/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/meters/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -12732,7 +12624,7 @@ pub fn get_v1_billing_meters_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_billing_meters_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_billing_meters_id_builder(client, &args.id, &args.expand)?;
     get_v1_billing_meters_id_execute(builder)
 }
 
@@ -12744,10 +12636,10 @@ pub fn get_v1_billing_meters_id(
 
 pub fn post_v1_billing_meters_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/billing/meters/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/billing/meters/{}", id,);
 
     // Build request
     let builder = client
@@ -12890,7 +12782,7 @@ pub fn post_v1_billing_meters_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_meters_id_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_meters_id_builder(client, &args.id)?;
     post_v1_billing_meters_id_execute(builder)
 }
 
@@ -12902,12 +12794,12 @@ pub fn post_v1_billing_meters_id(
 
 pub fn post_v1_billing_meters_id_deactivate_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/meters/{}/deactivate",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -13051,7 +12943,7 @@ pub fn post_v1_billing_meters_id_deactivate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_meters_id_deactivate_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_meters_id_deactivate_builder(client, &args.id)?;
     post_v1_billing_meters_id_deactivate_execute(builder)
 }
 
@@ -13063,48 +12955,48 @@ pub fn post_v1_billing_meters_id_deactivate(
 
 pub fn get_v1_billing_meters_id_event_summaries_builder(
     client: &SimpleHttpClient,
-    id: String,
-    customer: Option<String>,
-    end_time: Option<i32>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    start_time: Option<i32>,
-    starting_after: Option<String>,
-    value_grouping_window: Option<String>,
+    id: &String,
+    customer: &Option<String>,
+    end_time: &Option<i32>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    start_time: &Option<i32>,
+    starting_after: &Option<String>,
+    value_grouping_window: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/meters/{}/event_summaries",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = end_time {
+    if let Some(val) = end_time.as_ref() {
         query_parts.push(format!("end_time={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = start_time {
+    if let Some(val) = start_time.as_ref() {
         query_parts.push(format!("start_time={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = value_grouping_window {
+    if let Some(val) = value_grouping_window.as_ref() {
         query_parts.push(format!("value_grouping_window={}", val));
     }
 
@@ -13265,15 +13157,15 @@ pub fn get_v1_billing_meters_id_event_summaries(
 > {
     let builder = get_v1_billing_meters_id_event_summaries_builder(
         client,
-        args.id.clone(),
-        args.customer.clone(),
-        args.end_time.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.start_time.clone(),
-        args.starting_after.clone(),
-        args.value_grouping_window.clone(),
+        &args.id,
+        &args.customer,
+        &args.end_time,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.start_time,
+        &args.starting_after,
+        &args.value_grouping_window,
     )?;
     get_v1_billing_meters_id_event_summaries_execute(builder)
 }
@@ -13286,12 +13178,12 @@ pub fn get_v1_billing_meters_id_event_summaries(
 
 pub fn post_v1_billing_meters_id_reactivate_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/meters/{}/reactivate",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -13435,7 +13327,7 @@ pub fn post_v1_billing_meters_id_reactivate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_meters_id_reactivate_builder(client, args.id.clone())?;
+    let builder = post_v1_billing_meters_id_reactivate_builder(client, &args.id)?;
     post_v1_billing_meters_id_reactivate_execute(builder)
 }
 
@@ -13447,36 +13339,36 @@ pub fn post_v1_billing_meters_id_reactivate(
 
 pub fn get_v1_billing_portal_configurations_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    is_default: Option<bool>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    is_default: &Option<bool>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/billing_portal/configurations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = is_default {
+    if let Some(val) = is_default.as_ref() {
         query_parts.push(format!("is_default={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -13631,12 +13523,12 @@ pub fn get_v1_billing_portal_configurations(
 > {
     let builder = get_v1_billing_portal_configurations_builder(
         client,
-        args.active.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.is_default.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.ending_before,
+        &args.expand,
+        &args.is_default,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_billing_portal_configurations_execute(builder)
 }
@@ -13802,18 +13694,18 @@ pub fn post_v1_billing_portal_configurations(
 
 pub fn get_v1_billing_portal_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
-    expand: Option<Vec<String>>,
+    configuration: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing_portal/configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -13973,8 +13865,8 @@ pub fn get_v1_billing_portal_configurations_configuration(
 > {
     let builder = get_v1_billing_portal_configurations_configuration_builder(
         client,
-        args.configuration.clone(),
-        args.expand.clone(),
+        &args.configuration,
+        &args.expand,
     )?;
     get_v1_billing_portal_configurations_configuration_execute(builder)
 }
@@ -13987,12 +13879,12 @@ pub fn get_v1_billing_portal_configurations_configuration(
 
 pub fn post_v1_billing_portal_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
+    configuration: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing_portal/configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
@@ -14140,10 +14032,8 @@ pub fn post_v1_billing_portal_configurations_configuration(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_billing_portal_configurations_configuration_builder(
-        client,
-        args.configuration.clone(),
-    )?;
+    let builder =
+        post_v1_billing_portal_configurations_configuration_builder(client, &args.configuration)?;
     post_v1_billing_portal_configurations_configuration_execute(builder)
 }
 
@@ -14304,44 +14194,44 @@ pub fn post_v1_billing_portal_sessions(
 
 pub fn get_v1_charges_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_intent: Option<String>,
-    starting_after: Option<String>,
-    transfer_group: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
+    transfer_group: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/charges",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = transfer_group {
+    if let Some(val) = transfer_group.as_ref() {
         query_parts.push(format!("transfer_group={}", val));
     }
 
@@ -14500,14 +14390,14 @@ pub fn get_v1_charges(
 > {
     let builder = get_v1_charges_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_intent.clone(),
-        args.starting_after.clone(),
-        args.transfer_group.clone(),
+        &args.created,
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_intent,
+        &args.starting_after,
+        &args.transfer_group,
     )?;
     get_v1_charges_execute(builder)
 }
@@ -14661,28 +14551,28 @@ pub fn post_v1_charges(
 
 pub fn get_v1_charges_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/charges/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -14831,13 +14721,8 @@ pub fn get_v1_charges_search(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_charges_search_builder(
-        client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
-    )?;
+    let builder =
+        get_v1_charges_search_builder(client, &args.expand, &args.limit, &args.page, &args.query)?;
     get_v1_charges_search_execute(builder)
 }
 
@@ -14849,15 +14734,15 @@ pub fn get_v1_charges_search(
 
 pub fn get_v1_charges_charge_builder(
     client: &SimpleHttpClient,
-    charge: String,
-    expand: Option<Vec<String>>,
+    charge: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}", charge.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}", charge,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -15007,7 +14892,7 @@ pub fn get_v1_charges_charge(
     impl StreamIterator<D = Result<ApiResponse<Charge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_charges_charge_builder(client, args.charge.clone(), args.expand.clone())?;
+    let builder = get_v1_charges_charge_builder(client, &args.charge, &args.expand)?;
     get_v1_charges_charge_execute(builder)
 }
 
@@ -15019,10 +14904,10 @@ pub fn get_v1_charges_charge(
 
 pub fn post_v1_charges_charge_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}", charge.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}", charge,);
 
     // Build request
     let builder = client
@@ -15161,7 +15046,7 @@ pub fn post_v1_charges_charge(
     impl StreamIterator<D = Result<ApiResponse<Charge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_builder(client, &args.charge)?;
     post_v1_charges_charge_execute(builder)
 }
 
@@ -15173,13 +15058,10 @@ pub fn post_v1_charges_charge(
 
 pub fn post_v1_charges_charge_capture_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/capture",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/capture", charge,);
 
     // Build request
     let builder = client
@@ -15318,7 +15200,7 @@ pub fn post_v1_charges_charge_capture(
     impl StreamIterator<D = Result<ApiResponse<Charge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_capture_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_capture_builder(client, &args.charge)?;
     post_v1_charges_charge_capture_execute(builder)
 }
 
@@ -15329,18 +15211,15 @@ pub fn post_v1_charges_charge_capture(
 
 pub fn get_v1_charges_charge_dispute_builder(
     client: &SimpleHttpClient,
-    charge: String,
-    expand: Option<Vec<String>>,
+    charge: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/dispute",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/dispute", charge,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -15487,8 +15366,7 @@ pub fn get_v1_charges_charge_dispute(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_charges_charge_dispute_builder(client, args.charge.clone(), args.expand.clone())?;
+    let builder = get_v1_charges_charge_dispute_builder(client, &args.charge, &args.expand)?;
     get_v1_charges_charge_dispute_execute(builder)
 }
 
@@ -15499,13 +15377,10 @@ pub fn get_v1_charges_charge_dispute(
 
 pub fn post_v1_charges_charge_dispute_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/dispute",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/dispute", charge,);
 
     // Build request
     let builder = client
@@ -15641,7 +15516,7 @@ pub fn post_v1_charges_charge_dispute(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_dispute_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_dispute_builder(client, &args.charge)?;
     post_v1_charges_charge_dispute_execute(builder)
 }
 
@@ -15652,12 +15527,12 @@ pub fn post_v1_charges_charge_dispute(
 
 pub fn post_v1_charges_charge_dispute_close_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{}/dispute/close",
-        charge.as_str(),
+        charge,
     );
 
     // Build request
@@ -15794,7 +15669,7 @@ pub fn post_v1_charges_charge_dispute_close(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_dispute_close_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_dispute_close_builder(client, &args.charge)?;
     post_v1_charges_charge_dispute_close_execute(builder)
 }
 
@@ -15806,13 +15681,10 @@ pub fn post_v1_charges_charge_dispute_close(
 
 pub fn post_v1_charges_charge_refund_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/refund",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/refund", charge,);
 
     // Build request
     let builder = client
@@ -15951,7 +15823,7 @@ pub fn post_v1_charges_charge_refund(
     impl StreamIterator<D = Result<ApiResponse<Charge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_refund_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_refund_builder(client, &args.charge)?;
     post_v1_charges_charge_refund_execute(builder)
 }
 
@@ -15963,32 +15835,29 @@ pub fn post_v1_charges_charge_refund(
 
 pub fn get_v1_charges_charge_refunds_builder(
     client: &SimpleHttpClient,
-    charge: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    charge: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/refunds",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/refunds", charge,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -16141,11 +16010,11 @@ pub fn get_v1_charges_charge_refunds(
 > {
     let builder = get_v1_charges_charge_refunds_builder(
         client,
-        args.charge.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.charge,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_charges_charge_refunds_execute(builder)
 }
@@ -16158,13 +16027,10 @@ pub fn get_v1_charges_charge_refunds(
 
 pub fn post_v1_charges_charge_refunds_builder(
     client: &SimpleHttpClient,
-    charge: String,
+    charge: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/charges/{}/refunds",
-        charge.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/charges/{}/refunds", charge,);
 
     // Build request
     let builder = client
@@ -16303,7 +16169,7 @@ pub fn post_v1_charges_charge_refunds(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_refunds_builder(client, args.charge.clone())?;
+    let builder = post_v1_charges_charge_refunds_builder(client, &args.charge)?;
     post_v1_charges_charge_refunds_execute(builder)
 }
 
@@ -16314,20 +16180,19 @@ pub fn post_v1_charges_charge_refunds(
 
 pub fn get_v1_charges_charge_refunds_refund_builder(
     client: &SimpleHttpClient,
-    charge: String,
-    refund: String,
-    expand: Option<Vec<String>>,
+    charge: &String,
+    refund: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{}/refunds/{}",
-        charge.as_str(),
-        refund.as_str(),
+        charge, refund,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -16478,9 +16343,9 @@ pub fn get_v1_charges_charge_refunds_refund(
 > {
     let builder = get_v1_charges_charge_refunds_refund_builder(
         client,
-        args.charge.clone(),
-        args.refund.clone(),
-        args.expand.clone(),
+        &args.charge,
+        &args.refund,
+        &args.expand,
     )?;
     get_v1_charges_charge_refunds_refund_execute(builder)
 }
@@ -16492,14 +16357,13 @@ pub fn get_v1_charges_charge_refunds_refund(
 
 pub fn post_v1_charges_charge_refunds_refund_builder(
     client: &SimpleHttpClient,
-    charge: String,
-    refund: String,
+    charge: &String,
+    refund: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/charges/{}/refunds/{}",
-        charge.as_str(),
-        refund.as_str(),
+        charge, refund,
     );
 
     // Build request
@@ -16638,11 +16502,8 @@ pub fn post_v1_charges_charge_refunds_refund(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_charges_charge_refunds_refund_builder(
-        client,
-        args.charge.clone(),
-        args.refund.clone(),
-    )?;
+    let builder =
+        post_v1_charges_charge_refunds_refund_builder(client, &args.charge, &args.refund)?;
     post_v1_charges_charge_refunds_refund_execute(builder)
 }
 
@@ -16654,60 +16515,60 @@ pub fn post_v1_charges_charge_refunds_refund(
 
 pub fn get_v1_checkout_sessions_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    customer_details: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_intent: Option<String>,
-    payment_link: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    subscription: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    customer_details: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_intent: &Option<String>,
+    payment_link: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/checkout/sessions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = customer_details {
+    if let Some(val) = customer_details.as_ref() {
         query_parts.push(format!("customer_details={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
-    if let Some(val) = payment_link {
+    if let Some(val) = payment_link.as_ref() {
         query_parts.push(format!("payment_link={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = subscription {
+    if let Some(val) = subscription.as_ref() {
         query_parts.push(format!("subscription={}", val));
     }
 
@@ -16874,18 +16735,18 @@ pub fn get_v1_checkout_sessions(
 > {
     let builder = get_v1_checkout_sessions_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.customer_details.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_intent.clone(),
-        args.payment_link.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.subscription.clone(),
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.customer_details,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_intent,
+        &args.payment_link,
+        &args.starting_after,
+        &args.status,
+        &args.subscription,
     )?;
     get_v1_checkout_sessions_execute(builder)
 }
@@ -17047,18 +16908,15 @@ pub fn post_v1_checkout_sessions(
 
 pub fn get_v1_checkout_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
-    expand: Option<Vec<String>>,
+    session: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/checkout/sessions/{}",
-        session.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/checkout/sessions/{}", session,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -17212,11 +17070,7 @@ pub fn get_v1_checkout_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_checkout_sessions_session_builder(
-        client,
-        args.session.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_checkout_sessions_session_builder(client, &args.session, &args.expand)?;
     get_v1_checkout_sessions_session_execute(builder)
 }
 
@@ -17228,13 +17082,10 @@ pub fn get_v1_checkout_sessions_session(
 
 pub fn post_v1_checkout_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
+    session: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/checkout/sessions/{}",
-        session.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/checkout/sessions/{}", session,);
 
     // Build request
     let builder = client
@@ -17377,7 +17228,7 @@ pub fn post_v1_checkout_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_checkout_sessions_session_builder(client, args.session.clone())?;
+    let builder = post_v1_checkout_sessions_session_builder(client, &args.session)?;
     post_v1_checkout_sessions_session_execute(builder)
 }
 
@@ -17389,12 +17240,12 @@ pub fn post_v1_checkout_sessions_session(
 
 pub fn post_v1_checkout_sessions_session_expire_builder(
     client: &SimpleHttpClient,
-    session: String,
+    session: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions/{}/expire",
-        session.as_str(),
+        session,
     );
 
     // Build request
@@ -17538,7 +17389,7 @@ pub fn post_v1_checkout_sessions_session_expire(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_checkout_sessions_session_expire_builder(client, args.session.clone())?;
+    let builder = post_v1_checkout_sessions_session_expire_builder(client, &args.session)?;
     post_v1_checkout_sessions_session_expire_execute(builder)
 }
 
@@ -17550,32 +17401,32 @@ pub fn post_v1_checkout_sessions_session_expire(
 
 pub fn get_v1_checkout_sessions_session_line_items_builder(
     client: &SimpleHttpClient,
-    session: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    session: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/checkout/sessions/{}/line_items",
-        session.as_str(),
+        session,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -17728,11 +17579,11 @@ pub fn get_v1_checkout_sessions_session_line_items(
 > {
     let builder = get_v1_checkout_sessions_session_line_items_builder(
         client,
-        args.session.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.session,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_checkout_sessions_session_line_items_execute(builder)
 }
@@ -17745,28 +17596,28 @@ pub fn get_v1_checkout_sessions_session_line_items(
 
 pub fn get_v1_climate_orders_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/climate/orders",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -17917,10 +17768,10 @@ pub fn get_v1_climate_orders(
 > {
     let builder = get_v1_climate_orders_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_climate_orders_execute(builder)
 }
@@ -18082,18 +17933,15 @@ pub fn post_v1_climate_orders(
 
 pub fn get_v1_climate_orders_order_builder(
     client: &SimpleHttpClient,
-    order: String,
-    expand: Option<Vec<String>>,
+    order: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/climate/orders/{}",
-        order.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/climate/orders/{}", order,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -18247,8 +18095,7 @@ pub fn get_v1_climate_orders_order(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_climate_orders_order_builder(client, args.order.clone(), args.expand.clone())?;
+    let builder = get_v1_climate_orders_order_builder(client, &args.order, &args.expand)?;
     get_v1_climate_orders_order_execute(builder)
 }
 
@@ -18260,13 +18107,10 @@ pub fn get_v1_climate_orders_order(
 
 pub fn post_v1_climate_orders_order_builder(
     client: &SimpleHttpClient,
-    order: String,
+    order: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/climate/orders/{}",
-        order.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/climate/orders/{}", order,);
 
     // Build request
     let builder = client
@@ -18409,7 +18253,7 @@ pub fn post_v1_climate_orders_order(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_climate_orders_order_builder(client, args.order.clone())?;
+    let builder = post_v1_climate_orders_order_builder(client, &args.order)?;
     post_v1_climate_orders_order_execute(builder)
 }
 
@@ -18421,13 +18265,10 @@ pub fn post_v1_climate_orders_order(
 
 pub fn post_v1_climate_orders_order_cancel_builder(
     client: &SimpleHttpClient,
-    order: String,
+    order: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/climate/orders/{}/cancel",
-        order.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/climate/orders/{}/cancel", order,);
 
     // Build request
     let builder = client
@@ -18570,7 +18411,7 @@ pub fn post_v1_climate_orders_order_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_climate_orders_order_cancel_builder(client, args.order.clone())?;
+    let builder = post_v1_climate_orders_order_cancel_builder(client, &args.order)?;
     post_v1_climate_orders_order_cancel_execute(builder)
 }
 
@@ -18582,28 +18423,28 @@ pub fn post_v1_climate_orders_order_cancel(
 
 pub fn get_v1_climate_products_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/climate/products",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -18754,10 +18595,10 @@ pub fn get_v1_climate_products(
 > {
     let builder = get_v1_climate_products_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_climate_products_execute(builder)
 }
@@ -18770,18 +18611,15 @@ pub fn get_v1_climate_products(
 
 pub fn get_v1_climate_products_product_builder(
     client: &SimpleHttpClient,
-    product: String,
-    expand: Option<Vec<String>>,
+    product: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/climate/products/{}",
-        product.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/climate/products/{}", product,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -18935,8 +18773,7 @@ pub fn get_v1_climate_products_product(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_climate_products_product_builder(client, args.product.clone(), args.expand.clone())?;
+    let builder = get_v1_climate_products_product_builder(client, &args.product, &args.expand)?;
     get_v1_climate_products_product_execute(builder)
 }
 
@@ -18948,28 +18785,28 @@ pub fn get_v1_climate_products_product(
 
 pub fn get_v1_climate_suppliers_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/climate/suppliers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -19120,10 +18957,10 @@ pub fn get_v1_climate_suppliers(
 > {
     let builder = get_v1_climate_suppliers_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_climate_suppliers_execute(builder)
 }
@@ -19136,18 +18973,15 @@ pub fn get_v1_climate_suppliers(
 
 pub fn get_v1_climate_suppliers_supplier_builder(
     client: &SimpleHttpClient,
-    supplier: String,
-    expand: Option<Vec<String>>,
+    supplier: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/climate/suppliers/{}",
-        supplier.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/climate/suppliers/{}", supplier,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -19301,11 +19135,7 @@ pub fn get_v1_climate_suppliers_supplier(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_climate_suppliers_supplier_builder(
-        client,
-        args.supplier.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_climate_suppliers_supplier_builder(client, &args.supplier, &args.expand)?;
     get_v1_climate_suppliers_supplier_execute(builder)
 }
 
@@ -19317,18 +19147,18 @@ pub fn get_v1_climate_suppliers_supplier(
 
 pub fn get_v1_confirmation_tokens_confirmation_token_builder(
     client: &SimpleHttpClient,
-    confirmation_token: String,
-    expand: Option<Vec<String>>,
+    confirmation_token: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/confirmation_tokens/{}",
-        confirmation_token.as_str(),
+        confirmation_token,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -19484,8 +19314,8 @@ pub fn get_v1_confirmation_tokens_confirmation_token(
 > {
     let builder = get_v1_confirmation_tokens_confirmation_token_builder(
         client,
-        args.confirmation_token.clone(),
-        args.expand.clone(),
+        &args.confirmation_token,
+        &args.expand,
     )?;
     get_v1_confirmation_tokens_confirmation_token_execute(builder)
 }
@@ -19498,28 +19328,28 @@ pub fn get_v1_confirmation_tokens_confirmation_token(
 
 pub fn get_v1_country_specs_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/country_specs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -19670,10 +19500,10 @@ pub fn get_v1_country_specs(
 > {
     let builder = get_v1_country_specs_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_country_specs_execute(builder)
 }
@@ -19686,18 +19516,15 @@ pub fn get_v1_country_specs(
 
 pub fn get_v1_country_specs_country_builder(
     client: &SimpleHttpClient,
-    country: String,
-    expand: Option<Vec<String>>,
+    country: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/country_specs/{}",
-        country.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/country_specs/{}", country,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -19847,8 +19674,7 @@ pub fn get_v1_country_specs_country(
     impl StreamIterator<D = Result<ApiResponse<CountrySpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_country_specs_country_builder(client, args.country.clone(), args.expand.clone())?;
+    let builder = get_v1_country_specs_country_builder(client, &args.country, &args.expand)?;
     get_v1_country_specs_country_execute(builder)
 }
 
@@ -19860,32 +19686,32 @@ pub fn get_v1_country_specs_country(
 
 pub fn get_v1_coupons_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/coupons",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -20038,11 +19864,11 @@ pub fn get_v1_coupons(
 > {
     let builder = get_v1_coupons_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_coupons_execute(builder)
 }
@@ -20200,15 +20026,15 @@ pub fn post_v1_coupons(
 
 pub fn get_v1_coupons_coupon_builder(
     client: &SimpleHttpClient,
-    coupon: String,
-    expand: Option<Vec<String>>,
+    coupon: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -20358,7 +20184,7 @@ pub fn get_v1_coupons_coupon(
     impl StreamIterator<D = Result<ApiResponse<Coupon>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_coupons_coupon_builder(client, args.coupon.clone(), args.expand.clone())?;
+    let builder = get_v1_coupons_coupon_builder(client, &args.coupon, &args.expand)?;
     get_v1_coupons_coupon_execute(builder)
 }
 
@@ -20370,10 +20196,10 @@ pub fn get_v1_coupons_coupon(
 
 pub fn post_v1_coupons_coupon_builder(
     client: &SimpleHttpClient,
-    coupon: String,
+    coupon: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon,);
 
     // Build request
     let builder = client
@@ -20512,7 +20338,7 @@ pub fn post_v1_coupons_coupon(
     impl StreamIterator<D = Result<ApiResponse<Coupon>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_coupons_coupon_builder(client, args.coupon.clone())?;
+    let builder = post_v1_coupons_coupon_builder(client, &args.coupon)?;
     post_v1_coupons_coupon_execute(builder)
 }
 
@@ -20524,10 +20350,10 @@ pub fn post_v1_coupons_coupon(
 
 pub fn delete_v1_coupons_coupon_builder(
     client: &SimpleHttpClient,
-    coupon: String,
+    coupon: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/coupons/{}", coupon,);
 
     // Build request
     let builder = client
@@ -20670,7 +20496,7 @@ pub fn delete_v1_coupons_coupon(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_coupons_coupon_builder(client, args.coupon.clone())?;
+    let builder = delete_v1_coupons_coupon_builder(client, &args.coupon)?;
     delete_v1_coupons_coupon_execute(builder)
 }
 
@@ -20682,44 +20508,44 @@ pub fn delete_v1_coupons_coupon(
 
 pub fn get_v1_credit_notes_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/credit_notes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -20878,14 +20704,14 @@ pub fn get_v1_credit_notes(
 > {
     let builder = get_v1_credit_notes_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.invoice,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_credit_notes_execute(builder)
 }
@@ -21043,72 +20869,72 @@ pub fn post_v1_credit_notes(
 
 pub fn get_v1_credit_notes_preview_builder(
     client: &SimpleHttpClient,
-    amount: Option<i32>,
-    credit_amount: Option<i32>,
-    effective_at: Option<i32>,
-    email_type: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    lines: Option<Vec<String>>,
-    memo: Option<String>,
-    metadata: Option<String>,
-    out_of_band_amount: Option<i32>,
-    reason: Option<String>,
-    refund_amount: Option<i32>,
-    refunds: Option<Vec<String>>,
-    shipping_cost: Option<String>,
+    amount: &Option<i32>,
+    credit_amount: &Option<i32>,
+    effective_at: &Option<i32>,
+    email_type: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    lines: &Option<Vec<String>>,
+    memo: &Option<String>,
+    metadata: &Option<String>,
+    out_of_band_amount: &Option<i32>,
+    reason: &Option<String>,
+    refund_amount: &Option<i32>,
+    refunds: &Option<Vec<String>>,
+    shipping_cost: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/preview",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = amount {
+    if let Some(val) = amount.as_ref() {
         query_parts.push(format!("amount={}", val));
     }
-    if let Some(val) = credit_amount {
+    if let Some(val) = credit_amount.as_ref() {
         query_parts.push(format!("credit_amount={}", val));
     }
-    if let Some(val) = effective_at {
+    if let Some(val) = effective_at.as_ref() {
         query_parts.push(format!("effective_at={}", val));
     }
-    if let Some(val) = email_type {
+    if let Some(val) = email_type.as_ref() {
         query_parts.push(format!("email_type={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(vals) = lines {
+    if let Some(vals) = lines.as_ref() {
         for val in vals {
             query_parts.push(format!("lines={}", val));
         }
     }
-    if let Some(val) = memo {
+    if let Some(val) = memo.as_ref() {
         query_parts.push(format!("memo={}", val));
     }
-    if let Some(val) = metadata {
+    if let Some(val) = metadata.as_ref() {
         query_parts.push(format!("metadata={}", val));
     }
-    if let Some(val) = out_of_band_amount {
+    if let Some(val) = out_of_band_amount.as_ref() {
         query_parts.push(format!("out_of_band_amount={}", val));
     }
-    if let Some(val) = reason {
+    if let Some(val) = reason.as_ref() {
         query_parts.push(format!("reason={}", val));
     }
-    if let Some(val) = refund_amount {
+    if let Some(val) = refund_amount.as_ref() {
         query_parts.push(format!("refund_amount={}", val));
     }
-    if let Some(vals) = refunds {
+    if let Some(vals) = refunds.as_ref() {
         for val in vals {
             query_parts.push(format!("refunds={}", val));
         }
     }
-    if let Some(val) = shipping_cost {
+    if let Some(val) = shipping_cost.as_ref() {
         query_parts.push(format!("shipping_cost={}", val));
     }
 
@@ -21282,20 +21108,20 @@ pub fn get_v1_credit_notes_preview(
 > {
     let builder = get_v1_credit_notes_preview_builder(
         client,
-        args.amount.clone(),
-        args.credit_amount.clone(),
-        args.effective_at.clone(),
-        args.email_type.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.lines.clone(),
-        args.memo.clone(),
-        args.metadata.clone(),
-        args.out_of_band_amount.clone(),
-        args.reason.clone(),
-        args.refund_amount.clone(),
-        args.refunds.clone(),
-        args.shipping_cost.clone(),
+        &args.amount,
+        &args.credit_amount,
+        &args.effective_at,
+        &args.email_type,
+        &args.expand,
+        &args.invoice,
+        &args.lines,
+        &args.memo,
+        &args.metadata,
+        &args.out_of_band_amount,
+        &args.reason,
+        &args.refund_amount,
+        &args.refunds,
+        &args.shipping_cost,
     )?;
     get_v1_credit_notes_preview_execute(builder)
 }
@@ -21308,84 +21134,84 @@ pub fn get_v1_credit_notes_preview(
 
 pub fn get_v1_credit_notes_preview_lines_builder(
     client: &SimpleHttpClient,
-    amount: Option<i32>,
-    credit_amount: Option<i32>,
-    effective_at: Option<i32>,
-    email_type: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    limit: Option<i32>,
-    lines: Option<Vec<String>>,
-    memo: Option<String>,
-    metadata: Option<String>,
-    out_of_band_amount: Option<i32>,
-    reason: Option<String>,
-    refund_amount: Option<i32>,
-    refunds: Option<Vec<String>>,
-    shipping_cost: Option<String>,
-    starting_after: Option<String>,
+    amount: &Option<i32>,
+    credit_amount: &Option<i32>,
+    effective_at: &Option<i32>,
+    email_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    limit: &Option<i32>,
+    lines: &Option<Vec<String>>,
+    memo: &Option<String>,
+    metadata: &Option<String>,
+    out_of_band_amount: &Option<i32>,
+    reason: &Option<String>,
+    refund_amount: &Option<i32>,
+    refunds: &Option<Vec<String>>,
+    shipping_cost: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/preview/lines",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = amount {
+    if let Some(val) = amount.as_ref() {
         query_parts.push(format!("amount={}", val));
     }
-    if let Some(val) = credit_amount {
+    if let Some(val) = credit_amount.as_ref() {
         query_parts.push(format!("credit_amount={}", val));
     }
-    if let Some(val) = effective_at {
+    if let Some(val) = effective_at.as_ref() {
         query_parts.push(format!("effective_at={}", val));
     }
-    if let Some(val) = email_type {
+    if let Some(val) = email_type.as_ref() {
         query_parts.push(format!("email_type={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = lines {
+    if let Some(vals) = lines.as_ref() {
         for val in vals {
             query_parts.push(format!("lines={}", val));
         }
     }
-    if let Some(val) = memo {
+    if let Some(val) = memo.as_ref() {
         query_parts.push(format!("memo={}", val));
     }
-    if let Some(val) = metadata {
+    if let Some(val) = metadata.as_ref() {
         query_parts.push(format!("metadata={}", val));
     }
-    if let Some(val) = out_of_band_amount {
+    if let Some(val) = out_of_band_amount.as_ref() {
         query_parts.push(format!("out_of_band_amount={}", val));
     }
-    if let Some(val) = reason {
+    if let Some(val) = reason.as_ref() {
         query_parts.push(format!("reason={}", val));
     }
-    if let Some(val) = refund_amount {
+    if let Some(val) = refund_amount.as_ref() {
         query_parts.push(format!("refund_amount={}", val));
     }
-    if let Some(vals) = refunds {
+    if let Some(vals) = refunds.as_ref() {
         for val in vals {
             query_parts.push(format!("refunds={}", val));
         }
     }
-    if let Some(val) = shipping_cost {
+    if let Some(val) = shipping_cost.as_ref() {
         query_parts.push(format!("shipping_cost={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -21562,23 +21388,23 @@ pub fn get_v1_credit_notes_preview_lines(
 > {
     let builder = get_v1_credit_notes_preview_lines_builder(
         client,
-        args.amount.clone(),
-        args.credit_amount.clone(),
-        args.effective_at.clone(),
-        args.email_type.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.limit.clone(),
-        args.lines.clone(),
-        args.memo.clone(),
-        args.metadata.clone(),
-        args.out_of_band_amount.clone(),
-        args.reason.clone(),
-        args.refund_amount.clone(),
-        args.refunds.clone(),
-        args.shipping_cost.clone(),
-        args.starting_after.clone(),
+        &args.amount,
+        &args.credit_amount,
+        &args.effective_at,
+        &args.email_type,
+        &args.ending_before,
+        &args.expand,
+        &args.invoice,
+        &args.limit,
+        &args.lines,
+        &args.memo,
+        &args.metadata,
+        &args.out_of_band_amount,
+        &args.reason,
+        &args.refund_amount,
+        &args.refunds,
+        &args.shipping_cost,
+        &args.starting_after,
     )?;
     get_v1_credit_notes_preview_lines_execute(builder)
 }
@@ -21591,32 +21417,32 @@ pub fn get_v1_credit_notes_preview_lines(
 
 pub fn get_v1_credit_notes_credit_note_lines_builder(
     client: &SimpleHttpClient,
-    credit_note: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    credit_note: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/credit_notes/{}/lines",
-        credit_note.as_str(),
+        credit_note,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -21769,11 +21595,11 @@ pub fn get_v1_credit_notes_credit_note_lines(
 > {
     let builder = get_v1_credit_notes_credit_note_lines_builder(
         client,
-        args.credit_note.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.credit_note,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_credit_notes_credit_note_lines_execute(builder)
 }
@@ -21786,15 +21612,15 @@ pub fn get_v1_credit_notes_credit_note_lines(
 
 pub fn get_v1_credit_notes_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -21944,7 +21770,7 @@ pub fn get_v1_credit_notes_id(
     impl StreamIterator<D = Result<ApiResponse<CreditNote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_credit_notes_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_credit_notes_id_builder(client, &args.id, &args.expand)?;
     get_v1_credit_notes_id_execute(builder)
 }
 
@@ -21956,10 +21782,10 @@ pub fn get_v1_credit_notes_id(
 
 pub fn post_v1_credit_notes_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/{}", id,);
 
     // Build request
     let builder = client
@@ -22098,7 +21924,7 @@ pub fn post_v1_credit_notes_id(
     impl StreamIterator<D = Result<ApiResponse<CreditNote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_credit_notes_id_builder(client, args.id.clone())?;
+    let builder = post_v1_credit_notes_id_builder(client, &args.id)?;
     post_v1_credit_notes_id_execute(builder)
 }
 
@@ -22110,13 +21936,10 @@ pub fn post_v1_credit_notes_id(
 
 pub fn post_v1_credit_notes_id_void_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/credit_notes/{}/void",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/credit_notes/{}/void", id,);
 
     // Build request
     let builder = client
@@ -22255,7 +22078,7 @@ pub fn post_v1_credit_notes_id_void(
     impl StreamIterator<D = Result<ApiResponse<CreditNote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_credit_notes_id_void_builder(client, args.id.clone())?;
+    let builder = post_v1_credit_notes_id_void_builder(client, &args.id)?;
     post_v1_credit_notes_id_void_execute(builder)
 }
 
@@ -22416,40 +22239,40 @@ pub fn post_v1_customer_sessions(
 
 pub fn get_v1_customers_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    email: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    test_clock: Option<String>,
+    created: &Option<String>,
+    email: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/customers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = email {
+    if let Some(val) = email.as_ref() {
         query_parts.push(format!("email={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = test_clock {
+    if let Some(val) = test_clock.as_ref() {
         query_parts.push(format!("test_clock={}", val));
     }
 
@@ -22606,13 +22429,13 @@ pub fn get_v1_customers(
 > {
     let builder = get_v1_customers_builder(
         client,
-        args.created.clone(),
-        args.email.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.test_clock.clone(),
+        &args.created,
+        &args.email,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.test_clock,
     )?;
     get_v1_customers_execute(builder)
 }
@@ -22770,28 +22593,28 @@ pub fn post_v1_customers(
 
 pub fn get_v1_customers_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/customers/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -22942,10 +22765,10 @@ pub fn get_v1_customers_search(
 > {
     let builder = get_v1_customers_search_builder(
         client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
+        &args.expand,
+        &args.limit,
+        &args.page,
+        &args.query,
     )?;
     get_v1_customers_search_execute(builder)
 }
@@ -22958,15 +22781,15 @@ pub fn get_v1_customers_search(
 
 pub fn get_v1_customers_customer_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -23120,8 +22943,7 @@ pub fn get_v1_customers_customer(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_customers_customer_builder(client, args.customer.clone(), args.expand.clone())?;
+    let builder = get_v1_customers_customer_builder(client, &args.customer, &args.expand)?;
     get_v1_customers_customer_execute(builder)
 }
 
@@ -23133,10 +22955,10 @@ pub fn get_v1_customers_customer(
 
 pub fn post_v1_customers_customer_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer,);
 
     // Build request
     let builder = client
@@ -23275,7 +23097,7 @@ pub fn post_v1_customers_customer(
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_builder(client, &args.customer)?;
     post_v1_customers_customer_execute(builder)
 }
 
@@ -23287,10 +23109,10 @@ pub fn post_v1_customers_customer(
 
 pub fn delete_v1_customers_customer_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}", customer,);
 
     // Build request
     let builder = client
@@ -23433,7 +23255,7 @@ pub fn delete_v1_customers_customer(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_builder(client, args.customer.clone())?;
+    let builder = delete_v1_customers_customer_builder(client, &args.customer)?;
     delete_v1_customers_customer_execute(builder)
 }
 
@@ -23445,40 +23267,40 @@ pub fn delete_v1_customers_customer(
 
 pub fn get_v1_customers_customer_balance_transactions_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/balance_transactions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -23635,13 +23457,13 @@ pub fn get_v1_customers_customer_balance_transactions(
 > {
     let builder = get_v1_customers_customer_balance_transactions_builder(
         client,
-        args.customer.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.invoice,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_balance_transactions_execute(builder)
 }
@@ -23654,12 +23476,12 @@ pub fn get_v1_customers_customer_balance_transactions(
 
 pub fn post_v1_customers_customer_balance_transactions_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/balance_transactions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -23807,8 +23629,7 @@ pub fn post_v1_customers_customer_balance_transactions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_customers_customer_balance_transactions_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_balance_transactions_builder(client, &args.customer)?;
     post_v1_customers_customer_balance_transactions_execute(builder)
 }
 
@@ -23820,20 +23641,19 @@ pub fn post_v1_customers_customer_balance_transactions(
 
 pub fn get_v1_customers_customer_balance_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    transaction: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/balance_transactions/{}",
-        customer.as_str(),
-        transaction.as_str(),
+        customer, transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -23995,9 +23815,9 @@ pub fn get_v1_customers_customer_balance_transactions_transaction(
 > {
     let builder = get_v1_customers_customer_balance_transactions_transaction_builder(
         client,
-        args.customer.clone(),
-        args.transaction.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.transaction,
+        &args.expand,
     )?;
     get_v1_customers_customer_balance_transactions_transaction_execute(builder)
 }
@@ -24010,14 +23830,13 @@ pub fn get_v1_customers_customer_balance_transactions_transaction(
 
 pub fn post_v1_customers_customer_balance_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    transaction: String,
+    customer: &String,
+    transaction: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/balance_transactions/{}",
-        customer.as_str(),
-        transaction.as_str(),
+        customer, transaction,
     );
 
     // Build request
@@ -24169,8 +23988,8 @@ pub fn post_v1_customers_customer_balance_transactions_transaction(
 > {
     let builder = post_v1_customers_customer_balance_transactions_transaction_builder(
         client,
-        args.customer.clone(),
-        args.transaction.clone(),
+        &args.customer,
+        &args.transaction,
     )?;
     post_v1_customers_customer_balance_transactions_transaction_execute(builder)
 }
@@ -24183,32 +24002,32 @@ pub fn post_v1_customers_customer_balance_transactions_transaction(
 
 pub fn get_v1_customers_customer_bank_accounts_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -24361,11 +24180,11 @@ pub fn get_v1_customers_customer_bank_accounts(
 > {
     let builder = get_v1_customers_customer_bank_accounts_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_bank_accounts_execute(builder)
 }
@@ -24378,12 +24197,12 @@ pub fn get_v1_customers_customer_bank_accounts(
 
 pub fn post_v1_customers_customer_bank_accounts_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -24527,7 +24346,7 @@ pub fn post_v1_customers_customer_bank_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_bank_accounts_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_bank_accounts_builder(client, &args.customer)?;
     post_v1_customers_customer_bank_accounts_execute(builder)
 }
 
@@ -24539,20 +24358,19 @@ pub fn post_v1_customers_customer_bank_accounts(
 
 pub fn get_v1_customers_customer_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -24706,9 +24524,9 @@ pub fn get_v1_customers_customer_bank_accounts_id(
 > {
     let builder = get_v1_customers_customer_bank_accounts_id_builder(
         client,
-        args.customer.clone(),
-        args.id.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.id,
+        &args.expand,
     )?;
     get_v1_customers_customer_bank_accounts_id_execute(builder)
 }
@@ -24720,14 +24538,13 @@ pub fn get_v1_customers_customer_bank_accounts_id(
 
 pub fn post_v1_customers_customer_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -24870,11 +24687,8 @@ pub fn post_v1_customers_customer_bank_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_bank_accounts_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_customers_customer_bank_accounts_id_builder(client, &args.customer, &args.id)?;
     post_v1_customers_customer_bank_accounts_id_execute(builder)
 }
 
@@ -24886,14 +24700,13 @@ pub fn post_v1_customers_customer_bank_accounts_id(
 
 pub fn delete_v1_customers_customer_bank_accounts_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -25039,11 +24852,8 @@ pub fn delete_v1_customers_customer_bank_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_bank_accounts_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        delete_v1_customers_customer_bank_accounts_id_builder(client, &args.customer, &args.id)?;
     delete_v1_customers_customer_bank_accounts_id_execute(builder)
 }
 
@@ -25055,14 +24865,13 @@ pub fn delete_v1_customers_customer_bank_accounts_id(
 
 pub fn post_v1_customers_customer_bank_accounts_id_verify_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/bank_accounts/{}/verify",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -25206,8 +25015,8 @@ pub fn post_v1_customers_customer_bank_accounts_id_verify(
 > {
     let builder = post_v1_customers_customer_bank_accounts_id_verify_builder(
         client,
-        args.customer.clone(),
-        args.id.clone(),
+        &args.customer,
+        &args.id,
     )?;
     post_v1_customers_customer_bank_accounts_id_verify_execute(builder)
 }
@@ -25220,32 +25029,29 @@ pub fn post_v1_customers_customer_bank_accounts_id_verify(
 
 pub fn get_v1_customers_customer_cards_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/cards",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/cards", customer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -25398,11 +25204,11 @@ pub fn get_v1_customers_customer_cards(
 > {
     let builder = get_v1_customers_customer_cards_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_cards_execute(builder)
 }
@@ -25415,13 +25221,10 @@ pub fn get_v1_customers_customer_cards(
 
 pub fn post_v1_customers_customer_cards_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/cards",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/cards", customer,);
 
     // Build request
     let builder = client
@@ -25564,7 +25367,7 @@ pub fn post_v1_customers_customer_cards(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_cards_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_cards_builder(client, &args.customer)?;
     post_v1_customers_customer_cards_execute(builder)
 }
 
@@ -25576,20 +25379,19 @@ pub fn post_v1_customers_customer_cards(
 
 pub fn get_v1_customers_customer_cards_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cards/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -25741,12 +25543,8 @@ pub fn get_v1_customers_customer_cards_id(
     impl StreamIterator<D = Result<ApiResponse<Card>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_customers_customer_cards_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_customers_customer_cards_id_builder(client, &args.customer, &args.id, &args.expand)?;
     get_v1_customers_customer_cards_id_execute(builder)
 }
 
@@ -25757,14 +25555,13 @@ pub fn get_v1_customers_customer_cards_id(
 
 pub fn post_v1_customers_customer_cards_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cards/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -25907,11 +25704,7 @@ pub fn post_v1_customers_customer_cards_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_cards_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder = post_v1_customers_customer_cards_id_builder(client, &args.customer, &args.id)?;
     post_v1_customers_customer_cards_id_execute(builder)
 }
 
@@ -25923,14 +25716,13 @@ pub fn post_v1_customers_customer_cards_id(
 
 pub fn delete_v1_customers_customer_cards_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cards/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -26076,11 +25868,7 @@ pub fn delete_v1_customers_customer_cards_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_cards_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder = delete_v1_customers_customer_cards_id_builder(client, &args.customer, &args.id)?;
     delete_v1_customers_customer_cards_id_execute(builder)
 }
 
@@ -26092,18 +25880,18 @@ pub fn delete_v1_customers_customer_cards_id(
 
 pub fn get_v1_customers_customer_cash_balance_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cash_balance",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -26253,11 +26041,8 @@ pub fn get_v1_customers_customer_cash_balance(
     impl StreamIterator<D = Result<ApiResponse<CashBalance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_customers_customer_cash_balance_builder(
-        client,
-        args.customer.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_customers_customer_cash_balance_builder(client, &args.customer, &args.expand)?;
     get_v1_customers_customer_cash_balance_execute(builder)
 }
 
@@ -26269,12 +26054,12 @@ pub fn get_v1_customers_customer_cash_balance(
 
 pub fn post_v1_customers_customer_cash_balance_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cash_balance",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -26414,7 +26199,7 @@ pub fn post_v1_customers_customer_cash_balance(
     impl StreamIterator<D = Result<ApiResponse<CashBalance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_cash_balance_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_cash_balance_builder(client, &args.customer)?;
     post_v1_customers_customer_cash_balance_execute(builder)
 }
 
@@ -26426,32 +26211,32 @@ pub fn post_v1_customers_customer_cash_balance(
 
 pub fn get_v1_customers_customer_cash_balance_transactions_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cash_balance_transactions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -26604,11 +26389,11 @@ pub fn get_v1_customers_customer_cash_balance_transactions(
 > {
     let builder = get_v1_customers_customer_cash_balance_transactions_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_cash_balance_transactions_execute(builder)
 }
@@ -26621,20 +26406,19 @@ pub fn get_v1_customers_customer_cash_balance_transactions(
 
 pub fn get_v1_customers_customer_cash_balance_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    transaction: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/cash_balance_transactions/{}",
-        customer.as_str(),
-        transaction.as_str(),
+        customer, transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -26796,9 +26580,9 @@ pub fn get_v1_customers_customer_cash_balance_transactions_transaction(
 > {
     let builder = get_v1_customers_customer_cash_balance_transactions_transaction_builder(
         client,
-        args.customer.clone(),
-        args.transaction.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.transaction,
+        &args.expand,
     )?;
     get_v1_customers_customer_cash_balance_transactions_transaction_execute(builder)
 }
@@ -26810,18 +26594,15 @@ pub fn get_v1_customers_customer_cash_balance_transactions_transaction(
 
 pub fn get_v1_customers_customer_discount_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/discount",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/discount", customer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -26968,11 +26749,7 @@ pub fn get_v1_customers_customer_discount(
     impl StreamIterator<D = Result<ApiResponse<Discount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_customers_customer_discount_builder(
-        client,
-        args.customer.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_customers_customer_discount_builder(client, &args.customer, &args.expand)?;
     get_v1_customers_customer_discount_execute(builder)
 }
 
@@ -26984,13 +26761,10 @@ pub fn get_v1_customers_customer_discount(
 
 pub fn delete_v1_customers_customer_discount_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/discount",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/discount", customer,);
 
     // Build request
     let builder = client
@@ -27133,7 +26907,7 @@ pub fn delete_v1_customers_customer_discount(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_discount_builder(client, args.customer.clone())?;
+    let builder = delete_v1_customers_customer_discount_builder(client, &args.customer)?;
     delete_v1_customers_customer_discount_execute(builder)
 }
 
@@ -27145,12 +26919,12 @@ pub fn delete_v1_customers_customer_discount(
 
 pub fn post_v1_customers_customer_funding_instructions_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/funding_instructions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -27294,8 +27068,7 @@ pub fn post_v1_customers_customer_funding_instructions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_customers_customer_funding_instructions_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_funding_instructions_builder(client, &args.customer)?;
     post_v1_customers_customer_funding_instructions_execute(builder)
 }
 
@@ -27307,40 +27080,40 @@ pub fn post_v1_customers_customer_funding_instructions(
 
 pub fn get_v1_customers_customer_payment_methods_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    allow_redisplay: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    customer: &String,
+    allow_redisplay: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/payment_methods",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allow_redisplay {
+    if let Some(val) = allow_redisplay.as_ref() {
         query_parts.push(format!("allow_redisplay={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -27497,13 +27270,13 @@ pub fn get_v1_customers_customer_payment_methods(
 > {
     let builder = get_v1_customers_customer_payment_methods_builder(
         client,
-        args.customer.clone(),
-        args.allow_redisplay.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.customer,
+        &args.allow_redisplay,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_customers_customer_payment_methods_execute(builder)
 }
@@ -27516,20 +27289,19 @@ pub fn get_v1_customers_customer_payment_methods(
 
 pub fn get_v1_customers_customer_payment_methods_payment_method_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    payment_method: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    payment_method: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/payment_methods/{}",
-        customer.as_str(),
-        payment_method.as_str(),
+        customer, payment_method,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -27687,9 +27459,9 @@ pub fn get_v1_customers_customer_payment_methods_payment_method(
 > {
     let builder = get_v1_customers_customer_payment_methods_payment_method_builder(
         client,
-        args.customer.clone(),
-        args.payment_method.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.payment_method,
+        &args.expand,
     )?;
     get_v1_customers_customer_payment_methods_payment_method_execute(builder)
 }
@@ -27701,36 +27473,33 @@ pub fn get_v1_customers_customer_payment_methods_payment_method(
 
 pub fn get_v1_customers_customer_sources_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    object: Option<String>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    object: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/sources",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/sources", customer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = object {
+    if let Some(val) = object.as_ref() {
         query_parts.push(format!("object={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -27882,12 +27651,12 @@ pub fn get_v1_customers_customer_sources(
 > {
     let builder = get_v1_customers_customer_sources_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.object.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.object,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_sources_execute(builder)
 }
@@ -27900,13 +27669,10 @@ pub fn get_v1_customers_customer_sources(
 
 pub fn post_v1_customers_customer_sources_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/sources",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/sources", customer,);
 
     // Build request
     let builder = client
@@ -28049,7 +27815,7 @@ pub fn post_v1_customers_customer_sources(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_sources_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_sources_builder(client, &args.customer)?;
     post_v1_customers_customer_sources_execute(builder)
 }
 
@@ -28060,20 +27826,19 @@ pub fn post_v1_customers_customer_sources(
 
 pub fn get_v1_customers_customer_sources_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/sources/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -28228,9 +27993,9 @@ pub fn get_v1_customers_customer_sources_id(
 > {
     let builder = get_v1_customers_customer_sources_id_builder(
         client,
-        args.customer.clone(),
-        args.id.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.id,
+        &args.expand,
     )?;
     get_v1_customers_customer_sources_id_execute(builder)
 }
@@ -28242,14 +28007,13 @@ pub fn get_v1_customers_customer_sources_id(
 
 pub fn post_v1_customers_customer_sources_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/sources/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -28392,11 +28156,7 @@ pub fn post_v1_customers_customer_sources_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_sources_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder = post_v1_customers_customer_sources_id_builder(client, &args.customer, &args.id)?;
     post_v1_customers_customer_sources_id_execute(builder)
 }
 
@@ -28408,14 +28168,13 @@ pub fn post_v1_customers_customer_sources_id(
 
 pub fn delete_v1_customers_customer_sources_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/sources/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -28561,11 +28320,8 @@ pub fn delete_v1_customers_customer_sources_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_sources_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        delete_v1_customers_customer_sources_id_builder(client, &args.customer, &args.id)?;
     delete_v1_customers_customer_sources_id_execute(builder)
 }
 
@@ -28577,14 +28333,13 @@ pub fn delete_v1_customers_customer_sources_id(
 
 pub fn post_v1_customers_customer_sources_id_verify_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/sources/{}/verify",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -28726,11 +28481,8 @@ pub fn post_v1_customers_customer_sources_id_verify(
     impl StreamIterator<D = Result<ApiResponse<BankAccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_sources_id_verify_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_customers_customer_sources_id_verify_builder(client, &args.customer, &args.id)?;
     post_v1_customers_customer_sources_id_verify_execute(builder)
 }
 
@@ -28742,32 +28494,32 @@ pub fn post_v1_customers_customer_sources_id_verify(
 
 pub fn get_v1_customers_customer_subscriptions_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -28920,11 +28672,11 @@ pub fn get_v1_customers_customer_subscriptions(
 > {
     let builder = get_v1_customers_customer_subscriptions_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_subscriptions_execute(builder)
 }
@@ -28937,12 +28689,12 @@ pub fn get_v1_customers_customer_subscriptions(
 
 pub fn post_v1_customers_customer_subscriptions_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -29086,7 +28838,7 @@ pub fn post_v1_customers_customer_subscriptions(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_subscriptions_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_subscriptions_builder(client, &args.customer)?;
     post_v1_customers_customer_subscriptions_execute(builder)
 }
 
@@ -29098,20 +28850,19 @@ pub fn post_v1_customers_customer_subscriptions(
 
 pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    subscription_exposed_id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    subscription_exposed_id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions/{}",
-        customer.as_str(),
-        subscription_exposed_id.as_str(),
+        customer, subscription_exposed_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -29269,9 +29020,9 @@ pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id(
 > {
     let builder = get_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
         client,
-        args.customer.clone(),
-        args.subscription_exposed_id.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.subscription_exposed_id,
+        &args.expand,
     )?;
     get_v1_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -29284,14 +29035,13 @@ pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id(
 
 pub fn post_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    subscription_exposed_id: String,
+    customer: &String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions/{}",
-        customer.as_str(),
-        subscription_exposed_id.as_str(),
+        customer, subscription_exposed_id,
     );
 
     // Build request
@@ -29439,8 +29189,8 @@ pub fn post_v1_customers_customer_subscriptions_subscription_exposed_id(
 > {
     let builder = post_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
         client,
-        args.customer.clone(),
-        args.subscription_exposed_id.clone(),
+        &args.customer,
+        &args.subscription_exposed_id,
     )?;
     post_v1_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -29453,14 +29203,13 @@ pub fn post_v1_customers_customer_subscriptions_subscription_exposed_id(
 
 pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    subscription_exposed_id: String,
+    customer: &String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions/{}",
-        customer.as_str(),
-        subscription_exposed_id.as_str(),
+        customer, subscription_exposed_id,
     );
 
     // Build request
@@ -29608,8 +29357,8 @@ pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id(
 > {
     let builder = delete_v1_customers_customer_subscriptions_subscription_exposed_id_builder(
         client,
-        args.customer.clone(),
-        args.subscription_exposed_id.clone(),
+        &args.customer,
+        &args.subscription_exposed_id,
     )?;
     delete_v1_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -29621,20 +29370,19 @@ pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id(
 
 pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id_discount_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    subscription_exposed_id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    subscription_exposed_id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions/{}/discount",
-        customer.as_str(),
-        subscription_exposed_id.as_str(),
+        customer, subscription_exposed_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -29786,9 +29534,9 @@ pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id_discount(
 > {
     let builder = get_v1_customers_customer_subscriptions_subscription_exposed_id_discount_builder(
         client,
-        args.customer.clone(),
-        args.subscription_exposed_id.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.subscription_exposed_id,
+        &args.expand,
     )?;
     get_v1_customers_customer_subscriptions_subscription_exposed_id_discount_execute(builder)
 }
@@ -29801,14 +29549,13 @@ pub fn get_v1_customers_customer_subscriptions_subscription_exposed_id_discount(
 
 pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id_discount_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    subscription_exposed_id: String,
+    customer: &String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/subscriptions/{}/discount",
-        customer.as_str(),
-        subscription_exposed_id.as_str(),
+        customer, subscription_exposed_id,
     );
 
     // Build request
@@ -29958,8 +29705,8 @@ pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id_discou
     let builder =
         delete_v1_customers_customer_subscriptions_subscription_exposed_id_discount_builder(
             client,
-            args.customer.clone(),
-            args.subscription_exposed_id.clone(),
+            &args.customer,
+            &args.subscription_exposed_id,
         )?;
     delete_v1_customers_customer_subscriptions_subscription_exposed_id_discount_execute(builder)
 }
@@ -29972,32 +29719,29 @@ pub fn delete_v1_customers_customer_subscriptions_subscription_exposed_id_discou
 
 pub fn get_v1_customers_customer_tax_ids_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/tax_ids",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/tax_ids", customer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -30150,11 +29894,11 @@ pub fn get_v1_customers_customer_tax_ids(
 > {
     let builder = get_v1_customers_customer_tax_ids_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_customers_customer_tax_ids_execute(builder)
 }
@@ -30167,13 +29911,10 @@ pub fn get_v1_customers_customer_tax_ids(
 
 pub fn post_v1_customers_customer_tax_ids_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{}/tax_ids",
-        customer.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/customers/{}/tax_ids", customer,);
 
     // Build request
     let builder = client
@@ -30312,7 +30053,7 @@ pub fn post_v1_customers_customer_tax_ids(
     impl StreamIterator<D = Result<ApiResponse<TaxId>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_customers_customer_tax_ids_builder(client, args.customer.clone())?;
+    let builder = post_v1_customers_customer_tax_ids_builder(client, &args.customer)?;
     post_v1_customers_customer_tax_ids_execute(builder)
 }
 
@@ -30324,20 +30065,19 @@ pub fn post_v1_customers_customer_tax_ids(
 
 pub fn get_v1_customers_customer_tax_ids_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
-    expand: Option<Vec<String>>,
+    customer: &String,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/tax_ids/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -30491,9 +30231,9 @@ pub fn get_v1_customers_customer_tax_ids_id(
 > {
     let builder = get_v1_customers_customer_tax_ids_id_builder(
         client,
-        args.customer.clone(),
-        args.id.clone(),
-        args.expand.clone(),
+        &args.customer,
+        &args.id,
+        &args.expand,
     )?;
     get_v1_customers_customer_tax_ids_id_execute(builder)
 }
@@ -30506,14 +30246,13 @@ pub fn get_v1_customers_customer_tax_ids_id(
 
 pub fn delete_v1_customers_customer_tax_ids_id_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    id: String,
+    customer: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{}/tax_ids/{}",
-        customer.as_str(),
-        id.as_str(),
+        customer, id,
     );
 
     // Build request
@@ -30659,11 +30398,8 @@ pub fn delete_v1_customers_customer_tax_ids_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_customers_customer_tax_ids_id_builder(
-        client,
-        args.customer.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        delete_v1_customers_customer_tax_ids_id_builder(client, &args.customer, &args.id)?;
     delete_v1_customers_customer_tax_ids_id_execute(builder)
 }
 
@@ -30675,40 +30411,40 @@ pub fn delete_v1_customers_customer_tax_ids_id(
 
 pub fn get_v1_disputes_builder(
     client: &SimpleHttpClient,
-    charge: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_intent: Option<String>,
-    starting_after: Option<String>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/disputes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = charge {
+    if let Some(val) = charge.as_ref() {
         query_parts.push(format!("charge={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -30865,13 +30601,13 @@ pub fn get_v1_disputes(
 > {
     let builder = get_v1_disputes_builder(
         client,
-        args.charge.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_intent.clone(),
-        args.starting_after.clone(),
+        &args.charge,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_intent,
+        &args.starting_after,
     )?;
     get_v1_disputes_execute(builder)
 }
@@ -30884,15 +30620,15 @@ pub fn get_v1_disputes(
 
 pub fn get_v1_disputes_dispute_builder(
     client: &SimpleHttpClient,
-    dispute: String,
-    expand: Option<Vec<String>>,
+    dispute: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/disputes/{}", dispute.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/disputes/{}", dispute,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -31042,8 +30778,7 @@ pub fn get_v1_disputes_dispute(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_disputes_dispute_builder(client, args.dispute.clone(), args.expand.clone())?;
+    let builder = get_v1_disputes_dispute_builder(client, &args.dispute, &args.expand)?;
     get_v1_disputes_dispute_execute(builder)
 }
 
@@ -31055,10 +30790,10 @@ pub fn get_v1_disputes_dispute(
 
 pub fn post_v1_disputes_dispute_builder(
     client: &SimpleHttpClient,
-    dispute: String,
+    dispute: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/disputes/{}", dispute.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/disputes/{}", dispute,);
 
     // Build request
     let builder = client
@@ -31197,7 +30932,7 @@ pub fn post_v1_disputes_dispute(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_disputes_dispute_builder(client, args.dispute.clone())?;
+    let builder = post_v1_disputes_dispute_builder(client, &args.dispute)?;
     post_v1_disputes_dispute_execute(builder)
 }
 
@@ -31209,13 +30944,10 @@ pub fn post_v1_disputes_dispute(
 
 pub fn post_v1_disputes_dispute_close_builder(
     client: &SimpleHttpClient,
-    dispute: String,
+    dispute: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/disputes/{}/close",
-        dispute.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/disputes/{}/close", dispute,);
 
     // Build request
     let builder = client
@@ -31354,7 +31086,7 @@ pub fn post_v1_disputes_dispute_close(
     impl StreamIterator<D = Result<ApiResponse<Dispute>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_disputes_dispute_close_builder(client, args.dispute.clone())?;
+    let builder = post_v1_disputes_dispute_close_builder(client, &args.dispute)?;
     post_v1_disputes_dispute_close_execute(builder)
 }
 
@@ -31366,32 +31098,32 @@ pub fn post_v1_disputes_dispute_close(
 
 pub fn get_v1_entitlements_active_entitlements_builder(
     client: &SimpleHttpClient,
-    customer: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/entitlements/active_entitlements",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -31544,11 +31276,11 @@ pub fn get_v1_entitlements_active_entitlements(
 > {
     let builder = get_v1_entitlements_active_entitlements_builder(
         client,
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_entitlements_active_entitlements_execute(builder)
 }
@@ -31561,18 +31293,18 @@ pub fn get_v1_entitlements_active_entitlements(
 
 pub fn get_v1_entitlements_active_entitlements_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/entitlements/active_entitlements/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -31730,11 +31462,8 @@ pub fn get_v1_entitlements_active_entitlements_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_entitlements_active_entitlements_id_builder(
-        client,
-        args.id.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_entitlements_active_entitlements_id_builder(client, &args.id, &args.expand)?;
     get_v1_entitlements_active_entitlements_id_execute(builder)
 }
 
@@ -31746,36 +31475,36 @@ pub fn get_v1_entitlements_active_entitlements_id(
 
 pub fn get_v1_entitlements_features_builder(
     client: &SimpleHttpClient,
-    archived: Option<bool>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    lookup_key: Option<String>,
-    starting_after: Option<String>,
+    archived: &Option<bool>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    lookup_key: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/entitlements/features",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = archived {
+    if let Some(val) = archived.as_ref() {
         query_parts.push(format!("archived={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = lookup_key {
+    if let Some(val) = lookup_key.as_ref() {
         query_parts.push(format!("lookup_key={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -31930,12 +31659,12 @@ pub fn get_v1_entitlements_features(
 > {
     let builder = get_v1_entitlements_features_builder(
         client,
-        args.archived.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.lookup_key.clone(),
-        args.starting_after.clone(),
+        &args.archived,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.lookup_key,
+        &args.starting_after,
     )?;
     get_v1_entitlements_features_execute(builder)
 }
@@ -32097,18 +31826,15 @@ pub fn post_v1_entitlements_features(
 
 pub fn get_v1_entitlements_features_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/entitlements/features/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/entitlements/features/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -32262,8 +31988,7 @@ pub fn get_v1_entitlements_features_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_entitlements_features_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_entitlements_features_id_builder(client, &args.id, &args.expand)?;
     get_v1_entitlements_features_id_execute(builder)
 }
 
@@ -32275,13 +32000,10 @@ pub fn get_v1_entitlements_features_id(
 
 pub fn post_v1_entitlements_features_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/entitlements/features/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/entitlements/features/{}", id,);
 
     // Build request
     let builder = client
@@ -32424,7 +32146,7 @@ pub fn post_v1_entitlements_features_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_entitlements_features_id_builder(client, args.id.clone())?;
+    let builder = post_v1_entitlements_features_id_builder(client, &args.id)?;
     post_v1_entitlements_features_id_execute(builder)
 }
 
@@ -32585,10 +32307,10 @@ pub fn post_v1_ephemeral_keys(
 
 pub fn delete_v1_ephemeral_keys_key_builder(
     client: &SimpleHttpClient,
-    key: String,
+    key: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/ephemeral_keys/{}", key.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/ephemeral_keys/{}", key,);
 
     // Build request
     let builder = client
@@ -32731,7 +32453,7 @@ pub fn delete_v1_ephemeral_keys_key(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_ephemeral_keys_key_builder(client, args.key.clone())?;
+    let builder = delete_v1_ephemeral_keys_key_builder(client, &args.key)?;
     delete_v1_ephemeral_keys_key_execute(builder)
 }
 
@@ -32743,44 +32465,44 @@ pub fn delete_v1_ephemeral_keys_key(
 
 pub fn get_v1_events_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    delivery_success: Option<bool>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
-    types: Option<Vec<String>>,
+    created: &Option<String>,
+    delivery_success: &Option<bool>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
+    types: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/events",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = delivery_success {
+    if let Some(val) = delivery_success.as_ref() {
         query_parts.push(format!("delivery_success={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
-    if let Some(vals) = types {
+    if let Some(vals) = types.as_ref() {
         for val in vals {
             query_parts.push(format!("types={}", val));
         }
@@ -32941,14 +32663,14 @@ pub fn get_v1_events(
 > {
     let builder = get_v1_events_builder(
         client,
-        args.created.clone(),
-        args.delivery_success.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
-        args.types.clone(),
+        &args.created,
+        &args.delivery_success,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.type_rs,
+        &args.types,
     )?;
     get_v1_events_execute(builder)
 }
@@ -32961,15 +32683,15 @@ pub fn get_v1_events(
 
 pub fn get_v1_events_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/events/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/events/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -33119,7 +32841,7 @@ pub fn get_v1_events_id(
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_events_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_events_id_builder(client, &args.id, &args.expand)?;
     get_v1_events_id_execute(builder)
 }
 
@@ -33131,28 +32853,28 @@ pub fn get_v1_events_id(
 
 pub fn get_v1_exchange_rates_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/exchange_rates",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -33303,10 +33025,10 @@ pub fn get_v1_exchange_rates(
 > {
     let builder = get_v1_exchange_rates_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_exchange_rates_execute(builder)
 }
@@ -33319,18 +33041,15 @@ pub fn get_v1_exchange_rates(
 
 pub fn get_v1_exchange_rates_rate_id_builder(
     client: &SimpleHttpClient,
-    rate_id: String,
-    expand: Option<Vec<String>>,
+    rate_id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/exchange_rates/{}",
-        rate_id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/exchange_rates/{}", rate_id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -33484,8 +33203,7 @@ pub fn get_v1_exchange_rates_rate_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_exchange_rates_rate_id_builder(client, args.rate_id.clone(), args.expand.clone())?;
+    let builder = get_v1_exchange_rates_rate_id_builder(client, &args.rate_id, &args.expand)?;
     get_v1_exchange_rates_rate_id_execute(builder)
 }
 
@@ -33496,13 +33214,10 @@ pub fn get_v1_exchange_rates_rate_id(
 
 pub fn post_v1_external_accounts_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/external_accounts/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/external_accounts/{}", id,);
 
     // Build request
     let builder = client
@@ -33642,7 +33357,7 @@ pub fn post_v1_external_accounts_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_external_accounts_id_builder(client, args.id.clone())?;
+    let builder = post_v1_external_accounts_id_builder(client, &args.id)?;
     post_v1_external_accounts_id_execute(builder)
 }
 
@@ -33654,40 +33369,40 @@ pub fn post_v1_external_accounts_id(
 
 pub fn get_v1_file_links_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    expired: Option<bool>,
-    file: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    expired: &Option<bool>,
+    file: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/file_links",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = expired {
+    if let Some(val) = expired.as_ref() {
         query_parts.push(format!("expired={}", val));
     }
-    if let Some(val) = file {
+    if let Some(val) = file.as_ref() {
         query_parts.push(format!("file={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -33844,13 +33559,13 @@ pub fn get_v1_file_links(
 > {
     let builder = get_v1_file_links_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.expired.clone(),
-        args.file.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.expired,
+        &args.file,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_file_links_execute(builder)
 }
@@ -34008,15 +33723,15 @@ pub fn post_v1_file_links(
 
 pub fn get_v1_file_links_link_builder(
     client: &SimpleHttpClient,
-    link: String,
-    expand: Option<Vec<String>>,
+    link: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/file_links/{}", link.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/file_links/{}", link,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -34166,7 +33881,7 @@ pub fn get_v1_file_links_link(
     impl StreamIterator<D = Result<ApiResponse<FileLink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_file_links_link_builder(client, args.link.clone(), args.expand.clone())?;
+    let builder = get_v1_file_links_link_builder(client, &args.link, &args.expand)?;
     get_v1_file_links_link_execute(builder)
 }
 
@@ -34178,10 +33893,10 @@ pub fn get_v1_file_links_link(
 
 pub fn post_v1_file_links_link_builder(
     client: &SimpleHttpClient,
-    link: String,
+    link: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/file_links/{}", link.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/file_links/{}", link,);
 
     // Build request
     let builder = client
@@ -34320,7 +34035,7 @@ pub fn post_v1_file_links_link(
     impl StreamIterator<D = Result<ApiResponse<FileLink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_file_links_link_builder(client, args.link.clone())?;
+    let builder = post_v1_file_links_link_builder(client, &args.link)?;
     post_v1_file_links_link_execute(builder)
 }
 
@@ -34332,36 +34047,36 @@ pub fn post_v1_file_links_link(
 
 pub fn get_v1_files_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    purpose: Option<String>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    purpose: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/files",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = purpose {
+    if let Some(val) = purpose.as_ref() {
         query_parts.push(format!("purpose={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -34516,12 +34231,12 @@ pub fn get_v1_files(
 > {
     let builder = get_v1_files_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.purpose.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.purpose,
+        &args.starting_after,
     )?;
     get_v1_files_execute(builder)
 }
@@ -34679,15 +34394,15 @@ pub fn post_v1_files(
 
 pub fn get_v1_files_file_builder(
     client: &SimpleHttpClient,
-    file: String,
-    expand: Option<Vec<String>>,
+    file: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/files/{}", file.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/files/{}", file,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -34837,7 +34552,7 @@ pub fn get_v1_files_file(
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_files_file_builder(client, args.file.clone(), args.expand.clone())?;
+    let builder = get_v1_files_file_builder(client, &args.file, &args.expand)?;
     get_v1_files_file_execute(builder)
 }
 
@@ -34849,36 +34564,36 @@ pub fn get_v1_files_file(
 
 pub fn get_v1_financial_connections_accounts_builder(
     client: &SimpleHttpClient,
-    account_holder: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    session: Option<String>,
-    starting_after: Option<String>,
+    account_holder: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    session: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/financial_connections/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account_holder {
+    if let Some(val) = account_holder.as_ref() {
         query_parts.push(format!("account_holder={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = session {
+    if let Some(val) = session.as_ref() {
         query_parts.push(format!("session={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -35033,12 +34748,12 @@ pub fn get_v1_financial_connections_accounts(
 > {
     let builder = get_v1_financial_connections_accounts_builder(
         client,
-        args.account_holder.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.session.clone(),
-        args.starting_after.clone(),
+        &args.account_holder,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.session,
+        &args.starting_after,
     )?;
     get_v1_financial_connections_accounts_execute(builder)
 }
@@ -35051,18 +34766,18 @@ pub fn get_v1_financial_connections_accounts(
 
 pub fn get_v1_financial_connections_accounts_account_builder(
     client: &SimpleHttpClient,
-    account: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}",
-        account.as_str(),
+        account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -35220,11 +34935,8 @@ pub fn get_v1_financial_connections_accounts_account(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_financial_connections_accounts_account_builder(
-        client,
-        args.account.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_financial_connections_accounts_account_builder(client, &args.account, &args.expand)?;
     get_v1_financial_connections_accounts_account_execute(builder)
 }
 
@@ -35236,12 +34948,12 @@ pub fn get_v1_financial_connections_accounts_account(
 
 pub fn post_v1_financial_connections_accounts_account_disconnect_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}/disconnect",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -35389,10 +35101,8 @@ pub fn post_v1_financial_connections_accounts_account_disconnect(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_financial_connections_accounts_account_disconnect_builder(
-        client,
-        args.account.clone(),
-    )?;
+    let builder =
+        post_v1_financial_connections_accounts_account_disconnect_builder(client, &args.account)?;
     post_v1_financial_connections_accounts_account_disconnect_execute(builder)
 }
 
@@ -35404,36 +35114,36 @@ pub fn post_v1_financial_connections_accounts_account_disconnect(
 
 pub fn get_v1_financial_connections_accounts_account_owners_builder(
     client: &SimpleHttpClient,
-    account: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    ownership: Option<String>,
-    starting_after: Option<String>,
+    account: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    ownership: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}/owners",
-        account.as_str(),
+        account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = ownership {
+    if let Some(val) = ownership.as_ref() {
         query_parts.push(format!("ownership={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -35588,12 +35298,12 @@ pub fn get_v1_financial_connections_accounts_account_owners(
 > {
     let builder = get_v1_financial_connections_accounts_account_owners_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.ownership.clone(),
-        args.starting_after.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.ownership,
+        &args.starting_after,
     )?;
     get_v1_financial_connections_accounts_account_owners_execute(builder)
 }
@@ -35606,12 +35316,12 @@ pub fn get_v1_financial_connections_accounts_account_owners(
 
 pub fn post_v1_financial_connections_accounts_account_refresh_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}/refresh",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -35759,10 +35469,8 @@ pub fn post_v1_financial_connections_accounts_account_refresh(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_financial_connections_accounts_account_refresh_builder(
-        client,
-        args.account.clone(),
-    )?;
+    let builder =
+        post_v1_financial_connections_accounts_account_refresh_builder(client, &args.account)?;
     post_v1_financial_connections_accounts_account_refresh_execute(builder)
 }
 
@@ -35774,12 +35482,12 @@ pub fn post_v1_financial_connections_accounts_account_refresh(
 
 pub fn post_v1_financial_connections_accounts_account_subscribe_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}/subscribe",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -35927,10 +35635,8 @@ pub fn post_v1_financial_connections_accounts_account_subscribe(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_financial_connections_accounts_account_subscribe_builder(
-        client,
-        args.account.clone(),
-    )?;
+    let builder =
+        post_v1_financial_connections_accounts_account_subscribe_builder(client, &args.account)?;
     post_v1_financial_connections_accounts_account_subscribe_execute(builder)
 }
 
@@ -35942,12 +35648,12 @@ pub fn post_v1_financial_connections_accounts_account_subscribe(
 
 pub fn post_v1_financial_connections_accounts_account_unsubscribe_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{}/unsubscribe",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -36095,10 +35801,8 @@ pub fn post_v1_financial_connections_accounts_account_unsubscribe(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_financial_connections_accounts_account_unsubscribe_builder(
-        client,
-        args.account.clone(),
-    )?;
+    let builder =
+        post_v1_financial_connections_accounts_account_unsubscribe_builder(client, &args.account)?;
     post_v1_financial_connections_accounts_account_unsubscribe_execute(builder)
 }
 
@@ -36263,18 +35967,18 @@ pub fn post_v1_financial_connections_sessions(
 
 pub fn get_v1_financial_connections_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
-    expand: Option<Vec<String>>,
+    session: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/sessions/{}",
-        session.as_str(),
+        session,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -36432,11 +36136,8 @@ pub fn get_v1_financial_connections_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_financial_connections_sessions_session_builder(
-        client,
-        args.session.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_financial_connections_sessions_session_builder(client, &args.session, &args.expand)?;
     get_v1_financial_connections_sessions_session_execute(builder)
 }
 
@@ -36448,40 +36149,40 @@ pub fn get_v1_financial_connections_sessions_session(
 
 pub fn get_v1_financial_connections_transactions_builder(
     client: &SimpleHttpClient,
-    account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    transacted_at: Option<String>,
-    transaction_refresh: Option<String>,
+    account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    transacted_at: &Option<String>,
+    transaction_refresh: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/financial_connections/transactions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account {
+    if let Some(val) = account.as_ref() {
         query_parts.push(format!("account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = transacted_at {
+    if let Some(val) = transacted_at.as_ref() {
         query_parts.push(format!("transacted_at={}", val));
     }
-    if let Some(val) = transaction_refresh {
+    if let Some(val) = transaction_refresh.as_ref() {
         query_parts.push(format!("transaction_refresh={}", val));
     }
 
@@ -36638,13 +36339,13 @@ pub fn get_v1_financial_connections_transactions(
 > {
     let builder = get_v1_financial_connections_transactions_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.transacted_at.clone(),
-        args.transaction_refresh.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.transacted_at,
+        &args.transaction_refresh,
     )?;
     get_v1_financial_connections_transactions_execute(builder)
 }
@@ -36657,18 +36358,18 @@ pub fn get_v1_financial_connections_transactions(
 
 pub fn get_v1_financial_connections_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    transaction: String,
-    expand: Option<Vec<String>>,
+    transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/transactions/{}",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -36828,8 +36529,8 @@ pub fn get_v1_financial_connections_transactions_transaction(
 > {
     let builder = get_v1_financial_connections_transactions_transaction_builder(
         client,
-        args.transaction.clone(),
-        args.expand.clone(),
+        &args.transaction,
+        &args.expand,
     )?;
     get_v1_financial_connections_transactions_transaction_execute(builder)
 }
@@ -36842,32 +36543,32 @@ pub fn get_v1_financial_connections_transactions_transaction(
 
 pub fn get_v1_forwarding_requests_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/forwarding/requests",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -37020,11 +36721,11 @@ pub fn get_v1_forwarding_requests(
 > {
     let builder = get_v1_forwarding_requests_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_forwarding_requests_execute(builder)
 }
@@ -37186,18 +36887,15 @@ pub fn post_v1_forwarding_requests(
 
 pub fn get_v1_forwarding_requests_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/forwarding/requests/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/forwarding/requests/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -37351,8 +37049,7 @@ pub fn get_v1_forwarding_requests_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_forwarding_requests_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_forwarding_requests_id_builder(client, &args.id, &args.expand)?;
     get_v1_forwarding_requests_id_execute(builder)
 }
 
@@ -37364,44 +37061,44 @@ pub fn get_v1_forwarding_requests_id(
 
 pub fn get_v1_identity_verification_reports_builder(
     client: &SimpleHttpClient,
-    client_reference_id: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
-    verification_session: Option<String>,
+    client_reference_id: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
+    verification_session: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/identity/verification_reports",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_reference_id {
+    if let Some(val) = client_reference_id.as_ref() {
         query_parts.push(format!("client_reference_id={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
-    if let Some(val) = verification_session {
+    if let Some(val) = verification_session.as_ref() {
         query_parts.push(format!("verification_session={}", val));
     }
 
@@ -37560,14 +37257,14 @@ pub fn get_v1_identity_verification_reports(
 > {
     let builder = get_v1_identity_verification_reports_builder(
         client,
-        args.client_reference_id.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
-        args.verification_session.clone(),
+        &args.client_reference_id,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.type_rs,
+        &args.verification_session,
     )?;
     get_v1_identity_verification_reports_execute(builder)
 }
@@ -37580,18 +37277,18 @@ pub fn get_v1_identity_verification_reports(
 
 pub fn get_v1_identity_verification_reports_report_builder(
     client: &SimpleHttpClient,
-    report: String,
-    expand: Option<Vec<String>>,
+    report: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_reports/{}",
-        report.as_str(),
+        report,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -37749,11 +37446,8 @@ pub fn get_v1_identity_verification_reports_report(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_identity_verification_reports_report_builder(
-        client,
-        args.report.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_identity_verification_reports_report_builder(client, &args.report, &args.expand)?;
     get_v1_identity_verification_reports_report_execute(builder)
 }
 
@@ -37765,48 +37459,48 @@ pub fn get_v1_identity_verification_reports_report(
 
 pub fn get_v1_identity_verification_sessions_builder(
     client: &SimpleHttpClient,
-    client_reference_id: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    related_customer: Option<String>,
-    related_customer_account: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    client_reference_id: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    related_customer: &Option<String>,
+    related_customer_account: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/identity/verification_sessions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_reference_id {
+    if let Some(val) = client_reference_id.as_ref() {
         query_parts.push(format!("client_reference_id={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = related_customer {
+    if let Some(val) = related_customer.as_ref() {
         query_parts.push(format!("related_customer={}", val));
     }
-    if let Some(val) = related_customer_account {
+    if let Some(val) = related_customer_account.as_ref() {
         query_parts.push(format!("related_customer_account={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -37967,15 +37661,15 @@ pub fn get_v1_identity_verification_sessions(
 > {
     let builder = get_v1_identity_verification_sessions_builder(
         client,
-        args.client_reference_id.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.related_customer.clone(),
-        args.related_customer_account.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.client_reference_id,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.related_customer,
+        &args.related_customer_account,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_identity_verification_sessions_execute(builder)
 }
@@ -38141,18 +37835,18 @@ pub fn post_v1_identity_verification_sessions(
 
 pub fn get_v1_identity_verification_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
-    expand: Option<Vec<String>>,
+    session: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_sessions/{}",
-        session.as_str(),
+        session,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -38310,11 +38004,8 @@ pub fn get_v1_identity_verification_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_identity_verification_sessions_session_builder(
-        client,
-        args.session.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_identity_verification_sessions_session_builder(client, &args.session, &args.expand)?;
     get_v1_identity_verification_sessions_session_execute(builder)
 }
 
@@ -38326,12 +38017,12 @@ pub fn get_v1_identity_verification_sessions_session(
 
 pub fn post_v1_identity_verification_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
+    session: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_sessions/{}",
-        session.as_str(),
+        session,
     );
 
     // Build request
@@ -38479,8 +38170,7 @@ pub fn post_v1_identity_verification_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_identity_verification_sessions_session_builder(client, args.session.clone())?;
+    let builder = post_v1_identity_verification_sessions_session_builder(client, &args.session)?;
     post_v1_identity_verification_sessions_session_execute(builder)
 }
 
@@ -38492,12 +38182,12 @@ pub fn post_v1_identity_verification_sessions_session(
 
 pub fn post_v1_identity_verification_sessions_session_cancel_builder(
     client: &SimpleHttpClient,
-    session: String,
+    session: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_sessions/{}/cancel",
-        session.as_str(),
+        session,
     );
 
     // Build request
@@ -38645,10 +38335,8 @@ pub fn post_v1_identity_verification_sessions_session_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_identity_verification_sessions_session_cancel_builder(
-        client,
-        args.session.clone(),
-    )?;
+    let builder =
+        post_v1_identity_verification_sessions_session_cancel_builder(client, &args.session)?;
     post_v1_identity_verification_sessions_session_cancel_execute(builder)
 }
 
@@ -38660,12 +38348,12 @@ pub fn post_v1_identity_verification_sessions_session_cancel(
 
 pub fn post_v1_identity_verification_sessions_session_redact_builder(
     client: &SimpleHttpClient,
-    session: String,
+    session: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_sessions/{}/redact",
-        session.as_str(),
+        session,
     );
 
     // Build request
@@ -38813,10 +38501,8 @@ pub fn post_v1_identity_verification_sessions_session_redact(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_identity_verification_sessions_session_redact_builder(
-        client,
-        args.session.clone(),
-    )?;
+    let builder =
+        post_v1_identity_verification_sessions_session_redact_builder(client, &args.session)?;
     post_v1_identity_verification_sessions_session_redact_execute(builder)
 }
 
@@ -38828,44 +38514,44 @@ pub fn post_v1_identity_verification_sessions_session_redact(
 
 pub fn get_v1_invoice_payments_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    limit: Option<i32>,
-    payment: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    limit: &Option<i32>,
+    payment: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/invoice_payments",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment {
+    if let Some(val) = payment.as_ref() {
         query_parts.push(format!("payment={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -39024,14 +38710,14 @@ pub fn get_v1_invoice_payments(
 > {
     let builder = get_v1_invoice_payments_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.limit.clone(),
-        args.payment.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.invoice,
+        &args.limit,
+        &args.payment,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_invoice_payments_execute(builder)
 }
@@ -39044,18 +38730,18 @@ pub fn get_v1_invoice_payments(
 
 pub fn get_v1_invoice_payments_invoice_payment_builder(
     client: &SimpleHttpClient,
-    invoice_payment: String,
-    expand: Option<Vec<String>>,
+    invoice_payment: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_payments/{}",
-        invoice_payment.as_str(),
+        invoice_payment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -39211,8 +38897,8 @@ pub fn get_v1_invoice_payments_invoice_payment(
 > {
     let builder = get_v1_invoice_payments_invoice_payment_builder(
         client,
-        args.invoice_payment.clone(),
-        args.expand.clone(),
+        &args.invoice_payment,
+        &args.expand,
     )?;
     get_v1_invoice_payments_invoice_payment_execute(builder)
 }
@@ -39225,32 +38911,32 @@ pub fn get_v1_invoice_payments_invoice_payment(
 
 pub fn get_v1_invoice_rendering_templates_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/invoice_rendering_templates",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -39403,11 +39089,11 @@ pub fn get_v1_invoice_rendering_templates(
 > {
     let builder = get_v1_invoice_rendering_templates_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_invoice_rendering_templates_execute(builder)
 }
@@ -39420,24 +39106,24 @@ pub fn get_v1_invoice_rendering_templates(
 
 pub fn get_v1_invoice_rendering_templates_template_builder(
     client: &SimpleHttpClient,
-    template: String,
-    expand: Option<Vec<String>>,
-    version: Option<i32>,
+    template: &String,
+    expand: &Option<Vec<String>>,
+    version: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_rendering_templates/{}",
-        template.as_str(),
+        template,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = version {
+    if let Some(val) = version.as_ref() {
         query_parts.push(format!("version={}", val));
     }
 
@@ -39593,9 +39279,9 @@ pub fn get_v1_invoice_rendering_templates_template(
 > {
     let builder = get_v1_invoice_rendering_templates_template_builder(
         client,
-        args.template.clone(),
-        args.expand.clone(),
-        args.version.clone(),
+        &args.template,
+        &args.expand,
+        &args.version,
     )?;
     get_v1_invoice_rendering_templates_template_execute(builder)
 }
@@ -39608,12 +39294,12 @@ pub fn get_v1_invoice_rendering_templates_template(
 
 pub fn post_v1_invoice_rendering_templates_template_archive_builder(
     client: &SimpleHttpClient,
-    template: String,
+    template: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_rendering_templates/{}/archive",
-        template.as_str(),
+        template,
     );
 
     // Build request
@@ -39757,10 +39443,8 @@ pub fn post_v1_invoice_rendering_templates_template_archive(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoice_rendering_templates_template_archive_builder(
-        client,
-        args.template.clone(),
-    )?;
+    let builder =
+        post_v1_invoice_rendering_templates_template_archive_builder(client, &args.template)?;
     post_v1_invoice_rendering_templates_template_archive_execute(builder)
 }
 
@@ -39772,12 +39456,12 @@ pub fn post_v1_invoice_rendering_templates_template_archive(
 
 pub fn post_v1_invoice_rendering_templates_template_unarchive_builder(
     client: &SimpleHttpClient,
-    template: String,
+    template: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_rendering_templates/{}/unarchive",
-        template.as_str(),
+        template,
     );
 
     // Build request
@@ -39921,10 +39605,8 @@ pub fn post_v1_invoice_rendering_templates_template_unarchive(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoice_rendering_templates_template_unarchive_builder(
-        client,
-        args.template.clone(),
-    )?;
+    let builder =
+        post_v1_invoice_rendering_templates_template_unarchive_builder(client, &args.template)?;
     post_v1_invoice_rendering_templates_template_unarchive_execute(builder)
 }
 
@@ -39936,48 +39618,48 @@ pub fn post_v1_invoice_rendering_templates_template_unarchive(
 
 pub fn get_v1_invoiceitems_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    invoice: Option<String>,
-    limit: Option<i32>,
-    pending: Option<bool>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    invoice: &Option<String>,
+    limit: &Option<i32>,
+    pending: &Option<bool>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/invoiceitems",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = invoice {
+    if let Some(val) = invoice.as_ref() {
         query_parts.push(format!("invoice={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = pending {
+    if let Some(val) = pending.as_ref() {
         query_parts.push(format!("pending={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -40138,15 +39820,15 @@ pub fn get_v1_invoiceitems(
 > {
     let builder = get_v1_invoiceitems_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.invoice.clone(),
-        args.limit.clone(),
-        args.pending.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.invoice,
+        &args.limit,
+        &args.pending,
+        &args.starting_after,
     )?;
     get_v1_invoiceitems_execute(builder)
 }
@@ -40304,18 +39986,15 @@ pub fn post_v1_invoiceitems(
 
 pub fn get_v1_invoiceitems_invoiceitem_builder(
     client: &SimpleHttpClient,
-    invoiceitem: String,
-    expand: Option<Vec<String>>,
+    invoiceitem: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoiceitems/{}",
-        invoiceitem.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoiceitems/{}", invoiceitem,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -40465,11 +40144,7 @@ pub fn get_v1_invoiceitems_invoiceitem(
     impl StreamIterator<D = Result<ApiResponse<Invoiceitem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_invoiceitems_invoiceitem_builder(
-        client,
-        args.invoiceitem.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_invoiceitems_invoiceitem_builder(client, &args.invoiceitem, &args.expand)?;
     get_v1_invoiceitems_invoiceitem_execute(builder)
 }
 
@@ -40481,13 +40156,10 @@ pub fn get_v1_invoiceitems_invoiceitem(
 
 pub fn post_v1_invoiceitems_invoiceitem_builder(
     client: &SimpleHttpClient,
-    invoiceitem: String,
+    invoiceitem: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoiceitems/{}",
-        invoiceitem.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoiceitems/{}", invoiceitem,);
 
     // Build request
     let builder = client
@@ -40626,7 +40298,7 @@ pub fn post_v1_invoiceitems_invoiceitem(
     impl StreamIterator<D = Result<ApiResponse<Invoiceitem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoiceitems_invoiceitem_builder(client, args.invoiceitem.clone())?;
+    let builder = post_v1_invoiceitems_invoiceitem_builder(client, &args.invoiceitem)?;
     post_v1_invoiceitems_invoiceitem_execute(builder)
 }
 
@@ -40638,13 +40310,10 @@ pub fn post_v1_invoiceitems_invoiceitem(
 
 pub fn delete_v1_invoiceitems_invoiceitem_builder(
     client: &SimpleHttpClient,
-    invoiceitem: String,
+    invoiceitem: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoiceitems/{}",
-        invoiceitem.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoiceitems/{}", invoiceitem,);
 
     // Build request
     let builder = client
@@ -40787,7 +40456,7 @@ pub fn delete_v1_invoiceitems_invoiceitem(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_invoiceitems_invoiceitem_builder(client, args.invoiceitem.clone())?;
+    let builder = delete_v1_invoiceitems_invoiceitem_builder(client, &args.invoiceitem)?;
     delete_v1_invoiceitems_invoiceitem_execute(builder)
 }
 
@@ -40799,56 +40468,56 @@ pub fn delete_v1_invoiceitems_invoiceitem(
 
 pub fn get_v1_invoices_builder(
     client: &SimpleHttpClient,
-    collection_method: Option<String>,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    due_date: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    subscription: Option<String>,
+    collection_method: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    due_date: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/invoices",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = collection_method {
+    if let Some(val) = collection_method.as_ref() {
         query_parts.push(format!("collection_method={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = due_date {
+    if let Some(val) = due_date.as_ref() {
         query_parts.push(format!("due_date={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = subscription {
+    if let Some(val) = subscription.as_ref() {
         query_parts.push(format!("subscription={}", val));
     }
 
@@ -41013,17 +40682,17 @@ pub fn get_v1_invoices(
 > {
     let builder = get_v1_invoices_builder(
         client,
-        args.collection_method.clone(),
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.due_date.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.subscription.clone(),
+        &args.collection_method,
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.due_date,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
+        &args.subscription,
     )?;
     get_v1_invoices_execute(builder)
 }
@@ -41326,28 +40995,28 @@ pub fn post_v1_invoices_create_preview(
 
 pub fn get_v1_invoices_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/invoices/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -41496,13 +41165,8 @@ pub fn get_v1_invoices_search(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_invoices_search_builder(
-        client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
-    )?;
+    let builder =
+        get_v1_invoices_search_builder(client, &args.expand, &args.limit, &args.page, &args.query)?;
     get_v1_invoices_search_execute(builder)
 }
 
@@ -41514,15 +41178,15 @@ pub fn get_v1_invoices_search(
 
 pub fn get_v1_invoices_invoice_builder(
     client: &SimpleHttpClient,
-    invoice: String,
-    expand: Option<Vec<String>>,
+    invoice: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -41672,8 +41336,7 @@ pub fn get_v1_invoices_invoice(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_invoices_invoice_builder(client, args.invoice.clone(), args.expand.clone())?;
+    let builder = get_v1_invoices_invoice_builder(client, &args.invoice, &args.expand)?;
     get_v1_invoices_invoice_execute(builder)
 }
 
@@ -41685,10 +41348,10 @@ pub fn get_v1_invoices_invoice(
 
 pub fn post_v1_invoices_invoice_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice,);
 
     // Build request
     let builder = client
@@ -41827,7 +41490,7 @@ pub fn post_v1_invoices_invoice(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_execute(builder)
 }
 
@@ -41839,10 +41502,10 @@ pub fn post_v1_invoices_invoice(
 
 pub fn delete_v1_invoices_invoice_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}", invoice,);
 
     // Build request
     let builder = client
@@ -41985,7 +41648,7 @@ pub fn delete_v1_invoices_invoice(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_invoices_invoice_builder(client, args.invoice.clone())?;
+    let builder = delete_v1_invoices_invoice_builder(client, &args.invoice)?;
     delete_v1_invoices_invoice_execute(builder)
 }
 
@@ -41997,13 +41660,10 @@ pub fn delete_v1_invoices_invoice(
 
 pub fn post_v1_invoices_invoice_add_lines_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/add_lines",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/add_lines", invoice,);
 
     // Build request
     let builder = client
@@ -42142,7 +41802,7 @@ pub fn post_v1_invoices_invoice_add_lines(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_add_lines_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_add_lines_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_add_lines_execute(builder)
 }
 
@@ -42154,12 +41814,12 @@ pub fn post_v1_invoices_invoice_add_lines(
 
 pub fn post_v1_invoices_invoice_attach_payment_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{}/attach_payment",
-        invoice.as_str(),
+        invoice,
     );
 
     // Build request
@@ -42299,7 +41959,7 @@ pub fn post_v1_invoices_invoice_attach_payment(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_attach_payment_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_attach_payment_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_attach_payment_execute(builder)
 }
 
@@ -42311,13 +41971,10 @@ pub fn post_v1_invoices_invoice_attach_payment(
 
 pub fn post_v1_invoices_invoice_finalize_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/finalize",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/finalize", invoice,);
 
     // Build request
     let builder = client
@@ -42456,7 +42113,7 @@ pub fn post_v1_invoices_invoice_finalize(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_finalize_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_finalize_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_finalize_execute(builder)
 }
 
@@ -42468,32 +42125,29 @@ pub fn post_v1_invoices_invoice_finalize(
 
 pub fn get_v1_invoices_invoice_lines_builder(
     client: &SimpleHttpClient,
-    invoice: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    invoice: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/lines",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/lines", invoice,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -42646,11 +42300,11 @@ pub fn get_v1_invoices_invoice_lines(
 > {
     let builder = get_v1_invoices_invoice_lines_builder(
         client,
-        args.invoice.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.invoice,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_invoices_invoice_lines_execute(builder)
 }
@@ -42663,14 +42317,13 @@ pub fn get_v1_invoices_invoice_lines(
 
 pub fn post_v1_invoices_invoice_lines_line_item_id_builder(
     client: &SimpleHttpClient,
-    invoice: String,
-    line_item_id: String,
+    invoice: &String,
+    line_item_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{}/lines/{}",
-        invoice.as_str(),
-        line_item_id.as_str(),
+        invoice, line_item_id,
     );
 
     // Build request
@@ -42814,8 +42467,8 @@ pub fn post_v1_invoices_invoice_lines_line_item_id(
 > {
     let builder = post_v1_invoices_invoice_lines_line_item_id_builder(
         client,
-        args.invoice.clone(),
-        args.line_item_id.clone(),
+        &args.invoice,
+        &args.line_item_id,
     )?;
     post_v1_invoices_invoice_lines_line_item_id_execute(builder)
 }
@@ -42828,12 +42481,12 @@ pub fn post_v1_invoices_invoice_lines_line_item_id(
 
 pub fn post_v1_invoices_invoice_mark_uncollectible_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{}/mark_uncollectible",
-        invoice.as_str(),
+        invoice,
     );
 
     // Build request
@@ -42973,8 +42626,7 @@ pub fn post_v1_invoices_invoice_mark_uncollectible(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_invoices_invoice_mark_uncollectible_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_mark_uncollectible_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_mark_uncollectible_execute(builder)
 }
 
@@ -42986,13 +42638,10 @@ pub fn post_v1_invoices_invoice_mark_uncollectible(
 
 pub fn post_v1_invoices_invoice_pay_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/pay",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/pay", invoice,);
 
     // Build request
     let builder = client
@@ -43131,7 +42780,7 @@ pub fn post_v1_invoices_invoice_pay(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_pay_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_pay_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_pay_execute(builder)
 }
 
@@ -43143,12 +42792,12 @@ pub fn post_v1_invoices_invoice_pay(
 
 pub fn post_v1_invoices_invoice_remove_lines_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{}/remove_lines",
-        invoice.as_str(),
+        invoice,
     );
 
     // Build request
@@ -43288,7 +42937,7 @@ pub fn post_v1_invoices_invoice_remove_lines(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_remove_lines_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_remove_lines_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_remove_lines_execute(builder)
 }
 
@@ -43300,13 +42949,10 @@ pub fn post_v1_invoices_invoice_remove_lines(
 
 pub fn post_v1_invoices_invoice_send_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/send",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/send", invoice,);
 
     // Build request
     let builder = client
@@ -43445,7 +43091,7 @@ pub fn post_v1_invoices_invoice_send(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_send_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_send_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_send_execute(builder)
 }
 
@@ -43457,12 +43103,12 @@ pub fn post_v1_invoices_invoice_send(
 
 pub fn post_v1_invoices_invoice_update_lines_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{}/update_lines",
-        invoice.as_str(),
+        invoice,
     );
 
     // Build request
@@ -43602,7 +43248,7 @@ pub fn post_v1_invoices_invoice_update_lines(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_update_lines_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_update_lines_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_update_lines_execute(builder)
 }
 
@@ -43614,13 +43260,10 @@ pub fn post_v1_invoices_invoice_update_lines(
 
 pub fn post_v1_invoices_invoice_void_builder(
     client: &SimpleHttpClient,
-    invoice: String,
+    invoice: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/invoices/{}/void",
-        invoice.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/invoices/{}/void", invoice,);
 
     // Build request
     let builder = client
@@ -43759,7 +43402,7 @@ pub fn post_v1_invoices_invoice_void(
     impl StreamIterator<D = Result<ApiResponse<Invoice>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_invoices_invoice_void_builder(client, args.invoice.clone())?;
+    let builder = post_v1_invoices_invoice_void_builder(client, &args.invoice)?;
     post_v1_invoices_invoice_void_execute(builder)
 }
 
@@ -43771,44 +43414,44 @@ pub fn post_v1_invoices_invoice_void(
 
 pub fn get_v1_issuing_authorizations_builder(
     client: &SimpleHttpClient,
-    card: Option<String>,
-    cardholder: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    card: &Option<String>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/authorizations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = card {
+    if let Some(val) = card.as_ref() {
         query_parts.push(format!("card={}", val));
     }
-    if let Some(val) = cardholder {
+    if let Some(val) = cardholder.as_ref() {
         query_parts.push(format!("cardholder={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -43967,14 +43610,14 @@ pub fn get_v1_issuing_authorizations(
 > {
     let builder = get_v1_issuing_authorizations_builder(
         client,
-        args.card.clone(),
-        args.cardholder.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.card,
+        &args.cardholder,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_issuing_authorizations_execute(builder)
 }
@@ -43987,18 +43630,18 @@ pub fn get_v1_issuing_authorizations(
 
 pub fn get_v1_issuing_authorizations_authorization_builder(
     client: &SimpleHttpClient,
-    authorization: String,
-    expand: Option<Vec<String>>,
+    authorization: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/authorizations/{}",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -44154,8 +43797,8 @@ pub fn get_v1_issuing_authorizations_authorization(
 > {
     let builder = get_v1_issuing_authorizations_authorization_builder(
         client,
-        args.authorization.clone(),
-        args.expand.clone(),
+        &args.authorization,
+        &args.expand,
     )?;
     get_v1_issuing_authorizations_authorization_execute(builder)
 }
@@ -44168,12 +43811,12 @@ pub fn get_v1_issuing_authorizations_authorization(
 
 pub fn post_v1_issuing_authorizations_authorization_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/authorizations/{}",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -44318,7 +43961,7 @@ pub fn post_v1_issuing_authorizations_authorization(
     ApiError,
 > {
     let builder =
-        post_v1_issuing_authorizations_authorization_builder(client, args.authorization.clone())?;
+        post_v1_issuing_authorizations_authorization_builder(client, &args.authorization)?;
     post_v1_issuing_authorizations_authorization_execute(builder)
 }
 
@@ -44330,12 +43973,12 @@ pub fn post_v1_issuing_authorizations_authorization(
 
 pub fn post_v1_issuing_authorizations_authorization_approve_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/authorizations/{}/approve",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -44479,10 +44122,8 @@ pub fn post_v1_issuing_authorizations_authorization_approve(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_authorizations_authorization_approve_builder(
-        client,
-        args.authorization.clone(),
-    )?;
+    let builder =
+        post_v1_issuing_authorizations_authorization_approve_builder(client, &args.authorization)?;
     post_v1_issuing_authorizations_authorization_approve_execute(builder)
 }
 
@@ -44494,12 +44135,12 @@ pub fn post_v1_issuing_authorizations_authorization_approve(
 
 pub fn post_v1_issuing_authorizations_authorization_decline_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/authorizations/{}/decline",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -44643,10 +44284,8 @@ pub fn post_v1_issuing_authorizations_authorization_decline(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_authorizations_authorization_decline_builder(
-        client,
-        args.authorization.clone(),
-    )?;
+    let builder =
+        post_v1_issuing_authorizations_authorization_decline_builder(client, &args.authorization)?;
     post_v1_issuing_authorizations_authorization_decline_execute(builder)
 }
 
@@ -44658,48 +44297,48 @@ pub fn post_v1_issuing_authorizations_authorization_decline(
 
 pub fn get_v1_issuing_cardholders_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    email: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    phone_number: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    type_rs: Option<String>,
+    created: &Option<String>,
+    email: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    phone_number: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/cardholders",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = email {
+    if let Some(val) = email.as_ref() {
         query_parts.push(format!("email={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = phone_number {
+    if let Some(val) = phone_number.as_ref() {
         query_parts.push(format!("phone_number={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -44860,15 +44499,15 @@ pub fn get_v1_issuing_cardholders(
 > {
     let builder = get_v1_issuing_cardholders_builder(
         client,
-        args.created.clone(),
-        args.email.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.phone_number.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.type_rs.clone(),
+        &args.created,
+        &args.email,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.phone_number,
+        &args.starting_after,
+        &args.status,
+        &args.type_rs,
     )?;
     get_v1_issuing_cardholders_execute(builder)
 }
@@ -45030,18 +44669,18 @@ pub fn post_v1_issuing_cardholders(
 
 pub fn get_v1_issuing_cardholders_cardholder_builder(
     client: &SimpleHttpClient,
-    cardholder: String,
-    expand: Option<Vec<String>>,
+    cardholder: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cardholders/{}",
-        cardholder.as_str(),
+        cardholder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -45195,11 +44834,8 @@ pub fn get_v1_issuing_cardholders_cardholder(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_issuing_cardholders_cardholder_builder(
-        client,
-        args.cardholder.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_issuing_cardholders_cardholder_builder(client, &args.cardholder, &args.expand)?;
     get_v1_issuing_cardholders_cardholder_execute(builder)
 }
 
@@ -45211,12 +44847,12 @@ pub fn get_v1_issuing_cardholders_cardholder(
 
 pub fn post_v1_issuing_cardholders_cardholder_builder(
     client: &SimpleHttpClient,
-    cardholder: String,
+    cardholder: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/cardholders/{}",
-        cardholder.as_str(),
+        cardholder,
     );
 
     // Build request
@@ -45360,7 +44996,7 @@ pub fn post_v1_issuing_cardholders_cardholder(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_cardholders_cardholder_builder(client, args.cardholder.clone())?;
+    let builder = post_v1_issuing_cardholders_cardholder_builder(client, &args.cardholder)?;
     post_v1_issuing_cardholders_cardholder_execute(builder)
 }
 
@@ -45372,60 +45008,60 @@ pub fn post_v1_issuing_cardholders_cardholder(
 
 pub fn get_v1_issuing_cards_builder(
     client: &SimpleHttpClient,
-    cardholder: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    exp_month: Option<i32>,
-    exp_year: Option<i32>,
-    expand: Option<Vec<String>>,
-    last4: Option<String>,
-    limit: Option<i32>,
-    personalization_design: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    type_rs: Option<String>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    exp_month: &Option<i32>,
+    exp_year: &Option<i32>,
+    expand: &Option<Vec<String>>,
+    last4: &Option<String>,
+    limit: &Option<i32>,
+    personalization_design: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/cards",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cardholder {
+    if let Some(val) = cardholder.as_ref() {
         query_parts.push(format!("cardholder={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(val) = exp_month {
+    if let Some(val) = exp_month.as_ref() {
         query_parts.push(format!("exp_month={}", val));
     }
-    if let Some(val) = exp_year {
+    if let Some(val) = exp_year.as_ref() {
         query_parts.push(format!("exp_year={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = last4 {
+    if let Some(val) = last4.as_ref() {
         query_parts.push(format!("last4={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = personalization_design {
+    if let Some(val) = personalization_design.as_ref() {
         query_parts.push(format!("personalization_design={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -45592,18 +45228,18 @@ pub fn get_v1_issuing_cards(
 > {
     let builder = get_v1_issuing_cards_builder(
         client,
-        args.cardholder.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.exp_month.clone(),
-        args.exp_year.clone(),
-        args.expand.clone(),
-        args.last4.clone(),
-        args.limit.clone(),
-        args.personalization_design.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.type_rs.clone(),
+        &args.cardholder,
+        &args.created,
+        &args.ending_before,
+        &args.exp_month,
+        &args.exp_year,
+        &args.expand,
+        &args.last4,
+        &args.limit,
+        &args.personalization_design,
+        &args.starting_after,
+        &args.status,
+        &args.type_rs,
     )?;
     get_v1_issuing_cards_execute(builder)
 }
@@ -45761,15 +45397,15 @@ pub fn post_v1_issuing_cards(
 
 pub fn get_v1_issuing_cards_card_builder(
     client: &SimpleHttpClient,
-    card: String,
-    expand: Option<Vec<String>>,
+    card: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/issuing/cards/{}", card.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/cards/{}", card,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -45919,8 +45555,7 @@ pub fn get_v1_issuing_cards_card(
     impl StreamIterator<D = Result<ApiResponse<IssuingCard>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_issuing_cards_card_builder(client, args.card.clone(), args.expand.clone())?;
+    let builder = get_v1_issuing_cards_card_builder(client, &args.card, &args.expand)?;
     get_v1_issuing_cards_card_execute(builder)
 }
 
@@ -45932,10 +45567,10 @@ pub fn get_v1_issuing_cards_card(
 
 pub fn post_v1_issuing_cards_card_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/issuing/cards/{}", card.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/cards/{}", card,);
 
     // Build request
     let builder = client
@@ -46074,7 +45709,7 @@ pub fn post_v1_issuing_cards_card(
     impl StreamIterator<D = Result<ApiResponse<IssuingCard>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_cards_card_builder(client, args.card.clone())?;
+    let builder = post_v1_issuing_cards_card_builder(client, &args.card)?;
     post_v1_issuing_cards_card_execute(builder)
 }
 
@@ -46086,40 +45721,40 @@ pub fn post_v1_issuing_cards_card(
 
 pub fn get_v1_issuing_disputes_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    transaction: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/disputes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = transaction {
+    if let Some(val) = transaction.as_ref() {
         query_parts.push(format!("transaction={}", val));
     }
 
@@ -46276,13 +45911,13 @@ pub fn get_v1_issuing_disputes(
 > {
     let builder = get_v1_issuing_disputes_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.transaction.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
+        &args.transaction,
     )?;
     get_v1_issuing_disputes_execute(builder)
 }
@@ -46444,18 +46079,15 @@ pub fn post_v1_issuing_disputes(
 
 pub fn get_v1_issuing_disputes_dispute_builder(
     client: &SimpleHttpClient,
-    dispute: String,
-    expand: Option<Vec<String>>,
+    dispute: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/issuing/disputes/{}",
-        dispute.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/disputes/{}", dispute,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -46609,8 +46241,7 @@ pub fn get_v1_issuing_disputes_dispute(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_issuing_disputes_dispute_builder(client, args.dispute.clone(), args.expand.clone())?;
+    let builder = get_v1_issuing_disputes_dispute_builder(client, &args.dispute, &args.expand)?;
     get_v1_issuing_disputes_dispute_execute(builder)
 }
 
@@ -46622,13 +46253,10 @@ pub fn get_v1_issuing_disputes_dispute(
 
 pub fn post_v1_issuing_disputes_dispute_builder(
     client: &SimpleHttpClient,
-    dispute: String,
+    dispute: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/issuing/disputes/{}",
-        dispute.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/disputes/{}", dispute,);
 
     // Build request
     let builder = client
@@ -46771,7 +46399,7 @@ pub fn post_v1_issuing_disputes_dispute(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_disputes_dispute_builder(client, args.dispute.clone())?;
+    let builder = post_v1_issuing_disputes_dispute_builder(client, &args.dispute)?;
     post_v1_issuing_disputes_dispute_execute(builder)
 }
 
@@ -46783,12 +46411,12 @@ pub fn post_v1_issuing_disputes_dispute(
 
 pub fn post_v1_issuing_disputes_dispute_submit_builder(
     client: &SimpleHttpClient,
-    dispute: String,
+    dispute: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/disputes/{}/submit",
-        dispute.as_str(),
+        dispute,
     );
 
     // Build request
@@ -46932,7 +46560,7 @@ pub fn post_v1_issuing_disputes_dispute_submit(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_disputes_dispute_submit_builder(client, args.dispute.clone())?;
+    let builder = post_v1_issuing_disputes_dispute_submit_builder(client, &args.dispute)?;
     post_v1_issuing_disputes_dispute_submit_execute(builder)
 }
 
@@ -46944,42 +46572,42 @@ pub fn post_v1_issuing_disputes_dispute_submit(
 
 pub fn get_v1_issuing_personalization_designs_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    lookup_keys: Option<Vec<String>>,
-    preferences: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    lookup_keys: &Option<Vec<String>>,
+    preferences: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/personalization_designs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = lookup_keys {
+    if let Some(vals) = lookup_keys.as_ref() {
         for val in vals {
             query_parts.push(format!("lookup_keys={}", val));
         }
     }
-    if let Some(val) = preferences {
+    if let Some(val) = preferences.as_ref() {
         query_parts.push(format!("preferences={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -47136,13 +46764,13 @@ pub fn get_v1_issuing_personalization_designs(
 > {
     let builder = get_v1_issuing_personalization_designs_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.lookup_keys.clone(),
-        args.preferences.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.lookup_keys,
+        &args.preferences,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_issuing_personalization_designs_execute(builder)
 }
@@ -47308,18 +46936,18 @@ pub fn post_v1_issuing_personalization_designs(
 
 pub fn get_v1_issuing_personalization_designs_personalization_design_builder(
     client: &SimpleHttpClient,
-    personalization_design: String,
-    expand: Option<Vec<String>>,
+    personalization_design: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs/{}",
-        personalization_design.as_str(),
+        personalization_design,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -47479,8 +47107,8 @@ pub fn get_v1_issuing_personalization_designs_personalization_design(
 > {
     let builder = get_v1_issuing_personalization_designs_personalization_design_builder(
         client,
-        args.personalization_design.clone(),
-        args.expand.clone(),
+        &args.personalization_design,
+        &args.expand,
     )?;
     get_v1_issuing_personalization_designs_personalization_design_execute(builder)
 }
@@ -47493,12 +47121,12 @@ pub fn get_v1_issuing_personalization_designs_personalization_design(
 
 pub fn post_v1_issuing_personalization_designs_personalization_design_builder(
     client: &SimpleHttpClient,
-    personalization_design: String,
+    personalization_design: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/personalization_designs/{}",
-        personalization_design.as_str(),
+        personalization_design,
     );
 
     // Build request
@@ -47648,7 +47276,7 @@ pub fn post_v1_issuing_personalization_designs_personalization_design(
 > {
     let builder = post_v1_issuing_personalization_designs_personalization_design_builder(
         client,
-        args.personalization_design.clone(),
+        &args.personalization_design,
     )?;
     post_v1_issuing_personalization_designs_personalization_design_execute(builder)
 }
@@ -47661,36 +47289,36 @@ pub fn post_v1_issuing_personalization_designs_personalization_design(
 
 pub fn get_v1_issuing_physical_bundles_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    type_rs: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/physical_bundles",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -47845,12 +47473,12 @@ pub fn get_v1_issuing_physical_bundles(
 > {
     let builder = get_v1_issuing_physical_bundles_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.type_rs.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
+        &args.type_rs,
     )?;
     get_v1_issuing_physical_bundles_execute(builder)
 }
@@ -47863,18 +47491,18 @@ pub fn get_v1_issuing_physical_bundles(
 
 pub fn get_v1_issuing_physical_bundles_physical_bundle_builder(
     client: &SimpleHttpClient,
-    physical_bundle: String,
-    expand: Option<Vec<String>>,
+    physical_bundle: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/physical_bundles/{}",
-        physical_bundle.as_str(),
+        physical_bundle,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -48030,8 +47658,8 @@ pub fn get_v1_issuing_physical_bundles_physical_bundle(
 > {
     let builder = get_v1_issuing_physical_bundles_physical_bundle_builder(
         client,
-        args.physical_bundle.clone(),
-        args.expand.clone(),
+        &args.physical_bundle,
+        &args.expand,
     )?;
     get_v1_issuing_physical_bundles_physical_bundle_execute(builder)
 }
@@ -48044,18 +47672,18 @@ pub fn get_v1_issuing_physical_bundles_physical_bundle(
 
 pub fn get_v1_issuing_settlements_settlement_builder(
     client: &SimpleHttpClient,
-    settlement: String,
-    expand: Option<Vec<String>>,
+    settlement: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/settlements/{}",
-        settlement.as_str(),
+        settlement,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -48209,11 +47837,8 @@ pub fn get_v1_issuing_settlements_settlement(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_issuing_settlements_settlement_builder(
-        client,
-        args.settlement.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_issuing_settlements_settlement_builder(client, &args.settlement, &args.expand)?;
     get_v1_issuing_settlements_settlement_execute(builder)
 }
 
@@ -48225,12 +47850,12 @@ pub fn get_v1_issuing_settlements_settlement(
 
 pub fn post_v1_issuing_settlements_settlement_builder(
     client: &SimpleHttpClient,
-    settlement: String,
+    settlement: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/settlements/{}",
-        settlement.as_str(),
+        settlement,
     );
 
     // Build request
@@ -48374,7 +47999,7 @@ pub fn post_v1_issuing_settlements_settlement(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_settlements_settlement_builder(client, args.settlement.clone())?;
+    let builder = post_v1_issuing_settlements_settlement_builder(client, &args.settlement)?;
     post_v1_issuing_settlements_settlement_execute(builder)
 }
 
@@ -48386,40 +48011,40 @@ pub fn post_v1_issuing_settlements_settlement(
 
 pub fn get_v1_issuing_tokens_builder(
     client: &SimpleHttpClient,
-    card: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    card: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/tokens",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = card {
+    if let Some(val) = card.as_ref() {
         query_parts.push(format!("card={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -48576,13 +48201,13 @@ pub fn get_v1_issuing_tokens(
 > {
     let builder = get_v1_issuing_tokens_builder(
         client,
-        args.card.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.card,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_issuing_tokens_execute(builder)
 }
@@ -48595,18 +48220,15 @@ pub fn get_v1_issuing_tokens(
 
 pub fn get_v1_issuing_tokens_token_builder(
     client: &SimpleHttpClient,
-    token: String,
-    expand: Option<Vec<String>>,
+    token: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/issuing/tokens/{}",
-        token.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/tokens/{}", token,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -48760,8 +48382,7 @@ pub fn get_v1_issuing_tokens_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_issuing_tokens_token_builder(client, args.token.clone(), args.expand.clone())?;
+    let builder = get_v1_issuing_tokens_token_builder(client, &args.token, &args.expand)?;
     get_v1_issuing_tokens_token_execute(builder)
 }
 
@@ -48773,13 +48394,10 @@ pub fn get_v1_issuing_tokens_token(
 
 pub fn post_v1_issuing_tokens_token_builder(
     client: &SimpleHttpClient,
-    token: String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/issuing/tokens/{}",
-        token.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/issuing/tokens/{}", token,);
 
     // Build request
     let builder = client
@@ -48922,7 +48540,7 @@ pub fn post_v1_issuing_tokens_token(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_issuing_tokens_token_builder(client, args.token.clone())?;
+    let builder = post_v1_issuing_tokens_token_builder(client, &args.token)?;
     post_v1_issuing_tokens_token_execute(builder)
 }
 
@@ -48934,44 +48552,44 @@ pub fn post_v1_issuing_tokens_token(
 
 pub fn get_v1_issuing_transactions_builder(
     client: &SimpleHttpClient,
-    card: Option<String>,
-    cardholder: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    card: &Option<String>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/issuing/transactions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = card {
+    if let Some(val) = card.as_ref() {
         query_parts.push(format!("card={}", val));
     }
-    if let Some(val) = cardholder {
+    if let Some(val) = cardholder.as_ref() {
         query_parts.push(format!("cardholder={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -49130,14 +48748,14 @@ pub fn get_v1_issuing_transactions(
 > {
     let builder = get_v1_issuing_transactions_builder(
         client,
-        args.card.clone(),
-        args.cardholder.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.card,
+        &args.cardholder,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_issuing_transactions_execute(builder)
 }
@@ -49150,18 +48768,18 @@ pub fn get_v1_issuing_transactions(
 
 pub fn get_v1_issuing_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    transaction: String,
-    expand: Option<Vec<String>>,
+    transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/transactions/{}",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -49315,11 +48933,8 @@ pub fn get_v1_issuing_transactions_transaction(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_issuing_transactions_transaction_builder(
-        client,
-        args.transaction.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_issuing_transactions_transaction_builder(client, &args.transaction, &args.expand)?;
     get_v1_issuing_transactions_transaction_execute(builder)
 }
 
@@ -49331,12 +48946,12 @@ pub fn get_v1_issuing_transactions_transaction(
 
 pub fn post_v1_issuing_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    transaction: String,
+    transaction: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/transactions/{}",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
@@ -49480,8 +49095,7 @@ pub fn post_v1_issuing_transactions_transaction(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_issuing_transactions_transaction_builder(client, args.transaction.clone())?;
+    let builder = post_v1_issuing_transactions_transaction_builder(client, &args.transaction)?;
     post_v1_issuing_transactions_transaction_execute(builder)
 }
 
@@ -49646,18 +49260,18 @@ pub fn post_v1_link_account_sessions(
 
 pub fn get_v1_link_account_sessions_session_builder(
     client: &SimpleHttpClient,
-    session: String,
-    expand: Option<Vec<String>>,
+    session: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/link_account_sessions/{}",
-        session.as_str(),
+        session,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -49815,11 +49429,8 @@ pub fn get_v1_link_account_sessions_session(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_link_account_sessions_session_builder(
-        client,
-        args.session.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_link_account_sessions_session_builder(client, &args.session, &args.expand)?;
     get_v1_link_account_sessions_session_execute(builder)
 }
 
@@ -49831,36 +49442,36 @@ pub fn get_v1_link_account_sessions_session(
 
 pub fn get_v1_linked_accounts_builder(
     client: &SimpleHttpClient,
-    account_holder: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    session: Option<String>,
-    starting_after: Option<String>,
+    account_holder: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    session: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/linked_accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account_holder {
+    if let Some(val) = account_holder.as_ref() {
         query_parts.push(format!("account_holder={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = session {
+    if let Some(val) = session.as_ref() {
         query_parts.push(format!("session={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -50015,12 +49626,12 @@ pub fn get_v1_linked_accounts(
 > {
     let builder = get_v1_linked_accounts_builder(
         client,
-        args.account_holder.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.session.clone(),
-        args.starting_after.clone(),
+        &args.account_holder,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.session,
+        &args.starting_after,
     )?;
     get_v1_linked_accounts_execute(builder)
 }
@@ -50033,18 +49644,15 @@ pub fn get_v1_linked_accounts(
 
 pub fn get_v1_linked_accounts_account_builder(
     client: &SimpleHttpClient,
-    account: String,
-    expand: Option<Vec<String>>,
+    account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/linked_accounts/{}",
-        account.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/linked_accounts/{}", account,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -50202,8 +49810,7 @@ pub fn get_v1_linked_accounts_account(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_linked_accounts_account_builder(client, args.account.clone(), args.expand.clone())?;
+    let builder = get_v1_linked_accounts_account_builder(client, &args.account, &args.expand)?;
     get_v1_linked_accounts_account_execute(builder)
 }
 
@@ -50215,12 +49822,12 @@ pub fn get_v1_linked_accounts_account(
 
 pub fn post_v1_linked_accounts_account_disconnect_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/linked_accounts/{}/disconnect",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -50368,7 +49975,7 @@ pub fn post_v1_linked_accounts_account_disconnect(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_linked_accounts_account_disconnect_builder(client, args.account.clone())?;
+    let builder = post_v1_linked_accounts_account_disconnect_builder(client, &args.account)?;
     post_v1_linked_accounts_account_disconnect_execute(builder)
 }
 
@@ -50380,36 +49987,36 @@ pub fn post_v1_linked_accounts_account_disconnect(
 
 pub fn get_v1_linked_accounts_account_owners_builder(
     client: &SimpleHttpClient,
-    account: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    ownership: Option<String>,
-    starting_after: Option<String>,
+    account: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    ownership: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/linked_accounts/{}/owners",
-        account.as_str(),
+        account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = ownership {
+    if let Some(val) = ownership.as_ref() {
         query_parts.push(format!("ownership={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -50564,12 +50171,12 @@ pub fn get_v1_linked_accounts_account_owners(
 > {
     let builder = get_v1_linked_accounts_account_owners_builder(
         client,
-        args.account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.ownership.clone(),
-        args.starting_after.clone(),
+        &args.account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.ownership,
+        &args.starting_after,
     )?;
     get_v1_linked_accounts_account_owners_execute(builder)
 }
@@ -50582,12 +50189,12 @@ pub fn get_v1_linked_accounts_account_owners(
 
 pub fn post_v1_linked_accounts_account_refresh_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/linked_accounts/{}/refresh",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -50735,7 +50342,7 @@ pub fn post_v1_linked_accounts_account_refresh(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_linked_accounts_account_refresh_builder(client, args.account.clone())?;
+    let builder = post_v1_linked_accounts_account_refresh_builder(client, &args.account)?;
     post_v1_linked_accounts_account_refresh_execute(builder)
 }
 
@@ -50747,15 +50354,15 @@ pub fn post_v1_linked_accounts_account_refresh(
 
 pub fn get_v1_mandates_mandate_builder(
     client: &SimpleHttpClient,
-    mandate: String,
-    expand: Option<Vec<String>>,
+    mandate: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/mandates/{}", mandate.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/mandates/{}", mandate,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -50905,8 +50512,7 @@ pub fn get_v1_mandates_mandate(
     impl StreamIterator<D = Result<ApiResponse<Mandate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_mandates_mandate_builder(client, args.mandate.clone(), args.expand.clone())?;
+    let builder = get_v1_mandates_mandate_builder(client, &args.mandate, &args.expand)?;
     get_v1_mandates_mandate_execute(builder)
 }
 
@@ -50918,28 +50524,28 @@ pub fn get_v1_mandates_mandate(
 
 pub fn get_v1_payment_attempt_records_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_record: Option<String>,
-    starting_after: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_record: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_attempt_records",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_record {
+    if let Some(val) = payment_record.as_ref() {
         query_parts.push(format!("payment_record={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -51090,10 +50696,10 @@ pub fn get_v1_payment_attempt_records(
 > {
     let builder = get_v1_payment_attempt_records_builder(
         client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_record.clone(),
-        args.starting_after.clone(),
+        &args.expand,
+        &args.limit,
+        &args.payment_record,
+        &args.starting_after,
     )?;
     get_v1_payment_attempt_records_execute(builder)
 }
@@ -51106,18 +50712,15 @@ pub fn get_v1_payment_attempt_records(
 
 pub fn get_v1_payment_attempt_records_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payment_attempt_records/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_attempt_records/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -51271,8 +50874,7 @@ pub fn get_v1_payment_attempt_records_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_payment_attempt_records_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_payment_attempt_records_id_builder(client, &args.id, &args.expand)?;
     get_v1_payment_attempt_records_id_execute(builder)
 }
 
@@ -51284,40 +50886,40 @@ pub fn get_v1_payment_attempt_records_id(
 
 pub fn get_v1_payment_intents_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_intents",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -51474,13 +51076,13 @@ pub fn get_v1_payment_intents(
 > {
     let builder = get_v1_payment_intents_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_intents_execute(builder)
 }
@@ -51642,28 +51244,28 @@ pub fn post_v1_payment_intents(
 
 pub fn get_v1_payment_intents_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_intents/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -51814,10 +51416,10 @@ pub fn get_v1_payment_intents_search(
 > {
     let builder = get_v1_payment_intents_search_builder(
         client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
+        &args.expand,
+        &args.limit,
+        &args.page,
+        &args.query,
     )?;
     get_v1_payment_intents_search_execute(builder)
 }
@@ -51830,22 +51432,19 @@ pub fn get_v1_payment_intents_search(
 
 pub fn get_v1_payment_intents_intent_builder(
     client: &SimpleHttpClient,
-    intent: String,
-    client_secret: Option<String>,
-    expand: Option<Vec<String>>,
+    intent: &String,
+    client_secret: &Option<String>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payment_intents/{}",
-        intent.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_intents/{}", intent,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_secret {
+    if let Some(val) = client_secret.as_ref() {
         query_parts.push(format!("client_secret={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -52003,9 +51602,9 @@ pub fn get_v1_payment_intents_intent(
 > {
     let builder = get_v1_payment_intents_intent_builder(
         client,
-        args.intent.clone(),
-        args.client_secret.clone(),
-        args.expand.clone(),
+        &args.intent,
+        &args.client_secret,
+        &args.expand,
     )?;
     get_v1_payment_intents_intent_execute(builder)
 }
@@ -52018,13 +51617,10 @@ pub fn get_v1_payment_intents_intent(
 
 pub fn post_v1_payment_intents_intent_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payment_intents/{}",
-        intent.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_intents/{}", intent,);
 
     // Build request
     let builder = client
@@ -52167,7 +51763,7 @@ pub fn post_v1_payment_intents_intent(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_intents_intent_builder(client, args.intent.clone())?;
+    let builder = post_v1_payment_intents_intent_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_execute(builder)
 }
 
@@ -52179,32 +51775,32 @@ pub fn post_v1_payment_intents_intent(
 
 pub fn get_v1_payment_intents_intent_amount_details_line_items_builder(
     client: &SimpleHttpClient,
-    intent: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    intent: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/amount_details_line_items",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -52357,11 +51953,11 @@ pub fn get_v1_payment_intents_intent_amount_details_line_items(
 > {
     let builder = get_v1_payment_intents_intent_amount_details_line_items_builder(
         client,
-        args.intent.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.intent,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_intents_intent_amount_details_line_items_execute(builder)
 }
@@ -52374,12 +51970,12 @@ pub fn get_v1_payment_intents_intent_amount_details_line_items(
 
 pub fn post_v1_payment_intents_intent_apply_customer_balance_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/apply_customer_balance",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -52524,7 +52120,7 @@ pub fn post_v1_payment_intents_intent_apply_customer_balance(
     ApiError,
 > {
     let builder =
-        post_v1_payment_intents_intent_apply_customer_balance_builder(client, args.intent.clone())?;
+        post_v1_payment_intents_intent_apply_customer_balance_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_apply_customer_balance_execute(builder)
 }
 
@@ -52536,12 +52132,12 @@ pub fn post_v1_payment_intents_intent_apply_customer_balance(
 
 pub fn post_v1_payment_intents_intent_cancel_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/cancel",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -52685,7 +52281,7 @@ pub fn post_v1_payment_intents_intent_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_intents_intent_cancel_builder(client, args.intent.clone())?;
+    let builder = post_v1_payment_intents_intent_cancel_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_cancel_execute(builder)
 }
 
@@ -52697,12 +52293,12 @@ pub fn post_v1_payment_intents_intent_cancel(
 
 pub fn post_v1_payment_intents_intent_capture_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/capture",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -52846,7 +52442,7 @@ pub fn post_v1_payment_intents_intent_capture(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_intents_intent_capture_builder(client, args.intent.clone())?;
+    let builder = post_v1_payment_intents_intent_capture_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_capture_execute(builder)
 }
 
@@ -52858,12 +52454,12 @@ pub fn post_v1_payment_intents_intent_capture(
 
 pub fn post_v1_payment_intents_intent_confirm_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/confirm",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -53007,7 +52603,7 @@ pub fn post_v1_payment_intents_intent_confirm(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_intents_intent_confirm_builder(client, args.intent.clone())?;
+    let builder = post_v1_payment_intents_intent_confirm_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_confirm_execute(builder)
 }
 
@@ -53019,12 +52615,12 @@ pub fn post_v1_payment_intents_intent_confirm(
 
 pub fn post_v1_payment_intents_intent_increment_authorization_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/increment_authorization",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -53168,10 +52764,8 @@ pub fn post_v1_payment_intents_intent_increment_authorization(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_intents_intent_increment_authorization_builder(
-        client,
-        args.intent.clone(),
-    )?;
+    let builder =
+        post_v1_payment_intents_intent_increment_authorization_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_increment_authorization_execute(builder)
 }
 
@@ -53183,12 +52777,12 @@ pub fn post_v1_payment_intents_intent_increment_authorization(
 
 pub fn post_v1_payment_intents_intent_verify_microdeposits_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{}/verify_microdeposits",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -53333,7 +52927,7 @@ pub fn post_v1_payment_intents_intent_verify_microdeposits(
     ApiError,
 > {
     let builder =
-        post_v1_payment_intents_intent_verify_microdeposits_builder(client, args.intent.clone())?;
+        post_v1_payment_intents_intent_verify_microdeposits_builder(client, &args.intent)?;
     post_v1_payment_intents_intent_verify_microdeposits_execute(builder)
 }
 
@@ -53345,32 +52939,32 @@ pub fn post_v1_payment_intents_intent_verify_microdeposits(
 
 pub fn get_v1_payment_links_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_links",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -53523,11 +53117,11 @@ pub fn get_v1_payment_links(
 > {
     let builder = get_v1_payment_links_builder(
         client,
-        args.active.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_links_execute(builder)
 }
@@ -53685,18 +53279,15 @@ pub fn post_v1_payment_links(
 
 pub fn get_v1_payment_links_payment_link_builder(
     client: &SimpleHttpClient,
-    payment_link: String,
-    expand: Option<Vec<String>>,
+    payment_link: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payment_links/{}",
-        payment_link.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_links/{}", payment_link,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -53846,11 +53437,8 @@ pub fn get_v1_payment_links_payment_link(
     impl StreamIterator<D = Result<ApiResponse<PaymentLink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_payment_links_payment_link_builder(
-        client,
-        args.payment_link.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_payment_links_payment_link_builder(client, &args.payment_link, &args.expand)?;
     get_v1_payment_links_payment_link_execute(builder)
 }
 
@@ -53862,13 +53450,10 @@ pub fn get_v1_payment_links_payment_link(
 
 pub fn post_v1_payment_links_payment_link_builder(
     client: &SimpleHttpClient,
-    payment_link: String,
+    payment_link: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payment_links/{}",
-        payment_link.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_links/{}", payment_link,);
 
     // Build request
     let builder = client
@@ -54007,7 +53592,7 @@ pub fn post_v1_payment_links_payment_link(
     impl StreamIterator<D = Result<ApiResponse<PaymentLink>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_links_payment_link_builder(client, args.payment_link.clone())?;
+    let builder = post_v1_payment_links_payment_link_builder(client, &args.payment_link)?;
     post_v1_payment_links_payment_link_execute(builder)
 }
 
@@ -54019,32 +53604,32 @@ pub fn post_v1_payment_links_payment_link(
 
 pub fn get_v1_payment_links_payment_link_line_items_builder(
     client: &SimpleHttpClient,
-    payment_link: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    payment_link: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_links/{}/line_items",
-        payment_link.as_str(),
+        payment_link,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -54197,11 +53782,11 @@ pub fn get_v1_payment_links_payment_link_line_items(
 > {
     let builder = get_v1_payment_links_payment_link_line_items_builder(
         client,
-        args.payment_link.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.payment_link,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_links_payment_link_line_items_execute(builder)
 }
@@ -54214,32 +53799,32 @@ pub fn get_v1_payment_links_payment_link_line_items(
 
 pub fn get_v1_payment_method_configurations_builder(
     client: &SimpleHttpClient,
-    application: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    application: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_method_configurations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = application {
+    if let Some(val) = application.as_ref() {
         query_parts.push(format!("application={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -54392,11 +53977,11 @@ pub fn get_v1_payment_method_configurations(
 > {
     let builder = get_v1_payment_method_configurations_builder(
         client,
-        args.application.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.application,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_method_configurations_execute(builder)
 }
@@ -54562,18 +54147,18 @@ pub fn post_v1_payment_method_configurations(
 
 pub fn get_v1_payment_method_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
-    expand: Option<Vec<String>>,
+    configuration: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -54733,8 +54318,8 @@ pub fn get_v1_payment_method_configurations_configuration(
 > {
     let builder = get_v1_payment_method_configurations_configuration_builder(
         client,
-        args.configuration.clone(),
-        args.expand.clone(),
+        &args.configuration,
+        &args.expand,
     )?;
     get_v1_payment_method_configurations_configuration_execute(builder)
 }
@@ -54747,12 +54332,12 @@ pub fn get_v1_payment_method_configurations_configuration(
 
 pub fn post_v1_payment_method_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
+    configuration: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
@@ -54900,10 +54485,8 @@ pub fn post_v1_payment_method_configurations_configuration(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_method_configurations_configuration_builder(
-        client,
-        args.configuration.clone(),
-    )?;
+    let builder =
+        post_v1_payment_method_configurations_configuration_builder(client, &args.configuration)?;
     post_v1_payment_method_configurations_configuration_execute(builder)
 }
 
@@ -54915,36 +54498,36 @@ pub fn post_v1_payment_method_configurations_configuration(
 
 pub fn get_v1_payment_method_domains_builder(
     client: &SimpleHttpClient,
-    domain_name: Option<String>,
-    enabled: Option<bool>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    domain_name: &Option<String>,
+    enabled: &Option<bool>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_method_domains",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = domain_name {
+    if let Some(val) = domain_name.as_ref() {
         query_parts.push(format!("domain_name={}", val));
     }
-    if let Some(val) = enabled {
+    if let Some(val) = enabled.as_ref() {
         query_parts.push(format!("enabled={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -55099,12 +54682,12 @@ pub fn get_v1_payment_method_domains(
 > {
     let builder = get_v1_payment_method_domains_builder(
         client,
-        args.domain_name.clone(),
-        args.enabled.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.domain_name,
+        &args.enabled,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_payment_method_domains_execute(builder)
 }
@@ -55266,18 +54849,18 @@ pub fn post_v1_payment_method_domains(
 
 pub fn get_v1_payment_method_domains_payment_method_domain_builder(
     client: &SimpleHttpClient,
-    payment_method_domain: String,
-    expand: Option<Vec<String>>,
+    payment_method_domain: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_domains/{}",
-        payment_method_domain.as_str(),
+        payment_method_domain,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -55433,8 +55016,8 @@ pub fn get_v1_payment_method_domains_payment_method_domain(
 > {
     let builder = get_v1_payment_method_domains_payment_method_domain_builder(
         client,
-        args.payment_method_domain.clone(),
-        args.expand.clone(),
+        &args.payment_method_domain,
+        &args.expand,
     )?;
     get_v1_payment_method_domains_payment_method_domain_execute(builder)
 }
@@ -55447,12 +55030,12 @@ pub fn get_v1_payment_method_domains_payment_method_domain(
 
 pub fn post_v1_payment_method_domains_payment_method_domain_builder(
     client: &SimpleHttpClient,
-    payment_method_domain: String,
+    payment_method_domain: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_domains/{}",
-        payment_method_domain.as_str(),
+        payment_method_domain,
     );
 
     // Build request
@@ -55598,7 +55181,7 @@ pub fn post_v1_payment_method_domains_payment_method_domain(
 > {
     let builder = post_v1_payment_method_domains_payment_method_domain_builder(
         client,
-        args.payment_method_domain.clone(),
+        &args.payment_method_domain,
     )?;
     post_v1_payment_method_domains_payment_method_domain_execute(builder)
 }
@@ -55611,12 +55194,12 @@ pub fn post_v1_payment_method_domains_payment_method_domain(
 
 pub fn post_v1_payment_method_domains_payment_method_domain_validate_builder(
     client: &SimpleHttpClient,
-    payment_method_domain: String,
+    payment_method_domain: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_domains/{}/validate",
-        payment_method_domain.as_str(),
+        payment_method_domain,
     );
 
     // Build request
@@ -55762,7 +55345,7 @@ pub fn post_v1_payment_method_domains_payment_method_domain_validate(
 > {
     let builder = post_v1_payment_method_domains_payment_method_domain_validate_builder(
         client,
-        args.payment_method_domain.clone(),
+        &args.payment_method_domain,
     )?;
     post_v1_payment_method_domains_payment_method_domain_validate_execute(builder)
 }
@@ -55775,44 +55358,44 @@ pub fn post_v1_payment_method_domains_payment_method_domain_validate(
 
 pub fn get_v1_payment_methods_builder(
     client: &SimpleHttpClient,
-    allow_redisplay: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    allow_redisplay: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payment_methods",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allow_redisplay {
+    if let Some(val) = allow_redisplay.as_ref() {
         query_parts.push(format!("allow_redisplay={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -55971,14 +55554,14 @@ pub fn get_v1_payment_methods(
 > {
     let builder = get_v1_payment_methods_builder(
         client,
-        args.allow_redisplay.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.allow_redisplay,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_payment_methods_execute(builder)
 }
@@ -56140,18 +55723,18 @@ pub fn post_v1_payment_methods(
 
 pub fn get_v1_payment_methods_payment_method_builder(
     client: &SimpleHttpClient,
-    payment_method: String,
-    expand: Option<Vec<String>>,
+    payment_method: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_methods/{}",
-        payment_method.as_str(),
+        payment_method,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -56305,11 +55888,8 @@ pub fn get_v1_payment_methods_payment_method(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_payment_methods_payment_method_builder(
-        client,
-        args.payment_method.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_payment_methods_payment_method_builder(client, &args.payment_method, &args.expand)?;
     get_v1_payment_methods_payment_method_execute(builder)
 }
 
@@ -56321,12 +55901,12 @@ pub fn get_v1_payment_methods_payment_method(
 
 pub fn post_v1_payment_methods_payment_method_builder(
     client: &SimpleHttpClient,
-    payment_method: String,
+    payment_method: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_methods/{}",
-        payment_method.as_str(),
+        payment_method,
     );
 
     // Build request
@@ -56470,8 +56050,7 @@ pub fn post_v1_payment_methods_payment_method(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_payment_methods_payment_method_builder(client, args.payment_method.clone())?;
+    let builder = post_v1_payment_methods_payment_method_builder(client, &args.payment_method)?;
     post_v1_payment_methods_payment_method_execute(builder)
 }
 
@@ -56483,12 +56062,12 @@ pub fn post_v1_payment_methods_payment_method(
 
 pub fn post_v1_payment_methods_payment_method_attach_builder(
     client: &SimpleHttpClient,
-    payment_method: String,
+    payment_method: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_methods/{}/attach",
-        payment_method.as_str(),
+        payment_method,
     );
 
     // Build request
@@ -56633,7 +56212,7 @@ pub fn post_v1_payment_methods_payment_method_attach(
     ApiError,
 > {
     let builder =
-        post_v1_payment_methods_payment_method_attach_builder(client, args.payment_method.clone())?;
+        post_v1_payment_methods_payment_method_attach_builder(client, &args.payment_method)?;
     post_v1_payment_methods_payment_method_attach_execute(builder)
 }
 
@@ -56645,12 +56224,12 @@ pub fn post_v1_payment_methods_payment_method_attach(
 
 pub fn post_v1_payment_methods_payment_method_detach_builder(
     client: &SimpleHttpClient,
-    payment_method: String,
+    payment_method: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_methods/{}/detach",
-        payment_method.as_str(),
+        payment_method,
     );
 
     // Build request
@@ -56795,7 +56374,7 @@ pub fn post_v1_payment_methods_payment_method_detach(
     ApiError,
 > {
     let builder =
-        post_v1_payment_methods_payment_method_detach_builder(client, args.payment_method.clone())?;
+        post_v1_payment_methods_payment_method_detach_builder(client, &args.payment_method)?;
     post_v1_payment_methods_payment_method_detach_execute(builder)
 }
 
@@ -56956,15 +56535,15 @@ pub fn post_v1_payment_records_report_payment(
 
 pub fn get_v1_payment_records_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/payment_records/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/payment_records/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -57118,7 +56697,7 @@ pub fn get_v1_payment_records_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_payment_records_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_payment_records_id_builder(client, &args.id, &args.expand)?;
     get_v1_payment_records_id_execute(builder)
 }
 
@@ -57130,12 +56709,12 @@ pub fn get_v1_payment_records_id(
 
 pub fn post_v1_payment_records_id_report_payment_attempt_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_payment_attempt",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -57279,8 +56858,7 @@ pub fn post_v1_payment_records_id_report_payment_attempt(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_payment_records_id_report_payment_attempt_builder(client, args.id.clone())?;
+    let builder = post_v1_payment_records_id_report_payment_attempt_builder(client, &args.id)?;
     post_v1_payment_records_id_report_payment_attempt_execute(builder)
 }
 
@@ -57292,12 +56870,12 @@ pub fn post_v1_payment_records_id_report_payment_attempt(
 
 pub fn post_v1_payment_records_id_report_payment_attempt_canceled_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_payment_attempt_canceled",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -57441,10 +57019,8 @@ pub fn post_v1_payment_records_id_report_payment_attempt_canceled(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_records_id_report_payment_attempt_canceled_builder(
-        client,
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_payment_records_id_report_payment_attempt_canceled_builder(client, &args.id)?;
     post_v1_payment_records_id_report_payment_attempt_canceled_execute(builder)
 }
 
@@ -57456,12 +57032,12 @@ pub fn post_v1_payment_records_id_report_payment_attempt_canceled(
 
 pub fn post_v1_payment_records_id_report_payment_attempt_failed_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_payment_attempt_failed",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -57606,7 +57182,7 @@ pub fn post_v1_payment_records_id_report_payment_attempt_failed(
     ApiError,
 > {
     let builder =
-        post_v1_payment_records_id_report_payment_attempt_failed_builder(client, args.id.clone())?;
+        post_v1_payment_records_id_report_payment_attempt_failed_builder(client, &args.id)?;
     post_v1_payment_records_id_report_payment_attempt_failed_execute(builder)
 }
 
@@ -57618,12 +57194,12 @@ pub fn post_v1_payment_records_id_report_payment_attempt_failed(
 
 pub fn post_v1_payment_records_id_report_payment_attempt_guaranteed_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_payment_attempt_guaranteed",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -57767,10 +57343,8 @@ pub fn post_v1_payment_records_id_report_payment_attempt_guaranteed(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_records_id_report_payment_attempt_guaranteed_builder(
-        client,
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_payment_records_id_report_payment_attempt_guaranteed_builder(client, &args.id)?;
     post_v1_payment_records_id_report_payment_attempt_guaranteed_execute(builder)
 }
 
@@ -57782,12 +57356,12 @@ pub fn post_v1_payment_records_id_report_payment_attempt_guaranteed(
 
 pub fn post_v1_payment_records_id_report_payment_attempt_informational_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_payment_attempt_informational",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -57931,10 +57505,8 @@ pub fn post_v1_payment_records_id_report_payment_attempt_informational(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_records_id_report_payment_attempt_informational_builder(
-        client,
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_payment_records_id_report_payment_attempt_informational_builder(client, &args.id)?;
     post_v1_payment_records_id_report_payment_attempt_informational_execute(builder)
 }
 
@@ -57946,12 +57518,12 @@ pub fn post_v1_payment_records_id_report_payment_attempt_informational(
 
 pub fn post_v1_payment_records_id_report_refund_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{}/report_refund",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -58095,7 +57667,7 @@ pub fn post_v1_payment_records_id_report_refund(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_payment_records_id_report_refund_builder(client, args.id.clone())?;
+    let builder = post_v1_payment_records_id_report_refund_builder(client, &args.id)?;
     post_v1_payment_records_id_report_refund_execute(builder)
 }
 
@@ -58107,44 +57679,44 @@ pub fn post_v1_payment_records_id_report_refund(
 
 pub fn get_v1_payouts_builder(
     client: &SimpleHttpClient,
-    arrival_date: Option<String>,
-    created: Option<String>,
-    destination: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    arrival_date: &Option<String>,
+    created: &Option<String>,
+    destination: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/payouts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = arrival_date {
+    if let Some(val) = arrival_date.as_ref() {
         query_parts.push(format!("arrival_date={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = destination {
+    if let Some(val) = destination.as_ref() {
         query_parts.push(format!("destination={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -58303,14 +57875,14 @@ pub fn get_v1_payouts(
 > {
     let builder = get_v1_payouts_builder(
         client,
-        args.arrival_date.clone(),
-        args.created.clone(),
-        args.destination.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.arrival_date,
+        &args.created,
+        &args.destination,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_payouts_execute(builder)
 }
@@ -58468,15 +58040,15 @@ pub fn post_v1_payouts(
 
 pub fn get_v1_payouts_payout_builder(
     client: &SimpleHttpClient,
-    payout: String,
-    expand: Option<Vec<String>>,
+    payout: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}", payout.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}", payout,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -58626,7 +58198,7 @@ pub fn get_v1_payouts_payout(
     impl StreamIterator<D = Result<ApiResponse<Payout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_payouts_payout_builder(client, args.payout.clone(), args.expand.clone())?;
+    let builder = get_v1_payouts_payout_builder(client, &args.payout, &args.expand)?;
     get_v1_payouts_payout_execute(builder)
 }
 
@@ -58638,10 +58210,10 @@ pub fn get_v1_payouts_payout(
 
 pub fn post_v1_payouts_payout_builder(
     client: &SimpleHttpClient,
-    payout: String,
+    payout: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}", payout.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}", payout,);
 
     // Build request
     let builder = client
@@ -58780,7 +58352,7 @@ pub fn post_v1_payouts_payout(
     impl StreamIterator<D = Result<ApiResponse<Payout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_payouts_payout_builder(client, args.payout.clone())?;
+    let builder = post_v1_payouts_payout_builder(client, &args.payout)?;
     post_v1_payouts_payout_execute(builder)
 }
 
@@ -58792,13 +58364,10 @@ pub fn post_v1_payouts_payout(
 
 pub fn post_v1_payouts_payout_cancel_builder(
     client: &SimpleHttpClient,
-    payout: String,
+    payout: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payouts/{}/cancel",
-        payout.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}/cancel", payout,);
 
     // Build request
     let builder = client
@@ -58937,7 +58506,7 @@ pub fn post_v1_payouts_payout_cancel(
     impl StreamIterator<D = Result<ApiResponse<Payout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_payouts_payout_cancel_builder(client, args.payout.clone())?;
+    let builder = post_v1_payouts_payout_cancel_builder(client, &args.payout)?;
     post_v1_payouts_payout_cancel_execute(builder)
 }
 
@@ -58949,13 +58518,10 @@ pub fn post_v1_payouts_payout_cancel(
 
 pub fn post_v1_payouts_payout_reverse_builder(
     client: &SimpleHttpClient,
-    payout: String,
+    payout: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/payouts/{}/reverse",
-        payout.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/payouts/{}/reverse", payout,);
 
     // Build request
     let builder = client
@@ -59094,7 +58660,7 @@ pub fn post_v1_payouts_payout_reverse(
     impl StreamIterator<D = Result<ApiResponse<Payout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_payouts_payout_reverse_builder(client, args.payout.clone())?;
+    let builder = post_v1_payouts_payout_reverse_builder(client, &args.payout)?;
     post_v1_payouts_payout_reverse_execute(builder)
 }
 
@@ -59106,40 +58672,40 @@ pub fn post_v1_payouts_payout_reverse(
 
 pub fn get_v1_plans_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    product: Option<String>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    product: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/plans",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -59296,13 +58862,13 @@ pub fn get_v1_plans(
 > {
     let builder = get_v1_plans_builder(
         client,
-        args.active.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.product.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.product,
+        &args.starting_after,
     )?;
     get_v1_plans_execute(builder)
 }
@@ -59460,15 +59026,15 @@ pub fn post_v1_plans(
 
 pub fn get_v1_plans_plan_builder(
     client: &SimpleHttpClient,
-    plan: String,
-    expand: Option<Vec<String>>,
+    plan: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -59618,7 +59184,7 @@ pub fn get_v1_plans_plan(
     impl StreamIterator<D = Result<ApiResponse<Plan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_plans_plan_builder(client, args.plan.clone(), args.expand.clone())?;
+    let builder = get_v1_plans_plan_builder(client, &args.plan, &args.expand)?;
     get_v1_plans_plan_execute(builder)
 }
 
@@ -59630,10 +59196,10 @@ pub fn get_v1_plans_plan(
 
 pub fn post_v1_plans_plan_builder(
     client: &SimpleHttpClient,
-    plan: String,
+    plan: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan,);
 
     // Build request
     let builder = client
@@ -59772,7 +59338,7 @@ pub fn post_v1_plans_plan(
     impl StreamIterator<D = Result<ApiResponse<Plan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_plans_plan_builder(client, args.plan.clone())?;
+    let builder = post_v1_plans_plan_builder(client, &args.plan)?;
     post_v1_plans_plan_execute(builder)
 }
 
@@ -59784,10 +59350,10 @@ pub fn post_v1_plans_plan(
 
 pub fn delete_v1_plans_plan_builder(
     client: &SimpleHttpClient,
-    plan: String,
+    plan: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/plans/{}", plan,);
 
     // Build request
     let builder = client
@@ -59926,7 +59492,7 @@ pub fn delete_v1_plans_plan(
     impl StreamIterator<D = Result<ApiResponse<DeletedPlan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_plans_plan_builder(client, args.plan.clone())?;
+    let builder = delete_v1_plans_plan_builder(client, &args.plan)?;
     delete_v1_plans_plan_execute(builder)
 }
 
@@ -59938,58 +59504,58 @@ pub fn delete_v1_plans_plan(
 
 pub fn get_v1_prices_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    created: Option<String>,
-    currency: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    lookup_keys: Option<Vec<String>>,
-    product: Option<String>,
-    recurring: Option<String>,
-    starting_after: Option<String>,
-    type_rs: Option<String>,
+    active: &Option<bool>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    lookup_keys: &Option<Vec<String>>,
+    product: &Option<String>,
+    recurring: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/prices",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = currency {
+    if let Some(val) = currency.as_ref() {
         query_parts.push(format!("currency={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = lookup_keys {
+    if let Some(vals) = lookup_keys.as_ref() {
         for val in vals {
             query_parts.push(format!("lookup_keys={}", val));
         }
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = recurring {
+    if let Some(val) = recurring.as_ref() {
         query_parts.push(format!("recurring={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -60154,17 +59720,17 @@ pub fn get_v1_prices(
 > {
     let builder = get_v1_prices_builder(
         client,
-        args.active.clone(),
-        args.created.clone(),
-        args.currency.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.lookup_keys.clone(),
-        args.product.clone(),
-        args.recurring.clone(),
-        args.starting_after.clone(),
-        args.type_rs.clone(),
+        &args.active,
+        &args.created,
+        &args.currency,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.lookup_keys,
+        &args.product,
+        &args.recurring,
+        &args.starting_after,
+        &args.type_rs,
     )?;
     get_v1_prices_execute(builder)
 }
@@ -60322,28 +59888,28 @@ pub fn post_v1_prices(
 
 pub fn get_v1_prices_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/prices/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -60492,13 +60058,8 @@ pub fn get_v1_prices_search(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_prices_search_builder(
-        client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
-    )?;
+    let builder =
+        get_v1_prices_search_builder(client, &args.expand, &args.limit, &args.page, &args.query)?;
     get_v1_prices_search_execute(builder)
 }
 
@@ -60510,15 +60071,15 @@ pub fn get_v1_prices_search(
 
 pub fn get_v1_prices_price_builder(
     client: &SimpleHttpClient,
-    price: String,
-    expand: Option<Vec<String>>,
+    price: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/prices/{}", price.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/prices/{}", price,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -60668,7 +60229,7 @@ pub fn get_v1_prices_price(
     impl StreamIterator<D = Result<ApiResponse<Price>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_prices_price_builder(client, args.price.clone(), args.expand.clone())?;
+    let builder = get_v1_prices_price_builder(client, &args.price, &args.expand)?;
     get_v1_prices_price_execute(builder)
 }
 
@@ -60680,10 +60241,10 @@ pub fn get_v1_prices_price(
 
 pub fn post_v1_prices_price_builder(
     client: &SimpleHttpClient,
-    price: String,
+    price: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/prices/{}", price.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/prices/{}", price,);
 
     // Build request
     let builder = client
@@ -60822,7 +60383,7 @@ pub fn post_v1_prices_price(
     impl StreamIterator<D = Result<ApiResponse<Price>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_prices_price_builder(client, args.price.clone())?;
+    let builder = post_v1_prices_price_builder(client, &args.price)?;
     post_v1_prices_price_execute(builder)
 }
 
@@ -60834,50 +60395,50 @@ pub fn post_v1_prices_price(
 
 pub fn get_v1_products_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    ids: Option<Vec<String>>,
-    limit: Option<i32>,
-    shippable: Option<bool>,
-    starting_after: Option<String>,
-    url: Option<String>,
+    active: &Option<bool>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    ids: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    shippable: &Option<bool>,
+    starting_after: &Option<String>,
+    url: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/products",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(vals) = ids {
+    if let Some(vals) = ids.as_ref() {
         for val in vals {
             query_parts.push(format!("ids={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = shippable {
+    if let Some(val) = shippable.as_ref() {
         query_parts.push(format!("shippable={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = url {
+    if let Some(val) = url.as_ref() {
         query_parts.push(format!("url={}", val));
     }
 
@@ -61038,15 +60599,15 @@ pub fn get_v1_products(
 > {
     let builder = get_v1_products_builder(
         client,
-        args.active.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.ids.clone(),
-        args.limit.clone(),
-        args.shippable.clone(),
-        args.starting_after.clone(),
-        args.url.clone(),
+        &args.active,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.ids,
+        &args.limit,
+        &args.shippable,
+        &args.starting_after,
+        &args.url,
     )?;
     get_v1_products_execute(builder)
 }
@@ -61204,28 +60765,28 @@ pub fn post_v1_products(
 
 pub fn get_v1_products_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/products/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -61374,13 +60935,8 @@ pub fn get_v1_products_search(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_products_search_builder(
-        client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
-    )?;
+    let builder =
+        get_v1_products_search_builder(client, &args.expand, &args.limit, &args.page, &args.query)?;
     get_v1_products_search_execute(builder)
 }
 
@@ -61392,15 +60948,15 @@ pub fn get_v1_products_search(
 
 pub fn get_v1_products_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -61550,7 +61106,7 @@ pub fn get_v1_products_id(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_products_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_products_id_builder(client, &args.id, &args.expand)?;
     get_v1_products_id_execute(builder)
 }
 
@@ -61562,10 +61118,10 @@ pub fn get_v1_products_id(
 
 pub fn post_v1_products_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id,);
 
     // Build request
     let builder = client
@@ -61704,7 +61260,7 @@ pub fn post_v1_products_id(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_products_id_builder(client, args.id.clone())?;
+    let builder = post_v1_products_id_builder(client, &args.id)?;
     post_v1_products_id_execute(builder)
 }
 
@@ -61716,10 +61272,10 @@ pub fn post_v1_products_id(
 
 pub fn delete_v1_products_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/products/{}", id,);
 
     // Build request
     let builder = client
@@ -61862,7 +61418,7 @@ pub fn delete_v1_products_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_products_id_builder(client, args.id.clone())?;
+    let builder = delete_v1_products_id_builder(client, &args.id)?;
     delete_v1_products_id_execute(builder)
 }
 
@@ -61874,32 +61430,29 @@ pub fn delete_v1_products_id(
 
 pub fn get_v1_products_product_features_builder(
     client: &SimpleHttpClient,
-    product: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    product: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{}/features",
-        product.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/products/{}/features", product,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -62052,11 +61605,11 @@ pub fn get_v1_products_product_features(
 > {
     let builder = get_v1_products_product_features_builder(
         client,
-        args.product.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.product,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_products_product_features_execute(builder)
 }
@@ -62069,13 +61622,10 @@ pub fn get_v1_products_product_features(
 
 pub fn post_v1_products_product_features_builder(
     client: &SimpleHttpClient,
-    product: String,
+    product: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{}/features",
-        product.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/products/{}/features", product,);
 
     // Build request
     let builder = client
@@ -62218,7 +61768,7 @@ pub fn post_v1_products_product_features(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_products_product_features_builder(client, args.product.clone())?;
+    let builder = post_v1_products_product_features_builder(client, &args.product)?;
     post_v1_products_product_features_execute(builder)
 }
 
@@ -62230,20 +61780,19 @@ pub fn post_v1_products_product_features(
 
 pub fn get_v1_products_product_features_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    product: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    product: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/products/{}/features/{}",
-        product.as_str(),
-        id.as_str(),
+        product, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -62399,12 +61948,8 @@ pub fn get_v1_products_product_features_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_products_product_features_id_builder(
-        client,
-        args.id.clone(),
-        args.product.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_products_product_features_id_builder(client, &args.id, &args.product, &args.expand)?;
     get_v1_products_product_features_id_execute(builder)
 }
 
@@ -62416,14 +61961,13 @@ pub fn get_v1_products_product_features_id(
 
 pub fn delete_v1_products_product_features_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    product: String,
+    id: &String,
+    product: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/products/{}/features/{}",
-        product.as_str(),
-        id.as_str(),
+        product, id,
     );
 
     // Build request
@@ -62569,11 +62113,7 @@ pub fn delete_v1_products_product_features_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_products_product_features_id_builder(
-        client,
-        args.id.clone(),
-        args.product.clone(),
-    )?;
+    let builder = delete_v1_products_product_features_id_builder(client, &args.id, &args.product)?;
     delete_v1_products_product_features_id_execute(builder)
 }
 
@@ -62585,52 +62125,52 @@ pub fn delete_v1_products_product_features_id(
 
 pub fn get_v1_promotion_codes_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    code: Option<String>,
-    coupon: Option<String>,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    code: &Option<String>,
+    coupon: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/promotion_codes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = code {
+    if let Some(val) = code.as_ref() {
         query_parts.push(format!("code={}", val));
     }
-    if let Some(val) = coupon {
+    if let Some(val) = coupon.as_ref() {
         query_parts.push(format!("coupon={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -62793,16 +62333,16 @@ pub fn get_v1_promotion_codes(
 > {
     let builder = get_v1_promotion_codes_builder(
         client,
-        args.active.clone(),
-        args.code.clone(),
-        args.coupon.clone(),
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.code,
+        &args.coupon,
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_promotion_codes_execute(builder)
 }
@@ -62964,18 +62504,18 @@ pub fn post_v1_promotion_codes(
 
 pub fn get_v1_promotion_codes_promotion_code_builder(
     client: &SimpleHttpClient,
-    promotion_code: String,
-    expand: Option<Vec<String>>,
+    promotion_code: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes/{}",
-        promotion_code.as_str(),
+        promotion_code,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -63129,11 +62669,8 @@ pub fn get_v1_promotion_codes_promotion_code(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_promotion_codes_promotion_code_builder(
-        client,
-        args.promotion_code.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_promotion_codes_promotion_code_builder(client, &args.promotion_code, &args.expand)?;
     get_v1_promotion_codes_promotion_code_execute(builder)
 }
 
@@ -63145,12 +62682,12 @@ pub fn get_v1_promotion_codes_promotion_code(
 
 pub fn post_v1_promotion_codes_promotion_code_builder(
     client: &SimpleHttpClient,
-    promotion_code: String,
+    promotion_code: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/promotion_codes/{}",
-        promotion_code.as_str(),
+        promotion_code,
     );
 
     // Build request
@@ -63294,8 +62831,7 @@ pub fn post_v1_promotion_codes_promotion_code(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_promotion_codes_promotion_code_builder(client, args.promotion_code.clone())?;
+    let builder = post_v1_promotion_codes_promotion_code_builder(client, &args.promotion_code)?;
     post_v1_promotion_codes_promotion_code_execute(builder)
 }
 
@@ -63307,44 +62843,44 @@ pub fn post_v1_promotion_codes_promotion_code(
 
 pub fn get_v1_quotes_builder(
     client: &SimpleHttpClient,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    test_clock: Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/quotes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = test_clock {
+    if let Some(val) = test_clock.as_ref() {
         query_parts.push(format!("test_clock={}", val));
     }
 
@@ -63503,14 +63039,14 @@ pub fn get_v1_quotes(
 > {
     let builder = get_v1_quotes_builder(
         client,
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.test_clock.clone(),
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
+        &args.test_clock,
     )?;
     get_v1_quotes_execute(builder)
 }
@@ -63668,15 +63204,15 @@ pub fn post_v1_quotes(
 
 pub fn get_v1_quotes_quote_builder(
     client: &SimpleHttpClient,
-    quote: String,
-    expand: Option<Vec<String>>,
+    quote: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}", quote.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}", quote,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -63826,7 +63362,7 @@ pub fn get_v1_quotes_quote(
     impl StreamIterator<D = Result<ApiResponse<Quote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_quotes_quote_builder(client, args.quote.clone(), args.expand.clone())?;
+    let builder = get_v1_quotes_quote_builder(client, &args.quote, &args.expand)?;
     get_v1_quotes_quote_execute(builder)
 }
 
@@ -63838,10 +63374,10 @@ pub fn get_v1_quotes_quote(
 
 pub fn post_v1_quotes_quote_builder(
     client: &SimpleHttpClient,
-    quote: String,
+    quote: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}", quote.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}", quote,);
 
     // Build request
     let builder = client
@@ -63980,7 +63516,7 @@ pub fn post_v1_quotes_quote(
     impl StreamIterator<D = Result<ApiResponse<Quote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_quotes_quote_builder(client, args.quote.clone())?;
+    let builder = post_v1_quotes_quote_builder(client, &args.quote)?;
     post_v1_quotes_quote_execute(builder)
 }
 
@@ -63992,13 +63528,10 @@ pub fn post_v1_quotes_quote(
 
 pub fn post_v1_quotes_quote_accept_builder(
     client: &SimpleHttpClient,
-    quote: String,
+    quote: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/quotes/{}/accept",
-        quote.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/accept", quote,);
 
     // Build request
     let builder = client
@@ -64137,7 +63670,7 @@ pub fn post_v1_quotes_quote_accept(
     impl StreamIterator<D = Result<ApiResponse<Quote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_quotes_quote_accept_builder(client, args.quote.clone())?;
+    let builder = post_v1_quotes_quote_accept_builder(client, &args.quote)?;
     post_v1_quotes_quote_accept_execute(builder)
 }
 
@@ -64149,13 +63682,10 @@ pub fn post_v1_quotes_quote_accept(
 
 pub fn post_v1_quotes_quote_cancel_builder(
     client: &SimpleHttpClient,
-    quote: String,
+    quote: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/quotes/{}/cancel",
-        quote.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/cancel", quote,);
 
     // Build request
     let builder = client
@@ -64294,7 +63824,7 @@ pub fn post_v1_quotes_quote_cancel(
     impl StreamIterator<D = Result<ApiResponse<Quote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_quotes_quote_cancel_builder(client, args.quote.clone())?;
+    let builder = post_v1_quotes_quote_cancel_builder(client, &args.quote)?;
     post_v1_quotes_quote_cancel_execute(builder)
 }
 
@@ -64306,32 +63836,32 @@ pub fn post_v1_quotes_quote_cancel(
 
 pub fn get_v1_quotes_quote_computed_upfront_line_items_builder(
     client: &SimpleHttpClient,
-    quote: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    quote: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/quotes/{}/computed_upfront_line_items",
-        quote.as_str(),
+        quote,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -64484,11 +64014,11 @@ pub fn get_v1_quotes_quote_computed_upfront_line_items(
 > {
     let builder = get_v1_quotes_quote_computed_upfront_line_items_builder(
         client,
-        args.quote.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.quote,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_quotes_quote_computed_upfront_line_items_execute(builder)
 }
@@ -64501,13 +64031,10 @@ pub fn get_v1_quotes_quote_computed_upfront_line_items(
 
 pub fn post_v1_quotes_quote_finalize_builder(
     client: &SimpleHttpClient,
-    quote: String,
+    quote: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/quotes/{}/finalize",
-        quote.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/finalize", quote,);
 
     // Build request
     let builder = client
@@ -64646,7 +64173,7 @@ pub fn post_v1_quotes_quote_finalize(
     impl StreamIterator<D = Result<ApiResponse<Quote>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_quotes_quote_finalize_builder(client, args.quote.clone())?;
+    let builder = post_v1_quotes_quote_finalize_builder(client, &args.quote)?;
     post_v1_quotes_quote_finalize_execute(builder)
 }
 
@@ -64658,32 +64185,29 @@ pub fn post_v1_quotes_quote_finalize(
 
 pub fn get_v1_quotes_quote_line_items_builder(
     client: &SimpleHttpClient,
-    quote: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    quote: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/quotes/{}/line_items",
-        quote.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/line_items", quote,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -64836,11 +64360,11 @@ pub fn get_v1_quotes_quote_line_items(
 > {
     let builder = get_v1_quotes_quote_line_items_builder(
         client,
-        args.quote.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.quote,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_quotes_quote_line_items_execute(builder)
 }
@@ -64853,15 +64377,15 @@ pub fn get_v1_quotes_quote_line_items(
 
 pub fn get_v1_quotes_quote_pdf_builder(
     client: &SimpleHttpClient,
-    quote: String,
-    expand: Option<Vec<String>>,
+    quote: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/pdf", quote.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/quotes/{}/pdf", quote,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -65008,7 +64532,7 @@ pub fn get_v1_quotes_quote_pdf(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_quotes_quote_pdf_builder(client, args.quote.clone(), args.expand.clone())?;
+    let builder = get_v1_quotes_quote_pdf_builder(client, &args.quote, &args.expand)?;
     get_v1_quotes_quote_pdf_execute(builder)
 }
 
@@ -65020,40 +64544,40 @@ pub fn get_v1_quotes_quote_pdf(
 
 pub fn get_v1_radar_early_fraud_warnings_builder(
     client: &SimpleHttpClient,
-    charge: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_intent: Option<String>,
-    starting_after: Option<String>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/radar/early_fraud_warnings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = charge {
+    if let Some(val) = charge.as_ref() {
         query_parts.push(format!("charge={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -65210,13 +64734,13 @@ pub fn get_v1_radar_early_fraud_warnings(
 > {
     let builder = get_v1_radar_early_fraud_warnings_builder(
         client,
-        args.charge.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_intent.clone(),
-        args.starting_after.clone(),
+        &args.charge,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_intent,
+        &args.starting_after,
     )?;
     get_v1_radar_early_fraud_warnings_execute(builder)
 }
@@ -65229,18 +64753,18 @@ pub fn get_v1_radar_early_fraud_warnings(
 
 pub fn get_v1_radar_early_fraud_warnings_early_fraud_warning_builder(
     client: &SimpleHttpClient,
-    early_fraud_warning: String,
-    expand: Option<Vec<String>>,
+    early_fraud_warning: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/early_fraud_warnings/{}",
-        early_fraud_warning.as_str(),
+        early_fraud_warning,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -65396,8 +64920,8 @@ pub fn get_v1_radar_early_fraud_warnings_early_fraud_warning(
 > {
     let builder = get_v1_radar_early_fraud_warnings_early_fraud_warning_builder(
         client,
-        args.early_fraud_warning.clone(),
-        args.expand.clone(),
+        &args.early_fraud_warning,
+        &args.expand,
     )?;
     get_v1_radar_early_fraud_warnings_early_fraud_warning_execute(builder)
 }
@@ -65559,40 +65083,40 @@ pub fn post_v1_radar_payment_evaluations(
 
 pub fn get_v1_radar_value_list_items_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    value: Option<String>,
-    value_list: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    value: &Option<String>,
+    value_list: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/radar/value_list_items",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = value {
+    if let Some(val) = value.as_ref() {
         query_parts.push(format!("value={}", val));
     }
-    if let Some(val) = value_list {
+    if let Some(val) = value_list.as_ref() {
         query_parts.push(format!("value_list={}", val));
     }
 
@@ -65749,13 +65273,13 @@ pub fn get_v1_radar_value_list_items(
 > {
     let builder = get_v1_radar_value_list_items_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.value.clone(),
-        args.value_list.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.value,
+        &args.value_list,
     )?;
     get_v1_radar_value_list_items_execute(builder)
 }
@@ -65917,18 +65441,15 @@ pub fn post_v1_radar_value_list_items(
 
 pub fn get_v1_radar_value_list_items_item_builder(
     client: &SimpleHttpClient,
-    item: String,
-    expand: Option<Vec<String>>,
+    item: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/radar/value_list_items/{}",
-        item.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/radar/value_list_items/{}", item,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -66082,8 +65603,7 @@ pub fn get_v1_radar_value_list_items_item(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_radar_value_list_items_item_builder(client, args.item.clone(), args.expand.clone())?;
+    let builder = get_v1_radar_value_list_items_item_builder(client, &args.item, &args.expand)?;
     get_v1_radar_value_list_items_item_execute(builder)
 }
 
@@ -66095,13 +65615,10 @@ pub fn get_v1_radar_value_list_items_item(
 
 pub fn delete_v1_radar_value_list_items_item_builder(
     client: &SimpleHttpClient,
-    item: String,
+    item: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/radar/value_list_items/{}",
-        item.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/radar/value_list_items/{}", item,);
 
     // Build request
     let builder = client
@@ -66244,7 +65761,7 @@ pub fn delete_v1_radar_value_list_items_item(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_radar_value_list_items_item_builder(client, args.item.clone())?;
+    let builder = delete_v1_radar_value_list_items_item_builder(client, &args.item)?;
     delete_v1_radar_value_list_items_item_execute(builder)
 }
 
@@ -66256,40 +65773,40 @@ pub fn delete_v1_radar_value_list_items_item(
 
 pub fn get_v1_radar_value_lists_builder(
     client: &SimpleHttpClient,
-    alias: Option<String>,
-    contains: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    alias: &Option<String>,
+    contains: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/radar/value_lists",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = alias {
+    if let Some(val) = alias.as_ref() {
         query_parts.push(format!("alias={}", val));
     }
-    if let Some(val) = contains {
+    if let Some(val) = contains.as_ref() {
         query_parts.push(format!("contains={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -66446,13 +65963,13 @@ pub fn get_v1_radar_value_lists(
 > {
     let builder = get_v1_radar_value_lists_builder(
         client,
-        args.alias.clone(),
-        args.contains.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.alias,
+        &args.contains,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_radar_value_lists_execute(builder)
 }
@@ -66614,18 +66131,18 @@ pub fn post_v1_radar_value_lists(
 
 pub fn get_v1_radar_value_lists_value_list_builder(
     client: &SimpleHttpClient,
-    value_list: String,
-    expand: Option<Vec<String>>,
+    value_list: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{}",
-        value_list.as_str(),
+        value_list,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -66779,11 +66296,8 @@ pub fn get_v1_radar_value_lists_value_list(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_radar_value_lists_value_list_builder(
-        client,
-        args.value_list.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_radar_value_lists_value_list_builder(client, &args.value_list, &args.expand)?;
     get_v1_radar_value_lists_value_list_execute(builder)
 }
 
@@ -66795,12 +66309,12 @@ pub fn get_v1_radar_value_lists_value_list(
 
 pub fn post_v1_radar_value_lists_value_list_builder(
     client: &SimpleHttpClient,
-    value_list: String,
+    value_list: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{}",
-        value_list.as_str(),
+        value_list,
     );
 
     // Build request
@@ -66944,7 +66458,7 @@ pub fn post_v1_radar_value_lists_value_list(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_radar_value_lists_value_list_builder(client, args.value_list.clone())?;
+    let builder = post_v1_radar_value_lists_value_list_builder(client, &args.value_list)?;
     post_v1_radar_value_lists_value_list_execute(builder)
 }
 
@@ -66956,12 +66470,12 @@ pub fn post_v1_radar_value_lists_value_list(
 
 pub fn delete_v1_radar_value_lists_value_list_builder(
     client: &SimpleHttpClient,
-    value_list: String,
+    value_list: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/radar/value_lists/{}",
-        value_list.as_str(),
+        value_list,
     );
 
     // Build request
@@ -67105,7 +66619,7 @@ pub fn delete_v1_radar_value_lists_value_list(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_radar_value_lists_value_list_builder(client, args.value_list.clone())?;
+    let builder = delete_v1_radar_value_lists_value_list_builder(client, &args.value_list)?;
     delete_v1_radar_value_lists_value_list_execute(builder)
 }
 
@@ -67117,40 +66631,40 @@ pub fn delete_v1_radar_value_lists_value_list(
 
 pub fn get_v1_refunds_builder(
     client: &SimpleHttpClient,
-    charge: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_intent: Option<String>,
-    starting_after: Option<String>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/refunds",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = charge {
+    if let Some(val) = charge.as_ref() {
         query_parts.push(format!("charge={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -67307,13 +66821,13 @@ pub fn get_v1_refunds(
 > {
     let builder = get_v1_refunds_builder(
         client,
-        args.charge.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_intent.clone(),
-        args.starting_after.clone(),
+        &args.charge,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_intent,
+        &args.starting_after,
     )?;
     get_v1_refunds_execute(builder)
 }
@@ -67471,15 +66985,15 @@ pub fn post_v1_refunds(
 
 pub fn get_v1_refunds_refund_builder(
     client: &SimpleHttpClient,
-    refund: String,
-    expand: Option<Vec<String>>,
+    refund: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/refunds/{}", refund.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/refunds/{}", refund,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -67629,7 +67143,7 @@ pub fn get_v1_refunds_refund(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_refunds_refund_builder(client, args.refund.clone(), args.expand.clone())?;
+    let builder = get_v1_refunds_refund_builder(client, &args.refund, &args.expand)?;
     get_v1_refunds_refund_execute(builder)
 }
 
@@ -67641,10 +67155,10 @@ pub fn get_v1_refunds_refund(
 
 pub fn post_v1_refunds_refund_builder(
     client: &SimpleHttpClient,
-    refund: String,
+    refund: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/refunds/{}", refund.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/refunds/{}", refund,);
 
     // Build request
     let builder = client
@@ -67783,7 +67297,7 @@ pub fn post_v1_refunds_refund(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_refunds_refund_builder(client, args.refund.clone())?;
+    let builder = post_v1_refunds_refund_builder(client, &args.refund)?;
     post_v1_refunds_refund_execute(builder)
 }
 
@@ -67795,13 +67309,10 @@ pub fn post_v1_refunds_refund(
 
 pub fn post_v1_refunds_refund_cancel_builder(
     client: &SimpleHttpClient,
-    refund: String,
+    refund: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/refunds/{}/cancel",
-        refund.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/refunds/{}/cancel", refund,);
 
     // Build request
     let builder = client
@@ -67940,7 +67451,7 @@ pub fn post_v1_refunds_refund_cancel(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_refunds_refund_cancel_builder(client, args.refund.clone())?;
+    let builder = post_v1_refunds_refund_cancel_builder(client, &args.refund)?;
     post_v1_refunds_refund_cancel_execute(builder)
 }
 
@@ -67952,32 +67463,32 @@ pub fn post_v1_refunds_refund_cancel(
 
 pub fn get_v1_reporting_report_runs_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/reporting/report_runs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -68130,11 +67641,11 @@ pub fn get_v1_reporting_report_runs(
 > {
     let builder = get_v1_reporting_report_runs_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_reporting_report_runs_execute(builder)
 }
@@ -68296,18 +67807,18 @@ pub fn post_v1_reporting_report_runs(
 
 pub fn get_v1_reporting_report_runs_report_run_builder(
     client: &SimpleHttpClient,
-    report_run: String,
-    expand: Option<Vec<String>>,
+    report_run: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/reporting/report_runs/{}",
-        report_run.as_str(),
+        report_run,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -68461,11 +67972,8 @@ pub fn get_v1_reporting_report_runs_report_run(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_reporting_report_runs_report_run_builder(
-        client,
-        args.report_run.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_reporting_report_runs_report_run_builder(client, &args.report_run, &args.expand)?;
     get_v1_reporting_report_runs_report_run_execute(builder)
 }
 
@@ -68477,14 +67985,14 @@ pub fn get_v1_reporting_report_runs_report_run(
 
 pub fn get_v1_reporting_report_types_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/reporting/report_types",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -68629,7 +68137,7 @@ pub fn get_v1_reporting_report_types(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_reporting_report_types_builder(client, args.expand.clone())?;
+    let builder = get_v1_reporting_report_types_builder(client, &args.expand)?;
     get_v1_reporting_report_types_execute(builder)
 }
 
@@ -68641,18 +68149,18 @@ pub fn get_v1_reporting_report_types(
 
 pub fn get_v1_reporting_report_types_report_type_builder(
     client: &SimpleHttpClient,
-    report_type: String,
-    expand: Option<Vec<String>>,
+    report_type: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/reporting/report_types/{}",
-        report_type.as_str(),
+        report_type,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -68806,11 +68314,8 @@ pub fn get_v1_reporting_report_types_report_type(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_reporting_report_types_report_type_builder(
-        client,
-        args.report_type.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_reporting_report_types_report_type_builder(client, &args.report_type, &args.expand)?;
     get_v1_reporting_report_types_report_type_execute(builder)
 }
 
@@ -68822,32 +68327,32 @@ pub fn get_v1_reporting_report_types_report_type(
 
 pub fn get_v1_reviews_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/reviews",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -69000,11 +68505,11 @@ pub fn get_v1_reviews(
 > {
     let builder = get_v1_reviews_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_reviews_execute(builder)
 }
@@ -69017,15 +68522,15 @@ pub fn get_v1_reviews(
 
 pub fn get_v1_reviews_review_builder(
     client: &SimpleHttpClient,
-    review: String,
-    expand: Option<Vec<String>>,
+    review: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/reviews/{}", review.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/reviews/{}", review,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -69175,7 +68680,7 @@ pub fn get_v1_reviews_review(
     impl StreamIterator<D = Result<ApiResponse<Review>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_reviews_review_builder(client, args.review.clone(), args.expand.clone())?;
+    let builder = get_v1_reviews_review_builder(client, &args.review, &args.expand)?;
     get_v1_reviews_review_execute(builder)
 }
 
@@ -69187,13 +68692,10 @@ pub fn get_v1_reviews_review(
 
 pub fn post_v1_reviews_review_approve_builder(
     client: &SimpleHttpClient,
-    review: String,
+    review: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/reviews/{}/approve",
-        review.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/reviews/{}/approve", review,);
 
     // Build request
     let builder = client
@@ -69332,7 +68834,7 @@ pub fn post_v1_reviews_review_approve(
     impl StreamIterator<D = Result<ApiResponse<Review>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_reviews_review_approve_builder(client, args.review.clone())?;
+    let builder = post_v1_reviews_review_approve_builder(client, &args.review)?;
     post_v1_reviews_review_approve_execute(builder)
 }
 
@@ -69344,36 +68846,36 @@ pub fn post_v1_reviews_review_approve(
 
 pub fn get_v1_setup_attempts_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    setup_intent: Option<String>,
-    starting_after: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    setup_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/setup_attempts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = setup_intent {
+    if let Some(val) = setup_intent.as_ref() {
         query_parts.push(format!("setup_intent={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -69528,12 +69030,12 @@ pub fn get_v1_setup_attempts(
 > {
     let builder = get_v1_setup_attempts_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.setup_intent.clone(),
-        args.starting_after.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.setup_intent,
+        &args.starting_after,
     )?;
     get_v1_setup_attempts_execute(builder)
 }
@@ -69546,48 +69048,48 @@ pub fn get_v1_setup_attempts(
 
 pub fn get_v1_setup_intents_builder(
     client: &SimpleHttpClient,
-    attach_to_self: Option<bool>,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    payment_method: Option<String>,
-    starting_after: Option<String>,
+    attach_to_self: &Option<bool>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    payment_method: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/setup_intents",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = attach_to_self {
+    if let Some(val) = attach_to_self.as_ref() {
         query_parts.push(format!("attach_to_self={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = payment_method {
+    if let Some(val) = payment_method.as_ref() {
         query_parts.push(format!("payment_method={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -69748,15 +69250,15 @@ pub fn get_v1_setup_intents(
 > {
     let builder = get_v1_setup_intents_builder(
         client,
-        args.attach_to_self.clone(),
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.payment_method.clone(),
-        args.starting_after.clone(),
+        &args.attach_to_self,
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.payment_method,
+        &args.starting_after,
     )?;
     get_v1_setup_intents_execute(builder)
 }
@@ -69914,22 +69416,19 @@ pub fn post_v1_setup_intents(
 
 pub fn get_v1_setup_intents_intent_builder(
     client: &SimpleHttpClient,
-    intent: String,
-    client_secret: Option<String>,
-    expand: Option<Vec<String>>,
+    intent: &String,
+    client_secret: &Option<String>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/setup_intents/{}",
-        intent.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/setup_intents/{}", intent,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_secret {
+    if let Some(val) = client_secret.as_ref() {
         query_parts.push(format!("client_secret={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -70083,9 +69582,9 @@ pub fn get_v1_setup_intents_intent(
 > {
     let builder = get_v1_setup_intents_intent_builder(
         client,
-        args.intent.clone(),
-        args.client_secret.clone(),
-        args.expand.clone(),
+        &args.intent,
+        &args.client_secret,
+        &args.expand,
     )?;
     get_v1_setup_intents_intent_execute(builder)
 }
@@ -70098,13 +69597,10 @@ pub fn get_v1_setup_intents_intent(
 
 pub fn post_v1_setup_intents_intent_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/setup_intents/{}",
-        intent.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/setup_intents/{}", intent,);
 
     // Build request
     let builder = client
@@ -70243,7 +69739,7 @@ pub fn post_v1_setup_intents_intent(
     impl StreamIterator<D = Result<ApiResponse<SetupIntent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_setup_intents_intent_builder(client, args.intent.clone())?;
+    let builder = post_v1_setup_intents_intent_builder(client, &args.intent)?;
     post_v1_setup_intents_intent_execute(builder)
 }
 
@@ -70255,13 +69751,10 @@ pub fn post_v1_setup_intents_intent(
 
 pub fn post_v1_setup_intents_intent_cancel_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/setup_intents/{}/cancel",
-        intent.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/setup_intents/{}/cancel", intent,);
 
     // Build request
     let builder = client
@@ -70400,7 +69893,7 @@ pub fn post_v1_setup_intents_intent_cancel(
     impl StreamIterator<D = Result<ApiResponse<SetupIntent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_setup_intents_intent_cancel_builder(client, args.intent.clone())?;
+    let builder = post_v1_setup_intents_intent_cancel_builder(client, &args.intent)?;
     post_v1_setup_intents_intent_cancel_execute(builder)
 }
 
@@ -70412,12 +69905,12 @@ pub fn post_v1_setup_intents_intent_cancel(
 
 pub fn post_v1_setup_intents_intent_confirm_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents/{}/confirm",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -70557,7 +70050,7 @@ pub fn post_v1_setup_intents_intent_confirm(
     impl StreamIterator<D = Result<ApiResponse<SetupIntent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_setup_intents_intent_confirm_builder(client, args.intent.clone())?;
+    let builder = post_v1_setup_intents_intent_confirm_builder(client, &args.intent)?;
     post_v1_setup_intents_intent_confirm_execute(builder)
 }
 
@@ -70569,12 +70062,12 @@ pub fn post_v1_setup_intents_intent_confirm(
 
 pub fn post_v1_setup_intents_intent_verify_microdeposits_builder(
     client: &SimpleHttpClient,
-    intent: String,
+    intent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents/{}/verify_microdeposits",
-        intent.as_str(),
+        intent,
     );
 
     // Build request
@@ -70714,8 +70207,7 @@ pub fn post_v1_setup_intents_intent_verify_microdeposits(
     impl StreamIterator<D = Result<ApiResponse<SetupIntent>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_setup_intents_intent_verify_microdeposits_builder(client, args.intent.clone())?;
+    let builder = post_v1_setup_intents_intent_verify_microdeposits_builder(client, &args.intent)?;
     post_v1_setup_intents_intent_verify_microdeposits_execute(builder)
 }
 
@@ -70727,40 +70219,40 @@ pub fn post_v1_setup_intents_intent_verify_microdeposits(
 
 pub fn get_v1_shipping_rates_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    created: Option<String>,
-    currency: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/shipping_rates",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = currency {
+    if let Some(val) = currency.as_ref() {
         query_parts.push(format!("currency={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -70917,13 +70409,13 @@ pub fn get_v1_shipping_rates(
 > {
     let builder = get_v1_shipping_rates_builder(
         client,
-        args.active.clone(),
-        args.created.clone(),
-        args.currency.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.created,
+        &args.currency,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_shipping_rates_execute(builder)
 }
@@ -71085,18 +70577,18 @@ pub fn post_v1_shipping_rates(
 
 pub fn get_v1_shipping_rates_shipping_rate_token_builder(
     client: &SimpleHttpClient,
-    shipping_rate_token: String,
-    expand: Option<Vec<String>>,
+    shipping_rate_token: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates/{}",
-        shipping_rate_token.as_str(),
+        shipping_rate_token,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -71252,8 +70744,8 @@ pub fn get_v1_shipping_rates_shipping_rate_token(
 > {
     let builder = get_v1_shipping_rates_shipping_rate_token_builder(
         client,
-        args.shipping_rate_token.clone(),
-        args.expand.clone(),
+        &args.shipping_rate_token,
+        &args.expand,
     )?;
     get_v1_shipping_rates_shipping_rate_token_execute(builder)
 }
@@ -71266,12 +70758,12 @@ pub fn get_v1_shipping_rates_shipping_rate_token(
 
 pub fn post_v1_shipping_rates_shipping_rate_token_builder(
     client: &SimpleHttpClient,
-    shipping_rate_token: String,
+    shipping_rate_token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/shipping_rates/{}",
-        shipping_rate_token.as_str(),
+        shipping_rate_token,
     );
 
     // Build request
@@ -71415,10 +70907,8 @@ pub fn post_v1_shipping_rates_shipping_rate_token(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_shipping_rates_shipping_rate_token_builder(
-        client,
-        args.shipping_rate_token.clone(),
-    )?;
+    let builder =
+        post_v1_shipping_rates_shipping_rate_token_builder(client, &args.shipping_rate_token)?;
     post_v1_shipping_rates_shipping_rate_token_execute(builder)
 }
 
@@ -71430,13 +70920,10 @@ pub fn post_v1_shipping_rates_shipping_rate_token(
 
 pub fn post_v1_sigma_saved_queries_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/sigma/saved_queries/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/sigma/saved_queries/{}", id,);
 
     // Build request
     let builder = client
@@ -71579,7 +71066,7 @@ pub fn post_v1_sigma_saved_queries_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_sigma_saved_queries_id_builder(client, args.id.clone())?;
+    let builder = post_v1_sigma_saved_queries_id_builder(client, &args.id)?;
     post_v1_sigma_saved_queries_id_execute(builder)
 }
 
@@ -71591,28 +71078,28 @@ pub fn post_v1_sigma_saved_queries_id(
 
 pub fn get_v1_sigma_scheduled_query_runs_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/sigma/scheduled_query_runs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -71763,10 +71250,10 @@ pub fn get_v1_sigma_scheduled_query_runs(
 > {
     let builder = get_v1_sigma_scheduled_query_runs_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_sigma_scheduled_query_runs_execute(builder)
 }
@@ -71779,18 +71266,18 @@ pub fn get_v1_sigma_scheduled_query_runs(
 
 pub fn get_v1_sigma_scheduled_query_runs_scheduled_query_run_builder(
     client: &SimpleHttpClient,
-    scheduled_query_run: String,
-    expand: Option<Vec<String>>,
+    scheduled_query_run: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sigma/scheduled_query_runs/{}",
-        scheduled_query_run.as_str(),
+        scheduled_query_run,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -71946,8 +71433,8 @@ pub fn get_v1_sigma_scheduled_query_runs_scheduled_query_run(
 > {
     let builder = get_v1_sigma_scheduled_query_runs_scheduled_query_run_builder(
         client,
-        args.scheduled_query_run.clone(),
-        args.expand.clone(),
+        &args.scheduled_query_run,
+        &args.expand,
     )?;
     get_v1_sigma_scheduled_query_runs_scheduled_query_run_execute(builder)
 }
@@ -72105,19 +71592,19 @@ pub fn post_v1_sources(
 
 pub fn get_v1_sources_source_builder(
     client: &SimpleHttpClient,
-    source: String,
-    client_secret: Option<String>,
-    expand: Option<Vec<String>>,
+    source: &String,
+    client_secret: &Option<String>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/sources/{}", source.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/sources/{}", source,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_secret {
+    if let Some(val) = client_secret.as_ref() {
         query_parts.push(format!("client_secret={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -72269,12 +71756,8 @@ pub fn get_v1_sources_source(
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_sources_source_builder(
-        client,
-        args.source.clone(),
-        args.client_secret.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_sources_source_builder(client, &args.source, &args.client_secret, &args.expand)?;
     get_v1_sources_source_execute(builder)
 }
 
@@ -72286,10 +71769,10 @@ pub fn get_v1_sources_source(
 
 pub fn post_v1_sources_source_builder(
     client: &SimpleHttpClient,
-    source: String,
+    source: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/sources/{}", source.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/sources/{}", source,);
 
     // Build request
     let builder = client
@@ -72428,7 +71911,7 @@ pub fn post_v1_sources_source(
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_sources_source_builder(client, args.source.clone())?;
+    let builder = post_v1_sources_source_builder(client, &args.source)?;
     post_v1_sources_source_execute(builder)
 }
 
@@ -72440,20 +71923,19 @@ pub fn post_v1_sources_source(
 
 pub fn get_v1_sources_source_mandate_notifications_mandate_notification_builder(
     client: &SimpleHttpClient,
-    mandate_notification: String,
-    source: String,
-    expand: Option<Vec<String>>,
+    mandate_notification: &String,
+    source: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources/{}/mandate_notifications/{}",
-        source.as_str(),
-        mandate_notification.as_str(),
+        source, mandate_notification,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -72611,9 +72093,9 @@ pub fn get_v1_sources_source_mandate_notifications_mandate_notification(
 > {
     let builder = get_v1_sources_source_mandate_notifications_mandate_notification_builder(
         client,
-        args.mandate_notification.clone(),
-        args.source.clone(),
-        args.expand.clone(),
+        &args.mandate_notification,
+        &args.source,
+        &args.expand,
     )?;
     get_v1_sources_source_mandate_notifications_mandate_notification_execute(builder)
 }
@@ -72625,32 +72107,32 @@ pub fn get_v1_sources_source_mandate_notifications_mandate_notification(
 
 pub fn get_v1_sources_source_source_transactions_builder(
     client: &SimpleHttpClient,
-    source: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    source: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources/{}/source_transactions",
-        source.as_str(),
+        source,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -72800,11 +72282,11 @@ pub fn get_v1_sources_source_source_transactions(
 > {
     let builder = get_v1_sources_source_source_transactions_builder(
         client,
-        args.source.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.source,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_sources_source_source_transactions_execute(builder)
 }
@@ -72817,20 +72299,19 @@ pub fn get_v1_sources_source_source_transactions(
 
 pub fn get_v1_sources_source_source_transactions_source_transaction_builder(
     client: &SimpleHttpClient,
-    source: String,
-    source_transaction: String,
-    expand: Option<Vec<String>>,
+    source: &String,
+    source_transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sources/{}/source_transactions/{}",
-        source.as_str(),
-        source_transaction.as_str(),
+        source, source_transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -72988,9 +72469,9 @@ pub fn get_v1_sources_source_source_transactions_source_transaction(
 > {
     let builder = get_v1_sources_source_source_transactions_source_transaction_builder(
         client,
-        args.source.clone(),
-        args.source_transaction.clone(),
-        args.expand.clone(),
+        &args.source,
+        &args.source_transaction,
+        &args.expand,
     )?;
     get_v1_sources_source_source_transactions_source_transaction_execute(builder)
 }
@@ -73002,13 +72483,10 @@ pub fn get_v1_sources_source_source_transactions_source_transaction(
 
 pub fn post_v1_sources_source_verify_builder(
     client: &SimpleHttpClient,
-    source: String,
+    source: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/sources/{}/verify",
-        source.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/sources/{}/verify", source,);
 
     // Build request
     let builder = client
@@ -73144,7 +72622,7 @@ pub fn post_v1_sources_source_verify(
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_sources_source_verify_builder(client, args.source.clone())?;
+    let builder = post_v1_sources_source_verify_builder(client, &args.source)?;
     post_v1_sources_source_verify_execute(builder)
 }
 
@@ -73156,32 +72634,32 @@ pub fn post_v1_sources_source_verify(
 
 pub fn get_v1_subscription_items_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    subscription: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/subscription_items",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = subscription {
+    if let Some(val) = subscription.as_ref() {
         query_parts.push(format!("subscription={}", val));
     }
 
@@ -73334,11 +72812,11 @@ pub fn get_v1_subscription_items(
 > {
     let builder = get_v1_subscription_items_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.subscription.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.subscription,
     )?;
     get_v1_subscription_items_execute(builder)
 }
@@ -73500,18 +72978,15 @@ pub fn post_v1_subscription_items(
 
 pub fn get_v1_subscription_items_item_builder(
     client: &SimpleHttpClient,
-    item: String,
-    expand: Option<Vec<String>>,
+    item: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscription_items/{}",
-        item.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_items/{}", item,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -73665,8 +73140,7 @@ pub fn get_v1_subscription_items_item(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_subscription_items_item_builder(client, args.item.clone(), args.expand.clone())?;
+    let builder = get_v1_subscription_items_item_builder(client, &args.item, &args.expand)?;
     get_v1_subscription_items_item_execute(builder)
 }
 
@@ -73678,13 +73152,10 @@ pub fn get_v1_subscription_items_item(
 
 pub fn post_v1_subscription_items_item_builder(
     client: &SimpleHttpClient,
-    item: String,
+    item: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscription_items/{}",
-        item.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_items/{}", item,);
 
     // Build request
     let builder = client
@@ -73827,7 +73298,7 @@ pub fn post_v1_subscription_items_item(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_subscription_items_item_builder(client, args.item.clone())?;
+    let builder = post_v1_subscription_items_item_builder(client, &args.item)?;
     post_v1_subscription_items_item_execute(builder)
 }
 
@@ -73839,13 +73310,10 @@ pub fn post_v1_subscription_items_item(
 
 pub fn delete_v1_subscription_items_item_builder(
     client: &SimpleHttpClient,
-    item: String,
+    item: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscription_items/{}",
-        item.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_items/{}", item,);
 
     // Build request
     let builder = client
@@ -73988,7 +73456,7 @@ pub fn delete_v1_subscription_items_item(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_subscription_items_item_builder(client, args.item.clone())?;
+    let builder = delete_v1_subscription_items_item_builder(client, &args.item)?;
     delete_v1_subscription_items_item_execute(builder)
 }
 
@@ -74000,56 +73468,56 @@ pub fn delete_v1_subscription_items_item(
 
 pub fn get_v1_subscription_schedules_builder(
     client: &SimpleHttpClient,
-    canceled_at: Option<String>,
-    completed_at: Option<String>,
-    created: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    released_at: Option<String>,
-    scheduled: Option<bool>,
-    starting_after: Option<String>,
+    canceled_at: &Option<String>,
+    completed_at: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    released_at: &Option<String>,
+    scheduled: &Option<bool>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/subscription_schedules",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = canceled_at {
+    if let Some(val) = canceled_at.as_ref() {
         query_parts.push(format!("canceled_at={}", val));
     }
-    if let Some(val) = completed_at {
+    if let Some(val) = completed_at.as_ref() {
         query_parts.push(format!("completed_at={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = released_at {
+    if let Some(val) = released_at.as_ref() {
         query_parts.push(format!("released_at={}", val));
     }
-    if let Some(val) = scheduled {
+    if let Some(val) = scheduled.as_ref() {
         query_parts.push(format!("scheduled={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -74214,17 +73682,17 @@ pub fn get_v1_subscription_schedules(
 > {
     let builder = get_v1_subscription_schedules_builder(
         client,
-        args.canceled_at.clone(),
-        args.completed_at.clone(),
-        args.created.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.released_at.clone(),
-        args.scheduled.clone(),
-        args.starting_after.clone(),
+        &args.canceled_at,
+        &args.completed_at,
+        &args.created,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.released_at,
+        &args.scheduled,
+        &args.starting_after,
     )?;
     get_v1_subscription_schedules_execute(builder)
 }
@@ -74386,18 +73854,18 @@ pub fn post_v1_subscription_schedules(
 
 pub fn get_v1_subscription_schedules_schedule_builder(
     client: &SimpleHttpClient,
-    schedule: String,
-    expand: Option<Vec<String>>,
+    schedule: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{}",
-        schedule.as_str(),
+        schedule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -74551,11 +74019,8 @@ pub fn get_v1_subscription_schedules_schedule(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_subscription_schedules_schedule_builder(
-        client,
-        args.schedule.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_subscription_schedules_schedule_builder(client, &args.schedule, &args.expand)?;
     get_v1_subscription_schedules_schedule_execute(builder)
 }
 
@@ -74567,12 +74032,12 @@ pub fn get_v1_subscription_schedules_schedule(
 
 pub fn post_v1_subscription_schedules_schedule_builder(
     client: &SimpleHttpClient,
-    schedule: String,
+    schedule: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{}",
-        schedule.as_str(),
+        schedule,
     );
 
     // Build request
@@ -74716,7 +74181,7 @@ pub fn post_v1_subscription_schedules_schedule(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_subscription_schedules_schedule_builder(client, args.schedule.clone())?;
+    let builder = post_v1_subscription_schedules_schedule_builder(client, &args.schedule)?;
     post_v1_subscription_schedules_schedule_execute(builder)
 }
 
@@ -74728,12 +74193,12 @@ pub fn post_v1_subscription_schedules_schedule(
 
 pub fn post_v1_subscription_schedules_schedule_cancel_builder(
     client: &SimpleHttpClient,
-    schedule: String,
+    schedule: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{}/cancel",
-        schedule.as_str(),
+        schedule,
     );
 
     // Build request
@@ -74877,8 +74342,7 @@ pub fn post_v1_subscription_schedules_schedule_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_subscription_schedules_schedule_cancel_builder(client, args.schedule.clone())?;
+    let builder = post_v1_subscription_schedules_schedule_cancel_builder(client, &args.schedule)?;
     post_v1_subscription_schedules_schedule_cancel_execute(builder)
 }
 
@@ -74890,12 +74354,12 @@ pub fn post_v1_subscription_schedules_schedule_cancel(
 
 pub fn post_v1_subscription_schedules_schedule_release_builder(
     client: &SimpleHttpClient,
-    schedule: String,
+    schedule: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{}/release",
-        schedule.as_str(),
+        schedule,
     );
 
     // Build request
@@ -75039,8 +74503,7 @@ pub fn post_v1_subscription_schedules_schedule_release(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_subscription_schedules_schedule_release_builder(client, args.schedule.clone())?;
+    let builder = post_v1_subscription_schedules_schedule_release_builder(client, &args.schedule)?;
     post_v1_subscription_schedules_schedule_release_execute(builder)
 }
 
@@ -75052,68 +74515,68 @@ pub fn post_v1_subscription_schedules_schedule_release(
 
 pub fn get_v1_subscriptions_builder(
     client: &SimpleHttpClient,
-    automatic_tax: Option<String>,
-    collection_method: Option<String>,
-    created: Option<String>,
-    current_period_end: Option<String>,
-    current_period_start: Option<String>,
-    customer: Option<String>,
-    customer_account: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    price: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    test_clock: Option<String>,
+    automatic_tax: &Option<String>,
+    collection_method: &Option<String>,
+    created: &Option<String>,
+    current_period_end: &Option<String>,
+    current_period_start: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    price: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/subscriptions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = automatic_tax {
+    if let Some(val) = automatic_tax.as_ref() {
         query_parts.push(format!("automatic_tax={}", val));
     }
-    if let Some(val) = collection_method {
+    if let Some(val) = collection_method.as_ref() {
         query_parts.push(format!("collection_method={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = current_period_end {
+    if let Some(val) = current_period_end.as_ref() {
         query_parts.push(format!("current_period_end={}", val));
     }
-    if let Some(val) = current_period_start {
+    if let Some(val) = current_period_start.as_ref() {
         query_parts.push(format!("current_period_start={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = customer_account {
+    if let Some(val) = customer_account.as_ref() {
         query_parts.push(format!("customer_account={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = price {
+    if let Some(val) = price.as_ref() {
         query_parts.push(format!("price={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = test_clock {
+    if let Some(val) = test_clock.as_ref() {
         query_parts.push(format!("test_clock={}", val));
     }
 
@@ -75284,20 +74747,20 @@ pub fn get_v1_subscriptions(
 > {
     let builder = get_v1_subscriptions_builder(
         client,
-        args.automatic_tax.clone(),
-        args.collection_method.clone(),
-        args.created.clone(),
-        args.current_period_end.clone(),
-        args.current_period_start.clone(),
-        args.customer.clone(),
-        args.customer_account.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.price.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.test_clock.clone(),
+        &args.automatic_tax,
+        &args.collection_method,
+        &args.created,
+        &args.current_period_end,
+        &args.current_period_start,
+        &args.customer,
+        &args.customer_account,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.price,
+        &args.starting_after,
+        &args.status,
+        &args.test_clock,
     )?;
     get_v1_subscriptions_execute(builder)
 }
@@ -75459,28 +74922,28 @@ pub fn post_v1_subscriptions(
 
 pub fn get_v1_subscriptions_search_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    page: Option<String>,
-    query: Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/subscriptions/search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -75631,10 +75094,10 @@ pub fn get_v1_subscriptions_search(
 > {
     let builder = get_v1_subscriptions_search_builder(
         client,
-        args.expand.clone(),
-        args.limit.clone(),
-        args.page.clone(),
-        args.query.clone(),
+        &args.expand,
+        &args.limit,
+        &args.page,
+        &args.query,
     )?;
     get_v1_subscriptions_search_execute(builder)
 }
@@ -75647,18 +75110,18 @@ pub fn get_v1_subscriptions_search(
 
 pub fn get_v1_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    subscription_exposed_id: String,
-    expand: Option<Vec<String>>,
+    subscription_exposed_id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}",
-        subscription_exposed_id.as_str(),
+        subscription_exposed_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -75814,8 +75277,8 @@ pub fn get_v1_subscriptions_subscription_exposed_id(
 > {
     let builder = get_v1_subscriptions_subscription_exposed_id_builder(
         client,
-        args.subscription_exposed_id.clone(),
-        args.expand.clone(),
+        &args.subscription_exposed_id,
+        &args.expand,
     )?;
     get_v1_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -75828,12 +75291,12 @@ pub fn get_v1_subscriptions_subscription_exposed_id(
 
 pub fn post_v1_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    subscription_exposed_id: String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}",
-        subscription_exposed_id.as_str(),
+        subscription_exposed_id,
     );
 
     // Build request
@@ -75979,7 +75442,7 @@ pub fn post_v1_subscriptions_subscription_exposed_id(
 > {
     let builder = post_v1_subscriptions_subscription_exposed_id_builder(
         client,
-        args.subscription_exposed_id.clone(),
+        &args.subscription_exposed_id,
     )?;
     post_v1_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -75992,12 +75455,12 @@ pub fn post_v1_subscriptions_subscription_exposed_id(
 
 pub fn delete_v1_subscriptions_subscription_exposed_id_builder(
     client: &SimpleHttpClient,
-    subscription_exposed_id: String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}",
-        subscription_exposed_id.as_str(),
+        subscription_exposed_id,
     );
 
     // Build request
@@ -76143,7 +75606,7 @@ pub fn delete_v1_subscriptions_subscription_exposed_id(
 > {
     let builder = delete_v1_subscriptions_subscription_exposed_id_builder(
         client,
-        args.subscription_exposed_id.clone(),
+        &args.subscription_exposed_id,
     )?;
     delete_v1_subscriptions_subscription_exposed_id_execute(builder)
 }
@@ -76156,12 +75619,12 @@ pub fn delete_v1_subscriptions_subscription_exposed_id(
 
 pub fn delete_v1_subscriptions_subscription_exposed_id_discount_builder(
     client: &SimpleHttpClient,
-    subscription_exposed_id: String,
+    subscription_exposed_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}/discount",
-        subscription_exposed_id.as_str(),
+        subscription_exposed_id,
     );
 
     // Build request
@@ -76307,7 +75770,7 @@ pub fn delete_v1_subscriptions_subscription_exposed_id_discount(
 > {
     let builder = delete_v1_subscriptions_subscription_exposed_id_discount_builder(
         client,
-        args.subscription_exposed_id.clone(),
+        &args.subscription_exposed_id,
     )?;
     delete_v1_subscriptions_subscription_exposed_id_discount_execute(builder)
 }
@@ -76320,12 +75783,12 @@ pub fn delete_v1_subscriptions_subscription_exposed_id_discount(
 
 pub fn post_v1_subscriptions_subscription_migrate_builder(
     client: &SimpleHttpClient,
-    subscription: String,
+    subscription: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}/migrate",
-        subscription.as_str(),
+        subscription,
     );
 
     // Build request
@@ -76469,8 +75932,7 @@ pub fn post_v1_subscriptions_subscription_migrate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_subscriptions_subscription_migrate_builder(client, args.subscription.clone())?;
+    let builder = post_v1_subscriptions_subscription_migrate_builder(client, &args.subscription)?;
     post_v1_subscriptions_subscription_migrate_execute(builder)
 }
 
@@ -76482,12 +75944,12 @@ pub fn post_v1_subscriptions_subscription_migrate(
 
 pub fn post_v1_subscriptions_subscription_resume_builder(
     client: &SimpleHttpClient,
-    subscription: String,
+    subscription: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{}/resume",
-        subscription.as_str(),
+        subscription,
     );
 
     // Build request
@@ -76631,8 +76093,7 @@ pub fn post_v1_subscriptions_subscription_resume(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_subscriptions_subscription_resume_builder(client, args.subscription.clone())?;
+    let builder = post_v1_subscriptions_subscription_resume_builder(client, &args.subscription)?;
     post_v1_subscriptions_subscription_resume_execute(builder)
 }
 
@@ -76644,20 +76105,20 @@ pub fn post_v1_subscriptions_subscription_resume(
 
 pub fn get_v1_tax_associations_find_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
-    payment_intent: Option<String>,
+    expand: &Option<Vec<String>>,
+    payment_intent: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax/associations/find",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = payment_intent {
+    if let Some(val) = payment_intent.as_ref() {
         query_parts.push(format!("payment_intent={}", val));
     }
 
@@ -76809,11 +76270,7 @@ pub fn get_v1_tax_associations_find(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_associations_find_builder(
-        client,
-        args.expand.clone(),
-        args.payment_intent.clone(),
-    )?;
+    let builder = get_v1_tax_associations_find_builder(client, &args.expand, &args.payment_intent)?;
     get_v1_tax_associations_find_execute(builder)
 }
 
@@ -76974,18 +76431,18 @@ pub fn post_v1_tax_calculations(
 
 pub fn get_v1_tax_calculations_calculation_builder(
     client: &SimpleHttpClient,
-    calculation: String,
-    expand: Option<Vec<String>>,
+    calculation: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/calculations/{}",
-        calculation.as_str(),
+        calculation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -77139,11 +76596,8 @@ pub fn get_v1_tax_calculations_calculation(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_calculations_calculation_builder(
-        client,
-        args.calculation.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_tax_calculations_calculation_builder(client, &args.calculation, &args.expand)?;
     get_v1_tax_calculations_calculation_execute(builder)
 }
 
@@ -77155,32 +76609,32 @@ pub fn get_v1_tax_calculations_calculation(
 
 pub fn get_v1_tax_calculations_calculation_line_items_builder(
     client: &SimpleHttpClient,
-    calculation: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    calculation: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/calculations/{}/line_items",
-        calculation.as_str(),
+        calculation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -77333,11 +76787,11 @@ pub fn get_v1_tax_calculations_calculation_line_items(
 > {
     let builder = get_v1_tax_calculations_calculation_line_items_builder(
         client,
-        args.calculation.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.calculation,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_tax_calculations_calculation_line_items_execute(builder)
 }
@@ -77350,32 +76804,32 @@ pub fn get_v1_tax_calculations_calculation_line_items(
 
 pub fn get_v1_tax_registrations_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax/registrations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -77528,11 +76982,11 @@ pub fn get_v1_tax_registrations(
 > {
     let builder = get_v1_tax_registrations_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_tax_registrations_execute(builder)
 }
@@ -77694,18 +77148,15 @@ pub fn post_v1_tax_registrations(
 
 pub fn get_v1_tax_registrations_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/tax/registrations/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/tax/registrations/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -77859,8 +77310,7 @@ pub fn get_v1_tax_registrations_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_tax_registrations_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_tax_registrations_id_builder(client, &args.id, &args.expand)?;
     get_v1_tax_registrations_id_execute(builder)
 }
 
@@ -77872,13 +77322,10 @@ pub fn get_v1_tax_registrations_id(
 
 pub fn post_v1_tax_registrations_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/tax/registrations/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/tax/registrations/{}", id,);
 
     // Build request
     let builder = client
@@ -78021,7 +77468,7 @@ pub fn post_v1_tax_registrations_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_tax_registrations_id_builder(client, args.id.clone())?;
+    let builder = post_v1_tax_registrations_id_builder(client, &args.id)?;
     post_v1_tax_registrations_id_execute(builder)
 }
 
@@ -78033,14 +77480,14 @@ pub fn post_v1_tax_registrations_id(
 
 pub fn get_v1_tax_settings_builder(
     client: &SimpleHttpClient,
-    expand: Option<Vec<String>>,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax/settings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -78188,7 +77635,7 @@ pub fn get_v1_tax_settings(
     impl StreamIterator<D = Result<ApiResponse<TaxSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_settings_builder(client, args.expand.clone())?;
+    let builder = get_v1_tax_settings_builder(client, &args.expand)?;
     get_v1_tax_settings_execute(builder)
 }
 
@@ -78644,18 +78091,18 @@ pub fn post_v1_tax_transactions_create_reversal(
 
 pub fn get_v1_tax_transactions_transaction_builder(
     client: &SimpleHttpClient,
-    transaction: String,
-    expand: Option<Vec<String>>,
+    transaction: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/transactions/{}",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -78809,11 +78256,8 @@ pub fn get_v1_tax_transactions_transaction(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_transactions_transaction_builder(
-        client,
-        args.transaction.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_tax_transactions_transaction_builder(client, &args.transaction, &args.expand)?;
     get_v1_tax_transactions_transaction_execute(builder)
 }
 
@@ -78825,32 +78269,32 @@ pub fn get_v1_tax_transactions_transaction(
 
 pub fn get_v1_tax_transactions_transaction_line_items_builder(
     client: &SimpleHttpClient,
-    transaction: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    transaction: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/transactions/{}/line_items",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -79003,11 +78447,11 @@ pub fn get_v1_tax_transactions_transaction_line_items(
 > {
     let builder = get_v1_tax_transactions_transaction_line_items_builder(
         client,
-        args.transaction.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.transaction,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_tax_transactions_transaction_line_items_execute(builder)
 }
@@ -79020,28 +78464,28 @@ pub fn get_v1_tax_transactions_transaction_line_items(
 
 pub fn get_v1_tax_codes_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax_codes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -79192,10 +78636,10 @@ pub fn get_v1_tax_codes(
 > {
     let builder = get_v1_tax_codes_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_tax_codes_execute(builder)
 }
@@ -79208,15 +78652,15 @@ pub fn get_v1_tax_codes(
 
 pub fn get_v1_tax_codes_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tax_codes/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tax_codes/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -79366,7 +78810,7 @@ pub fn get_v1_tax_codes_id(
     impl StreamIterator<D = Result<ApiResponse<TaxCode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_codes_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_tax_codes_id_builder(client, &args.id, &args.expand)?;
     get_v1_tax_codes_id_execute(builder)
 }
 
@@ -79378,32 +78822,32 @@ pub fn get_v1_tax_codes_id(
 
 pub fn get_v1_tax_ids_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    owner: Option<String>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    owner: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax_ids",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = owner {
+    if let Some(val) = owner.as_ref() {
         query_parts.push(format!("owner={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -79556,11 +79000,11 @@ pub fn get_v1_tax_ids(
 > {
     let builder = get_v1_tax_ids_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.owner.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.owner,
+        &args.starting_after,
     )?;
     get_v1_tax_ids_execute(builder)
 }
@@ -79718,15 +79162,15 @@ pub fn post_v1_tax_ids(
 
 pub fn get_v1_tax_ids_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tax_ids/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tax_ids/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -79876,7 +79320,7 @@ pub fn get_v1_tax_ids_id(
     impl StreamIterator<D = Result<ApiResponse<TaxId>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_tax_ids_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_tax_ids_id_builder(client, &args.id, &args.expand)?;
     get_v1_tax_ids_id_execute(builder)
 }
 
@@ -79888,10 +79332,10 @@ pub fn get_v1_tax_ids_id(
 
 pub fn delete_v1_tax_ids_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tax_ids/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tax_ids/{}", id,);
 
     // Build request
     let builder = client
@@ -80034,7 +79478,7 @@ pub fn delete_v1_tax_ids_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_tax_ids_id_builder(client, args.id.clone())?;
+    let builder = delete_v1_tax_ids_id_builder(client, &args.id)?;
     delete_v1_tax_ids_id_execute(builder)
 }
 
@@ -80046,40 +79490,40 @@ pub fn delete_v1_tax_ids_id(
 
 pub fn get_v1_tax_rates_builder(
     client: &SimpleHttpClient,
-    active: Option<bool>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    inclusive: Option<bool>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    active: &Option<bool>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    inclusive: &Option<bool>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/tax_rates",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = inclusive {
+    if let Some(val) = inclusive.as_ref() {
         query_parts.push(format!("inclusive={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -80236,13 +79680,13 @@ pub fn get_v1_tax_rates(
 > {
     let builder = get_v1_tax_rates_builder(
         client,
-        args.active.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.inclusive.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.active,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.inclusive,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_tax_rates_execute(builder)
 }
@@ -80400,15 +79844,15 @@ pub fn post_v1_tax_rates(
 
 pub fn get_v1_tax_rates_tax_rate_builder(
     client: &SimpleHttpClient,
-    tax_rate: String,
-    expand: Option<Vec<String>>,
+    tax_rate: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tax_rates/{}", tax_rate.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tax_rates/{}", tax_rate,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -80558,8 +80002,7 @@ pub fn get_v1_tax_rates_tax_rate(
     impl StreamIterator<D = Result<ApiResponse<TaxRate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_tax_rates_tax_rate_builder(client, args.tax_rate.clone(), args.expand.clone())?;
+    let builder = get_v1_tax_rates_tax_rate_builder(client, &args.tax_rate, &args.expand)?;
     get_v1_tax_rates_tax_rate_execute(builder)
 }
 
@@ -80571,10 +80014,10 @@ pub fn get_v1_tax_rates_tax_rate(
 
 pub fn post_v1_tax_rates_tax_rate_builder(
     client: &SimpleHttpClient,
-    tax_rate: String,
+    tax_rate: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tax_rates/{}", tax_rate.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tax_rates/{}", tax_rate,);
 
     // Build request
     let builder = client
@@ -80713,7 +80156,7 @@ pub fn post_v1_tax_rates_tax_rate(
     impl StreamIterator<D = Result<ApiResponse<TaxRate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_tax_rates_tax_rate_builder(client, args.tax_rate.clone())?;
+    let builder = post_v1_tax_rates_tax_rate_builder(client, &args.tax_rate)?;
     post_v1_tax_rates_tax_rate_execute(builder)
 }
 
@@ -80725,32 +80168,32 @@ pub fn post_v1_tax_rates_tax_rate(
 
 pub fn get_v1_terminal_configurations_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    is_account_default: Option<bool>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    is_account_default: &Option<bool>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/configurations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = is_account_default {
+    if let Some(val) = is_account_default.as_ref() {
         query_parts.push(format!("is_account_default={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -80903,11 +80346,11 @@ pub fn get_v1_terminal_configurations(
 > {
     let builder = get_v1_terminal_configurations_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.is_account_default.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.is_account_default,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_terminal_configurations_execute(builder)
 }
@@ -81069,18 +80512,18 @@ pub fn post_v1_terminal_configurations(
 
 pub fn get_v1_terminal_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
-    expand: Option<Vec<String>>,
+    configuration: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -81236,8 +80679,8 @@ pub fn get_v1_terminal_configurations_configuration(
 > {
     let builder = get_v1_terminal_configurations_configuration_builder(
         client,
-        args.configuration.clone(),
-        args.expand.clone(),
+        &args.configuration,
+        &args.expand,
     )?;
     get_v1_terminal_configurations_configuration_execute(builder)
 }
@@ -81250,12 +80693,12 @@ pub fn get_v1_terminal_configurations_configuration(
 
 pub fn post_v1_terminal_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
+    configuration: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
@@ -81400,7 +80843,7 @@ pub fn post_v1_terminal_configurations_configuration(
     ApiError,
 > {
     let builder =
-        post_v1_terminal_configurations_configuration_builder(client, args.configuration.clone())?;
+        post_v1_terminal_configurations_configuration_builder(client, &args.configuration)?;
     post_v1_terminal_configurations_configuration_execute(builder)
 }
 
@@ -81412,12 +80855,12 @@ pub fn post_v1_terminal_configurations_configuration(
 
 pub fn delete_v1_terminal_configurations_configuration_builder(
     client: &SimpleHttpClient,
-    configuration: String,
+    configuration: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/configurations/{}",
-        configuration.as_str(),
+        configuration,
     );
 
     // Build request
@@ -81565,10 +81008,8 @@ pub fn delete_v1_terminal_configurations_configuration(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_terminal_configurations_configuration_builder(
-        client,
-        args.configuration.clone(),
-    )?;
+    let builder =
+        delete_v1_terminal_configurations_configuration_builder(client, &args.configuration)?;
     delete_v1_terminal_configurations_configuration_execute(builder)
 }
 
@@ -81729,28 +81170,28 @@ pub fn post_v1_terminal_connection_tokens(
 
 pub fn get_v1_terminal_locations_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -81901,10 +81342,10 @@ pub fn get_v1_terminal_locations(
 > {
     let builder = get_v1_terminal_locations_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_terminal_locations_execute(builder)
 }
@@ -82066,18 +81507,15 @@ pub fn post_v1_terminal_locations(
 
 pub fn get_v1_terminal_locations_location_builder(
     client: &SimpleHttpClient,
-    location: String,
-    expand: Option<Vec<String>>,
+    location: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/locations/{}",
-        location.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations/{}", location,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -82231,11 +81669,7 @@ pub fn get_v1_terminal_locations_location(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_terminal_locations_location_builder(
-        client,
-        args.location.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_terminal_locations_location_builder(client, &args.location, &args.expand)?;
     get_v1_terminal_locations_location_execute(builder)
 }
 
@@ -82247,13 +81681,10 @@ pub fn get_v1_terminal_locations_location(
 
 pub fn post_v1_terminal_locations_location_builder(
     client: &SimpleHttpClient,
-    location: String,
+    location: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/locations/{}",
-        location.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations/{}", location,);
 
     // Build request
     let builder = client
@@ -82396,7 +81827,7 @@ pub fn post_v1_terminal_locations_location(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_terminal_locations_location_builder(client, args.location.clone())?;
+    let builder = post_v1_terminal_locations_location_builder(client, &args.location)?;
     post_v1_terminal_locations_location_execute(builder)
 }
 
@@ -82408,13 +81839,10 @@ pub fn post_v1_terminal_locations_location(
 
 pub fn delete_v1_terminal_locations_location_builder(
     client: &SimpleHttpClient,
-    location: String,
+    location: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/locations/{}",
-        location.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/locations/{}", location,);
 
     // Build request
     let builder = client
@@ -82557,7 +81985,7 @@ pub fn delete_v1_terminal_locations_location(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_terminal_locations_location_builder(client, args.location.clone())?;
+    let builder = delete_v1_terminal_locations_location_builder(client, &args.location)?;
     delete_v1_terminal_locations_location_execute(builder)
 }
 
@@ -82718,44 +82146,44 @@ pub fn post_v1_terminal_onboarding_links(
 
 pub fn get_v1_terminal_readers_builder(
     client: &SimpleHttpClient,
-    device_type: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    location: Option<String>,
-    serial_number: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    device_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    location: &Option<String>,
+    serial_number: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = device_type {
+    if let Some(val) = device_type.as_ref() {
         query_parts.push(format!("device_type={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = serial_number {
+    if let Some(val) = serial_number.as_ref() {
         query_parts.push(format!("serial_number={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -82914,14 +82342,14 @@ pub fn get_v1_terminal_readers(
 > {
     let builder = get_v1_terminal_readers_builder(
         client,
-        args.device_type.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.location.clone(),
-        args.serial_number.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.device_type,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.location,
+        &args.serial_number,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_terminal_readers_execute(builder)
 }
@@ -83083,18 +82511,15 @@ pub fn post_v1_terminal_readers(
 
 pub fn get_v1_terminal_readers_reader_builder(
     client: &SimpleHttpClient,
-    reader: String,
-    expand: Option<Vec<String>>,
+    reader: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/readers/{}",
-        reader.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers/{}", reader,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -83248,8 +82673,7 @@ pub fn get_v1_terminal_readers_reader(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_terminal_readers_reader_builder(client, args.reader.clone(), args.expand.clone())?;
+    let builder = get_v1_terminal_readers_reader_builder(client, &args.reader, &args.expand)?;
     get_v1_terminal_readers_reader_execute(builder)
 }
 
@@ -83261,13 +82685,10 @@ pub fn get_v1_terminal_readers_reader(
 
 pub fn post_v1_terminal_readers_reader_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/readers/{}",
-        reader.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers/{}", reader,);
 
     // Build request
     let builder = client
@@ -83410,7 +82831,7 @@ pub fn post_v1_terminal_readers_reader(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_terminal_readers_reader_builder(client, args.reader.clone())?;
+    let builder = post_v1_terminal_readers_reader_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_execute(builder)
 }
 
@@ -83422,13 +82843,10 @@ pub fn post_v1_terminal_readers_reader(
 
 pub fn delete_v1_terminal_readers_reader_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/readers/{}",
-        reader.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/terminal/readers/{}", reader,);
 
     // Build request
     let builder = client
@@ -83571,7 +82989,7 @@ pub fn delete_v1_terminal_readers_reader(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_terminal_readers_reader_builder(client, args.reader.clone())?;
+    let builder = delete_v1_terminal_readers_reader_builder(client, &args.reader)?;
     delete_v1_terminal_readers_reader_execute(builder)
 }
 
@@ -83583,12 +83001,12 @@ pub fn delete_v1_terminal_readers_reader(
 
 pub fn post_v1_terminal_readers_reader_cancel_action_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/cancel_action",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -83732,8 +83150,7 @@ pub fn post_v1_terminal_readers_reader_cancel_action(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_terminal_readers_reader_cancel_action_builder(client, args.reader.clone())?;
+    let builder = post_v1_terminal_readers_reader_cancel_action_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_cancel_action_execute(builder)
 }
 
@@ -83745,12 +83162,12 @@ pub fn post_v1_terminal_readers_reader_cancel_action(
 
 pub fn post_v1_terminal_readers_reader_collect_inputs_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/collect_inputs",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -83894,8 +83311,7 @@ pub fn post_v1_terminal_readers_reader_collect_inputs(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_terminal_readers_reader_collect_inputs_builder(client, args.reader.clone())?;
+    let builder = post_v1_terminal_readers_reader_collect_inputs_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_collect_inputs_execute(builder)
 }
 
@@ -83907,12 +83323,12 @@ pub fn post_v1_terminal_readers_reader_collect_inputs(
 
 pub fn post_v1_terminal_readers_reader_collect_payment_method_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/collect_payment_method",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84056,10 +83472,8 @@ pub fn post_v1_terminal_readers_reader_collect_payment_method(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_terminal_readers_reader_collect_payment_method_builder(
-        client,
-        args.reader.clone(),
-    )?;
+    let builder =
+        post_v1_terminal_readers_reader_collect_payment_method_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_collect_payment_method_execute(builder)
 }
 
@@ -84071,12 +83485,12 @@ pub fn post_v1_terminal_readers_reader_collect_payment_method(
 
 pub fn post_v1_terminal_readers_reader_confirm_payment_intent_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/confirm_payment_intent",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84220,10 +83634,8 @@ pub fn post_v1_terminal_readers_reader_confirm_payment_intent(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_terminal_readers_reader_confirm_payment_intent_builder(
-        client,
-        args.reader.clone(),
-    )?;
+    let builder =
+        post_v1_terminal_readers_reader_confirm_payment_intent_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_confirm_payment_intent_execute(builder)
 }
 
@@ -84235,12 +83647,12 @@ pub fn post_v1_terminal_readers_reader_confirm_payment_intent(
 
 pub fn post_v1_terminal_readers_reader_process_payment_intent_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/process_payment_intent",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84384,10 +83796,8 @@ pub fn post_v1_terminal_readers_reader_process_payment_intent(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_terminal_readers_reader_process_payment_intent_builder(
-        client,
-        args.reader.clone(),
-    )?;
+    let builder =
+        post_v1_terminal_readers_reader_process_payment_intent_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_process_payment_intent_execute(builder)
 }
 
@@ -84399,12 +83809,12 @@ pub fn post_v1_terminal_readers_reader_process_payment_intent(
 
 pub fn post_v1_terminal_readers_reader_process_setup_intent_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/process_setup_intent",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84549,7 +83959,7 @@ pub fn post_v1_terminal_readers_reader_process_setup_intent(
     ApiError,
 > {
     let builder =
-        post_v1_terminal_readers_reader_process_setup_intent_builder(client, args.reader.clone())?;
+        post_v1_terminal_readers_reader_process_setup_intent_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_process_setup_intent_execute(builder)
 }
 
@@ -84561,12 +83971,12 @@ pub fn post_v1_terminal_readers_reader_process_setup_intent(
 
 pub fn post_v1_terminal_readers_reader_refund_payment_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/refund_payment",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84710,8 +84120,7 @@ pub fn post_v1_terminal_readers_reader_refund_payment(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_terminal_readers_reader_refund_payment_builder(client, args.reader.clone())?;
+    let builder = post_v1_terminal_readers_reader_refund_payment_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_refund_payment_execute(builder)
 }
 
@@ -84723,12 +84132,12 @@ pub fn post_v1_terminal_readers_reader_refund_payment(
 
 pub fn post_v1_terminal_readers_reader_set_reader_display_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{}/set_reader_display",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -84872,8 +84281,7 @@ pub fn post_v1_terminal_readers_reader_set_reader_display(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_terminal_readers_reader_set_reader_display_builder(client, args.reader.clone())?;
+    let builder = post_v1_terminal_readers_reader_set_reader_display_builder(client, &args.reader)?;
     post_v1_terminal_readers_reader_set_reader_display_execute(builder)
 }
 
@@ -85183,12 +84591,12 @@ pub fn post_v1_test_helpers_confirmation_tokens(
 
 pub fn post_v1_test_helpers_customers_customer_fund_cash_balance_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/customers/{}/fund_cash_balance",
-        customer.as_str(),
+        customer,
     );
 
     // Build request
@@ -85336,10 +84744,8 @@ pub fn post_v1_test_helpers_customers_customer_fund_cash_balance(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_customers_customer_fund_cash_balance_builder(
-        client,
-        args.customer.clone(),
-    )?;
+    let builder =
+        post_v1_test_helpers_customers_customer_fund_cash_balance_builder(client, &args.customer)?;
     post_v1_test_helpers_customers_customer_fund_cash_balance_execute(builder)
 }
 
@@ -85500,12 +84906,12 @@ pub fn post_v1_test_helpers_issuing_authorizations(
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_capture_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/capture",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -85651,7 +85057,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_capture(
 > {
     let builder = post_v1_test_helpers_issuing_authorizations_authorization_capture_builder(
         client,
-        args.authorization.clone(),
+        &args.authorization,
     )?;
     post_v1_test_helpers_issuing_authorizations_authorization_capture_execute(builder)
 }
@@ -85664,12 +85070,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_capture(
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_expire_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/expire",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -85815,7 +85221,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_expire(
 > {
     let builder = post_v1_test_helpers_issuing_authorizations_authorization_expire_builder(
         client,
-        args.authorization.clone(),
+        &args.authorization,
     )?;
     post_v1_test_helpers_issuing_authorizations_authorization_expire_execute(builder)
 }
@@ -85828,12 +85234,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_expire(
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_finalize_amount_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/finalize_amount",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -85981,7 +85387,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_finalize_amount
     let builder =
         post_v1_test_helpers_issuing_authorizations_authorization_finalize_amount_builder(
             client,
-            args.authorization.clone(),
+            &args.authorization,
         )?;
     post_v1_test_helpers_issuing_authorizations_authorization_finalize_amount_execute(builder)
 }
@@ -85994,12 +85400,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_finalize_amount
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_fraud_challenges_respond_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/fraud_challenges/respond",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -86149,7 +85555,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_fraud_challenge
     let builder =
         post_v1_test_helpers_issuing_authorizations_authorization_fraud_challenges_respond_builder(
             client,
-            args.authorization.clone(),
+            &args.authorization,
         )?;
     post_v1_test_helpers_issuing_authorizations_authorization_fraud_challenges_respond_execute(
         builder,
@@ -86164,12 +85570,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_fraud_challenge
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_increment_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/increment",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -86315,7 +85721,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_increment(
 > {
     let builder = post_v1_test_helpers_issuing_authorizations_authorization_increment_builder(
         client,
-        args.authorization.clone(),
+        &args.authorization,
     )?;
     post_v1_test_helpers_issuing_authorizations_authorization_increment_execute(builder)
 }
@@ -86328,12 +85734,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_increment(
 
 pub fn post_v1_test_helpers_issuing_authorizations_authorization_reverse_builder(
     client: &SimpleHttpClient,
-    authorization: String,
+    authorization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{}/reverse",
-        authorization.as_str(),
+        authorization,
     );
 
     // Build request
@@ -86479,7 +85885,7 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_reverse(
 > {
     let builder = post_v1_test_helpers_issuing_authorizations_authorization_reverse_builder(
         client,
-        args.authorization.clone(),
+        &args.authorization,
     )?;
     post_v1_test_helpers_issuing_authorizations_authorization_reverse_execute(builder)
 }
@@ -86492,12 +85898,12 @@ pub fn post_v1_test_helpers_issuing_authorizations_authorization_reverse(
 
 pub fn post_v1_test_helpers_issuing_cards_card_shipping_deliver_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{}/shipping/deliver",
-        card.as_str(),
+        card,
     );
 
     // Build request
@@ -86637,10 +86043,8 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_deliver(
     impl StreamIterator<D = Result<ApiResponse<IssuingCard>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_issuing_cards_card_shipping_deliver_builder(
-        client,
-        args.card.clone(),
-    )?;
+    let builder =
+        post_v1_test_helpers_issuing_cards_card_shipping_deliver_builder(client, &args.card)?;
     post_v1_test_helpers_issuing_cards_card_shipping_deliver_execute(builder)
 }
 
@@ -86652,12 +86056,12 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_deliver(
 
 pub fn post_v1_test_helpers_issuing_cards_card_shipping_fail_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{}/shipping/fail",
-        card.as_str(),
+        card,
     );
 
     // Build request
@@ -86798,7 +86202,7 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_fail(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_issuing_cards_card_shipping_fail_builder(client, args.card.clone())?;
+        post_v1_test_helpers_issuing_cards_card_shipping_fail_builder(client, &args.card)?;
     post_v1_test_helpers_issuing_cards_card_shipping_fail_execute(builder)
 }
 
@@ -86810,12 +86214,12 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_fail(
 
 pub fn post_v1_test_helpers_issuing_cards_card_shipping_return_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{}/shipping/return",
-        card.as_str(),
+        card,
     );
 
     // Build request
@@ -86956,7 +86360,7 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_return(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_issuing_cards_card_shipping_return_builder(client, args.card.clone())?;
+        post_v1_test_helpers_issuing_cards_card_shipping_return_builder(client, &args.card)?;
     post_v1_test_helpers_issuing_cards_card_shipping_return_execute(builder)
 }
 
@@ -86968,12 +86372,12 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_return(
 
 pub fn post_v1_test_helpers_issuing_cards_card_shipping_ship_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{}/shipping/ship",
-        card.as_str(),
+        card,
     );
 
     // Build request
@@ -87114,7 +86518,7 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_ship(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_issuing_cards_card_shipping_ship_builder(client, args.card.clone())?;
+        post_v1_test_helpers_issuing_cards_card_shipping_ship_builder(client, &args.card)?;
     post_v1_test_helpers_issuing_cards_card_shipping_ship_execute(builder)
 }
 
@@ -87126,12 +86530,12 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_ship(
 
 pub fn post_v1_test_helpers_issuing_cards_card_shipping_submit_builder(
     client: &SimpleHttpClient,
-    card: String,
+    card: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{}/shipping/submit",
-        card.as_str(),
+        card,
     );
 
     // Build request
@@ -87272,7 +86676,7 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_submit(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_issuing_cards_card_shipping_submit_builder(client, args.card.clone())?;
+        post_v1_test_helpers_issuing_cards_card_shipping_submit_builder(client, &args.card)?;
     post_v1_test_helpers_issuing_cards_card_shipping_submit_execute(builder)
 }
 
@@ -87284,12 +86688,12 @@ pub fn post_v1_test_helpers_issuing_cards_card_shipping_submit(
 
 pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_design_activate_builder(
     client: &SimpleHttpClient,
-    personalization_design: String,
+    personalization_design: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/personalization_designs/{}/activate",
-        personalization_design.as_str(),
+        personalization_design,
     );
 
     // Build request
@@ -87440,7 +86844,7 @@ pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_desi
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_issuing_personalization_designs_personalization_design_activate_builder(client, args.personalization_design.clone())?;
+    let builder = post_v1_test_helpers_issuing_personalization_designs_personalization_design_activate_builder(client, &args.personalization_design)?;
     post_v1_test_helpers_issuing_personalization_designs_personalization_design_activate_execute(
         builder,
     )
@@ -87454,12 +86858,12 @@ pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_desi
 
 pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_design_deactivate_builder(
     client: &SimpleHttpClient,
-    personalization_design: String,
+    personalization_design: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/personalization_designs/{}/deactivate",
-        personalization_design.as_str(),
+        personalization_design,
     );
 
     // Build request
@@ -87607,7 +87011,7 @@ pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_desi
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_issuing_personalization_designs_personalization_design_deactivate_builder(client, args.personalization_design.clone())?;
+    let builder = post_v1_test_helpers_issuing_personalization_designs_personalization_design_deactivate_builder(client, &args.personalization_design)?;
     post_v1_test_helpers_issuing_personalization_designs_personalization_design_deactivate_execute(
         builder,
     )
@@ -87621,12 +87025,12 @@ pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_desi
 
 pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_design_reject_builder(
     client: &SimpleHttpClient,
-    personalization_design: String,
+    personalization_design: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/personalization_designs/{}/reject",
-        personalization_design.as_str(),
+        personalization_design,
     );
 
     // Build request
@@ -87780,7 +87184,7 @@ pub fn post_v1_test_helpers_issuing_personalization_designs_personalization_desi
     let builder =
         post_v1_test_helpers_issuing_personalization_designs_personalization_design_reject_builder(
             client,
-            args.personalization_design.clone(),
+            &args.personalization_design,
         )?;
     post_v1_test_helpers_issuing_personalization_designs_personalization_design_reject_execute(
         builder,
@@ -87944,12 +87348,12 @@ pub fn post_v1_test_helpers_issuing_settlements(
 
 pub fn post_v1_test_helpers_issuing_settlements_settlement_complete_builder(
     client: &SimpleHttpClient,
-    settlement: String,
+    settlement: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/settlements/{}/complete",
-        settlement.as_str(),
+        settlement,
     );
 
     // Build request
@@ -88095,7 +87499,7 @@ pub fn post_v1_test_helpers_issuing_settlements_settlement_complete(
 > {
     let builder = post_v1_test_helpers_issuing_settlements_settlement_complete_builder(
         client,
-        args.settlement.clone(),
+        &args.settlement,
     )?;
     post_v1_test_helpers_issuing_settlements_settlement_complete_execute(builder)
 }
@@ -88410,12 +87814,12 @@ pub fn post_v1_test_helpers_issuing_transactions_create_unlinked_refund(
 
 pub fn post_v1_test_helpers_issuing_transactions_transaction_refund_builder(
     client: &SimpleHttpClient,
-    transaction: String,
+    transaction: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/transactions/{}/refund",
-        transaction.as_str(),
+        transaction,
     );
 
     // Build request
@@ -88561,7 +87965,7 @@ pub fn post_v1_test_helpers_issuing_transactions_transaction_refund(
 > {
     let builder = post_v1_test_helpers_issuing_transactions_transaction_refund_builder(
         client,
-        args.transaction.clone(),
+        &args.transaction,
     )?;
     post_v1_test_helpers_issuing_transactions_transaction_refund_execute(builder)
 }
@@ -88574,12 +87978,12 @@ pub fn post_v1_test_helpers_issuing_transactions_transaction_refund(
 
 pub fn post_v1_test_helpers_refunds_refund_expire_builder(
     client: &SimpleHttpClient,
-    refund: String,
+    refund: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/refunds/{}/expire",
-        refund.as_str(),
+        refund,
     );
 
     // Build request
@@ -88719,7 +88123,7 @@ pub fn post_v1_test_helpers_refunds_refund_expire(
     impl StreamIterator<D = Result<ApiResponse<Refund>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_refunds_refund_expire_builder(client, args.refund.clone())?;
+    let builder = post_v1_test_helpers_refunds_refund_expire_builder(client, &args.refund)?;
     post_v1_test_helpers_refunds_refund_expire_execute(builder)
 }
 
@@ -88731,12 +88135,12 @@ pub fn post_v1_test_helpers_refunds_refund_expire(
 
 pub fn post_v1_test_helpers_terminal_readers_reader_present_payment_method_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/terminal/readers/{}/present_payment_method",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -88882,7 +88286,7 @@ pub fn post_v1_test_helpers_terminal_readers_reader_present_payment_method(
 > {
     let builder = post_v1_test_helpers_terminal_readers_reader_present_payment_method_builder(
         client,
-        args.reader.clone(),
+        &args.reader,
     )?;
     post_v1_test_helpers_terminal_readers_reader_present_payment_method_execute(builder)
 }
@@ -88895,12 +88299,12 @@ pub fn post_v1_test_helpers_terminal_readers_reader_present_payment_method(
 
 pub fn post_v1_test_helpers_terminal_readers_reader_succeed_input_collection_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/terminal/readers/{}/succeed_input_collection",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -89046,7 +88450,7 @@ pub fn post_v1_test_helpers_terminal_readers_reader_succeed_input_collection(
 > {
     let builder = post_v1_test_helpers_terminal_readers_reader_succeed_input_collection_builder(
         client,
-        args.reader.clone(),
+        &args.reader,
     )?;
     post_v1_test_helpers_terminal_readers_reader_succeed_input_collection_execute(builder)
 }
@@ -89059,12 +88463,12 @@ pub fn post_v1_test_helpers_terminal_readers_reader_succeed_input_collection(
 
 pub fn post_v1_test_helpers_terminal_readers_reader_timeout_input_collection_builder(
     client: &SimpleHttpClient,
-    reader: String,
+    reader: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/terminal/readers/{}/timeout_input_collection",
-        reader.as_str(),
+        reader,
     );
 
     // Build request
@@ -89210,7 +88614,7 @@ pub fn post_v1_test_helpers_terminal_readers_reader_timeout_input_collection(
 > {
     let builder = post_v1_test_helpers_terminal_readers_reader_timeout_input_collection_builder(
         client,
-        args.reader.clone(),
+        &args.reader,
     )?;
     post_v1_test_helpers_terminal_readers_reader_timeout_input_collection_execute(builder)
 }
@@ -89223,28 +88627,28 @@ pub fn post_v1_test_helpers_terminal_readers_reader_timeout_input_collection(
 
 pub fn get_v1_test_helpers_test_clocks_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/test_helpers/test_clocks",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -89395,10 +88799,10 @@ pub fn get_v1_test_helpers_test_clocks(
 > {
     let builder = get_v1_test_helpers_test_clocks_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_test_helpers_test_clocks_execute(builder)
 }
@@ -89560,18 +88964,18 @@ pub fn post_v1_test_helpers_test_clocks(
 
 pub fn get_v1_test_helpers_test_clocks_test_clock_builder(
     client: &SimpleHttpClient,
-    test_clock: String,
-    expand: Option<Vec<String>>,
+    test_clock: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/test_clocks/{}",
-        test_clock.as_str(),
+        test_clock,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -89725,11 +89129,8 @@ pub fn get_v1_test_helpers_test_clocks_test_clock(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_test_helpers_test_clocks_test_clock_builder(
-        client,
-        args.test_clock.clone(),
-        args.expand.clone(),
-    )?;
+    let builder =
+        get_v1_test_helpers_test_clocks_test_clock_builder(client, &args.test_clock, &args.expand)?;
     get_v1_test_helpers_test_clocks_test_clock_execute(builder)
 }
 
@@ -89741,12 +89142,12 @@ pub fn get_v1_test_helpers_test_clocks_test_clock(
 
 pub fn delete_v1_test_helpers_test_clocks_test_clock_builder(
     client: &SimpleHttpClient,
-    test_clock: String,
+    test_clock: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/test_clocks/{}",
-        test_clock.as_str(),
+        test_clock,
     );
 
     // Build request
@@ -89894,8 +89295,7 @@ pub fn delete_v1_test_helpers_test_clocks_test_clock(
         + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_test_helpers_test_clocks_test_clock_builder(client, args.test_clock.clone())?;
+    let builder = delete_v1_test_helpers_test_clocks_test_clock_builder(client, &args.test_clock)?;
     delete_v1_test_helpers_test_clocks_test_clock_execute(builder)
 }
 
@@ -89907,12 +89307,12 @@ pub fn delete_v1_test_helpers_test_clocks_test_clock(
 
 pub fn post_v1_test_helpers_test_clocks_test_clock_advance_builder(
     client: &SimpleHttpClient,
-    test_clock: String,
+    test_clock: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/test_clocks/{}/advance",
-        test_clock.as_str(),
+        test_clock,
     );
 
     // Build request
@@ -90056,10 +89456,8 @@ pub fn post_v1_test_helpers_test_clocks_test_clock_advance(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_test_clocks_test_clock_advance_builder(
-        client,
-        args.test_clock.clone(),
-    )?;
+    let builder =
+        post_v1_test_helpers_test_clocks_test_clock_advance_builder(client, &args.test_clock)?;
     post_v1_test_helpers_test_clocks_test_clock_advance_execute(builder)
 }
 
@@ -90071,12 +89469,12 @@ pub fn post_v1_test_helpers_test_clocks_test_clock_advance(
 
 pub fn post_v1_test_helpers_treasury_inbound_transfers_id_fail_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/inbound_transfers/{}/fail",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -90221,7 +89619,7 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_fail(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_treasury_inbound_transfers_id_fail_builder(client, args.id.clone())?;
+        post_v1_test_helpers_treasury_inbound_transfers_id_fail_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_inbound_transfers_id_fail_execute(builder)
 }
 
@@ -90233,12 +89631,12 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_fail(
 
 pub fn post_v1_test_helpers_treasury_inbound_transfers_id_return_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/inbound_transfers/{}/return",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -90383,7 +89781,7 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_return(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_treasury_inbound_transfers_id_return_builder(client, args.id.clone())?;
+        post_v1_test_helpers_treasury_inbound_transfers_id_return_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_inbound_transfers_id_return_execute(builder)
 }
 
@@ -90395,12 +89793,12 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_return(
 
 pub fn post_v1_test_helpers_treasury_inbound_transfers_id_succeed_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/inbound_transfers/{}/succeed",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -90544,10 +89942,8 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_succeed(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_test_helpers_treasury_inbound_transfers_id_succeed_builder(
-        client,
-        args.id.clone(),
-    )?;
+    let builder =
+        post_v1_test_helpers_treasury_inbound_transfers_id_succeed_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_inbound_transfers_id_succeed_execute(builder)
 }
 
@@ -90559,12 +89955,12 @@ pub fn post_v1_test_helpers_treasury_inbound_transfers_id_succeed(
 
 pub fn post_v1_test_helpers_treasury_outbound_payments_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_payments/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -90708,8 +90104,7 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_test_helpers_treasury_outbound_payments_id_builder(client, args.id.clone())?;
+    let builder = post_v1_test_helpers_treasury_outbound_payments_id_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_outbound_payments_id_execute(builder)
 }
 
@@ -90721,12 +90116,12 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id(
 
 pub fn post_v1_test_helpers_treasury_outbound_payments_id_fail_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_payments/{}/fail",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -90871,7 +90266,7 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_fail(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_treasury_outbound_payments_id_fail_builder(client, args.id.clone())?;
+        post_v1_test_helpers_treasury_outbound_payments_id_fail_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_outbound_payments_id_fail_execute(builder)
 }
 
@@ -90883,12 +90278,12 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_fail(
 
 pub fn post_v1_test_helpers_treasury_outbound_payments_id_post_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_payments/{}/post",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -91033,7 +90428,7 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_post(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_treasury_outbound_payments_id_post_builder(client, args.id.clone())?;
+        post_v1_test_helpers_treasury_outbound_payments_id_post_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_outbound_payments_id_post_execute(builder)
 }
 
@@ -91045,12 +90440,12 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_post(
 
 pub fn post_v1_test_helpers_treasury_outbound_payments_id_return_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_payments/{}/return",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -91195,7 +90590,7 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_return(
     ApiError,
 > {
     let builder =
-        post_v1_test_helpers_treasury_outbound_payments_id_return_builder(client, args.id.clone())?;
+        post_v1_test_helpers_treasury_outbound_payments_id_return_builder(client, &args.id)?;
     post_v1_test_helpers_treasury_outbound_payments_id_return_execute(builder)
 }
 
@@ -91207,12 +90602,12 @@ pub fn post_v1_test_helpers_treasury_outbound_payments_id_return(
 
 pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
+    outbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_transfers/{}",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
@@ -91358,7 +90753,7 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer(
 > {
     let builder = post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_builder(
         client,
-        args.outbound_transfer.clone(),
+        &args.outbound_transfer,
     )?;
     post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_execute(builder)
 }
@@ -91371,12 +90766,12 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer(
 
 pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_fail_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
+    outbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_transfers/{}/fail",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
@@ -91523,7 +90918,7 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_fail(
 > {
     let builder = post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_fail_builder(
         client,
-        args.outbound_transfer.clone(),
+        &args.outbound_transfer,
     )?;
     post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_fail_execute(builder)
 }
@@ -91536,12 +90931,12 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_fail(
 
 pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_post_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
+    outbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_transfers/{}/post",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
@@ -91688,7 +91083,7 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_post(
 > {
     let builder = post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_post_builder(
         client,
-        args.outbound_transfer.clone(),
+        &args.outbound_transfer,
     )?;
     post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_post_execute(builder)
 }
@@ -91701,12 +91096,12 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_post(
 
 pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_return_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
+    outbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/outbound_transfers/{}/return",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
@@ -91854,7 +91249,7 @@ pub fn post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_return
     let builder =
         post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_return_builder(
             client,
-            args.outbound_transfer.clone(),
+            &args.outbound_transfer,
         )?;
     post_v1_test_helpers_treasury_outbound_transfers_outbound_transfer_return_execute(builder)
 }
@@ -92311,15 +91706,15 @@ pub fn post_v1_tokens(
 
 pub fn get_v1_tokens_token_builder(
     client: &SimpleHttpClient,
-    token: String,
-    expand: Option<Vec<String>>,
+    token: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/tokens/{}", token.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/tokens/{}", token,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -92469,7 +91864,7 @@ pub fn get_v1_tokens_token(
     impl StreamIterator<D = Result<ApiResponse<Token>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_tokens_token_builder(client, args.token.clone(), args.expand.clone())?;
+    let builder = get_v1_tokens_token_builder(client, &args.token, &args.expand)?;
     get_v1_tokens_token_execute(builder)
 }
 
@@ -92481,40 +91876,40 @@ pub fn get_v1_tokens_token(
 
 pub fn get_v1_topups_builder(
     client: &SimpleHttpClient,
-    amount: Option<String>,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    amount: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/topups",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = amount {
+    if let Some(val) = amount.as_ref() {
         query_parts.push(format!("amount={}", val));
     }
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -92671,13 +92066,13 @@ pub fn get_v1_topups(
 > {
     let builder = get_v1_topups_builder(
         client,
-        args.amount.clone(),
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.amount,
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_topups_execute(builder)
 }
@@ -92835,15 +92230,15 @@ pub fn post_v1_topups(
 
 pub fn get_v1_topups_topup_builder(
     client: &SimpleHttpClient,
-    topup: String,
-    expand: Option<Vec<String>>,
+    topup: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/topups/{}", topup.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/topups/{}", topup,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -92993,7 +92388,7 @@ pub fn get_v1_topups_topup(
     impl StreamIterator<D = Result<ApiResponse<Topup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_topups_topup_builder(client, args.topup.clone(), args.expand.clone())?;
+    let builder = get_v1_topups_topup_builder(client, &args.topup, &args.expand)?;
     get_v1_topups_topup_execute(builder)
 }
 
@@ -93005,10 +92400,10 @@ pub fn get_v1_topups_topup(
 
 pub fn post_v1_topups_topup_builder(
     client: &SimpleHttpClient,
-    topup: String,
+    topup: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/topups/{}", topup.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/topups/{}", topup,);
 
     // Build request
     let builder = client
@@ -93147,7 +92542,7 @@ pub fn post_v1_topups_topup(
     impl StreamIterator<D = Result<ApiResponse<Topup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_topups_topup_builder(client, args.topup.clone())?;
+    let builder = post_v1_topups_topup_builder(client, &args.topup)?;
     post_v1_topups_topup_execute(builder)
 }
 
@@ -93159,13 +92554,10 @@ pub fn post_v1_topups_topup(
 
 pub fn post_v1_topups_topup_cancel_builder(
     client: &SimpleHttpClient,
-    topup: String,
+    topup: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/topups/{}/cancel",
-        topup.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/topups/{}/cancel", topup,);
 
     // Build request
     let builder = client
@@ -93304,7 +92696,7 @@ pub fn post_v1_topups_topup_cancel(
     impl StreamIterator<D = Result<ApiResponse<Topup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_topups_topup_cancel_builder(client, args.topup.clone())?;
+    let builder = post_v1_topups_topup_cancel_builder(client, &args.topup)?;
     post_v1_topups_topup_cancel_execute(builder)
 }
 
@@ -93316,40 +92708,40 @@ pub fn post_v1_topups_topup_cancel(
 
 pub fn get_v1_transfers_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    destination: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    transfer_group: Option<String>,
+    created: &Option<String>,
+    destination: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    transfer_group: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/transfers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = destination {
+    if let Some(val) = destination.as_ref() {
         query_parts.push(format!("destination={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = transfer_group {
+    if let Some(val) = transfer_group.as_ref() {
         query_parts.push(format!("transfer_group={}", val));
     }
 
@@ -93506,13 +92898,13 @@ pub fn get_v1_transfers(
 > {
     let builder = get_v1_transfers_builder(
         client,
-        args.created.clone(),
-        args.destination.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.transfer_group.clone(),
+        &args.created,
+        &args.destination,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.transfer_group,
     )?;
     get_v1_transfers_execute(builder)
 }
@@ -93670,32 +93062,29 @@ pub fn post_v1_transfers(
 
 pub fn get_v1_transfers_id_reversals_builder(
     client: &SimpleHttpClient,
-    id: String,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    id: &String,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/transfers/{}/reversals",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}/reversals", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -93848,11 +93237,11 @@ pub fn get_v1_transfers_id_reversals(
 > {
     let builder = get_v1_transfers_id_reversals_builder(
         client,
-        args.id.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.id,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_transfers_id_reversals_execute(builder)
 }
@@ -93865,13 +93254,10 @@ pub fn get_v1_transfers_id_reversals(
 
 pub fn post_v1_transfers_id_reversals_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/transfers/{}/reversals",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}/reversals", id,);
 
     // Build request
     let builder = client
@@ -94014,7 +93400,7 @@ pub fn post_v1_transfers_id_reversals(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_transfers_id_reversals_builder(client, args.id.clone())?;
+    let builder = post_v1_transfers_id_reversals_builder(client, &args.id)?;
     post_v1_transfers_id_reversals_execute(builder)
 }
 
@@ -94026,15 +93412,15 @@ pub fn post_v1_transfers_id_reversals(
 
 pub fn get_v1_transfers_transfer_builder(
     client: &SimpleHttpClient,
-    transfer: String,
-    expand: Option<Vec<String>>,
+    transfer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}", transfer.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}", transfer,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -94184,8 +93570,7 @@ pub fn get_v1_transfers_transfer(
     impl StreamIterator<D = Result<ApiResponse<Transfer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_transfers_transfer_builder(client, args.transfer.clone(), args.expand.clone())?;
+    let builder = get_v1_transfers_transfer_builder(client, &args.transfer, &args.expand)?;
     get_v1_transfers_transfer_execute(builder)
 }
 
@@ -94197,10 +93582,10 @@ pub fn get_v1_transfers_transfer(
 
 pub fn post_v1_transfers_transfer_builder(
     client: &SimpleHttpClient,
-    transfer: String,
+    transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}", transfer.as_str(),);
+    let endpoint_url = format!("https://api.stripe.com//v1/transfers/{}", transfer,);
 
     // Build request
     let builder = client
@@ -94339,7 +93724,7 @@ pub fn post_v1_transfers_transfer(
     impl StreamIterator<D = Result<ApiResponse<Transfer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_transfers_transfer_builder(client, args.transfer.clone())?;
+    let builder = post_v1_transfers_transfer_builder(client, &args.transfer)?;
     post_v1_transfers_transfer_execute(builder)
 }
 
@@ -94351,20 +93736,19 @@ pub fn post_v1_transfers_transfer(
 
 pub fn get_v1_transfers_transfer_reversals_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    transfer: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    transfer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{}/reversals/{}",
-        transfer.as_str(),
-        id.as_str(),
+        transfer, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -94522,9 +93906,9 @@ pub fn get_v1_transfers_transfer_reversals_id(
 > {
     let builder = get_v1_transfers_transfer_reversals_id_builder(
         client,
-        args.id.clone(),
-        args.transfer.clone(),
-        args.expand.clone(),
+        &args.id,
+        &args.transfer,
+        &args.expand,
     )?;
     get_v1_transfers_transfer_reversals_id_execute(builder)
 }
@@ -94537,14 +93921,13 @@ pub fn get_v1_transfers_transfer_reversals_id(
 
 pub fn post_v1_transfers_transfer_reversals_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    transfer: String,
+    id: &String,
+    transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/transfers/{}/reversals/{}",
-        transfer.as_str(),
-        id.as_str(),
+        transfer, id,
     );
 
     // Build request
@@ -94690,11 +94073,8 @@ pub fn post_v1_transfers_transfer_reversals_id(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_transfers_transfer_reversals_id_builder(
-        client,
-        args.id.clone(),
-        args.transfer.clone(),
-    )?;
+    let builder =
+        post_v1_transfers_transfer_reversals_id_builder(client, &args.id, &args.transfer)?;
     post_v1_transfers_transfer_reversals_id_execute(builder)
 }
 
@@ -94706,40 +94086,40 @@ pub fn post_v1_transfers_transfer_reversals_id(
 
 pub fn get_v1_treasury_credit_reversals_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    received_credit: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    received_credit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/credit_reversals",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = received_credit {
+    if let Some(val) = received_credit.as_ref() {
         query_parts.push(format!("received_credit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -94896,13 +94276,13 @@ pub fn get_v1_treasury_credit_reversals(
 > {
     let builder = get_v1_treasury_credit_reversals_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.received_credit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.received_credit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_credit_reversals_execute(builder)
 }
@@ -95064,18 +94444,18 @@ pub fn post_v1_treasury_credit_reversals(
 
 pub fn get_v1_treasury_credit_reversals_credit_reversal_builder(
     client: &SimpleHttpClient,
-    credit_reversal: String,
-    expand: Option<Vec<String>>,
+    credit_reversal: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/credit_reversals/{}",
-        credit_reversal.as_str(),
+        credit_reversal,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -95231,8 +94611,8 @@ pub fn get_v1_treasury_credit_reversals_credit_reversal(
 > {
     let builder = get_v1_treasury_credit_reversals_credit_reversal_builder(
         client,
-        args.credit_reversal.clone(),
-        args.expand.clone(),
+        &args.credit_reversal,
+        &args.expand,
     )?;
     get_v1_treasury_credit_reversals_credit_reversal_execute(builder)
 }
@@ -95245,44 +94625,44 @@ pub fn get_v1_treasury_credit_reversals_credit_reversal(
 
 pub fn get_v1_treasury_debit_reversals_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    received_debit: Option<String>,
-    resolution: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    received_debit: &Option<String>,
+    resolution: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/debit_reversals",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = received_debit {
+    if let Some(val) = received_debit.as_ref() {
         query_parts.push(format!("received_debit={}", val));
     }
-    if let Some(val) = resolution {
+    if let Some(val) = resolution.as_ref() {
         query_parts.push(format!("resolution={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -95441,14 +94821,14 @@ pub fn get_v1_treasury_debit_reversals(
 > {
     let builder = get_v1_treasury_debit_reversals_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.received_debit.clone(),
-        args.resolution.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.received_debit,
+        &args.resolution,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_debit_reversals_execute(builder)
 }
@@ -95610,18 +94990,18 @@ pub fn post_v1_treasury_debit_reversals(
 
 pub fn get_v1_treasury_debit_reversals_debit_reversal_builder(
     client: &SimpleHttpClient,
-    debit_reversal: String,
-    expand: Option<Vec<String>>,
+    debit_reversal: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/debit_reversals/{}",
-        debit_reversal.as_str(),
+        debit_reversal,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -95777,8 +95157,8 @@ pub fn get_v1_treasury_debit_reversals_debit_reversal(
 > {
     let builder = get_v1_treasury_debit_reversals_debit_reversal_builder(
         client,
-        args.debit_reversal.clone(),
-        args.expand.clone(),
+        &args.debit_reversal,
+        &args.expand,
     )?;
     get_v1_treasury_debit_reversals_debit_reversal_execute(builder)
 }
@@ -95791,36 +95171,36 @@ pub fn get_v1_treasury_debit_reversals_debit_reversal(
 
 pub fn get_v1_treasury_financial_accounts_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/financial_accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -95975,12 +95355,12 @@ pub fn get_v1_treasury_financial_accounts(
 > {
     let builder = get_v1_treasury_financial_accounts_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_financial_accounts_execute(builder)
 }
@@ -96142,18 +95522,18 @@ pub fn post_v1_treasury_financial_accounts(
 
 pub fn get_v1_treasury_financial_accounts_financial_account_builder(
     client: &SimpleHttpClient,
-    financial_account: String,
-    expand: Option<Vec<String>>,
+    financial_account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/financial_accounts/{}",
-        financial_account.as_str(),
+        financial_account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -96309,8 +95689,8 @@ pub fn get_v1_treasury_financial_accounts_financial_account(
 > {
     let builder = get_v1_treasury_financial_accounts_financial_account_builder(
         client,
-        args.financial_account.clone(),
-        args.expand.clone(),
+        &args.financial_account,
+        &args.expand,
     )?;
     get_v1_treasury_financial_accounts_financial_account_execute(builder)
 }
@@ -96323,12 +95703,12 @@ pub fn get_v1_treasury_financial_accounts_financial_account(
 
 pub fn post_v1_treasury_financial_accounts_financial_account_builder(
     client: &SimpleHttpClient,
-    financial_account: String,
+    financial_account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/financial_accounts/{}",
-        financial_account.as_str(),
+        financial_account,
     );
 
     // Build request
@@ -96474,7 +95854,7 @@ pub fn post_v1_treasury_financial_accounts_financial_account(
 > {
     let builder = post_v1_treasury_financial_accounts_financial_account_builder(
         client,
-        args.financial_account.clone(),
+        &args.financial_account,
     )?;
     post_v1_treasury_financial_accounts_financial_account_execute(builder)
 }
@@ -96487,12 +95867,12 @@ pub fn post_v1_treasury_financial_accounts_financial_account(
 
 pub fn post_v1_treasury_financial_accounts_financial_account_close_builder(
     client: &SimpleHttpClient,
-    financial_account: String,
+    financial_account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/financial_accounts/{}/close",
-        financial_account.as_str(),
+        financial_account,
     );
 
     // Build request
@@ -96638,7 +96018,7 @@ pub fn post_v1_treasury_financial_accounts_financial_account_close(
 > {
     let builder = post_v1_treasury_financial_accounts_financial_account_close_builder(
         client,
-        args.financial_account.clone(),
+        &args.financial_account,
     )?;
     post_v1_treasury_financial_accounts_financial_account_close_execute(builder)
 }
@@ -96651,18 +96031,18 @@ pub fn post_v1_treasury_financial_accounts_financial_account_close(
 
 pub fn get_v1_treasury_financial_accounts_financial_account_features_builder(
     client: &SimpleHttpClient,
-    financial_account: String,
-    expand: Option<Vec<String>>,
+    financial_account: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/financial_accounts/{}/features",
-        financial_account.as_str(),
+        financial_account,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -96822,8 +96202,8 @@ pub fn get_v1_treasury_financial_accounts_financial_account_features(
 > {
     let builder = get_v1_treasury_financial_accounts_financial_account_features_builder(
         client,
-        args.financial_account.clone(),
-        args.expand.clone(),
+        &args.financial_account,
+        &args.expand,
     )?;
     get_v1_treasury_financial_accounts_financial_account_features_execute(builder)
 }
@@ -96836,12 +96216,12 @@ pub fn get_v1_treasury_financial_accounts_financial_account_features(
 
 pub fn post_v1_treasury_financial_accounts_financial_account_features_builder(
     client: &SimpleHttpClient,
-    financial_account: String,
+    financial_account: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/financial_accounts/{}/features",
-        financial_account.as_str(),
+        financial_account,
     );
 
     // Build request
@@ -96991,7 +96371,7 @@ pub fn post_v1_treasury_financial_accounts_financial_account_features(
 > {
     let builder = post_v1_treasury_financial_accounts_financial_account_features_builder(
         client,
-        args.financial_account.clone(),
+        &args.financial_account,
     )?;
     post_v1_treasury_financial_accounts_financial_account_features_execute(builder)
 }
@@ -97004,36 +96384,36 @@ pub fn post_v1_treasury_financial_accounts_financial_account_features(
 
 pub fn get_v1_treasury_inbound_transfers_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/inbound_transfers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -97188,12 +96568,12 @@ pub fn get_v1_treasury_inbound_transfers(
 > {
     let builder = get_v1_treasury_inbound_transfers_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_inbound_transfers_execute(builder)
 }
@@ -97355,18 +96735,18 @@ pub fn post_v1_treasury_inbound_transfers(
 
 pub fn get_v1_treasury_inbound_transfers_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/inbound_transfers/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -97520,8 +96900,7 @@ pub fn get_v1_treasury_inbound_transfers_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_treasury_inbound_transfers_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_treasury_inbound_transfers_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_inbound_transfers_id_execute(builder)
 }
 
@@ -97533,12 +96912,12 @@ pub fn get_v1_treasury_inbound_transfers_id(
 
 pub fn post_v1_treasury_inbound_transfers_inbound_transfer_cancel_builder(
     client: &SimpleHttpClient,
-    inbound_transfer: String,
+    inbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/inbound_transfers/{}/cancel",
-        inbound_transfer.as_str(),
+        inbound_transfer,
     );
 
     // Build request
@@ -97684,7 +97063,7 @@ pub fn post_v1_treasury_inbound_transfers_inbound_transfer_cancel(
 > {
     let builder = post_v1_treasury_inbound_transfers_inbound_transfer_cancel_builder(
         client,
-        args.inbound_transfer.clone(),
+        &args.inbound_transfer,
     )?;
     post_v1_treasury_inbound_transfers_inbound_transfer_cancel_execute(builder)
 }
@@ -97697,44 +97076,44 @@ pub fn post_v1_treasury_inbound_transfers_inbound_transfer_cancel(
 
 pub fn get_v1_treasury_outbound_payments_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    customer: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/outbound_payments",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -97893,14 +97272,14 @@ pub fn get_v1_treasury_outbound_payments(
 > {
     let builder = get_v1_treasury_outbound_payments_builder(
         client,
-        args.created.clone(),
-        args.customer.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.created,
+        &args.customer,
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_outbound_payments_execute(builder)
 }
@@ -98062,18 +97441,18 @@ pub fn post_v1_treasury_outbound_payments(
 
 pub fn get_v1_treasury_outbound_payments_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/outbound_payments/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -98227,8 +97606,7 @@ pub fn get_v1_treasury_outbound_payments_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_treasury_outbound_payments_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_treasury_outbound_payments_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_outbound_payments_id_execute(builder)
 }
 
@@ -98240,12 +97618,12 @@ pub fn get_v1_treasury_outbound_payments_id(
 
 pub fn post_v1_treasury_outbound_payments_id_cancel_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/outbound_payments/{}/cancel",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -98389,7 +97767,7 @@ pub fn post_v1_treasury_outbound_payments_id_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_treasury_outbound_payments_id_cancel_builder(client, args.id.clone())?;
+    let builder = post_v1_treasury_outbound_payments_id_cancel_builder(client, &args.id)?;
     post_v1_treasury_outbound_payments_id_cancel_execute(builder)
 }
 
@@ -98401,36 +97779,36 @@ pub fn post_v1_treasury_outbound_payments_id_cancel(
 
 pub fn get_v1_treasury_outbound_transfers_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/outbound_transfers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -98585,12 +97963,12 @@ pub fn get_v1_treasury_outbound_transfers(
 > {
     let builder = get_v1_treasury_outbound_transfers_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_outbound_transfers_execute(builder)
 }
@@ -98752,18 +98130,18 @@ pub fn post_v1_treasury_outbound_transfers(
 
 pub fn get_v1_treasury_outbound_transfers_outbound_transfer_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
-    expand: Option<Vec<String>>,
+    outbound_transfer: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/outbound_transfers/{}",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -98919,8 +98297,8 @@ pub fn get_v1_treasury_outbound_transfers_outbound_transfer(
 > {
     let builder = get_v1_treasury_outbound_transfers_outbound_transfer_builder(
         client,
-        args.outbound_transfer.clone(),
-        args.expand.clone(),
+        &args.outbound_transfer,
+        &args.expand,
     )?;
     get_v1_treasury_outbound_transfers_outbound_transfer_execute(builder)
 }
@@ -98933,12 +98311,12 @@ pub fn get_v1_treasury_outbound_transfers_outbound_transfer(
 
 pub fn post_v1_treasury_outbound_transfers_outbound_transfer_cancel_builder(
     client: &SimpleHttpClient,
-    outbound_transfer: String,
+    outbound_transfer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/outbound_transfers/{}/cancel",
-        outbound_transfer.as_str(),
+        outbound_transfer,
     );
 
     // Build request
@@ -99084,7 +98462,7 @@ pub fn post_v1_treasury_outbound_transfers_outbound_transfer_cancel(
 > {
     let builder = post_v1_treasury_outbound_transfers_outbound_transfer_cancel_builder(
         client,
-        args.outbound_transfer.clone(),
+        &args.outbound_transfer,
     )?;
     post_v1_treasury_outbound_transfers_outbound_transfer_cancel_execute(builder)
 }
@@ -99097,40 +98475,40 @@ pub fn post_v1_treasury_outbound_transfers_outbound_transfer_cancel(
 
 pub fn get_v1_treasury_received_credits_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    linked_flows: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    linked_flows: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/received_credits",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = linked_flows {
+    if let Some(val) = linked_flows.as_ref() {
         query_parts.push(format!("linked_flows={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -99287,13 +98665,13 @@ pub fn get_v1_treasury_received_credits(
 > {
     let builder = get_v1_treasury_received_credits_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.linked_flows.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.linked_flows,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_received_credits_execute(builder)
 }
@@ -99306,18 +98684,18 @@ pub fn get_v1_treasury_received_credits(
 
 pub fn get_v1_treasury_received_credits_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/received_credits/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -99471,8 +98849,7 @@ pub fn get_v1_treasury_received_credits_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_treasury_received_credits_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_treasury_received_credits_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_received_credits_id_execute(builder)
 }
 
@@ -99484,36 +98861,36 @@ pub fn get_v1_treasury_received_credits_id(
 
 pub fn get_v1_treasury_received_debits_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
-    status: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/received_debits",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -99668,12 +99045,12 @@ pub fn get_v1_treasury_received_debits(
 > {
     let builder = get_v1_treasury_received_debits_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.starting_after,
+        &args.status,
     )?;
     get_v1_treasury_received_debits_execute(builder)
 }
@@ -99686,18 +99063,15 @@ pub fn get_v1_treasury_received_debits(
 
 pub fn get_v1_treasury_received_debits_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/treasury/received_debits/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/treasury/received_debits/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -99851,8 +99225,7 @@ pub fn get_v1_treasury_received_debits_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_treasury_received_debits_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_treasury_received_debits_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_received_debits_id_execute(builder)
 }
 
@@ -99864,48 +99237,48 @@ pub fn get_v1_treasury_received_debits_id(
 
 pub fn get_v1_treasury_transaction_entries_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    effective_at: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    order_by: Option<String>,
-    starting_after: Option<String>,
-    transaction: Option<String>,
+    created: &Option<String>,
+    effective_at: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    order_by: &Option<String>,
+    starting_after: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/transaction_entries",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = effective_at {
+    if let Some(val) = effective_at.as_ref() {
         query_parts.push(format!("effective_at={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = order_by {
+    if let Some(val) = order_by.as_ref() {
         query_parts.push(format!("order_by={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = transaction {
+    if let Some(val) = transaction.as_ref() {
         query_parts.push(format!("transaction={}", val));
     }
 
@@ -100066,15 +99439,15 @@ pub fn get_v1_treasury_transaction_entries(
 > {
     let builder = get_v1_treasury_transaction_entries_builder(
         client,
-        args.created.clone(),
-        args.effective_at.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.order_by.clone(),
-        args.starting_after.clone(),
-        args.transaction.clone(),
+        &args.created,
+        &args.effective_at,
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.order_by,
+        &args.starting_after,
+        &args.transaction,
     )?;
     get_v1_treasury_transaction_entries_execute(builder)
 }
@@ -100087,18 +99460,18 @@ pub fn get_v1_treasury_transaction_entries(
 
 pub fn get_v1_treasury_transaction_entries_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/treasury/transaction_entries/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -100252,11 +99625,7 @@ pub fn get_v1_treasury_transaction_entries_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_treasury_transaction_entries_id_builder(
-        client,
-        args.id.clone(),
-        args.expand.clone(),
-    )?;
+    let builder = get_v1_treasury_transaction_entries_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_transaction_entries_id_execute(builder)
 }
 
@@ -100268,48 +99637,48 @@ pub fn get_v1_treasury_transaction_entries_id(
 
 pub fn get_v1_treasury_transactions_builder(
     client: &SimpleHttpClient,
-    created: Option<String>,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    financial_account: Option<String>,
-    limit: Option<i32>,
-    order_by: Option<String>,
-    starting_after: Option<String>,
-    status: Option<String>,
-    status_transitions: Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    financial_account: &Option<String>,
+    limit: &Option<i32>,
+    order_by: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    status_transitions: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/treasury/transactions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = created {
+    if let Some(val) = created.as_ref() {
         query_parts.push(format!("created={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = financial_account {
+    if let Some(val) = financial_account.as_ref() {
         query_parts.push(format!("financial_account={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = order_by {
+    if let Some(val) = order_by.as_ref() {
         query_parts.push(format!("order_by={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = status_transitions {
+    if let Some(val) = status_transitions.as_ref() {
         query_parts.push(format!("status_transitions={}", val));
     }
 
@@ -100470,15 +99839,15 @@ pub fn get_v1_treasury_transactions(
 > {
     let builder = get_v1_treasury_transactions_builder(
         client,
-        args.created.clone(),
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.financial_account.clone(),
-        args.limit.clone(),
-        args.order_by.clone(),
-        args.starting_after.clone(),
-        args.status.clone(),
-        args.status_transitions.clone(),
+        &args.created,
+        &args.ending_before,
+        &args.expand,
+        &args.financial_account,
+        &args.limit,
+        &args.order_by,
+        &args.starting_after,
+        &args.status,
+        &args.status_transitions,
     )?;
     get_v1_treasury_transactions_execute(builder)
 }
@@ -100491,18 +99860,15 @@ pub fn get_v1_treasury_transactions(
 
 pub fn get_v1_treasury_transactions_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    expand: Option<Vec<String>>,
+    id: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/treasury/transactions/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.stripe.com//v1/treasury/transactions/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -100656,8 +100022,7 @@ pub fn get_v1_treasury_transactions_id(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_treasury_transactions_id_builder(client, args.id.clone(), args.expand.clone())?;
+    let builder = get_v1_treasury_transactions_id_builder(client, &args.id, &args.expand)?;
     get_v1_treasury_transactions_id_execute(builder)
 }
 
@@ -100669,28 +100034,28 @@ pub fn get_v1_treasury_transactions_id(
 
 pub fn get_v1_webhook_endpoints_builder(
     client: &SimpleHttpClient,
-    ending_before: Option<String>,
-    expand: Option<Vec<String>>,
-    limit: Option<i32>,
-    starting_after: Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<Vec<String>>,
+    limit: &Option<i32>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.stripe.com//v1/webhook_endpoints",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
 
@@ -100841,10 +100206,10 @@ pub fn get_v1_webhook_endpoints(
 > {
     let builder = get_v1_webhook_endpoints_builder(
         client,
-        args.ending_before.clone(),
-        args.expand.clone(),
-        args.limit.clone(),
-        args.starting_after.clone(),
+        &args.ending_before,
+        &args.expand,
+        &args.limit,
+        &args.starting_after,
     )?;
     get_v1_webhook_endpoints_execute(builder)
 }
@@ -101006,18 +100371,18 @@ pub fn post_v1_webhook_endpoints(
 
 pub fn get_v1_webhook_endpoints_webhook_endpoint_builder(
     client: &SimpleHttpClient,
-    webhook_endpoint: String,
-    expand: Option<Vec<String>>,
+    webhook_endpoint: &String,
+    expand: &Option<Vec<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{}",
-        webhook_endpoint.as_str(),
+        webhook_endpoint,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = expand {
+    if let Some(vals) = expand.as_ref() {
         for val in vals {
             query_parts.push(format!("expand={}", val));
         }
@@ -101173,8 +100538,8 @@ pub fn get_v1_webhook_endpoints_webhook_endpoint(
 > {
     let builder = get_v1_webhook_endpoints_webhook_endpoint_builder(
         client,
-        args.webhook_endpoint.clone(),
-        args.expand.clone(),
+        &args.webhook_endpoint,
+        &args.expand,
     )?;
     get_v1_webhook_endpoints_webhook_endpoint_execute(builder)
 }
@@ -101187,12 +100552,12 @@ pub fn get_v1_webhook_endpoints_webhook_endpoint(
 
 pub fn post_v1_webhook_endpoints_webhook_endpoint_builder(
     client: &SimpleHttpClient,
-    webhook_endpoint: String,
+    webhook_endpoint: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{}",
-        webhook_endpoint.as_str(),
+        webhook_endpoint,
     );
 
     // Build request
@@ -101337,7 +100702,7 @@ pub fn post_v1_webhook_endpoints_webhook_endpoint(
     ApiError,
 > {
     let builder =
-        post_v1_webhook_endpoints_webhook_endpoint_builder(client, args.webhook_endpoint.clone())?;
+        post_v1_webhook_endpoints_webhook_endpoint_builder(client, &args.webhook_endpoint)?;
     post_v1_webhook_endpoints_webhook_endpoint_execute(builder)
 }
 
@@ -101349,12 +100714,12 @@ pub fn post_v1_webhook_endpoints_webhook_endpoint(
 
 pub fn delete_v1_webhook_endpoints_webhook_endpoint_builder(
     client: &SimpleHttpClient,
-    webhook_endpoint: String,
+    webhook_endpoint: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.stripe.com//v1/webhook_endpoints/{}",
-        webhook_endpoint.as_str(),
+        webhook_endpoint,
     );
 
     // Build request
@@ -101498,9 +100863,7 @@ pub fn delete_v1_webhook_endpoints_webhook_endpoint(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_webhook_endpoints_webhook_endpoint_builder(
-        client,
-        args.webhook_endpoint.clone(),
-    )?;
+    let builder =
+        delete_v1_webhook_endpoints_webhook_endpoint_builder(client, &args.webhook_endpoint)?;
     delete_v1_webhook_endpoints_webhook_endpoint_execute(builder)
 }

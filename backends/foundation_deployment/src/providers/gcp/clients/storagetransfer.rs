@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn storagetransfer_google_service_accounts_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storagetransfer.googleapis.com/v1/googleServiceAccounts/{}",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -178,8 +178,7 @@ pub fn storagetransfer_google_service_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_google_service_accounts_get_builder(client, args.projectId.clone())?;
+    let builder = storagetransfer_google_service_accounts_get_builder(client, &args.projectId)?;
     storagetransfer_google_service_accounts_get_execute(builder)
 }
 
@@ -191,8 +190,8 @@ pub fn storagetransfer_google_service_accounts_get(
 
 pub fn storagetransfer_projects_agent_pools_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    agentPoolId: Option<String>,
+    projectId: &String,
+    agentPoolId: &Option<String>,
     body: &AgentPool,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -200,7 +199,7 @@ pub fn storagetransfer_projects_agent_pools_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = agentPoolId {
+    if let Some(val) = agentPoolId.as_ref() {
         query_parts.push(format!("agentPoolId={}", val));
     }
 
@@ -354,8 +353,8 @@ pub fn storagetransfer_projects_agent_pools_create(
 > {
     let builder = storagetransfer_projects_agent_pools_create_builder(
         client,
-        args.projectId.clone(),
-        args.agentPoolId.clone(),
+        &args.projectId,
+        &args.agentPoolId,
         &args.body,
     )?;
     storagetransfer_projects_agent_pools_create_execute(builder)
@@ -525,7 +524,7 @@ pub fn storagetransfer_transfer_jobs_create(
 
 pub fn storagetransfer_transfer_jobs_patch_builder(
     client: &SimpleHttpClient,
-    jobName: String,
+    jobName: &String,
     body: &UpdateTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -672,8 +671,7 @@ pub fn storagetransfer_transfer_jobs_patch(
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_transfer_jobs_patch_builder(client, args.jobName.clone(), &args.body)?;
+    let builder = storagetransfer_transfer_jobs_patch_builder(client, &args.jobName, &args.body)?;
     storagetransfer_transfer_jobs_patch_execute(builder)
 }
 
@@ -685,7 +683,7 @@ pub fn storagetransfer_transfer_jobs_patch(
 
 pub fn storagetransfer_transfer_jobs_run_builder(
     client: &SimpleHttpClient,
-    jobName: String,
+    jobName: &String,
     body: &RunTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -832,8 +830,7 @@ pub fn storagetransfer_transfer_jobs_run(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_transfer_jobs_run_builder(client, args.jobName.clone(), &args.body)?;
+    let builder = storagetransfer_transfer_jobs_run_builder(client, &args.jobName, &args.body)?;
     storagetransfer_transfer_jobs_run_execute(builder)
 }
 
@@ -845,7 +842,7 @@ pub fn storagetransfer_transfer_jobs_run(
 
 pub fn storagetransfer_transfer_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -994,7 +991,7 @@ pub fn storagetransfer_transfer_operations_cancel(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+        storagetransfer_transfer_operations_cancel_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_cancel_execute(builder)
 }
 
@@ -1006,7 +1003,7 @@ pub fn storagetransfer_transfer_operations_cancel(
 
 pub fn storagetransfer_transfer_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}",);
@@ -1148,7 +1145,7 @@ pub fn storagetransfer_transfer_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_operations_get_builder(client, args.name.clone())?;
+    let builder = storagetransfer_transfer_operations_get_builder(client, &args.name)?;
     storagetransfer_transfer_operations_get_execute(builder)
 }
 
@@ -1160,7 +1157,7 @@ pub fn storagetransfer_transfer_operations_get(
 
 pub fn storagetransfer_transfer_operations_pause_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &PauseTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1309,7 +1306,7 @@ pub fn storagetransfer_transfer_operations_pause(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_pause_builder(client, args.name.clone(), &args.body)?;
+        storagetransfer_transfer_operations_pause_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_pause_execute(builder)
 }
 
@@ -1321,7 +1318,7 @@ pub fn storagetransfer_transfer_operations_pause(
 
 pub fn storagetransfer_transfer_operations_resume_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &ResumeTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1470,6 +1467,6 @@ pub fn storagetransfer_transfer_operations_resume(
     ApiError,
 > {
     let builder =
-        storagetransfer_transfer_operations_resume_builder(client, args.name.clone(), &args.body)?;
+        storagetransfer_transfer_operations_resume_builder(client, &args.name, &args.body)?;
     storagetransfer_transfer_operations_resume_execute(builder)
 }

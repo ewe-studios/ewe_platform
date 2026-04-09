@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn androidpublisher_applications_data_safety_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &SafetyLabelsUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/dataSafety",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -187,11 +187,8 @@ pub fn androidpublisher_applications_data_safety(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_applications_data_safety_builder(
-        client,
-        args.packageName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_applications_data_safety_builder(client, &args.packageName, &args.body)?;
     androidpublisher_applications_data_safety_execute(builder)
 }
 
@@ -203,19 +200,19 @@ pub fn androidpublisher_applications_data_safety(
 
 pub fn androidpublisher_applications_device_tier_configs_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    allowUnknownDevices: Option<bool>,
+    packageName: &String,
+    allowUnknownDevices: &Option<bool>,
     body: &DeviceTierConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowUnknownDevices {
+    if let Some(val) = allowUnknownDevices.as_ref() {
         query_parts.push(format!("allowUnknownDevices={}", val));
     }
 
@@ -373,8 +370,8 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 > {
     let builder = androidpublisher_applications_device_tier_configs_create_builder(
         client,
-        args.packageName.clone(),
-        args.allowUnknownDevices.clone(),
+        &args.packageName,
+        &args.allowUnknownDevices,
         &args.body,
     )?;
     androidpublisher_applications_device_tier_configs_create_execute(builder)
@@ -388,14 +385,14 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 
 pub fn androidpublisher_applications_device_tier_configs_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    deviceTierConfigId: String,
+    packageName: &String,
+    deviceTierConfigId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs/{}",
-        packageName.as_str(),
-        deviceTierConfigId.as_str(),
+        packageName,
+        deviceTierConfigId,
     );
 
     // Build request
@@ -543,8 +540,8 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 > {
     let builder = androidpublisher_applications_device_tier_configs_get_builder(
         client,
-        args.packageName.clone(),
-        args.deviceTierConfigId.clone(),
+        &args.packageName,
+        &args.deviceTierConfigId,
     )?;
     androidpublisher_applications_device_tier_configs_get_execute(builder)
 }
@@ -557,15 +554,15 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 
 pub fn androidpublisher_apprecovery_add_targeting_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    appRecoveryId: String,
+    packageName: &String,
+    appRecoveryId: &String,
     body: &AddTargetingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:addTargeting",
-        packageName.as_str(),
-        appRecoveryId.as_str(),
+        packageName,
+        appRecoveryId,
     );
 
     // Build request
@@ -717,8 +714,8 @@ pub fn androidpublisher_apprecovery_add_targeting(
 > {
     let builder = androidpublisher_apprecovery_add_targeting_builder(
         client,
-        args.packageName.clone(),
-        args.appRecoveryId.clone(),
+        &args.packageName,
+        &args.appRecoveryId,
         &args.body,
     )?;
     androidpublisher_apprecovery_add_targeting_execute(builder)
@@ -732,15 +729,15 @@ pub fn androidpublisher_apprecovery_add_targeting(
 
 pub fn androidpublisher_apprecovery_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    appRecoveryId: String,
+    packageName: &String,
+    appRecoveryId: &String,
     body: &CancelAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:cancel",
-        packageName.as_str(),
-        appRecoveryId.as_str(),
+        packageName,
+        appRecoveryId,
     );
 
     // Build request
@@ -892,8 +889,8 @@ pub fn androidpublisher_apprecovery_cancel(
 > {
     let builder = androidpublisher_apprecovery_cancel_builder(
         client,
-        args.packageName.clone(),
-        args.appRecoveryId.clone(),
+        &args.packageName,
+        &args.appRecoveryId,
         &args.body,
     )?;
     androidpublisher_apprecovery_cancel_execute(builder)
@@ -907,13 +904,13 @@ pub fn androidpublisher_apprecovery_cancel(
 
 pub fn androidpublisher_apprecovery_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &CreateDraftAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -1062,7 +1059,7 @@ pub fn androidpublisher_apprecovery_create(
     ApiError,
 > {
     let builder =
-        androidpublisher_apprecovery_create_builder(client, args.packageName.clone(), &args.body)?;
+        androidpublisher_apprecovery_create_builder(client, &args.packageName, &args.body)?;
     androidpublisher_apprecovery_create_execute(builder)
 }
 
@@ -1074,15 +1071,15 @@ pub fn androidpublisher_apprecovery_create(
 
 pub fn androidpublisher_apprecovery_deploy_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    appRecoveryId: String,
+    packageName: &String,
+    appRecoveryId: &String,
     body: &DeployAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:deploy",
-        packageName.as_str(),
-        appRecoveryId.as_str(),
+        packageName,
+        appRecoveryId,
     );
 
     // Build request
@@ -1234,8 +1231,8 @@ pub fn androidpublisher_apprecovery_deploy(
 > {
     let builder = androidpublisher_apprecovery_deploy_builder(
         client,
-        args.packageName.clone(),
-        args.appRecoveryId.clone(),
+        &args.packageName,
+        &args.appRecoveryId,
         &args.body,
     )?;
     androidpublisher_apprecovery_deploy_execute(builder)
@@ -1249,24 +1246,24 @@ pub fn androidpublisher_apprecovery_deploy(
 
 pub fn androidpublisher_edits_commit_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    changesInReviewBehavior: Option<String>,
-    changesNotSentForReview: Option<bool>,
+    packageName: &String,
+    editId: &String,
+    changesInReviewBehavior: &Option<String>,
+    changesNotSentForReview: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:commit",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = changesInReviewBehavior {
+    if let Some(val) = changesInReviewBehavior.as_ref() {
         query_parts.push(format!("changesInReviewBehavior={}", val));
     }
-    if let Some(val) = changesNotSentForReview {
+    if let Some(val) = changesNotSentForReview.as_ref() {
         query_parts.push(format!("changesNotSentForReview={}", val));
     }
 
@@ -1420,10 +1417,10 @@ pub fn androidpublisher_edits_commit(
 > {
     let builder = androidpublisher_edits_commit_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.changesInReviewBehavior.clone(),
-        args.changesNotSentForReview.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.changesInReviewBehavior,
+        &args.changesNotSentForReview,
     )?;
     androidpublisher_edits_commit_execute(builder)
 }
@@ -1436,14 +1433,13 @@ pub fn androidpublisher_edits_commit(
 
 pub fn androidpublisher_edits_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName, editId,
     );
 
     // Build request
@@ -1582,11 +1578,7 @@ pub fn androidpublisher_edits_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_delete_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder = androidpublisher_edits_delete_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_delete_execute(builder)
 }
 
@@ -1598,13 +1590,13 @@ pub fn androidpublisher_edits_delete(
 
 pub fn androidpublisher_edits_insert_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &AppEdit,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -1748,8 +1740,7 @@ pub fn androidpublisher_edits_insert(
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_insert_builder(client, args.packageName.clone(), &args.body)?;
+    let builder = androidpublisher_edits_insert_builder(client, &args.packageName, &args.body)?;
     androidpublisher_edits_insert_execute(builder)
 }
 
@@ -1761,14 +1752,14 @@ pub fn androidpublisher_edits_insert(
 
 pub fn androidpublisher_edits_validate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:validate",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -1910,11 +1901,7 @@ pub fn androidpublisher_edits_validate(
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_validate_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder = androidpublisher_edits_validate_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_validate_execute(builder)
 }
 
@@ -1926,15 +1913,15 @@ pub fn androidpublisher_edits_validate(
 
 pub fn androidpublisher_edits_apks_addexternallyhosted_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
     body: &ApksAddExternallyHostedRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/externallyHosted",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -2090,8 +2077,8 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
 > {
     let builder = androidpublisher_edits_apks_addexternallyhosted_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
+        &args.packageName,
+        &args.editId,
         &args.body,
     )?;
     androidpublisher_edits_apks_addexternallyhosted_execute(builder)
@@ -2105,14 +2092,13 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
 
 pub fn androidpublisher_edits_apks_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName, editId,
     );
 
     // Build request
@@ -2258,11 +2244,8 @@ pub fn androidpublisher_edits_apks_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_apks_list_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder =
+        androidpublisher_edits_apks_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_apks_list_execute(builder)
 }
 
@@ -2274,14 +2257,14 @@ pub fn androidpublisher_edits_apks_list(
 
 pub fn androidpublisher_edits_bundles_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -2427,11 +2410,8 @@ pub fn androidpublisher_edits_bundles_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_bundles_list_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder =
+        androidpublisher_edits_bundles_list_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_bundles_list_execute(builder)
 }
 
@@ -2443,16 +2423,16 @@ pub fn androidpublisher_edits_bundles_list(
 
 pub fn androidpublisher_edits_countryavailability_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    track: String,
+    packageName: &String,
+    editId: &String,
+    track: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/countryAvailability/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        track.as_str(),
+        packageName,
+        editId,
+        track,
     );
 
     // Build request
@@ -2602,9 +2582,9 @@ pub fn androidpublisher_edits_countryavailability_get(
 > {
     let builder = androidpublisher_edits_countryavailability_get_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.track.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.track,
     )?;
     androidpublisher_edits_countryavailability_get_execute(builder)
 }
@@ -2617,18 +2597,18 @@ pub fn androidpublisher_edits_countryavailability_get(
 
 pub fn androidpublisher_edits_deobfuscationfiles_upload_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    apkVersionCode: String,
-    deobfuscationFileType: String,
+    packageName: &String,
+    editId: &String,
+    apkVersionCode: &i32,
+    deobfuscationFileType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/deobfuscationFiles/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        apkVersionCode.as_str(),
-        deobfuscationFileType.as_str(),
+        packageName,
+        editId,
+        apkVersionCode,
+        deobfuscationFileType,
     );
 
     // Build request
@@ -2755,7 +2735,7 @@ pub struct AndroidpublisherEditsDeobfuscationfilesUploadArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Path parameter: apkVersionCode
-    pub apkVersionCode: String,
+    pub apkVersionCode: i32,
     /// Path parameter: deobfuscationFileType
     pub deobfuscationFileType: String,
 }
@@ -2784,10 +2764,10 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 > {
     let builder = androidpublisher_edits_deobfuscationfiles_upload_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.apkVersionCode.clone(),
-        args.deobfuscationFileType.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.deobfuscationFileType,
     )?;
     androidpublisher_edits_deobfuscationfiles_upload_execute(builder)
 }
@@ -2800,14 +2780,14 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 
 pub fn androidpublisher_edits_details_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -2949,11 +2929,8 @@ pub fn androidpublisher_edits_details_get(
     impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_details_get_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder =
+        androidpublisher_edits_details_get_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_details_get_execute(builder)
 }
 
@@ -2965,18 +2942,18 @@ pub fn androidpublisher_edits_details_get(
 
 pub fn androidpublisher_edits_expansionfiles_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    apkVersionCode: String,
-    expansionFileType: String,
+    packageName: &String,
+    editId: &String,
+    apkVersionCode: &i32,
+    expansionFileType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        apkVersionCode.as_str(),
-        expansionFileType.as_str(),
+        packageName,
+        editId,
+        apkVersionCode,
+        expansionFileType,
     );
 
     // Build request
@@ -3101,7 +3078,7 @@ pub struct AndroidpublisherEditsExpansionfilesGetArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Path parameter: apkVersionCode
-    pub apkVersionCode: String,
+    pub apkVersionCode: i32,
     /// Path parameter: expansionFileType
     pub expansionFileType: String,
 }
@@ -3128,10 +3105,10 @@ pub fn androidpublisher_edits_expansionfiles_get(
 > {
     let builder = androidpublisher_edits_expansionfiles_get_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.apkVersionCode.clone(),
-        args.expansionFileType.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.apkVersionCode,
+        &args.expansionFileType,
     )?;
     androidpublisher_edits_expansionfiles_get_execute(builder)
 }
@@ -3144,20 +3121,20 @@ pub fn androidpublisher_edits_expansionfiles_get(
 
 pub fn androidpublisher_edits_images_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    language: String,
-    imageType: String,
-    imageId: String,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+    imageType: &String,
+    imageId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        language.as_str(),
-        imageType.as_str(),
-        imageId.as_str(),
+        packageName,
+        editId,
+        language,
+        imageType,
+        imageId,
     );
 
     // Build request
@@ -3304,11 +3281,11 @@ pub fn androidpublisher_edits_images_delete(
 > {
     let builder = androidpublisher_edits_images_delete_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.language.clone(),
-        args.imageType.clone(),
-        args.imageId.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
+        &args.imageId,
     )?;
     androidpublisher_edits_images_delete_execute(builder)
 }
@@ -3321,18 +3298,18 @@ pub fn androidpublisher_edits_images_delete(
 
 pub fn androidpublisher_edits_images_deleteall_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    language: String,
-    imageType: String,
+    packageName: &String,
+    editId: &String,
+    language: &String,
+    imageType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        language.as_str(),
-        imageType.as_str(),
+        packageName,
+        editId,
+        language,
+        imageType,
     );
 
     // Build request
@@ -3484,10 +3461,10 @@ pub fn androidpublisher_edits_images_deleteall(
 > {
     let builder = androidpublisher_edits_images_deleteall_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.language.clone(),
-        args.imageType.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.language,
+        &args.imageType,
     )?;
     androidpublisher_edits_images_deleteall_execute(builder)
 }
@@ -3500,16 +3477,16 @@ pub fn androidpublisher_edits_images_deleteall(
 
 pub fn androidpublisher_edits_listings_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    language: String,
+    packageName: &String,
+    editId: &String,
+    language: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        language.as_str(),
+        packageName,
+        editId,
+        language,
     );
 
     // Build request
@@ -3652,9 +3629,9 @@ pub fn androidpublisher_edits_listings_delete(
 > {
     let builder = androidpublisher_edits_listings_delete_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.language.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.language,
     )?;
     androidpublisher_edits_listings_delete_execute(builder)
 }
@@ -3667,14 +3644,14 @@ pub fn androidpublisher_edits_listings_delete(
 
 pub fn androidpublisher_edits_listings_deleteall_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -3813,11 +3790,8 @@ pub fn androidpublisher_edits_listings_deleteall(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_listings_deleteall_builder(
-        client,
-        args.packageName.clone(),
-        args.editId.clone(),
-    )?;
+    let builder =
+        androidpublisher_edits_listings_deleteall_builder(client, &args.packageName, &args.editId)?;
     androidpublisher_edits_listings_deleteall_execute(builder)
 }
 
@@ -3829,16 +3803,16 @@ pub fn androidpublisher_edits_listings_deleteall(
 
 pub fn androidpublisher_edits_testers_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    track: String,
+    packageName: &String,
+    editId: &String,
+    track: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        track.as_str(),
+        packageName,
+        editId,
+        track,
     );
 
     // Build request
@@ -3984,9 +3958,9 @@ pub fn androidpublisher_edits_testers_get(
 > {
     let builder = androidpublisher_edits_testers_get_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.track.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.track,
     )?;
     androidpublisher_edits_testers_get_execute(builder)
 }
@@ -3999,15 +3973,15 @@ pub fn androidpublisher_edits_testers_get(
 
 pub fn androidpublisher_edits_tracks_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
+    packageName: &String,
+    editId: &String,
     body: &TrackConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
-        packageName.as_str(),
-        editId.as_str(),
+        packageName,
+        editId,
     );
 
     // Build request
@@ -4155,8 +4129,8 @@ pub fn androidpublisher_edits_tracks_create(
 > {
     let builder = androidpublisher_edits_tracks_create_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
+        &args.packageName,
+        &args.editId,
         &args.body,
     )?;
     androidpublisher_edits_tracks_create_execute(builder)
@@ -4170,16 +4144,16 @@ pub fn androidpublisher_edits_tracks_create(
 
 pub fn androidpublisher_edits_tracks_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    editId: String,
-    track: String,
+    packageName: &String,
+    editId: &String,
+    track: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
-        packageName.as_str(),
-        editId.as_str(),
-        track.as_str(),
+        packageName,
+        editId,
+        track,
     );
 
     // Build request
@@ -4325,9 +4299,9 @@ pub fn androidpublisher_edits_tracks_get(
 > {
     let builder = androidpublisher_edits_tracks_get_builder(
         client,
-        args.packageName.clone(),
-        args.editId.clone(),
-        args.track.clone(),
+        &args.packageName,
+        &args.editId,
+        &args.track,
     )?;
     androidpublisher_edits_tracks_get_execute(builder)
 }
@@ -4340,8 +4314,8 @@ pub fn androidpublisher_edits_tracks_get(
 
 pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    externalTransactionId: Option<String>,
+    parent: &String,
+    externalTransactionId: &Option<String>,
     body: &ExternalTransaction,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4351,7 +4325,7 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = externalTransactionId {
+    if let Some(val) = externalTransactionId.as_ref() {
         query_parts.push(format!("externalTransactionId={}", val));
     }
 
@@ -4509,8 +4483,8 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 > {
     let builder = androidpublisher_externaltransactions_createexternaltransaction_builder(
         client,
-        args.parent.clone(),
-        args.externalTransactionId.clone(),
+        &args.parent,
+        &args.externalTransactionId,
         &args.body,
     )?;
     androidpublisher_externaltransactions_createexternaltransaction_execute(builder)
@@ -4524,16 +4498,16 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 
 pub fn androidpublisher_generatedapks_download_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    versionCode: String,
-    downloadId: String,
+    packageName: &String,
+    versionCode: &i32,
+    downloadId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}/downloads/{}:download",
-        packageName.as_str(),
-        versionCode.as_str(),
-        downloadId.as_str(),
+        packageName,
+        versionCode,
+        downloadId,
     );
 
     // Build request
@@ -4651,7 +4625,7 @@ pub struct AndroidpublisherGeneratedapksDownloadArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Path parameter: versionCode
-    pub versionCode: String,
+    pub versionCode: i32,
     /// Path parameter: downloadId
     pub downloadId: String,
 }
@@ -4676,9 +4650,9 @@ pub fn androidpublisher_generatedapks_download(
 > {
     let builder = androidpublisher_generatedapks_download_builder(
         client,
-        args.packageName.clone(),
-        args.versionCode.clone(),
-        args.downloadId.clone(),
+        &args.packageName,
+        &args.versionCode,
+        &args.downloadId,
     )?;
     androidpublisher_generatedapks_download_execute(builder)
 }
@@ -4691,14 +4665,14 @@ pub fn androidpublisher_generatedapks_download(
 
 pub fn androidpublisher_generatedapks_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    versionCode: String,
+    packageName: &String,
+    versionCode: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}",
-        packageName.as_str(),
-        versionCode.as_str(),
+        packageName,
+        versionCode,
     );
 
     // Build request
@@ -4821,7 +4795,7 @@ pub struct AndroidpublisherGeneratedapksListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Path parameter: versionCode
-    pub versionCode: String,
+    pub versionCode: i32,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}
@@ -4844,11 +4818,8 @@ pub fn androidpublisher_generatedapks_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_generatedapks_list_builder(
-        client,
-        args.packageName.clone(),
-        args.versionCode.clone(),
-    )?;
+    let builder =
+        androidpublisher_generatedapks_list_builder(client, &args.packageName, &args.versionCode)?;
     androidpublisher_generatedapks_list_execute(builder)
 }
 
@@ -4860,13 +4831,13 @@ pub fn androidpublisher_generatedapks_list(
 
 pub fn androidpublisher_inappproducts_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &InappproductsBatchDeleteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchDelete",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -5007,11 +4978,8 @@ pub fn androidpublisher_inappproducts_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_delete_builder(
-        client,
-        args.packageName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_inappproducts_batch_delete_builder(client, &args.packageName, &args.body)?;
     androidpublisher_inappproducts_batch_delete_execute(builder)
 }
 
@@ -5023,18 +4991,18 @@ pub fn androidpublisher_inappproducts_batch_delete(
 
 pub fn androidpublisher_inappproducts_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    sku: Option<String>,
+    packageName: &String,
+    sku: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchGet",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sku {
+    if let Some(val) = sku.as_ref() {
         query_parts.push(format!("sku={}", val));
     }
 
@@ -5190,11 +5158,8 @@ pub fn androidpublisher_inappproducts_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_get_builder(
-        client,
-        args.packageName.clone(),
-        args.sku.clone(),
-    )?;
+    let builder =
+        androidpublisher_inappproducts_batch_get_builder(client, &args.packageName, &args.sku)?;
     androidpublisher_inappproducts_batch_get_execute(builder)
 }
 
@@ -5206,13 +5171,13 @@ pub fn androidpublisher_inappproducts_batch_get(
 
 pub fn androidpublisher_inappproducts_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &InappproductsBatchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchUpdate",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -5364,11 +5329,8 @@ pub fn androidpublisher_inappproducts_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_inappproducts_batch_update_builder(
-        client,
-        args.packageName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidpublisher_inappproducts_batch_update_builder(client, &args.packageName, &args.body)?;
     androidpublisher_inappproducts_batch_update_execute(builder)
 }
 
@@ -5380,20 +5342,20 @@ pub fn androidpublisher_inappproducts_batch_update(
 
 pub fn androidpublisher_inappproducts_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    sku: String,
-    latencyTolerance: Option<String>,
+    packageName: &String,
+    sku: &String,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
-        packageName.as_str(),
-        sku.as_str(),
+        packageName,
+        sku,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = latencyTolerance {
+    if let Some(val) = latencyTolerance.as_ref() {
         query_parts.push(format!("latencyTolerance={}", val));
     }
 
@@ -5542,9 +5504,9 @@ pub fn androidpublisher_inappproducts_delete(
 > {
     let builder = androidpublisher_inappproducts_delete_builder(
         client,
-        args.packageName.clone(),
-        args.sku.clone(),
-        args.latencyTolerance.clone(),
+        &args.packageName,
+        &args.sku,
+        &args.latencyTolerance,
     )?;
     androidpublisher_inappproducts_delete_execute(builder)
 }
@@ -5557,19 +5519,19 @@ pub fn androidpublisher_inappproducts_delete(
 
 pub fn androidpublisher_inappproducts_insert_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    autoConvertMissingPrices: Option<bool>,
+    packageName: &String,
+    autoConvertMissingPrices: &Option<bool>,
     body: &InAppProduct,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = autoConvertMissingPrices {
+    if let Some(val) = autoConvertMissingPrices.as_ref() {
         query_parts.push(format!("autoConvertMissingPrices={}", val));
     }
 
@@ -5727,8 +5689,8 @@ pub fn androidpublisher_inappproducts_insert(
 > {
     let builder = androidpublisher_inappproducts_insert_builder(
         client,
-        args.packageName.clone(),
-        args.autoConvertMissingPrices.clone(),
+        &args.packageName,
+        &args.autoConvertMissingPrices,
         &args.body,
     )?;
     androidpublisher_inappproducts_insert_execute(builder)
@@ -5742,12 +5704,12 @@ pub fn androidpublisher_inappproducts_insert(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/apk",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -5895,10 +5857,8 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_internalappsharingartifacts_uploadapk_builder(
-        client,
-        args.packageName.clone(),
-    )?;
+    let builder =
+        androidpublisher_internalappsharingartifacts_uploadapk_builder(client, &args.packageName)?;
     androidpublisher_internalappsharingartifacts_uploadapk_execute(builder)
 }
 
@@ -5910,12 +5870,12 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/bundle",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -6065,7 +6025,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 > {
     let builder = androidpublisher_internalappsharingartifacts_uploadbundle_builder(
         client,
-        args.packageName.clone(),
+        &args.packageName,
     )?;
     androidpublisher_internalappsharingartifacts_uploadbundle_execute(builder)
 }
@@ -6078,13 +6038,13 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 
 pub fn androidpublisher_monetization_convert_region_prices_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &ConvertRegionPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/pricing:convertRegionPrices",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -6238,7 +6198,7 @@ pub fn androidpublisher_monetization_convert_region_prices(
 > {
     let builder = androidpublisher_monetization_convert_region_prices_builder(
         client,
-        args.packageName.clone(),
+        &args.packageName,
         &args.body,
     )?;
     androidpublisher_monetization_convert_region_prices_execute(builder)
@@ -6252,13 +6212,13 @@ pub fn androidpublisher_monetization_convert_region_prices(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &BatchDeleteOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchDelete",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -6401,7 +6361,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_delete_builder(
         client,
-        args.packageName.clone(),
+        &args.packageName,
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_delete_execute(builder)
@@ -6415,18 +6375,18 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productIds: Option<String>,
+    packageName: &String,
+    productIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchGet",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = productIds {
+    if let Some(val) = productIds.as_ref() {
         query_parts.push(format!("productIds={}", val));
     }
 
@@ -6584,8 +6544,8 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_get_builder(
         client,
-        args.packageName.clone(),
-        args.productIds.clone(),
+        &args.packageName,
+        &args.productIds,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_get_execute(builder)
 }
@@ -6598,13 +6558,13 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &BatchUpdateOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchUpdate",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -6758,7 +6718,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_update_builder(
         client,
-        args.packageName.clone(),
+        &args.packageName,
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_update_execute(builder)
@@ -6772,20 +6732,20 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 
 pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    latencyTolerance: Option<String>,
+    packageName: &String,
+    productId: &String,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = latencyTolerance {
+    if let Some(val) = latencyTolerance.as_ref() {
         query_parts.push(format!("latencyTolerance={}", val));
     }
 
@@ -6934,9 +6894,9 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_delete_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.latencyTolerance.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.latencyTolerance,
     )?;
     androidpublisher_monetization_onetimeproducts_delete_execute(builder)
 }
@@ -6949,22 +6909,22 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
 
 pub fn androidpublisher_monetization_onetimeproducts_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    packageName: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -7124,9 +7084,9 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_list_builder(
         client,
-        args.packageName.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.packageName,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     androidpublisher_monetization_onetimeproducts_list_execute(builder)
 }
@@ -7139,33 +7099,33 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 
 pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<String>,
-    regionsVersion_version: Option<String>,
-    updateMask: Option<String>,
+    packageName: &String,
+    productId: &String,
+    allowMissing: &Option<bool>,
+    latencyTolerance: &Option<String>,
+    regionsVersion_version: &Option<String>,
+    updateMask: &Option<String>,
     body: &OneTimeProduct,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/onetimeproducts/{}",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowMissing {
+    if let Some(val) = allowMissing.as_ref() {
         query_parts.push(format!("allowMissing={}", val));
     }
-    if let Some(val) = latencyTolerance {
+    if let Some(val) = latencyTolerance.as_ref() {
         query_parts.push(format!("latencyTolerance={}", val));
     }
-    if let Some(val) = regionsVersion_version {
+    if let Some(val) = regionsVersion_version.as_ref() {
         query_parts.push(format!("regionsVersion.version={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -7331,12 +7291,12 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_patch_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.allowMissing.clone(),
-        args.latencyTolerance.clone(),
-        args.regionsVersion_version.clone(),
-        args.updateMask.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.allowMissing,
+        &args.latencyTolerance,
+        &args.regionsVersion_version,
+        &args.updateMask,
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_patch_execute(builder)
@@ -7350,15 +7310,15 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
     body: &BatchDeletePurchaseOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchDelete",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -7505,8 +7465,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
+            &args.packageName,
+            &args.productId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_execute(builder)
@@ -7520,15 +7480,15 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
     body: &BatchUpdatePurchaseOptionStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchUpdateStates",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -7689,8 +7649,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
+            &args.packageName,
+            &args.productId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_execute(
@@ -7706,19 +7666,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
+    offerId: &String,
     body: &ActivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:activate",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
+        offerId,
     );
 
     // Build request
@@ -7877,10 +7837,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
-            args.offerId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_execute(builder)
@@ -7894,17 +7854,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
     body: &BatchDeleteOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchDelete",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
     );
 
     // Build request
@@ -8055,9 +8015,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_execute(
@@ -8073,17 +8033,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
     body: &BatchGetOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchGet",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
     );
 
     // Build request
@@ -8245,9 +8205,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_execute(builder)
@@ -8261,17 +8221,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
     body: &BatchUpdateOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdate",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
     );
 
     // Build request
@@ -8434,9 +8394,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_execute(
@@ -8452,17 +8412,17 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
     body: &BatchUpdateOneTimeProductOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdateStates",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
     );
 
     // Build request
@@ -8619,7 +8579,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, args.packageName.clone(), args.productId.clone(), args.purchaseOptionId.clone(), &args.body)?;
+    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, &args.packageName, &args.productId, &args.purchaseOptionId, &args.body)?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_execute(builder)
 }
 
@@ -8631,19 +8591,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
+    offerId: &String,
     body: &CancelOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:cancel",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
+        offerId,
     );
 
     // Build request
@@ -8801,10 +8761,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
-            args.offerId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_execute(builder)
@@ -8818,19 +8778,19 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
+    offerId: &String,
     body: &DeactivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:deactivate",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
+        offerId,
     );
 
     // Build request
@@ -8990,10 +8950,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
-            args.offerId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.offerId,
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_execute(
@@ -9009,26 +8969,26 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    purchaseOptionId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    packageName: &String,
+    productId: &String,
+    purchaseOptionId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers",
-        packageName.as_str(),
-        productId.as_str(),
-        purchaseOptionId.as_str(),
+        packageName,
+        productId,
+        purchaseOptionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -9194,11 +9154,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.purchaseOptionId.clone(),
-            args.pageSize.clone(),
-            args.pageToken.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.purchaseOptionId,
+            &args.pageSize,
+            &args.pageToken,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_execute(builder)
 }
@@ -9211,15 +9171,15 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
 
 pub fn androidpublisher_monetization_subscriptions_archive_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
     body: &ArchiveSubscriptionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}:archive",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -9371,8 +9331,8 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 > {
     let builder = androidpublisher_monetization_subscriptions_archive_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
+        &args.packageName,
+        &args.productId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_archive_execute(builder)
@@ -9386,18 +9346,18 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 
 pub fn androidpublisher_monetization_subscriptions_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productIds: Option<String>,
+    packageName: &String,
+    productIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchGet",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = productIds {
+    if let Some(val) = productIds.as_ref() {
         query_parts.push(format!("productIds={}", val));
     }
 
@@ -9555,8 +9515,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_get_builder(
         client,
-        args.packageName.clone(),
-        args.productIds.clone(),
+        &args.packageName,
+        &args.productIds,
     )?;
     androidpublisher_monetization_subscriptions_batch_get_execute(builder)
 }
@@ -9569,13 +9529,13 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 
 pub fn androidpublisher_monetization_subscriptions_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &BatchUpdateSubscriptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchUpdate",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
@@ -9729,7 +9689,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_update_builder(
         client,
-        args.packageName.clone(),
+        &args.packageName,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_batch_update_execute(builder)
@@ -9743,23 +9703,23 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 
 pub fn androidpublisher_monetization_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: Option<String>,
-    regionsVersion_version: Option<String>,
+    packageName: &String,
+    productId: &Option<String>,
+    regionsVersion_version: &Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = productId {
+    if let Some(val) = productId.as_ref() {
         query_parts.push(format!("productId={}", val));
     }
-    if let Some(val) = regionsVersion_version {
+    if let Some(val) = regionsVersion_version.as_ref() {
         query_parts.push(format!("regionsVersion.version={}", val));
     }
 
@@ -9919,9 +9879,9 @@ pub fn androidpublisher_monetization_subscriptions_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_create_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.regionsVersion_version.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.regionsVersion_version,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_create_execute(builder)
@@ -9935,14 +9895,14 @@ pub fn androidpublisher_monetization_subscriptions_create(
 
 pub fn androidpublisher_monetization_subscriptions_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -10083,8 +10043,8 @@ pub fn androidpublisher_monetization_subscriptions_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_delete_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
+        &args.packageName,
+        &args.productId,
     )?;
     androidpublisher_monetization_subscriptions_delete_execute(builder)
 }
@@ -10097,17 +10057,17 @@ pub fn androidpublisher_monetization_subscriptions_delete(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &ActivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:activate",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -10261,9 +10221,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_activate_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_activate_execute(builder)
@@ -10277,15 +10237,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
     body: &BatchMigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchMigratePrices",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -10443,8 +10403,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
+            &args.packageName,
+            &args.productId,
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_execute(builder)
@@ -10458,15 +10418,15 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
+    packageName: &String,
+    productId: &String,
     body: &BatchUpdateBasePlanStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchUpdateStates",
-        packageName.as_str(),
-        productId.as_str(),
+        packageName,
+        productId,
     );
 
     // Build request
@@ -10624,8 +10584,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
+            &args.packageName,
+            &args.productId,
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_update_states_execute(builder)
@@ -10639,17 +10599,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &DeactivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:deactivate",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -10803,9 +10763,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_deactivate_execute(builder)
@@ -10819,16 +10779,16 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -10971,9 +10931,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_delete_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_delete_execute(builder)
 }
@@ -10986,17 +10946,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &MigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:migratePrices",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -11154,9 +11114,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_migrate_prices_execute(builder)
@@ -11170,19 +11130,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &String,
     body: &ActivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:activate",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
+        offerId,
     );
 
     // Build request
@@ -11339,10 +11299,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
-        args.offerId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_activate_execute(builder)
@@ -11356,17 +11316,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &BatchGetSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchGet",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -11525,9 +11485,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_execute(builder)
@@ -11541,17 +11501,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &BatchUpdateSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdate",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -11711,9 +11671,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.basePlanId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.basePlanId,
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_execute(builder)
@@ -11727,17 +11687,17 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
     body: &BatchUpdateSubscriptionOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdateStates",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
@@ -11900,9 +11860,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
             client,
-            args.packageName.clone(),
-            args.productId.clone(),
-            args.basePlanId.clone(),
+            &args.packageName,
+            &args.productId,
+            &args.basePlanId,
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_execute(
@@ -11918,27 +11878,27 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
-    offerId: Option<String>,
-    regionsVersion_version: Option<String>,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &Option<String>,
+    regionsVersion_version: &Option<String>,
     body: &SubscriptionOffer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = offerId {
+    if let Some(val) = offerId.as_ref() {
         query_parts.push(format!("offerId={}", val));
     }
-    if let Some(val) = regionsVersion_version {
+    if let Some(val) = regionsVersion_version.as_ref() {
         query_parts.push(format!("regionsVersion.version={}", val));
     }
 
@@ -12102,11 +12062,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
-        args.offerId.clone(),
-        args.regionsVersion_version.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
+        &args.regionsVersion_version,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_create_execute(builder)
@@ -12120,19 +12080,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &String,
     body: &DeactivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:deactivate",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
+        offerId,
     );
 
     // Build request
@@ -12289,10 +12249,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
-        args.offerId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_execute(builder)
@@ -12306,18 +12266,18 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    basePlanId: String,
-    offerId: String,
+    packageName: &String,
+    productId: &String,
+    basePlanId: &String,
+    offerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
-        packageName.as_str(),
-        productId.as_str(),
-        basePlanId.as_str(),
-        offerId.as_str(),
+        packageName,
+        productId,
+        basePlanId,
+        offerId,
     );
 
     // Build request
@@ -12462,10 +12422,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.basePlanId.clone(),
-        args.offerId.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.basePlanId,
+        &args.offerId,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_delete_execute(builder)
 }
@@ -12478,18 +12438,18 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
 
 pub fn androidpublisher_orders_batchget_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    orderIds: Option<String>,
+    packageName: &String,
+    orderIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders:batchGet",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderIds {
+    if let Some(val) = orderIds.as_ref() {
         query_parts.push(format!("orderIds={}", val));
     }
 
@@ -12641,11 +12601,8 @@ pub fn androidpublisher_orders_batchget(
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_batchget_builder(
-        client,
-        args.packageName.clone(),
-        args.orderIds.clone(),
-    )?;
+    let builder =
+        androidpublisher_orders_batchget_builder(client, &args.packageName, &args.orderIds)?;
     androidpublisher_orders_batchget_execute(builder)
 }
 
@@ -12657,14 +12614,13 @@ pub fn androidpublisher_orders_batchget(
 
 pub fn androidpublisher_orders_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    orderId: String,
+    packageName: &String,
+    orderId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}",
-        packageName.as_str(),
-        orderId.as_str(),
+        packageName, orderId,
     );
 
     // Build request
@@ -12806,11 +12762,7 @@ pub fn androidpublisher_orders_get(
     impl StreamIterator<D = Result<ApiResponse<Order>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_get_builder(
-        client,
-        args.packageName.clone(),
-        args.orderId.clone(),
-    )?;
+    let builder = androidpublisher_orders_get_builder(client, &args.packageName, &args.orderId)?;
     androidpublisher_orders_get_execute(builder)
 }
 
@@ -12822,20 +12774,20 @@ pub fn androidpublisher_orders_get(
 
 pub fn androidpublisher_orders_refund_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    orderId: String,
-    revoke: Option<bool>,
+    packageName: &String,
+    orderId: &String,
+    revoke: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}:refund",
-        packageName.as_str(),
-        orderId.as_str(),
+        packageName,
+        orderId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = revoke {
+    if let Some(val) = revoke.as_ref() {
         query_parts.push(format!("revoke={}", val));
     }
 
@@ -12984,9 +12936,9 @@ pub fn androidpublisher_orders_refund(
 > {
     let builder = androidpublisher_orders_refund_builder(
         client,
-        args.packageName.clone(),
-        args.orderId.clone(),
-        args.revoke.clone(),
+        &args.packageName,
+        &args.orderId,
+        &args.revoke,
     )?;
     androidpublisher_orders_refund_execute(builder)
 }
@@ -12999,17 +12951,17 @@ pub fn androidpublisher_orders_refund(
 
 pub fn androidpublisher_purchases_products_acknowledge_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    token: String,
+    packageName: &String,
+    productId: &String,
+    token: &String,
     body: &ProductPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:acknowledge",
-        packageName.as_str(),
-        productId.as_str(),
-        token.as_str(),
+        packageName,
+        productId,
+        token,
     );
 
     // Build request
@@ -13156,9 +13108,9 @@ pub fn androidpublisher_purchases_products_acknowledge(
 > {
     let builder = androidpublisher_purchases_products_acknowledge_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_products_acknowledge_execute(builder)
@@ -13172,16 +13124,16 @@ pub fn androidpublisher_purchases_products_acknowledge(
 
 pub fn androidpublisher_purchases_products_consume_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    token: String,
+    packageName: &String,
+    productId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:consume",
-        packageName.as_str(),
-        productId.as_str(),
-        token.as_str(),
+        packageName,
+        productId,
+        token,
     );
 
     // Build request
@@ -13324,9 +13276,9 @@ pub fn androidpublisher_purchases_products_consume(
 > {
     let builder = androidpublisher_purchases_products_consume_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.token,
     )?;
     androidpublisher_purchases_products_consume_execute(builder)
 }
@@ -13339,16 +13291,16 @@ pub fn androidpublisher_purchases_products_consume(
 
 pub fn androidpublisher_purchases_products_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    productId: String,
-    token: String,
+    packageName: &String,
+    productId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}",
-        packageName.as_str(),
-        productId.as_str(),
-        token.as_str(),
+        packageName,
+        productId,
+        token,
     );
 
     // Build request
@@ -13498,9 +13450,9 @@ pub fn androidpublisher_purchases_products_get(
 > {
     let builder = androidpublisher_purchases_products_get_builder(
         client,
-        args.packageName.clone(),
-        args.productId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.productId,
+        &args.token,
     )?;
     androidpublisher_purchases_products_get_execute(builder)
 }
@@ -13513,14 +13465,14 @@ pub fn androidpublisher_purchases_products_get(
 
 pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    token: String,
+    packageName: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/productsv2/tokens/{}",
-        packageName.as_str(),
-        token.as_str(),
+        packageName,
+        token,
     );
 
     // Build request
@@ -13668,8 +13620,8 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 > {
     let builder = androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
         client,
-        args.packageName.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.token,
     )?;
     androidpublisher_purchases_productsv2_getproductpurchasev2_execute(builder)
 }
@@ -13682,17 +13634,17 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 
 pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
     body: &SubscriptionPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:acknowledge",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -13839,9 +13791,9 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 > {
     let builder = androidpublisher_purchases_subscriptions_acknowledge_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_subscriptions_acknowledge_execute(builder)
@@ -13855,16 +13807,16 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 
 pub fn androidpublisher_purchases_subscriptions_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:cancel",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -14007,9 +13959,9 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 > {
     let builder = androidpublisher_purchases_subscriptions_cancel_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_cancel_execute(builder)
 }
@@ -14022,17 +13974,17 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 
 pub fn androidpublisher_purchases_subscriptions_defer_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
     body: &SubscriptionPurchasesDeferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:defer",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -14190,9 +14142,9 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 > {
     let builder = androidpublisher_purchases_subscriptions_defer_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_subscriptions_defer_execute(builder)
@@ -14206,16 +14158,16 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 
 pub fn androidpublisher_purchases_subscriptions_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -14365,9 +14317,9 @@ pub fn androidpublisher_purchases_subscriptions_get(
 > {
     let builder = androidpublisher_purchases_subscriptions_get_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_get_execute(builder)
 }
@@ -14380,16 +14332,16 @@ pub fn androidpublisher_purchases_subscriptions_get(
 
 pub fn androidpublisher_purchases_subscriptions_refund_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:refund",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -14532,9 +14484,9 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 > {
     let builder = androidpublisher_purchases_subscriptions_refund_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_refund_execute(builder)
 }
@@ -14547,16 +14499,16 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 
 pub fn androidpublisher_purchases_subscriptions_revoke_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    subscriptionId: String,
-    token: String,
+    packageName: &String,
+    subscriptionId: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:revoke",
-        packageName.as_str(),
-        subscriptionId.as_str(),
-        token.as_str(),
+        packageName,
+        subscriptionId,
+        token,
     );
 
     // Build request
@@ -14699,9 +14651,9 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
 > {
     let builder = androidpublisher_purchases_subscriptions_revoke_builder(
         client,
-        args.packageName.clone(),
-        args.subscriptionId.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.subscriptionId,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptions_revoke_execute(builder)
 }
@@ -14714,15 +14666,15 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
 
 pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    token: String,
+    packageName: &String,
+    token: &String,
     body: &CancelSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:cancel",
-        packageName.as_str(),
-        token.as_str(),
+        packageName,
+        token,
     );
 
     // Build request
@@ -14878,8 +14830,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_cancel_builder(
         client,
-        args.packageName.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_cancel_execute(builder)
@@ -14893,15 +14845,15 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 
 pub fn androidpublisher_purchases_subscriptionsv2_defer_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    token: String,
+    packageName: &String,
+    token: &String,
     body: &DeferSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:defer",
-        packageName.as_str(),
-        token.as_str(),
+        packageName,
+        token,
     );
 
     // Build request
@@ -15057,8 +15009,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_defer_builder(
         client,
-        args.packageName.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_defer_execute(builder)
@@ -15072,14 +15024,14 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
 
 pub fn androidpublisher_purchases_subscriptionsv2_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    token: String,
+    packageName: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}",
-        packageName.as_str(),
-        token.as_str(),
+        packageName,
+        token,
     );
 
     // Build request
@@ -15227,8 +15179,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_get_builder(
         client,
-        args.packageName.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.token,
     )?;
     androidpublisher_purchases_subscriptionsv2_get_execute(builder)
 }
@@ -15241,15 +15193,15 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
 
 pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    token: String,
+    packageName: &String,
+    token: &String,
     body: &RevokeSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:revoke",
-        packageName.as_str(),
-        token.as_str(),
+        packageName,
+        token,
     );
 
     // Build request
@@ -15405,8 +15357,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_revoke_builder(
         client,
-        args.packageName.clone(),
-        args.token.clone(),
+        &args.packageName,
+        &args.token,
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_revoke_execute(builder)
@@ -15420,42 +15372,42 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 
 pub fn androidpublisher_purchases_voidedpurchases_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    endTime: Option<String>,
-    includeQuantityBasedPartialRefund: Option<bool>,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    startTime: Option<String>,
-    token: Option<String>,
-    type_rs: Option<i32>,
+    packageName: &String,
+    endTime: &Option<String>,
+    includeQuantityBasedPartialRefund: &Option<bool>,
+    maxResults: &Option<i32>,
+    startIndex: &Option<i32>,
+    startTime: &Option<String>,
+    token: &Option<String>,
+    type_rs: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/voidedpurchases",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = includeQuantityBasedPartialRefund {
+    if let Some(val) = includeQuantityBasedPartialRefund.as_ref() {
         query_parts.push(format!("includeQuantityBasedPartialRefund={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
-    if let Some(val) = token {
+    if let Some(val) = token.as_ref() {
         query_parts.push(format!("token={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -15625,14 +15577,14 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 > {
     let builder = androidpublisher_purchases_voidedpurchases_list_builder(
         client,
-        args.packageName.clone(),
-        args.endTime.clone(),
-        args.includeQuantityBasedPartialRefund.clone(),
-        args.maxResults.clone(),
-        args.startIndex.clone(),
-        args.startTime.clone(),
-        args.token.clone(),
-        args.type_rs.clone(),
+        &args.packageName,
+        &args.endTime,
+        &args.includeQuantityBasedPartialRefund,
+        &args.maxResults,
+        &args.startIndex,
+        &args.startTime,
+        &args.token,
+        &args.type_rs,
     )?;
     androidpublisher_purchases_voidedpurchases_list_execute(builder)
 }
@@ -15645,20 +15597,19 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 
 pub fn androidpublisher_reviews_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    reviewId: String,
-    translationLanguage: Option<String>,
+    packageName: &String,
+    reviewId: &String,
+    translationLanguage: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}",
-        packageName.as_str(),
-        reviewId.as_str(),
+        packageName, reviewId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = translationLanguage {
+    if let Some(val) = translationLanguage.as_ref() {
         query_parts.push(format!("translationLanguage={}", val));
     }
 
@@ -15810,9 +15761,9 @@ pub fn androidpublisher_reviews_get(
 > {
     let builder = androidpublisher_reviews_get_builder(
         client,
-        args.packageName.clone(),
-        args.reviewId.clone(),
-        args.translationLanguage.clone(),
+        &args.packageName,
+        &args.reviewId,
+        &args.translationLanguage,
     )?;
     androidpublisher_reviews_get_execute(builder)
 }
@@ -15825,30 +15776,30 @@ pub fn androidpublisher_reviews_get(
 
 pub fn androidpublisher_reviews_list_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    token: Option<String>,
-    translationLanguage: Option<String>,
+    packageName: &String,
+    maxResults: &Option<i32>,
+    startIndex: &Option<i32>,
+    token: &Option<String>,
+    translationLanguage: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews",
-        packageName.as_str(),
+        packageName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
-    if let Some(val) = token {
+    if let Some(val) = token.as_ref() {
         query_parts.push(format!("token={}", val));
     }
-    if let Some(val) = translationLanguage {
+    if let Some(val) = translationLanguage.as_ref() {
         query_parts.push(format!("translationLanguage={}", val));
     }
 
@@ -16008,11 +15959,11 @@ pub fn androidpublisher_reviews_list(
 > {
     let builder = androidpublisher_reviews_list_builder(
         client,
-        args.packageName.clone(),
-        args.maxResults.clone(),
-        args.startIndex.clone(),
-        args.token.clone(),
-        args.translationLanguage.clone(),
+        &args.packageName,
+        &args.maxResults,
+        &args.startIndex,
+        &args.token,
+        &args.translationLanguage,
     )?;
     androidpublisher_reviews_list_execute(builder)
 }
@@ -16025,15 +15976,15 @@ pub fn androidpublisher_reviews_list(
 
 pub fn androidpublisher_reviews_reply_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    reviewId: String,
+    packageName: &String,
+    reviewId: &String,
     body: &ReviewsReplyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}:reply",
-        packageName.as_str(),
-        reviewId.as_str(),
+        packageName,
+        reviewId,
     );
 
     // Build request
@@ -16185,8 +16136,8 @@ pub fn androidpublisher_reviews_reply(
 > {
     let builder = androidpublisher_reviews_reply_builder(
         client,
-        args.packageName.clone(),
-        args.reviewId.clone(),
+        &args.packageName,
+        &args.reviewId,
         &args.body,
     )?;
     androidpublisher_reviews_reply_execute(builder)
@@ -16200,15 +16151,15 @@ pub fn androidpublisher_reviews_reply(
 
 pub fn androidpublisher_systemapks_variants_create_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    versionCode: String,
+    packageName: &String,
+    versionCode: &String,
     body: &Variant,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
-        packageName.as_str(),
-        versionCode.as_str(),
+        packageName,
+        versionCode,
     );
 
     // Build request
@@ -16356,8 +16307,8 @@ pub fn androidpublisher_systemapks_variants_create(
 > {
     let builder = androidpublisher_systemapks_variants_create_builder(
         client,
-        args.packageName.clone(),
-        args.versionCode.clone(),
+        &args.packageName,
+        &args.versionCode,
         &args.body,
     )?;
     androidpublisher_systemapks_variants_create_execute(builder)
@@ -16371,16 +16322,16 @@ pub fn androidpublisher_systemapks_variants_create(
 
 pub fn androidpublisher_systemapks_variants_download_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    versionCode: String,
-    variantId: String,
+    packageName: &String,
+    versionCode: &String,
+    variantId: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}:download",
-        packageName.as_str(),
-        versionCode.as_str(),
-        variantId.as_str(),
+        packageName,
+        versionCode,
+        variantId,
     );
 
     // Build request
@@ -16500,7 +16451,7 @@ pub struct AndroidpublisherSystemapksVariantsDownloadArgs {
     /// Path parameter: versionCode
     pub versionCode: String,
     /// Path parameter: variantId
-    pub variantId: String,
+    pub variantId: i32,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}:download
@@ -16523,9 +16474,9 @@ pub fn androidpublisher_systemapks_variants_download(
 > {
     let builder = androidpublisher_systemapks_variants_download_builder(
         client,
-        args.packageName.clone(),
-        args.versionCode.clone(),
-        args.variantId.clone(),
+        &args.packageName,
+        &args.versionCode,
+        &args.variantId,
     )?;
     androidpublisher_systemapks_variants_download_execute(builder)
 }
@@ -16538,16 +16489,16 @@ pub fn androidpublisher_systemapks_variants_download(
 
 pub fn androidpublisher_systemapks_variants_get_builder(
     client: &SimpleHttpClient,
-    packageName: String,
-    versionCode: String,
-    variantId: String,
+    packageName: &String,
+    versionCode: &String,
+    variantId: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}",
-        packageName.as_str(),
-        versionCode.as_str(),
-        variantId.as_str(),
+        packageName,
+        versionCode,
+        variantId,
     );
 
     // Build request
@@ -16670,7 +16621,7 @@ pub struct AndroidpublisherSystemapksVariantsGetArgs {
     /// Path parameter: versionCode
     pub versionCode: String,
     /// Path parameter: variantId
-    pub variantId: String,
+    pub variantId: i32,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants/{variantId}
@@ -16693,9 +16644,9 @@ pub fn androidpublisher_systemapks_variants_get(
 > {
     let builder = androidpublisher_systemapks_variants_get_builder(
         client,
-        args.packageName.clone(),
-        args.versionCode.clone(),
-        args.variantId.clone(),
+        &args.packageName,
+        &args.versionCode,
+        &args.variantId,
     )?;
     androidpublisher_systemapks_variants_get_execute(builder)
 }
@@ -16708,7 +16659,7 @@ pub fn androidpublisher_systemapks_variants_get(
 
 pub fn androidpublisher_users_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -16856,6 +16807,6 @@ pub fn androidpublisher_users_create(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = androidpublisher_users_create_builder(client, &args.parent, &args.body)?;
     androidpublisher_users_create_execute(builder)
 }

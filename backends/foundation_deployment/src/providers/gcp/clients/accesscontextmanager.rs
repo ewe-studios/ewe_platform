@@ -185,7 +185,7 @@ pub fn accesscontextmanager_access_policies_create(
 
 pub fn accesscontextmanager_access_policies_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",);
@@ -327,7 +327,7 @@ pub fn accesscontextmanager_access_policies_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_delete_builder(client, args.name.clone())?;
+    let builder = accesscontextmanager_access_policies_delete_builder(client, &args.name)?;
     accesscontextmanager_access_policies_delete_execute(builder)
 }
 
@@ -339,7 +339,7 @@ pub fn accesscontextmanager_access_policies_delete(
 
 pub fn accesscontextmanager_access_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -489,7 +489,7 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
 > {
     let builder = accesscontextmanager_access_policies_get_iam_policy_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     accesscontextmanager_access_policies_get_iam_policy_execute(builder)
@@ -503,7 +503,7 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
 
 pub fn accesscontextmanager_access_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -653,7 +653,7 @@ pub fn accesscontextmanager_access_policies_set_iam_policy(
 > {
     let builder = accesscontextmanager_access_policies_set_iam_policy_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     accesscontextmanager_access_policies_set_iam_policy_execute(builder)
@@ -667,7 +667,7 @@ pub fn accesscontextmanager_access_policies_set_iam_policy(
 
 pub fn accesscontextmanager_access_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -826,7 +826,7 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
 > {
     let builder = accesscontextmanager_access_policies_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     accesscontextmanager_access_policies_test_iam_permissions_execute(builder)
@@ -840,7 +840,7 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
 
 pub fn accesscontextmanager_access_policies_access_levels_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AccessLevel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -990,7 +990,7 @@ pub fn accesscontextmanager_access_policies_access_levels_create(
 > {
     let builder = accesscontextmanager_access_policies_access_levels_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_create_execute(builder)
@@ -1004,7 +1004,7 @@ pub fn accesscontextmanager_access_policies_access_levels_create(
 
 pub fn accesscontextmanager_access_policies_access_levels_replace_all_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ReplaceAccessLevelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1155,7 +1155,7 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all(
 > {
     let builder = accesscontextmanager_access_policies_access_levels_replace_all_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_replace_all_execute(builder)
@@ -1169,7 +1169,7 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all(
 
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AuthorizedOrgsDesc,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1320,7 +1320,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
 > {
     let builder = accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_create_execute(builder)
@@ -1334,7 +1334,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_commit_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CommitServicePerimetersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1485,7 +1485,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit(
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_commit_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_commit_execute(builder)
@@ -1499,7 +1499,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ServicePerimeter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1650,7 +1650,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create(
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_create_execute(builder)
@@ -1664,7 +1664,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create(
 
 pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ReplaceServicePerimetersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1815,7 +1815,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
 > {
     let builder = accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_replace_all_execute(builder)
@@ -1829,7 +1829,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
 
 pub fn accesscontextmanager_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1977,8 +1977,7 @@ pub fn accesscontextmanager_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        accesscontextmanager_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = accesscontextmanager_operations_cancel_builder(client, &args.name, &args.body)?;
     accesscontextmanager_operations_cancel_execute(builder)
 }
 
@@ -1990,7 +1989,7 @@ pub fn accesscontextmanager_operations_cancel(
 
 pub fn accesscontextmanager_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/operations/{}",);
@@ -2132,7 +2131,7 @@ pub fn accesscontextmanager_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_operations_delete_builder(client, args.name.clone())?;
+    let builder = accesscontextmanager_operations_delete_builder(client, &args.name)?;
     accesscontextmanager_operations_delete_execute(builder)
 }
 
@@ -2144,7 +2143,7 @@ pub fn accesscontextmanager_operations_delete(
 
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GcpUserAccessBinding,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2295,7 +2294,7 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
 > {
     let builder = accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_create_execute(builder)
@@ -2309,18 +2308,18 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
 
 pub fn accesscontextmanager_permissions_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/permissions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2476,11 +2475,8 @@ pub fn accesscontextmanager_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_permissions_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        accesscontextmanager_permissions_list_builder(client, &args.pageSize, &args.pageToken)?;
     accesscontextmanager_permissions_list_execute(builder)
 }
 
@@ -2492,12 +2488,12 @@ pub fn accesscontextmanager_permissions_list(
 
 pub fn accesscontextmanager_services_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/services/{}",
-        name.as_str(),
+        name,
     );
 
     // Build request
@@ -2641,7 +2637,7 @@ pub fn accesscontextmanager_services_get(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_services_get_builder(client, args.name.clone())?;
+    let builder = accesscontextmanager_services_get_builder(client, &args.name)?;
     accesscontextmanager_services_get_execute(builder)
 }
 
@@ -2653,18 +2649,18 @@ pub fn accesscontextmanager_services_get(
 
 pub fn accesscontextmanager_services_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/services",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2820,10 +2816,7 @@ pub fn accesscontextmanager_services_list(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_services_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        accesscontextmanager_services_list_builder(client, &args.pageSize, &args.pageToken)?;
     accesscontextmanager_services_list_execute(builder)
 }

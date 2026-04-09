@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn logging_billing_accounts_get_cmek_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -176,7 +176,7 @@ pub fn logging_billing_accounts_get_cmek_settings(
         + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_get_cmek_settings_builder(client, args.name.clone())?;
+    let builder = logging_billing_accounts_get_cmek_settings_builder(client, &args.name)?;
     logging_billing_accounts_get_cmek_settings_execute(builder)
 }
 
@@ -188,7 +188,7 @@ pub fn logging_billing_accounts_get_cmek_settings(
 
 pub fn logging_billing_accounts_get_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/billingAccounts/{}/settings",);
@@ -330,7 +330,7 @@ pub fn logging_billing_accounts_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_get_settings_builder(client, args.name.clone())?;
+    let builder = logging_billing_accounts_get_settings_builder(client, &args.name)?;
     logging_billing_accounts_get_settings_execute(builder)
 }
 
@@ -342,7 +342,7 @@ pub fn logging_billing_accounts_get_settings(
 
 pub fn logging_billing_accounts_exclusions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &LogExclusion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -493,11 +493,8 @@ pub fn logging_billing_accounts_exclusions_create(
         + 'static,
     ApiError,
 > {
-    let builder = logging_billing_accounts_exclusions_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        logging_billing_accounts_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_billing_accounts_exclusions_create_execute(builder)
 }
 
@@ -509,27 +506,27 @@ pub fn logging_billing_accounts_exclusions_create(
 
 pub fn logging_billing_accounts_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/billingAccounts/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -689,11 +686,11 @@ pub fn logging_billing_accounts_locations_list(
 > {
     let builder = logging_billing_accounts_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     logging_billing_accounts_locations_list_execute(builder)
 }
@@ -706,23 +703,23 @@ pub fn logging_billing_accounts_locations_list(
 
 pub fn logging_billing_accounts_logs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceNames: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/billingAccounts/{}/logs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
 
@@ -880,10 +877,10 @@ pub fn logging_billing_accounts_logs_list(
 > {
     let builder = logging_billing_accounts_logs_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceNames.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceNames,
     )?;
     logging_billing_accounts_logs_list_execute(builder)
 }
@@ -896,9 +893,9 @@ pub fn logging_billing_accounts_logs_list(
 
 pub fn logging_billing_accounts_sinks_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    customWriterIdentity: Option<String>,
-    uniqueWriterIdentity: Option<bool>,
+    parent: &String,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<bool>,
     body: &LogSink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -906,10 +903,10 @@ pub fn logging_billing_accounts_sinks_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customWriterIdentity {
+    if let Some(val) = customWriterIdentity.as_ref() {
         query_parts.push(format!("customWriterIdentity={}", val));
     }
-    if let Some(val) = uniqueWriterIdentity {
+    if let Some(val) = uniqueWriterIdentity.as_ref() {
         query_parts.push(format!("uniqueWriterIdentity={}", val));
     }
 
@@ -1065,9 +1062,9 @@ pub fn logging_billing_accounts_sinks_create(
 > {
     let builder = logging_billing_accounts_sinks_create_builder(
         client,
-        args.parent.clone(),
-        args.customWriterIdentity.clone(),
-        args.uniqueWriterIdentity.clone(),
+        &args.parent,
+        &args.customWriterIdentity,
+        &args.uniqueWriterIdentity,
         &args.body,
     )?;
     logging_billing_accounts_sinks_create_execute(builder)
@@ -1717,7 +1714,7 @@ pub fn logging_entries_write(
 
 pub fn logging_folders_get_cmek_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/cmekSettings",);
@@ -1863,7 +1860,7 @@ pub fn logging_folders_get_cmek_settings(
         + 'static,
     ApiError,
 > {
-    let builder = logging_folders_get_cmek_settings_builder(client, args.name.clone())?;
+    let builder = logging_folders_get_cmek_settings_builder(client, &args.name)?;
     logging_folders_get_cmek_settings_execute(builder)
 }
 
@@ -1875,7 +1872,7 @@ pub fn logging_folders_get_cmek_settings(
 
 pub fn logging_folders_get_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/settings",);
@@ -2017,7 +2014,7 @@ pub fn logging_folders_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_folders_get_settings_builder(client, args.name.clone())?;
+    let builder = logging_folders_get_settings_builder(client, &args.name)?;
     logging_folders_get_settings_execute(builder)
 }
 
@@ -2029,7 +2026,7 @@ pub fn logging_folders_get_settings(
 
 pub fn logging_folders_exclusions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &LogExclusion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2180,8 +2177,7 @@ pub fn logging_folders_exclusions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_folders_exclusions_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = logging_folders_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_folders_exclusions_create_execute(builder)
 }
 
@@ -2193,27 +2189,27 @@ pub fn logging_folders_exclusions_create(
 
 pub fn logging_folders_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2373,11 +2369,11 @@ pub fn logging_folders_locations_list(
 > {
     let builder = logging_folders_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     logging_folders_locations_list_execute(builder)
 }
@@ -2390,23 +2386,23 @@ pub fn logging_folders_locations_list(
 
 pub fn logging_folders_logs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceNames: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/folders/{}/logs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
 
@@ -2564,10 +2560,10 @@ pub fn logging_folders_logs_list(
 > {
     let builder = logging_folders_logs_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceNames.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceNames,
     )?;
     logging_folders_logs_list_execute(builder)
 }
@@ -2580,9 +2576,9 @@ pub fn logging_folders_logs_list(
 
 pub fn logging_folders_sinks_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    customWriterIdentity: Option<String>,
-    uniqueWriterIdentity: Option<bool>,
+    parent: &String,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<bool>,
     body: &LogSink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2590,10 +2586,10 @@ pub fn logging_folders_sinks_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customWriterIdentity {
+    if let Some(val) = customWriterIdentity.as_ref() {
         query_parts.push(format!("customWriterIdentity={}", val));
     }
-    if let Some(val) = uniqueWriterIdentity {
+    if let Some(val) = uniqueWriterIdentity.as_ref() {
         query_parts.push(format!("uniqueWriterIdentity={}", val));
     }
 
@@ -2749,9 +2745,9 @@ pub fn logging_folders_sinks_create(
 > {
     let builder = logging_folders_sinks_create_builder(
         client,
-        args.parent.clone(),
-        args.customWriterIdentity.clone(),
-        args.uniqueWriterIdentity.clone(),
+        &args.parent,
+        &args.customWriterIdentity,
+        &args.uniqueWriterIdentity,
         &args.body,
     )?;
     logging_folders_sinks_create_execute(builder)
@@ -2765,18 +2761,18 @@ pub fn logging_folders_sinks_create(
 
 pub fn logging_monitored_resource_descriptors_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/monitoredResourceDescriptors",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2934,8 +2930,8 @@ pub fn logging_monitored_resource_descriptors_list(
 > {
     let builder = logging_monitored_resource_descriptors_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.pageSize,
+        &args.pageToken,
     )?;
     logging_monitored_resource_descriptors_list_execute(builder)
 }
@@ -2948,7 +2944,7 @@ pub fn logging_monitored_resource_descriptors_list(
 
 pub fn logging_organizations_get_cmek_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/organizations/{}/cmekSettings",);
@@ -3094,7 +3090,7 @@ pub fn logging_organizations_get_cmek_settings(
         + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_get_cmek_settings_builder(client, args.name.clone())?;
+    let builder = logging_organizations_get_cmek_settings_builder(client, &args.name)?;
     logging_organizations_get_cmek_settings_execute(builder)
 }
 
@@ -3106,7 +3102,7 @@ pub fn logging_organizations_get_cmek_settings(
 
 pub fn logging_organizations_get_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/organizations/{}/settings",);
@@ -3248,7 +3244,7 @@ pub fn logging_organizations_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_organizations_get_settings_builder(client, args.name.clone())?;
+    let builder = logging_organizations_get_settings_builder(client, &args.name)?;
     logging_organizations_get_settings_execute(builder)
 }
 
@@ -3260,7 +3256,7 @@ pub fn logging_organizations_get_settings(
 
 pub fn logging_organizations_exclusions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &LogExclusion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3412,7 +3408,7 @@ pub fn logging_organizations_exclusions_create(
     ApiError,
 > {
     let builder =
-        logging_organizations_exclusions_create_builder(client, args.parent.clone(), &args.body)?;
+        logging_organizations_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_organizations_exclusions_create_execute(builder)
 }
 
@@ -3424,27 +3420,27 @@ pub fn logging_organizations_exclusions_create(
 
 pub fn logging_organizations_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/organizations/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3604,11 +3600,11 @@ pub fn logging_organizations_locations_list(
 > {
     let builder = logging_organizations_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     logging_organizations_locations_list_execute(builder)
 }
@@ -3621,23 +3617,23 @@ pub fn logging_organizations_locations_list(
 
 pub fn logging_organizations_logs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceNames: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/organizations/{}/logs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
 
@@ -3795,10 +3791,10 @@ pub fn logging_organizations_logs_list(
 > {
     let builder = logging_organizations_logs_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceNames.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceNames,
     )?;
     logging_organizations_logs_list_execute(builder)
 }
@@ -3811,9 +3807,9 @@ pub fn logging_organizations_logs_list(
 
 pub fn logging_organizations_sinks_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    customWriterIdentity: Option<String>,
-    uniqueWriterIdentity: Option<bool>,
+    parent: &String,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<bool>,
     body: &LogSink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3821,10 +3817,10 @@ pub fn logging_organizations_sinks_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customWriterIdentity {
+    if let Some(val) = customWriterIdentity.as_ref() {
         query_parts.push(format!("customWriterIdentity={}", val));
     }
-    if let Some(val) = uniqueWriterIdentity {
+    if let Some(val) = uniqueWriterIdentity.as_ref() {
         query_parts.push(format!("uniqueWriterIdentity={}", val));
     }
 
@@ -3980,9 +3976,9 @@ pub fn logging_organizations_sinks_create(
 > {
     let builder = logging_organizations_sinks_create_builder(
         client,
-        args.parent.clone(),
-        args.customWriterIdentity.clone(),
-        args.uniqueWriterIdentity.clone(),
+        &args.parent,
+        &args.customWriterIdentity,
+        &args.uniqueWriterIdentity,
         &args.body,
     )?;
     logging_organizations_sinks_create_execute(builder)
@@ -3996,7 +3992,7 @@ pub fn logging_organizations_sinks_create(
 
 pub fn logging_projects_get_cmek_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/projects/{}/cmekSettings",);
@@ -4142,7 +4138,7 @@ pub fn logging_projects_get_cmek_settings(
         + 'static,
     ApiError,
 > {
-    let builder = logging_projects_get_cmek_settings_builder(client, args.name.clone())?;
+    let builder = logging_projects_get_cmek_settings_builder(client, &args.name)?;
     logging_projects_get_cmek_settings_execute(builder)
 }
 
@@ -4154,7 +4150,7 @@ pub fn logging_projects_get_cmek_settings(
 
 pub fn logging_projects_get_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/projects/{}/settings",);
@@ -4296,7 +4292,7 @@ pub fn logging_projects_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_get_settings_builder(client, args.name.clone())?;
+    let builder = logging_projects_get_settings_builder(client, &args.name)?;
     logging_projects_get_settings_execute(builder)
 }
 
@@ -4308,7 +4304,7 @@ pub fn logging_projects_get_settings(
 
 pub fn logging_projects_exclusions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &LogExclusion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4459,8 +4455,7 @@ pub fn logging_projects_exclusions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        logging_projects_exclusions_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = logging_projects_exclusions_create_builder(client, &args.parent, &args.body)?;
     logging_projects_exclusions_create_execute(builder)
 }
 
@@ -4472,27 +4467,27 @@ pub fn logging_projects_exclusions_create(
 
 pub fn logging_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4652,11 +4647,11 @@ pub fn logging_projects_locations_list(
 > {
     let builder = logging_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     logging_projects_locations_list_execute(builder)
 }
@@ -4669,23 +4664,23 @@ pub fn logging_projects_locations_list(
 
 pub fn logging_projects_logs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceNames: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://logging.googleapis.com/v2/projects/{}/logs",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
 
@@ -4843,10 +4838,10 @@ pub fn logging_projects_logs_list(
 > {
     let builder = logging_projects_logs_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceNames.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceNames,
     )?;
     logging_projects_logs_list_execute(builder)
 }
@@ -4859,7 +4854,7 @@ pub fn logging_projects_logs_list(
 
 pub fn logging_projects_metrics_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &LogMetric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5006,7 +5001,7 @@ pub fn logging_projects_metrics_create(
     impl StreamIterator<D = Result<ApiResponse<LogMetric>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = logging_projects_metrics_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = logging_projects_metrics_create_builder(client, &args.parent, &args.body)?;
     logging_projects_metrics_create_execute(builder)
 }
 
@@ -5018,9 +5013,9 @@ pub fn logging_projects_metrics_create(
 
 pub fn logging_projects_sinks_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    customWriterIdentity: Option<String>,
-    uniqueWriterIdentity: Option<bool>,
+    parent: &String,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<bool>,
     body: &LogSink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5028,10 +5023,10 @@ pub fn logging_projects_sinks_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customWriterIdentity {
+    if let Some(val) = customWriterIdentity.as_ref() {
         query_parts.push(format!("customWriterIdentity={}", val));
     }
-    if let Some(val) = uniqueWriterIdentity {
+    if let Some(val) = uniqueWriterIdentity.as_ref() {
         query_parts.push(format!("uniqueWriterIdentity={}", val));
     }
 
@@ -5187,9 +5182,9 @@ pub fn logging_projects_sinks_create(
 > {
     let builder = logging_projects_sinks_create_builder(
         client,
-        args.parent.clone(),
-        args.customWriterIdentity.clone(),
-        args.uniqueWriterIdentity.clone(),
+        &args.parent,
+        &args.customWriterIdentity,
+        &args.uniqueWriterIdentity,
         &args.body,
     )?;
     logging_projects_sinks_create_execute(builder)

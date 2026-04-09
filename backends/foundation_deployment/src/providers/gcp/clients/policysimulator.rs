@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn policysimulator_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://policysimulator.googleapis.com/v1/operations/{}",);
@@ -179,6 +179,6 @@ pub fn policysimulator_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_operations_get_builder(client, args.name.clone())?;
+    let builder = policysimulator_operations_get_builder(client, &args.name)?;
     policysimulator_operations_get_execute(builder)
 }

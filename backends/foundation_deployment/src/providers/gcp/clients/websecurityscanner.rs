@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn websecurityscanner_projects_scan_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ScanConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -177,10 +177,7 @@ pub fn websecurityscanner_projects_scan_configs_create(
     impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        websecurityscanner_projects_scan_configs_create_builder(client, &args.parent, &args.body)?;
     websecurityscanner_projects_scan_configs_create_execute(builder)
 }

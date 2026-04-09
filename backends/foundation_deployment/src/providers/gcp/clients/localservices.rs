@@ -29,46 +29,46 @@ use serde::Serialize;
 
 pub fn localservices_account_reports_search_builder(
     client: &SimpleHttpClient,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    endDate_day: &Option<i32>,
+    endDate_month: &Option<i32>,
+    endDate_year: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    startDate_day: &Option<i32>,
+    startDate_month: &Option<i32>,
+    startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://localservices.googleapis.com/v1/accountReports:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate_day {
+    if let Some(val) = endDate_day.as_ref() {
         query_parts.push(format!("endDate.day={}", val));
     }
-    if let Some(val) = endDate_month {
+    if let Some(val) = endDate_month.as_ref() {
         query_parts.push(format!("endDate.month={}", val));
     }
-    if let Some(val) = endDate_year {
+    if let Some(val) = endDate_year.as_ref() {
         query_parts.push(format!("endDate.year={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = startDate_day {
+    if let Some(val) = startDate_day.as_ref() {
         query_parts.push(format!("startDate.day={}", val));
     }
-    if let Some(val) = startDate_month {
+    if let Some(val) = startDate_month.as_ref() {
         query_parts.push(format!("startDate.month={}", val));
     }
-    if let Some(val) = startDate_year {
+    if let Some(val) = startDate_year.as_ref() {
         query_parts.push(format!("startDate.year={}", val));
     }
 
@@ -250,15 +250,15 @@ pub fn localservices_account_reports_search(
 > {
     let builder = localservices_account_reports_search_builder(
         client,
-        args.endDate_day.clone(),
-        args.endDate_month.clone(),
-        args.endDate_year.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.startDate_day.clone(),
-        args.startDate_month.clone(),
-        args.startDate_year.clone(),
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
     )?;
     localservices_account_reports_search_execute(builder)
 }
@@ -271,15 +271,15 @@ pub fn localservices_account_reports_search(
 
 pub fn localservices_detailed_lead_reports_search_builder(
     client: &SimpleHttpClient,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    endDate_day: &Option<i32>,
+    endDate_month: &Option<i32>,
+    endDate_year: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    startDate_day: &Option<i32>,
+    startDate_month: &Option<i32>,
+    startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -287,31 +287,31 @@ pub fn localservices_detailed_lead_reports_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate_day {
+    if let Some(val) = endDate_day.as_ref() {
         query_parts.push(format!("endDate.day={}", val));
     }
-    if let Some(val) = endDate_month {
+    if let Some(val) = endDate_month.as_ref() {
         query_parts.push(format!("endDate.month={}", val));
     }
-    if let Some(val) = endDate_year {
+    if let Some(val) = endDate_year.as_ref() {
         query_parts.push(format!("endDate.year={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = startDate_day {
+    if let Some(val) = startDate_day.as_ref() {
         query_parts.push(format!("startDate.day={}", val));
     }
-    if let Some(val) = startDate_month {
+    if let Some(val) = startDate_month.as_ref() {
         query_parts.push(format!("startDate.month={}", val));
     }
-    if let Some(val) = startDate_year {
+    if let Some(val) = startDate_year.as_ref() {
         query_parts.push(format!("startDate.year={}", val));
     }
 
@@ -492,15 +492,15 @@ pub fn localservices_detailed_lead_reports_search(
 > {
     let builder = localservices_detailed_lead_reports_search_builder(
         client,
-        args.endDate_day.clone(),
-        args.endDate_month.clone(),
-        args.endDate_year.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.startDate_day.clone(),
-        args.startDate_month.clone(),
-        args.startDate_year.clone(),
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
     )?;
     localservices_detailed_lead_reports_search_execute(builder)
 }

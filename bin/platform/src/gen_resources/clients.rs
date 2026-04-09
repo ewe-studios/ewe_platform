@@ -1027,19 +1027,21 @@ impl ClientGenerator {
         writeln!(out, "/// Use `{}_execute()` to send, or `{}` for simplest API.", fn_name, fn_name)?;
         writeln!(out)?;
 
-        // Function signature - take owned types, use .as_str() internally
+        // Function signature - take borrowed references to avoid cloning
         write!(out, "pub fn {}_builder(\n    client: &SimpleHttpClient,", fn_name)?;
 
-        // Path parameters - owned String
+        // Path parameters - borrowed references
         for param in &endpoint.path_params {
             writeln!(out)?;
-            write!(out, "    {}: String,", self.escape_keyword(&param.name))?;
+            write!(out, "    {}: &{},", self.escape_keyword(&param.name), param.rust_type)?;
         }
 
-        // Query parameters (optional) - owned String types
+        // Query parameters (optional) - borrowed references
         for param in &endpoint.query_params {
             writeln!(out)?;
-            write!(out, "    {}: Option<{}>,", self.escape_keyword(&param.name), param.rust_type)?;
+            // For Vec types, take &Vec; for other types, take reference
+            let param_type = &param.rust_type;
+            write!(out, "    {}: &Option<{}>,", self.escape_keyword(&param.name), param_type)?;
         }
 
         // Request body
@@ -1082,9 +1084,10 @@ impl ClientGenerator {
         let base_url = endpoint.base_url.as_deref().unwrap_or("https://api.example.com");
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", base_url, url_format)?;
-        // Pass path parameters in the order they appear in the path
+        // Pass path parameters as references - they all implement Display or AsRef<str>
         for param_name in &params_to_pass {
-            writeln!(out, "        {}.as_str(),", self.escape_keyword(param_name))?;
+            let escaped = self.escape_keyword(param_name);
+            writeln!(out, "        {},", escaped)?;
         }
         writeln!(out, "    );")?;
 
@@ -1099,18 +1102,24 @@ impl ClientGenerator {
                 let param_name = &param.name;
                 let original_name = &param.original_name;
                 let rust_type = &param.rust_type;
+                let escaped_name = self.escape_keyword(param_name);
 
                 // Check if this is a Vec type - handle array params differently
                 if rust_type.starts_with("Vec<") {
                     // For array params: if let Some(vals) = param { for val in vals { ... } }
-                    writeln!(out, "    if let Some(vals) = {} {{", self.escape_keyword(param_name))?;
+                    writeln!(out, "    if let Some(vals) = {}.as_ref() {{", escaped_name)?;
                     writeln!(out, "        for val in vals {{")?;
                     writeln!(out, "            query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
                     writeln!(out, "        }}")?;
                     writeln!(out, "    }}")?;
                 } else {
-                    writeln!(out, "    if let Some(val) = {} {{", self.escape_keyword(param_name))?;
-                    writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
+                    writeln!(out, "    if let Some(val) = {}.as_ref() {{", escaped_name)?;
+                    // For String types, use val directly; for others, use format
+                    if rust_type == "String" {
+                        writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
+                    } else {
+                        writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
+                    }
                     writeln!(out, "    }}")?;
                 }
             }
@@ -1305,17 +1314,12 @@ impl ClientGenerator {
 
             for param in &endpoint.path_params {
                 writeln!(out, "    /// Path parameter: {}", param.name)?;
-                writeln!(out, "    pub {}: String,", self.escape_keyword(&param.name))?;
+                writeln!(out, "    pub {}: {},", self.escape_keyword(&param.name), param.rust_type)?;
             }
 
             for param in &endpoint.query_params {
-                let rust_type = if param.rust_type == "String" {
-                    "String".to_string()
-                } else {
-                    param.rust_type.clone()
-                };
                 writeln!(out, "    /// Query parameter: {}", param.name)?;
-                writeln!(out, "    pub {}: Option<{}>,", self.escape_keyword(&param.name), rust_type)?;
+                writeln!(out, "    pub {}: Option<{}>,", self.escape_keyword(&param.name), param.rust_type)?;
             }
 
             if let Some(body_type) = &endpoint.request_body_type {
@@ -1361,15 +1365,15 @@ impl ClientGenerator {
         writeln!(out, "    ApiError,")?;
         writeln!(out, "> {{")?;
 
-        // Call builder then execute - pass owned values, cloning as needed
+        // Call builder then execute - pass references
         writeln!(out)?;
         write!(out, "    let builder = {}_builder(client", fn_name)?;
         for param in &endpoint.path_params {
-            write!(out, ", args.{}.clone()", self.escape_keyword(&param.name))?;
+            write!(out, ", &args.{}", self.escape_keyword(&param.name))?;
         }
         for param in &endpoint.query_params {
-            // Clone all query params since builder takes owned types
-            write!(out, ", args.{}.clone()", self.escape_keyword(&param.name))?;
+            // Pass references since builder takes &Option<T>
+            write!(out, ", &args.{}", self.escape_keyword(&param.name))?;
         }
         if endpoint.request_body_type.is_some() {
             write!(out, ", &args.body")?;

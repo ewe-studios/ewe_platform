@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn games_management_achievements_reset_builder(
     client: &SimpleHttpClient,
-    achievementId: String,
+    achievementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/reset",
-        achievementId.as_str(),
+        achievementId,
     );
 
     // Build request
@@ -178,7 +178,7 @@ pub fn games_management_achievements_reset(
         + 'static,
     ApiError,
 > {
-    let builder = games_management_achievements_reset_builder(client, args.achievementId.clone())?;
+    let builder = games_management_achievements_reset_builder(client, &args.achievementId)?;
     games_management_achievements_reset_execute(builder)
 }
 
@@ -488,12 +488,12 @@ pub fn games_management_achievements_reset_all_for_all_players(
 
 pub fn games_management_achievements_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    achievementId: String,
+    achievementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/achievements/{}/resetForAllPlayers",
-        achievementId.as_str(),
+        achievementId,
     );
 
     // Build request
@@ -630,10 +630,8 @@ pub fn games_management_achievements_reset_for_all_players(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_achievements_reset_for_all_players_builder(
-        client,
-        args.achievementId.clone(),
-    )?;
+    let builder =
+        games_management_achievements_reset_for_all_players_builder(client, &args.achievementId)?;
     games_management_achievements_reset_for_all_players_execute(builder)
 }
 
@@ -801,22 +799,22 @@ pub fn games_management_achievements_reset_multiple_for_all_players(
 
 pub fn games_management_applications_list_hidden_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    applicationId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden",
-        applicationId.as_str(),
+        applicationId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -972,9 +970,9 @@ pub fn games_management_applications_list_hidden(
 > {
     let builder = games_management_applications_list_hidden_builder(
         client,
-        args.applicationId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.applicationId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_management_applications_list_hidden_execute(builder)
 }
@@ -987,12 +985,12 @@ pub fn games_management_applications_list_hidden(
 
 pub fn games_management_events_reset_builder(
     client: &SimpleHttpClient,
-    eventId: String,
+    eventId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/reset",
-        eventId.as_str(),
+        eventId,
     );
 
     // Build request
@@ -1129,7 +1127,7 @@ pub fn games_management_events_reset(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_builder(client, args.eventId.clone())?;
+    let builder = games_management_events_reset_builder(client, &args.eventId)?;
     games_management_events_reset_execute(builder)
 }
 
@@ -1428,12 +1426,12 @@ pub fn games_management_events_reset_all_for_all_players(
 
 pub fn games_management_events_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    eventId: String,
+    eventId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/events/{}/resetForAllPlayers",
-        eventId.as_str(),
+        eventId,
     );
 
     // Build request
@@ -1570,8 +1568,7 @@ pub fn games_management_events_reset_for_all_players(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_events_reset_for_all_players_builder(client, args.eventId.clone())?;
+    let builder = games_management_events_reset_for_all_players_builder(client, &args.eventId)?;
     games_management_events_reset_for_all_players_execute(builder)
 }
 
@@ -1739,14 +1736,14 @@ pub fn games_management_events_reset_multiple_for_all_players(
 
 pub fn games_management_players_hide_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
-    playerId: String,
+    applicationId: &String,
+    playerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
-        applicationId.as_str(),
-        playerId.as_str(),
+        applicationId,
+        playerId,
     );
 
     // Build request
@@ -1885,11 +1882,8 @@ pub fn games_management_players_hide(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_players_hide_builder(
-        client,
-        args.applicationId.clone(),
-        args.playerId.clone(),
-    )?;
+    let builder =
+        games_management_players_hide_builder(client, &args.applicationId, &args.playerId)?;
     games_management_players_hide_execute(builder)
 }
 
@@ -1901,12 +1895,12 @@ pub fn games_management_players_hide(
 
 pub fn games_management_scores_reset_builder(
     client: &SimpleHttpClient,
-    leaderboardId: String,
+    leaderboardId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/reset",
-        leaderboardId.as_str(),
+        leaderboardId,
     );
 
     // Build request
@@ -2050,7 +2044,7 @@ pub fn games_management_scores_reset(
         + 'static,
     ApiError,
 > {
-    let builder = games_management_scores_reset_builder(client, args.leaderboardId.clone())?;
+    let builder = games_management_scores_reset_builder(client, &args.leaderboardId)?;
     games_management_scores_reset_execute(builder)
 }
 
@@ -2360,12 +2354,12 @@ pub fn games_management_scores_reset_all_for_all_players(
 
 pub fn games_management_scores_reset_for_all_players_builder(
     client: &SimpleHttpClient,
-    leaderboardId: String,
+    leaderboardId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesmanagement.googleapis.com/games/v1management/leaderboards/{}/scores/resetForAllPlayers",
-        leaderboardId.as_str(),
+        leaderboardId,
     );
 
     // Build request
@@ -2503,7 +2497,7 @@ pub fn games_management_scores_reset_for_all_players(
     ApiError,
 > {
     let builder =
-        games_management_scores_reset_for_all_players_builder(client, args.leaderboardId.clone())?;
+        games_management_scores_reset_for_all_players_builder(client, &args.leaderboardId)?;
     games_management_scores_reset_for_all_players_execute(builder)
 }
 

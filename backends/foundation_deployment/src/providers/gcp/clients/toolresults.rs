@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn toolresults_projects_get_settings_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/settings",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -178,7 +178,7 @@ pub fn toolresults_projects_get_settings(
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_get_settings_builder(client, args.projectId.clone())?;
+    let builder = toolresults_projects_get_settings_builder(client, &args.projectId)?;
     toolresults_projects_get_settings_execute(builder)
 }
 
@@ -190,12 +190,12 @@ pub fn toolresults_projects_get_settings(
 
 pub fn toolresults_projects_initialize_settings_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}:initializeSettings",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -339,7 +339,7 @@ pub fn toolresults_projects_initialize_settings(
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_initialize_settings_builder(client, args.projectId.clone())?;
+    let builder = toolresults_projects_initialize_settings_builder(client, &args.projectId)?;
     toolresults_projects_initialize_settings_execute(builder)
 }
 
@@ -351,19 +351,19 @@ pub fn toolresults_projects_initialize_settings(
 
 pub fn toolresults_projects_histories_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    requestId: Option<String>,
+    projectId: &String,
+    requestId: &Option<String>,
     body: &History,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -517,8 +517,8 @@ pub fn toolresults_projects_histories_create(
 > {
     let builder = toolresults_projects_histories_create_builder(
         client,
-        args.projectId.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.requestId,
         &args.body,
     )?;
     toolresults_projects_histories_create_execute(builder)
@@ -532,14 +532,13 @@ pub fn toolresults_projects_histories_create(
 
 pub fn toolresults_projects_histories_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
+    projectId: &String,
+    historyId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}",
-        projectId.as_str(),
-        historyId.as_str(),
+        projectId, historyId,
     );
 
     // Build request
@@ -681,11 +680,8 @@ pub fn toolresults_projects_histories_get(
     impl StreamIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_get_builder(
-        client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-    )?;
+    let builder =
+        toolresults_projects_histories_get_builder(client, &args.projectId, &args.historyId)?;
     toolresults_projects_histories_get_execute(builder)
 }
 
@@ -697,21 +693,21 @@ pub fn toolresults_projects_histories_get(
 
 pub fn toolresults_projects_histories_executions_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    requestId: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    requestId: &Option<String>,
     body: &Execution,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
-        projectId.as_str(),
-        historyId.as_str(),
+        projectId,
+        historyId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -867,9 +863,9 @@ pub fn toolresults_projects_histories_executions_create(
 > {
     let builder = toolresults_projects_histories_executions_create_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.requestId,
         &args.body,
     )?;
     toolresults_projects_histories_executions_create_execute(builder)
@@ -883,16 +879,16 @@ pub fn toolresults_projects_histories_executions_create(
 
 pub fn toolresults_projects_histories_executions_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
+        projectId,
+        historyId,
+        executionId,
     );
 
     // Build request
@@ -1038,9 +1034,9 @@ pub fn toolresults_projects_histories_executions_get(
 > {
     let builder = toolresults_projects_histories_executions_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
     )?;
     toolresults_projects_histories_executions_get_execute(builder)
 }
@@ -1053,18 +1049,18 @@ pub fn toolresults_projects_histories_executions_get(
 
 pub fn toolresults_projects_histories_executions_clusters_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    clusterId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    clusterId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        clusterId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        clusterId,
     );
 
     // Build request
@@ -1216,10 +1212,10 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 > {
     let builder = toolresults_projects_histories_executions_clusters_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.clusterId,
     )?;
     toolresults_projects_histories_executions_clusters_get_execute(builder)
 }
@@ -1232,16 +1228,16 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 
 pub fn toolresults_projects_histories_executions_clusters_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
+        projectId,
+        historyId,
+        executionId,
     );
 
     // Build request
@@ -1395,9 +1391,9 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 > {
     let builder = toolresults_projects_histories_executions_clusters_list_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
     )?;
     toolresults_projects_histories_executions_clusters_list_execute(builder)
 }
@@ -1410,18 +1406,18 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 
 pub fn toolresults_projects_histories_executions_environments_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    environmentId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    environmentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        environmentId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        environmentId,
     );
 
     // Build request
@@ -1569,10 +1565,10 @@ pub fn toolresults_projects_histories_executions_environments_get(
 > {
     let builder = toolresults_projects_histories_executions_environments_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.environmentId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.environmentId,
     )?;
     toolresults_projects_histories_executions_environments_get_execute(builder)
 }
@@ -1585,26 +1581,26 @@ pub fn toolresults_projects_histories_executions_environments_get(
 
 pub fn toolresults_projects_histories_executions_environments_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
+        projectId,
+        historyId,
+        executionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1764,11 +1760,11 @@ pub fn toolresults_projects_histories_executions_environments_list(
 > {
     let builder = toolresults_projects_histories_executions_environments_list_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     toolresults_projects_histories_executions_environments_list_execute(builder)
 }
@@ -1781,23 +1777,23 @@ pub fn toolresults_projects_histories_executions_environments_list(
 
 pub fn toolresults_projects_histories_executions_steps_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    requestId: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    requestId: &Option<String>,
     body: &Step,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
+        projectId,
+        historyId,
+        executionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -1955,10 +1951,10 @@ pub fn toolresults_projects_histories_executions_steps_create(
 > {
     let builder = toolresults_projects_histories_executions_steps_create_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.requestId,
         &args.body,
     )?;
     toolresults_projects_histories_executions_steps_create_execute(builder)
@@ -1972,18 +1968,18 @@ pub fn toolresults_projects_histories_executions_steps_create(
 
 pub fn toolresults_projects_histories_executions_steps_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
@@ -2131,10 +2127,10 @@ pub fn toolresults_projects_histories_executions_steps_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
     )?;
     toolresults_projects_histories_executions_steps_get_execute(builder)
 }
@@ -2147,18 +2143,18 @@ pub fn toolresults_projects_histories_executions_steps_get(
 
 pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
@@ -2311,10 +2307,10 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
 > {
     let builder = toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
     )?;
     toolresults_projects_histories_executions_steps_get_perf_metrics_summary_execute(builder)
 }
@@ -2327,19 +2323,19 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
 
 pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
     body: &PublishXunitXmlFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}:publishXunitXmlFiles",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
@@ -2492,10 +2488,10 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
 > {
     let builder = toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
         &args.body,
     )?;
     toolresults_projects_histories_executions_steps_publish_xunit_xml_files_execute(builder)
@@ -2509,19 +2505,19 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
     body: &PerfSampleSeries,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
@@ -2679,10 +2675,10 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
             client,
-            args.projectId.clone(),
-            args.historyId.clone(),
-            args.executionId.clone(),
-            args.stepId.clone(),
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
             &args.body,
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_create_execute(builder)
@@ -2696,20 +2692,20 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    sampleSeriesId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    sampleSeriesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
-        sampleSeriesId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+        sampleSeriesId,
     );
 
     // Build request
@@ -2864,11 +2860,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
-        args.sampleSeriesId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.sampleSeriesId,
     )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_get_execute(builder)
 }
@@ -2881,21 +2877,21 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    sampleSeriesId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    sampleSeriesId: &String,
     body: &BatchCreatePerfSamplesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples:batchCreate",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
-        sampleSeriesId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+        sampleSeriesId,
     );
 
     // Build request
@@ -3055,7 +3051,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, args.projectId.clone(), args.historyId.clone(), args.executionId.clone(), args.stepId.clone(), args.sampleSeriesId.clone(), &args.body)?;
+    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, &args.projectId, &args.historyId, &args.executionId, &args.stepId, &args.sampleSeriesId, &args.body)?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_execute(
         builder,
     )
@@ -3069,30 +3065,30 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    sampleSeriesId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    sampleSeriesId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
-        sampleSeriesId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+        sampleSeriesId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3260,13 +3256,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
             client,
-            args.projectId.clone(),
-            args.historyId.clone(),
-            args.executionId.clone(),
-            args.stepId.clone(),
-            args.sampleSeriesId.clone(),
-            args.pageSize.clone(),
-            args.pageToken.clone(),
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
+            &args.sampleSeriesId,
+            &args.pageSize,
+            &args.pageToken,
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_execute(builder)
 }
@@ -3279,20 +3275,20 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    testCaseId: String,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    testCaseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases/{}",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
-        testCaseId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+        testCaseId,
     );
 
     // Build request
@@ -3442,11 +3438,11 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_get_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
-        args.testCaseId.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.testCaseId,
     )?;
     toolresults_projects_histories_executions_steps_test_cases_get_execute(builder)
 }
@@ -3459,28 +3455,28 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get(
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3642,12 +3638,12 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_list_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     toolresults_projects_histories_executions_steps_test_cases_list_execute(builder)
 }
@@ -3660,28 +3656,28 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 
 pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    historyId: String,
-    executionId: String,
-    stepId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/thumbnails",
-        projectId.as_str(),
-        historyId.as_str(),
-        executionId.as_str(),
-        stepId.as_str(),
+        projectId,
+        historyId,
+        executionId,
+        stepId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3847,12 +3843,12 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_thumbnails_list_builder(
         client,
-        args.projectId.clone(),
-        args.historyId.clone(),
-        args.executionId.clone(),
-        args.stepId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     toolresults_projects_histories_executions_steps_thumbnails_list_execute(builder)
 }

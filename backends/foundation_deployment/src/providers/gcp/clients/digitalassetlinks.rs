@@ -189,48 +189,48 @@ pub fn digitalassetlinks_assetlinks_bulk_check(
 
 pub fn digitalassetlinks_assetlinks_check_builder(
     client: &SimpleHttpClient,
-    relation: Option<String>,
-    returnRelationExtensions: Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: Option<String>,
-    source_androidApp_packageName: Option<String>,
-    source_web_site: Option<String>,
-    target_androidApp_certificate_sha256Fingerprint: Option<String>,
-    target_androidApp_packageName: Option<String>,
-    target_web_site: Option<String>,
+    relation: &Option<String>,
+    returnRelationExtensions: &Option<bool>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    source_androidApp_packageName: &Option<String>,
+    source_web_site: &Option<String>,
+    target_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    target_androidApp_packageName: &Option<String>,
+    target_web_site: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/assetlinks:check",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = relation {
+    if let Some(val) = relation.as_ref() {
         query_parts.push(format!("relation={}", val));
     }
-    if let Some(val) = returnRelationExtensions {
+    if let Some(val) = returnRelationExtensions.as_ref() {
         query_parts.push(format!("returnRelationExtensions={}", val));
     }
-    if let Some(val) = source_androidApp_certificate_sha256Fingerprint {
+    if let Some(val) = source_androidApp_certificate_sha256Fingerprint.as_ref() {
         query_parts.push(format!(
             "source.androidApp.certificate.sha256Fingerprint={}",
             val
         ));
     }
-    if let Some(val) = source_androidApp_packageName {
+    if let Some(val) = source_androidApp_packageName.as_ref() {
         query_parts.push(format!("source.androidApp.packageName={}", val));
     }
-    if let Some(val) = source_web_site {
+    if let Some(val) = source_web_site.as_ref() {
         query_parts.push(format!("source.web.site={}", val));
     }
-    if let Some(val) = target_androidApp_certificate_sha256Fingerprint {
+    if let Some(val) = target_androidApp_certificate_sha256Fingerprint.as_ref() {
         query_parts.push(format!(
             "target.androidApp.certificate.sha256Fingerprint={}",
             val
         ));
     }
-    if let Some(val) = target_androidApp_packageName {
+    if let Some(val) = target_androidApp_packageName.as_ref() {
         query_parts.push(format!("target.androidApp.packageName={}", val));
     }
-    if let Some(val) = target_web_site {
+    if let Some(val) = target_web_site.as_ref() {
         query_parts.push(format!("target.web.site={}", val));
     }
 
@@ -396,14 +396,14 @@ pub fn digitalassetlinks_assetlinks_check(
 > {
     let builder = digitalassetlinks_assetlinks_check_builder(
         client,
-        args.relation.clone(),
-        args.returnRelationExtensions.clone(),
-        args.source_androidApp_certificate_sha256Fingerprint.clone(),
-        args.source_androidApp_packageName.clone(),
-        args.source_web_site.clone(),
-        args.target_androidApp_certificate_sha256Fingerprint.clone(),
-        args.target_androidApp_packageName.clone(),
-        args.target_web_site.clone(),
+        &args.relation,
+        &args.returnRelationExtensions,
+        &args.source_androidApp_certificate_sha256Fingerprint,
+        &args.source_androidApp_packageName,
+        &args.source_web_site,
+        &args.target_androidApp_certificate_sha256Fingerprint,
+        &args.target_androidApp_packageName,
+        &args.target_web_site,
     )?;
     digitalassetlinks_assetlinks_check_execute(builder)
 }
@@ -416,33 +416,33 @@ pub fn digitalassetlinks_assetlinks_check(
 
 pub fn digitalassetlinks_statements_list_builder(
     client: &SimpleHttpClient,
-    relation: Option<String>,
-    returnRelationExtensions: Option<bool>,
-    source_androidApp_certificate_sha256Fingerprint: Option<String>,
-    source_androidApp_packageName: Option<String>,
-    source_web_site: Option<String>,
+    relation: &Option<String>,
+    returnRelationExtensions: &Option<bool>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    source_androidApp_packageName: &Option<String>,
+    source_web_site: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://digitalassetlinks.googleapis.com/v1/statements:list",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = relation {
+    if let Some(val) = relation.as_ref() {
         query_parts.push(format!("relation={}", val));
     }
-    if let Some(val) = returnRelationExtensions {
+    if let Some(val) = returnRelationExtensions.as_ref() {
         query_parts.push(format!("returnRelationExtensions={}", val));
     }
-    if let Some(val) = source_androidApp_certificate_sha256Fingerprint {
+    if let Some(val) = source_androidApp_certificate_sha256Fingerprint.as_ref() {
         query_parts.push(format!(
             "source.androidApp.certificate.sha256Fingerprint={}",
             val
         ));
     }
-    if let Some(val) = source_androidApp_packageName {
+    if let Some(val) = source_androidApp_packageName.as_ref() {
         query_parts.push(format!("source.androidApp.packageName={}", val));
     }
-    if let Some(val) = source_web_site {
+    if let Some(val) = source_web_site.as_ref() {
         query_parts.push(format!("source.web.site={}", val));
     }
 
@@ -602,11 +602,11 @@ pub fn digitalassetlinks_statements_list(
 > {
     let builder = digitalassetlinks_statements_list_builder(
         client,
-        args.relation.clone(),
-        args.returnRelationExtensions.clone(),
-        args.source_androidApp_certificate_sha256Fingerprint.clone(),
-        args.source_androidApp_packageName.clone(),
-        args.source_web_site.clone(),
+        &args.relation,
+        &args.returnRelationExtensions,
+        &args.source_androidApp_certificate_sha256Fingerprint,
+        &args.source_androidApp_packageName,
+        &args.source_web_site,
     )?;
     digitalassetlinks_statements_list_execute(builder)
 }

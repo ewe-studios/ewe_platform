@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn reseller_customers_get_builder(
     client: &SimpleHttpClient,
-    customerId: String,
+    customerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}",
-        customerId.as_str(),
+        customerId,
     );
 
     // Build request
@@ -174,7 +174,7 @@ pub fn reseller_customers_get(
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = reseller_customers_get_builder(client, args.customerId.clone())?;
+    let builder = reseller_customers_get_builder(client, &args.customerId)?;
     reseller_customers_get_execute(builder)
 }
 
@@ -186,7 +186,7 @@ pub fn reseller_customers_get(
 
 pub fn reseller_customers_insert_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: Option<String>,
+    customerAuthToken: &Option<String>,
     body: &Customer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -194,7 +194,7 @@ pub fn reseller_customers_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerAuthToken {
+    if let Some(val) = customerAuthToken.as_ref() {
         query_parts.push(format!("customerAuthToken={}", val));
     }
 
@@ -344,8 +344,7 @@ pub fn reseller_customers_insert(
     impl StreamIterator<D = Result<ApiResponse<Customer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        reseller_customers_insert_builder(client, args.customerAuthToken.clone(), &args.body)?;
+    let builder = reseller_customers_insert_builder(client, &args.customerAuthToken, &args.body)?;
     reseller_customers_insert_execute(builder)
 }
 
@@ -511,7 +510,7 @@ pub fn reseller_resellernotify_getwatchdetails(
 
 pub fn reseller_resellernotify_register_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: Option<String>,
+    serviceAccountEmailAddress: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -519,7 +518,7 @@ pub fn reseller_resellernotify_register_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = serviceAccountEmailAddress {
+    if let Some(val) = serviceAccountEmailAddress.as_ref() {
         query_parts.push(format!("serviceAccountEmailAddress={}", val));
     }
 
@@ -670,7 +669,7 @@ pub fn reseller_resellernotify_register(
     ApiError,
 > {
     let builder =
-        reseller_resellernotify_register_builder(client, args.serviceAccountEmailAddress.clone())?;
+        reseller_resellernotify_register_builder(client, &args.serviceAccountEmailAddress)?;
     reseller_resellernotify_register_execute(builder)
 }
 
@@ -682,7 +681,7 @@ pub fn reseller_resellernotify_register(
 
 pub fn reseller_resellernotify_unregister_builder(
     client: &SimpleHttpClient,
-    serviceAccountEmailAddress: Option<String>,
+    serviceAccountEmailAddress: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -690,7 +689,7 @@ pub fn reseller_resellernotify_unregister_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = serviceAccountEmailAddress {
+    if let Some(val) = serviceAccountEmailAddress.as_ref() {
         query_parts.push(format!("serviceAccountEmailAddress={}", val));
     }
 
@@ -840,10 +839,8 @@ pub fn reseller_resellernotify_unregister(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_resellernotify_unregister_builder(
-        client,
-        args.serviceAccountEmailAddress.clone(),
-    )?;
+    let builder =
+        reseller_resellernotify_unregister_builder(client, &args.serviceAccountEmailAddress)?;
     reseller_resellernotify_unregister_execute(builder)
 }
 
@@ -855,14 +852,13 @@ pub fn reseller_resellernotify_unregister(
 
 pub fn reseller_subscriptions_activate_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/activate",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId, subscriptionId,
     );
 
     // Build request
@@ -1008,11 +1004,8 @@ pub fn reseller_subscriptions_activate(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_subscriptions_activate_builder(
-        client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
-    )?;
+    let builder =
+        reseller_subscriptions_activate_builder(client, &args.customerId, &args.subscriptionId)?;
     reseller_subscriptions_activate_execute(builder)
 }
 
@@ -1024,15 +1017,14 @@ pub fn reseller_subscriptions_activate(
 
 pub fn reseller_subscriptions_change_plan_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
     body: &ChangePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changePlan",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId, subscriptionId,
     );
 
     // Build request
@@ -1184,8 +1176,8 @@ pub fn reseller_subscriptions_change_plan(
 > {
     let builder = reseller_subscriptions_change_plan_builder(
         client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
+        &args.customerId,
+        &args.subscriptionId,
         &args.body,
     )?;
     reseller_subscriptions_change_plan_execute(builder)
@@ -1199,15 +1191,15 @@ pub fn reseller_subscriptions_change_plan(
 
 pub fn reseller_subscriptions_change_renewal_settings_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
     body: &RenewalSettings,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeRenewalSettings",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId,
+        subscriptionId,
     );
 
     // Build request
@@ -1359,8 +1351,8 @@ pub fn reseller_subscriptions_change_renewal_settings(
 > {
     let builder = reseller_subscriptions_change_renewal_settings_builder(
         client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
+        &args.customerId,
+        &args.subscriptionId,
         &args.body,
     )?;
     reseller_subscriptions_change_renewal_settings_execute(builder)
@@ -1374,15 +1366,15 @@ pub fn reseller_subscriptions_change_renewal_settings(
 
 pub fn reseller_subscriptions_change_seats_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
     body: &Seats,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/changeSeats",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId,
+        subscriptionId,
     );
 
     // Build request
@@ -1534,8 +1526,8 @@ pub fn reseller_subscriptions_change_seats(
 > {
     let builder = reseller_subscriptions_change_seats_builder(
         client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
+        &args.customerId,
+        &args.subscriptionId,
         &args.body,
     )?;
     reseller_subscriptions_change_seats_execute(builder)
@@ -1549,14 +1541,13 @@ pub fn reseller_subscriptions_change_seats(
 
 pub fn reseller_subscriptions_get_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId, subscriptionId,
     );
 
     // Build request
@@ -1702,11 +1693,8 @@ pub fn reseller_subscriptions_get(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_subscriptions_get_builder(
-        client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
-    )?;
+    let builder =
+        reseller_subscriptions_get_builder(client, &args.customerId, &args.subscriptionId)?;
     reseller_subscriptions_get_execute(builder)
 }
 
@@ -1718,27 +1706,27 @@ pub fn reseller_subscriptions_get(
 
 pub fn reseller_subscriptions_insert_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    action: Option<String>,
-    customerAuthToken: Option<String>,
-    sourceSkuId: Option<String>,
+    customerId: &String,
+    action: &Option<String>,
+    customerAuthToken: &Option<String>,
+    sourceSkuId: &Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions",
-        customerId.as_str(),
+        customerId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = action {
+    if let Some(val) = action.as_ref() {
         query_parts.push(format!("action={}", val));
     }
-    if let Some(val) = customerAuthToken {
+    if let Some(val) = customerAuthToken.as_ref() {
         query_parts.push(format!("customerAuthToken={}", val));
     }
-    if let Some(val) = sourceSkuId {
+    if let Some(val) = sourceSkuId.as_ref() {
         query_parts.push(format!("sourceSkuId={}", val));
     }
 
@@ -1900,10 +1888,10 @@ pub fn reseller_subscriptions_insert(
 > {
     let builder = reseller_subscriptions_insert_builder(
         client,
-        args.customerId.clone(),
-        args.action.clone(),
-        args.customerAuthToken.clone(),
-        args.sourceSkuId.clone(),
+        &args.customerId,
+        &args.action,
+        &args.customerAuthToken,
+        &args.sourceSkuId,
         &args.body,
     )?;
     reseller_subscriptions_insert_execute(builder)
@@ -1917,30 +1905,30 @@ pub fn reseller_subscriptions_insert(
 
 pub fn reseller_subscriptions_list_builder(
     client: &SimpleHttpClient,
-    customerAuthToken: Option<String>,
-    customerId: Option<String>,
-    customerNamePrefix: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    customerAuthToken: &Option<String>,
+    customerId: &Option<String>,
+    customerNamePrefix: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://reseller.googleapis.com/apps/reseller/v1/subscriptions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerAuthToken {
+    if let Some(val) = customerAuthToken.as_ref() {
         query_parts.push(format!("customerAuthToken={}", val));
     }
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = customerNamePrefix {
+    if let Some(val) = customerNamePrefix.as_ref() {
         query_parts.push(format!("customerNamePrefix={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2100,11 +2088,11 @@ pub fn reseller_subscriptions_list(
 > {
     let builder = reseller_subscriptions_list_builder(
         client,
-        args.customerAuthToken.clone(),
-        args.customerId.clone(),
-        args.customerNamePrefix.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.customerAuthToken,
+        &args.customerId,
+        &args.customerNamePrefix,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     reseller_subscriptions_list_execute(builder)
 }
@@ -2117,14 +2105,14 @@ pub fn reseller_subscriptions_list(
 
 pub fn reseller_subscriptions_start_paid_service_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/startPaidService",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId,
+        subscriptionId,
     );
 
     // Build request
@@ -2272,8 +2260,8 @@ pub fn reseller_subscriptions_start_paid_service(
 > {
     let builder = reseller_subscriptions_start_paid_service_builder(
         client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
+        &args.customerId,
+        &args.subscriptionId,
     )?;
     reseller_subscriptions_start_paid_service_execute(builder)
 }
@@ -2286,14 +2274,13 @@ pub fn reseller_subscriptions_start_paid_service(
 
 pub fn reseller_subscriptions_suspend_builder(
     client: &SimpleHttpClient,
-    customerId: String,
-    subscriptionId: String,
+    customerId: &String,
+    subscriptionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://reseller.googleapis.com/apps/reseller/v1/customers/{}/subscriptions/{}/suspend",
-        customerId.as_str(),
-        subscriptionId.as_str(),
+        customerId, subscriptionId,
     );
 
     // Build request
@@ -2439,10 +2426,7 @@ pub fn reseller_subscriptions_suspend(
         + 'static,
     ApiError,
 > {
-    let builder = reseller_subscriptions_suspend_builder(
-        client,
-        args.customerId.clone(),
-        args.subscriptionId.clone(),
-    )?;
+    let builder =
+        reseller_subscriptions_suspend_builder(client, &args.customerId, &args.subscriptionId)?;
     reseller_subscriptions_suspend_execute(builder)
 }

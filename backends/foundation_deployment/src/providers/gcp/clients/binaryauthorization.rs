@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn binaryauthorization_projects_get_policy_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://binaryauthorization.googleapis.com/v1/projects/{}/policy",);
@@ -171,7 +171,7 @@ pub fn binaryauthorization_projects_get_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_get_policy_builder(client, args.name.clone())?;
+    let builder = binaryauthorization_projects_get_policy_builder(client, &args.name)?;
     binaryauthorization_projects_get_policy_execute(builder)
 }
 
@@ -183,8 +183,8 @@ pub fn binaryauthorization_projects_get_policy(
 
 pub fn binaryauthorization_projects_attestors_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    attestorId: Option<String>,
+    parent: &String,
+    attestorId: &Option<String>,
     body: &Attestor,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -193,7 +193,7 @@ pub fn binaryauthorization_projects_attestors_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = attestorId {
+    if let Some(val) = attestorId.as_ref() {
         query_parts.push(format!("attestorId={}", val));
     }
 
@@ -347,8 +347,8 @@ pub fn binaryauthorization_projects_attestors_create(
 > {
     let builder = binaryauthorization_projects_attestors_create_builder(
         client,
-        args.parent.clone(),
-        args.attestorId.clone(),
+        &args.parent,
+        &args.attestorId,
         &args.body,
     )?;
     binaryauthorization_projects_attestors_create_execute(builder)
@@ -362,8 +362,8 @@ pub fn binaryauthorization_projects_attestors_create(
 
 pub fn binaryauthorization_projects_policy_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
-    options_requestedPolicyVersion: Option<i32>,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -371,7 +371,7 @@ pub fn binaryauthorization_projects_policy_get_iam_policy_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = options_requestedPolicyVersion {
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
         query_parts.push(format!("options.requestedPolicyVersion={}", val));
     }
 
@@ -521,8 +521,8 @@ pub fn binaryauthorization_projects_policy_get_iam_policy(
 > {
     let builder = binaryauthorization_projects_policy_get_iam_policy_builder(
         client,
-        args.resource.clone(),
-        args.options_requestedPolicyVersion.clone(),
+        &args.resource,
+        &args.options_requestedPolicyVersion,
     )?;
     binaryauthorization_projects_policy_get_iam_policy_execute(builder)
 }
@@ -535,7 +535,7 @@ pub fn binaryauthorization_projects_policy_get_iam_policy(
 
 pub fn binaryauthorization_projects_policy_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -685,7 +685,7 @@ pub fn binaryauthorization_projects_policy_set_iam_policy(
 > {
     let builder = binaryauthorization_projects_policy_set_iam_policy_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     binaryauthorization_projects_policy_set_iam_policy_execute(builder)
@@ -699,7 +699,7 @@ pub fn binaryauthorization_projects_policy_set_iam_policy(
 
 pub fn binaryauthorization_projects_policy_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -858,7 +858,7 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions(
 > {
     let builder = binaryauthorization_projects_policy_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     binaryauthorization_projects_policy_test_iam_permissions_execute(builder)
@@ -872,7 +872,7 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions(
 
 pub fn binaryauthorization_systempolicy_get_policy_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1015,6 +1015,6 @@ pub fn binaryauthorization_systempolicy_get_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_systempolicy_get_policy_builder(client, args.name.clone())?;
+    let builder = binaryauthorization_systempolicy_get_policy_builder(client, &args.name)?;
     binaryauthorization_systempolicy_get_policy_execute(builder)
 }

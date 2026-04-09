@@ -29,22 +29,22 @@ use serde::Serialize;
 
 pub fn dataflow_projects_delete_snapshots_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: Option<String>,
-    snapshotId: Option<String>,
+    projectId: &String,
+    location: &Option<String>,
+    snapshotId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = snapshotId {
+    if let Some(val) = snapshotId.as_ref() {
         query_parts.push(format!("snapshotId={}", val));
     }
 
@@ -200,9 +200,9 @@ pub fn dataflow_projects_delete_snapshots(
 > {
     let builder = dataflow_projects_delete_snapshots_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.snapshotId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.snapshotId,
     )?;
     dataflow_projects_delete_snapshots_execute(builder)
 }
@@ -215,13 +215,13 @@ pub fn dataflow_projects_delete_snapshots(
 
 pub fn dataflow_projects_worker_messages_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/WorkerMessages",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -373,8 +373,7 @@ pub fn dataflow_projects_worker_messages(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataflow_projects_worker_messages_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = dataflow_projects_worker_messages_builder(client, &args.projectId, &args.body)?;
     dataflow_projects_worker_messages_execute(builder)
 }
 
@@ -386,38 +385,38 @@ pub fn dataflow_projects_worker_messages(
 
 pub fn dataflow_projects_jobs_aggregated_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    filter: Option<String>,
-    location: Option<String>,
-    name: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    filter: &Option<String>,
+    location: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs:aggregated",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -581,13 +580,13 @@ pub fn dataflow_projects_jobs_aggregated(
 > {
     let builder = dataflow_projects_jobs_aggregated_builder(
         client,
-        args.projectId.clone(),
-        args.filter.clone(),
-        args.location.clone(),
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.filter,
+        &args.location,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
     )?;
     dataflow_projects_jobs_aggregated_execute(builder)
 }
@@ -600,27 +599,27 @@ pub fn dataflow_projects_jobs_aggregated(
 
 pub fn dataflow_projects_jobs_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: Option<String>,
-    replaceJobId: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    location: &Option<String>,
+    replaceJobId: &Option<String>,
+    view: &Option<String>,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = replaceJobId {
+    if let Some(val) = replaceJobId.as_ref() {
         query_parts.push(format!("replaceJobId={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -778,10 +777,10 @@ pub fn dataflow_projects_jobs_create(
 > {
     let builder = dataflow_projects_jobs_create_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.replaceJobId.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.location,
+        &args.replaceJobId,
+        &args.view,
         &args.body,
     )?;
     dataflow_projects_jobs_create_execute(builder)
@@ -795,24 +794,23 @@ pub fn dataflow_projects_jobs_create(
 
 pub fn dataflow_projects_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    location: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -966,10 +964,10 @@ pub fn dataflow_projects_jobs_get(
 > {
     let builder = dataflow_projects_jobs_get_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.location.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.jobId,
+        &args.location,
+        &args.view,
     )?;
     dataflow_projects_jobs_get_execute(builder)
 }
@@ -982,24 +980,23 @@ pub fn dataflow_projects_jobs_get(
 
 pub fn dataflow_projects_jobs_get_metrics_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    location: Option<String>,
-    startTime: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/metrics",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -1153,10 +1150,10 @@ pub fn dataflow_projects_jobs_get_metrics(
 > {
     let builder = dataflow_projects_jobs_get_metrics_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.location.clone(),
-        args.startTime.clone(),
+        &args.projectId,
+        &args.jobId,
+        &args.location,
+        &args.startTime,
     )?;
     dataflow_projects_jobs_get_metrics_execute(builder)
 }
@@ -1169,15 +1166,14 @@ pub fn dataflow_projects_jobs_get_metrics(
 
 pub fn dataflow_projects_jobs_snapshot_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
+    projectId: &String,
+    jobId: &String,
     body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}:snapshot",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
@@ -1323,12 +1319,8 @@ pub fn dataflow_projects_jobs_snapshot(
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_jobs_snapshot_builder(
-        client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dataflow_projects_jobs_snapshot_builder(client, &args.projectId, &args.jobId, &args.body)?;
     dataflow_projects_jobs_snapshot_execute(builder)
 }
 
@@ -1340,15 +1332,14 @@ pub fn dataflow_projects_jobs_snapshot(
 
 pub fn dataflow_projects_jobs_debug_get_config_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
+    projectId: &String,
+    jobId: &String,
     body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/getConfig",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
@@ -1500,8 +1491,8 @@ pub fn dataflow_projects_jobs_debug_get_config(
 > {
     let builder = dataflow_projects_jobs_debug_get_config_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_jobs_debug_get_config_execute(builder)
@@ -1515,15 +1506,14 @@ pub fn dataflow_projects_jobs_debug_get_config(
 
 pub fn dataflow_projects_jobs_debug_send_capture_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
+    projectId: &String,
+    jobId: &String,
     body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/sendCapture",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
@@ -1675,8 +1665,8 @@ pub fn dataflow_projects_jobs_debug_send_capture(
 > {
     let builder = dataflow_projects_jobs_debug_send_capture_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_jobs_debug_send_capture_execute(builder)
@@ -1690,40 +1680,39 @@ pub fn dataflow_projects_jobs_debug_send_capture(
 
 pub fn dataflow_projects_jobs_messages_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    endTime: Option<String>,
-    location: Option<String>,
-    minimumImportance: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    endTime: &Option<String>,
+    location: &Option<String>,
+    minimumImportance: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/messages",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = minimumImportance {
+    if let Some(val) = minimumImportance.as_ref() {
         query_parts.push(format!("minimumImportance={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -1889,14 +1878,14 @@ pub fn dataflow_projects_jobs_messages_list(
 > {
     let builder = dataflow_projects_jobs_messages_list_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.endTime.clone(),
-        args.location.clone(),
-        args.minimumImportance.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.projectId,
+        &args.jobId,
+        &args.endTime,
+        &args.location,
+        &args.minimumImportance,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTime,
     )?;
     dataflow_projects_jobs_messages_list_execute(builder)
 }
@@ -1909,15 +1898,14 @@ pub fn dataflow_projects_jobs_messages_list(
 
 pub fn dataflow_projects_jobs_work_items_lease_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
+    projectId: &String,
+    jobId: &String,
     body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:lease",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
@@ -2069,8 +2057,8 @@ pub fn dataflow_projects_jobs_work_items_lease(
 > {
     let builder = dataflow_projects_jobs_work_items_lease_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_jobs_work_items_lease_execute(builder)
@@ -2084,15 +2072,14 @@ pub fn dataflow_projects_jobs_work_items_lease(
 
 pub fn dataflow_projects_jobs_work_items_report_status_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
+    projectId: &String,
+    jobId: &String,
     body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:reportStatus",
-        projectId.as_str(),
-        jobId.as_str(),
+        projectId, jobId,
     );
 
     // Build request
@@ -2248,8 +2235,8 @@ pub fn dataflow_projects_jobs_work_items_report_status(
 > {
     let builder = dataflow_projects_jobs_work_items_report_status_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_jobs_work_items_report_status_execute(builder)
@@ -2263,15 +2250,14 @@ pub fn dataflow_projects_jobs_work_items_report_status(
 
 pub fn dataflow_projects_locations_worker_messages_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
+    projectId: &String,
+    location: &String,
     body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/WorkerMessages",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
@@ -2427,8 +2413,8 @@ pub fn dataflow_projects_locations_worker_messages(
 > {
     let builder = dataflow_projects_locations_worker_messages_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
+        &args.projectId,
+        &args.location,
         &args.body,
     )?;
     dataflow_projects_locations_worker_messages_execute(builder)
@@ -2442,15 +2428,14 @@ pub fn dataflow_projects_locations_worker_messages(
 
 pub fn dataflow_projects_locations_flex_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
+    projectId: &String,
+    location: &String,
     body: &LaunchFlexTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/flexTemplates:launch",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
@@ -2606,8 +2591,8 @@ pub fn dataflow_projects_locations_flex_templates_launch(
 > {
     let builder = dataflow_projects_locations_flex_templates_launch_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
+        &args.projectId,
+        &args.location,
         &args.body,
     )?;
     dataflow_projects_locations_flex_templates_launch_execute(builder)
@@ -2621,25 +2606,24 @@ pub fn dataflow_projects_locations_flex_templates_launch(
 
 pub fn dataflow_projects_locations_jobs_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    replaceJobId: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    location: &String,
+    replaceJobId: &Option<String>,
+    view: &Option<String>,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = replaceJobId {
+    if let Some(val) = replaceJobId.as_ref() {
         query_parts.push(format!("replaceJobId={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2797,10 +2781,10 @@ pub fn dataflow_projects_locations_jobs_create(
 > {
     let builder = dataflow_projects_locations_jobs_create_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.replaceJobId.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.location,
+        &args.replaceJobId,
+        &args.view,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_create_execute(builder)
@@ -2814,22 +2798,20 @@ pub fn dataflow_projects_locations_jobs_create(
 
 pub fn dataflow_projects_locations_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
-    view: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2983,10 +2965,10 @@ pub fn dataflow_projects_locations_jobs_get(
 > {
     let builder = dataflow_projects_locations_jobs_get_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.view,
     )?;
     dataflow_projects_locations_jobs_get_execute(builder)
 }
@@ -2999,26 +2981,24 @@ pub fn dataflow_projects_locations_jobs_get(
 
 pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/executionDetails",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3178,11 +3158,11 @@ pub fn dataflow_projects_locations_jobs_get_execution_details(
 > {
     let builder = dataflow_projects_locations_jobs_get_execution_details_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     dataflow_projects_locations_jobs_get_execution_details_execute(builder)
 }
@@ -3195,22 +3175,20 @@ pub fn dataflow_projects_locations_jobs_get_execution_details(
 
 pub fn dataflow_projects_locations_jobs_get_metrics_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
-    startTime: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/metrics",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -3364,10 +3342,10 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
 > {
     let builder = dataflow_projects_locations_jobs_get_metrics_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
-        args.startTime.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.startTime,
     )?;
     dataflow_projects_locations_jobs_get_metrics_execute(builder)
 }
@@ -3380,17 +3358,15 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
 
 pub fn dataflow_projects_locations_jobs_snapshot_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}:snapshot",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
@@ -3540,9 +3516,9 @@ pub fn dataflow_projects_locations_jobs_snapshot(
 > {
     let builder = dataflow_projects_locations_jobs_snapshot_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_snapshot_execute(builder)
@@ -3556,17 +3532,15 @@ pub fn dataflow_projects_locations_jobs_snapshot(
 
 pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getConfig",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
@@ -3720,9 +3694,9 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
 > {
     let builder = dataflow_projects_locations_jobs_debug_get_config_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_config_execute(builder)
@@ -3736,17 +3710,17 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
 
 pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &GetWorkerStacktracesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getWorkerStacktraces",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId,
+        location,
+        jobId,
     );
 
     // Build request
@@ -3904,9 +3878,9 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
 > {
     let builder = dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_worker_stacktraces_execute(builder)
@@ -3920,17 +3894,15 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
 
 pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/sendCapture",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
@@ -4084,9 +4056,9 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
 > {
     let builder = dataflow_projects_locations_jobs_debug_send_capture_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_send_capture_execute(builder)
@@ -4100,38 +4072,36 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
 
 pub fn dataflow_projects_locations_jobs_messages_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
-    endTime: Option<String>,
-    minimumImportance: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    endTime: &Option<String>,
+    minimumImportance: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/messages",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = minimumImportance {
+    if let Some(val) = minimumImportance.as_ref() {
         query_parts.push(format!("minimumImportance={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -4297,14 +4267,14 @@ pub fn dataflow_projects_locations_jobs_messages_list(
 > {
     let builder = dataflow_projects_locations_jobs_messages_list_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
-        args.endTime.clone(),
-        args.minimumImportance.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.endTime,
+        &args.minimumImportance,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTime,
     )?;
     dataflow_projects_locations_jobs_messages_list_execute(builder)
 }
@@ -4317,16 +4287,14 @@ pub fn dataflow_projects_locations_jobs_messages_list(
 
 pub fn dataflow_projects_locations_jobs_snapshots_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/snapshots",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
@@ -4476,9 +4444,9 @@ pub fn dataflow_projects_locations_jobs_snapshots_list(
 > {
     let builder = dataflow_projects_locations_jobs_snapshots_list_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
     )?;
     dataflow_projects_locations_jobs_snapshots_list_execute(builder)
 }
@@ -4491,36 +4459,36 @@ pub fn dataflow_projects_locations_jobs_snapshots_list(
 
 pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
-    stageId: String,
-    endTime: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
+    stageId: &String,
+    endTime: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/stages/{}/executionDetails",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
-        stageId.as_str(),
+        projectId,
+        location,
+        jobId,
+        stageId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -4686,14 +4654,14 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
 > {
     let builder = dataflow_projects_locations_jobs_stages_get_execution_details_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
-        args.stageId.clone(),
-        args.endTime.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
+        &args.stageId,
+        &args.endTime,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTime,
     )?;
     dataflow_projects_locations_jobs_stages_get_execution_details_execute(builder)
 }
@@ -4706,17 +4674,15 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
 
 pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:lease",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId, location, jobId,
     );
 
     // Build request
@@ -4870,9 +4836,9 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
 > {
     let builder = dataflow_projects_locations_jobs_work_items_lease_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_lease_execute(builder)
@@ -4886,17 +4852,17 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
 
 pub fn dataflow_projects_locations_jobs_work_items_report_status_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: String,
+    projectId: &String,
+    location: &String,
+    jobId: &String,
     body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:reportStatus",
-        projectId.as_str(),
-        location.as_str(),
-        jobId.as_str(),
+        projectId,
+        location,
+        jobId,
     );
 
     // Build request
@@ -5054,9 +5020,9 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
 > {
     let builder = dataflow_projects_locations_jobs_work_items_report_status_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
         &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_report_status_execute(builder)
@@ -5070,16 +5036,14 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
 
 pub fn dataflow_projects_locations_snapshots_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    snapshotId: String,
+    projectId: &String,
+    location: &String,
+    snapshotId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
-        projectId.as_str(),
-        location.as_str(),
-        snapshotId.as_str(),
+        projectId, location, snapshotId,
     );
 
     // Build request
@@ -5229,9 +5193,9 @@ pub fn dataflow_projects_locations_snapshots_delete(
 > {
     let builder = dataflow_projects_locations_snapshots_delete_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.snapshotId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.snapshotId,
     )?;
     dataflow_projects_locations_snapshots_delete_execute(builder)
 }
@@ -5244,20 +5208,19 @@ pub fn dataflow_projects_locations_snapshots_delete(
 
 pub fn dataflow_projects_locations_snapshots_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    jobId: Option<String>,
+    projectId: &String,
+    location: &String,
+    jobId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = jobId {
+    if let Some(val) = jobId.as_ref() {
         query_parts.push(format!("jobId={}", val));
     }
 
@@ -5413,9 +5376,9 @@ pub fn dataflow_projects_locations_snapshots_list(
 > {
     let builder = dataflow_projects_locations_snapshots_list_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.location,
+        &args.jobId,
     )?;
     dataflow_projects_locations_snapshots_list_execute(builder)
 }
@@ -5428,15 +5391,14 @@ pub fn dataflow_projects_locations_snapshots_list(
 
 pub fn dataflow_projects_locations_templates_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
+    projectId: &String,
+    location: &String,
     body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
@@ -5584,8 +5546,8 @@ pub fn dataflow_projects_locations_templates_create(
 > {
     let builder = dataflow_projects_locations_templates_create_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
+        &args.projectId,
+        &args.location,
         &args.body,
     )?;
     dataflow_projects_locations_templates_create_execute(builder)
@@ -5599,24 +5561,23 @@ pub fn dataflow_projects_locations_templates_create(
 
 pub fn dataflow_projects_locations_templates_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    gcsPath: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    location: &String,
+    gcsPath: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:get",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = gcsPath {
+    if let Some(val) = gcsPath.as_ref() {
         query_parts.push(format!("gcsPath={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -5774,10 +5735,10 @@ pub fn dataflow_projects_locations_templates_get(
 > {
     let builder = dataflow_projects_locations_templates_get_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.gcsPath.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.location,
+        &args.gcsPath,
+        &args.view,
     )?;
     dataflow_projects_locations_templates_get_execute(builder)
 }
@@ -5790,33 +5751,32 @@ pub fn dataflow_projects_locations_templates_get(
 
 pub fn dataflow_projects_locations_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    location: String,
-    dynamicTemplate_gcsPath: Option<String>,
-    dynamicTemplate_stagingLocation: Option<String>,
-    gcsPath: Option<String>,
-    validateOnly: Option<bool>,
+    projectId: &String,
+    location: &String,
+    dynamicTemplate_gcsPath: &Option<String>,
+    dynamicTemplate_stagingLocation: &Option<String>,
+    gcsPath: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &LaunchTemplateParameters,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:launch",
-        projectId.as_str(),
-        location.as_str(),
+        projectId, location,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dynamicTemplate_gcsPath {
+    if let Some(val) = dynamicTemplate_gcsPath.as_ref() {
         query_parts.push(format!("dynamicTemplate.gcsPath={}", val));
     }
-    if let Some(val) = dynamicTemplate_stagingLocation {
+    if let Some(val) = dynamicTemplate_stagingLocation.as_ref() {
         query_parts.push(format!("dynamicTemplate.stagingLocation={}", val));
     }
-    if let Some(val) = gcsPath {
+    if let Some(val) = gcsPath.as_ref() {
         query_parts.push(format!("gcsPath={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -5982,12 +5942,12 @@ pub fn dataflow_projects_locations_templates_launch(
 > {
     let builder = dataflow_projects_locations_templates_launch_builder(
         client,
-        args.projectId.clone(),
-        args.location.clone(),
-        args.dynamicTemplate_gcsPath.clone(),
-        args.dynamicTemplate_stagingLocation.clone(),
-        args.gcsPath.clone(),
-        args.validateOnly.clone(),
+        &args.projectId,
+        &args.location,
+        &args.dynamicTemplate_gcsPath,
+        &args.dynamicTemplate_stagingLocation,
+        &args.gcsPath,
+        &args.validateOnly,
         &args.body,
     )?;
     dataflow_projects_locations_templates_launch_execute(builder)
@@ -6001,20 +5961,19 @@ pub fn dataflow_projects_locations_templates_launch(
 
 pub fn dataflow_projects_snapshots_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    snapshotId: String,
-    location: Option<String>,
+    projectId: &String,
+    snapshotId: &String,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots/{}",
-        projectId.as_str(),
-        snapshotId.as_str(),
+        projectId, snapshotId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
 
@@ -6166,9 +6125,9 @@ pub fn dataflow_projects_snapshots_get(
 > {
     let builder = dataflow_projects_snapshots_get_builder(
         client,
-        args.projectId.clone(),
-        args.snapshotId.clone(),
-        args.location.clone(),
+        &args.projectId,
+        &args.snapshotId,
+        &args.location,
     )?;
     dataflow_projects_snapshots_get_execute(builder)
 }
@@ -6181,13 +6140,13 @@ pub fn dataflow_projects_snapshots_get(
 
 pub fn dataflow_projects_templates_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -6331,8 +6290,7 @@ pub fn dataflow_projects_templates_create(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataflow_projects_templates_create_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = dataflow_projects_templates_create_builder(client, &args.projectId, &args.body)?;
     dataflow_projects_templates_create_execute(builder)
 }
 
@@ -6344,26 +6302,26 @@ pub fn dataflow_projects_templates_create(
 
 pub fn dataflow_projects_templates_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    gcsPath: Option<String>,
-    location: Option<String>,
-    view: Option<String>,
+    projectId: &String,
+    gcsPath: &Option<String>,
+    location: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:get",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = gcsPath {
+    if let Some(val) = gcsPath.as_ref() {
         query_parts.push(format!("gcsPath={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -6521,10 +6479,10 @@ pub fn dataflow_projects_templates_get(
 > {
     let builder = dataflow_projects_templates_get_builder(
         client,
-        args.projectId.clone(),
-        args.gcsPath.clone(),
-        args.location.clone(),
-        args.view.clone(),
+        &args.projectId,
+        &args.gcsPath,
+        &args.location,
+        &args.view,
     )?;
     dataflow_projects_templates_get_execute(builder)
 }
@@ -6537,35 +6495,35 @@ pub fn dataflow_projects_templates_get(
 
 pub fn dataflow_projects_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    dynamicTemplate_gcsPath: Option<String>,
-    dynamicTemplate_stagingLocation: Option<String>,
-    gcsPath: Option<String>,
-    location: Option<String>,
-    validateOnly: Option<bool>,
+    projectId: &String,
+    dynamicTemplate_gcsPath: &Option<String>,
+    dynamicTemplate_stagingLocation: &Option<String>,
+    gcsPath: &Option<String>,
+    location: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &LaunchTemplateParameters,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:launch",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dynamicTemplate_gcsPath {
+    if let Some(val) = dynamicTemplate_gcsPath.as_ref() {
         query_parts.push(format!("dynamicTemplate.gcsPath={}", val));
     }
-    if let Some(val) = dynamicTemplate_stagingLocation {
+    if let Some(val) = dynamicTemplate_stagingLocation.as_ref() {
         query_parts.push(format!("dynamicTemplate.stagingLocation={}", val));
     }
-    if let Some(val) = gcsPath {
+    if let Some(val) = gcsPath.as_ref() {
         query_parts.push(format!("gcsPath={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -6731,12 +6689,12 @@ pub fn dataflow_projects_templates_launch(
 > {
     let builder = dataflow_projects_templates_launch_builder(
         client,
-        args.projectId.clone(),
-        args.dynamicTemplate_gcsPath.clone(),
-        args.dynamicTemplate_stagingLocation.clone(),
-        args.gcsPath.clone(),
-        args.location.clone(),
-        args.validateOnly.clone(),
+        &args.projectId,
+        &args.dynamicTemplate_gcsPath,
+        &args.dynamicTemplate_stagingLocation,
+        &args.gcsPath,
+        &args.location,
+        &args.validateOnly,
         &args.body,
     )?;
     dataflow_projects_templates_launch_execute(builder)

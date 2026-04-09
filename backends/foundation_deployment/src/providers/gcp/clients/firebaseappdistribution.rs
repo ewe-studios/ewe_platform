@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn firebaseappdistribution_projects_groups_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    groupId: Option<String>,
+    parent: &String,
+    groupId: &Option<String>,
     body: &GoogleFirebaseAppdistroV1Group,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -39,7 +39,7 @@ pub fn firebaseappdistribution_projects_groups_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = groupId {
+    if let Some(val) = groupId.as_ref() {
         query_parts.push(format!("groupId={}", val));
     }
 
@@ -201,8 +201,8 @@ pub fn firebaseappdistribution_projects_groups_create(
 > {
     let builder = firebaseappdistribution_projects_groups_create_builder(
         client,
-        args.parent.clone(),
-        args.groupId.clone(),
+        &args.parent,
+        &args.groupId,
         &args.body,
     )?;
     firebaseappdistribution_projects_groups_create_execute(builder)
@@ -216,7 +216,7 @@ pub fn firebaseappdistribution_projects_groups_create(
 
 pub fn firebaseappdistribution_projects_testers_batch_add_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &GoogleFirebaseAppdistroV1BatchAddTestersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -375,7 +375,7 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
 > {
     let builder = firebaseappdistribution_projects_testers_batch_add_builder(
         client,
-        args.project.clone(),
+        &args.project,
         &args.body,
     )?;
     firebaseappdistribution_projects_testers_batch_add_execute(builder)
@@ -389,7 +389,7 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
 
 pub fn firebaseappdistribution_projects_testers_batch_remove_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &GoogleFirebaseAppdistroV1BatchRemoveTestersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -552,7 +552,7 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
 > {
     let builder = firebaseappdistribution_projects_testers_batch_remove_builder(
         client,
-        args.project.clone(),
+        &args.project,
         &args.body,
     )?;
     firebaseappdistribution_projects_testers_batch_remove_execute(builder)
@@ -566,10 +566,10 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
 
 pub fn firebaseappdistribution_projects_testers_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -577,13 +577,13 @@ pub fn firebaseappdistribution_projects_testers_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -746,10 +746,10 @@ pub fn firebaseappdistribution_projects_testers_list(
 > {
     let builder = firebaseappdistribution_projects_testers_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     firebaseappdistribution_projects_testers_list_execute(builder)
 }

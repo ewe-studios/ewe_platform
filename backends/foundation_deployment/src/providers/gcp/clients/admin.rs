@@ -29,76 +29,75 @@ use serde::Serialize;
 
 pub fn reports_activities_list_builder(
     client: &SimpleHttpClient,
-    userKey: String,
-    applicationName: String,
-    actorIpAddress: Option<String>,
-    applicationInfoFilter: Option<String>,
-    customerId: Option<String>,
-    endTime: Option<String>,
-    eventName: Option<String>,
-    filters: Option<String>,
-    groupIdFilter: Option<String>,
-    includeSensitiveData: Option<bool>,
-    maxResults: Option<i32>,
-    networkInfoFilter: Option<String>,
-    orgUnitID: Option<String>,
-    pageToken: Option<String>,
-    resourceDetailsFilter: Option<String>,
-    startTime: Option<String>,
-    statusFilter: Option<String>,
+    userKey: &String,
+    applicationName: &String,
+    actorIpAddress: &Option<String>,
+    applicationInfoFilter: &Option<String>,
+    customerId: &Option<String>,
+    endTime: &Option<String>,
+    eventName: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    includeSensitiveData: &Option<bool>,
+    maxResults: &Option<i32>,
+    networkInfoFilter: &Option<String>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    resourceDetailsFilter: &Option<String>,
+    startTime: &Option<String>,
+    statusFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/activity/users/{}/applications/{}",
-        userKey.as_str(),
-        applicationName.as_str(),
+        userKey, applicationName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = actorIpAddress {
+    if let Some(val) = actorIpAddress.as_ref() {
         query_parts.push(format!("actorIpAddress={}", val));
     }
-    if let Some(val) = applicationInfoFilter {
+    if let Some(val) = applicationInfoFilter.as_ref() {
         query_parts.push(format!("applicationInfoFilter={}", val));
     }
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = eventName {
+    if let Some(val) = eventName.as_ref() {
         query_parts.push(format!("eventName={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = groupIdFilter {
+    if let Some(val) = groupIdFilter.as_ref() {
         query_parts.push(format!("groupIdFilter={}", val));
     }
-    if let Some(val) = includeSensitiveData {
+    if let Some(val) = includeSensitiveData.as_ref() {
         query_parts.push(format!("includeSensitiveData={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = networkInfoFilter {
+    if let Some(val) = networkInfoFilter.as_ref() {
         query_parts.push(format!("networkInfoFilter={}", val));
     }
-    if let Some(val) = orgUnitID {
+    if let Some(val) = orgUnitID.as_ref() {
         query_parts.push(format!("orgUnitID={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceDetailsFilter {
+    if let Some(val) = resourceDetailsFilter.as_ref() {
         query_parts.push(format!("resourceDetailsFilter={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
-    if let Some(val) = statusFilter {
+    if let Some(val) = statusFilter.as_ref() {
         query_parts.push(format!("statusFilter={}", val));
     }
 
@@ -278,23 +277,23 @@ pub fn reports_activities_list(
 > {
     let builder = reports_activities_list_builder(
         client,
-        args.userKey.clone(),
-        args.applicationName.clone(),
-        args.actorIpAddress.clone(),
-        args.applicationInfoFilter.clone(),
-        args.customerId.clone(),
-        args.endTime.clone(),
-        args.eventName.clone(),
-        args.filters.clone(),
-        args.groupIdFilter.clone(),
-        args.includeSensitiveData.clone(),
-        args.maxResults.clone(),
-        args.networkInfoFilter.clone(),
-        args.orgUnitID.clone(),
-        args.pageToken.clone(),
-        args.resourceDetailsFilter.clone(),
-        args.startTime.clone(),
-        args.statusFilter.clone(),
+        &args.userKey,
+        &args.applicationName,
+        &args.actorIpAddress,
+        &args.applicationInfoFilter,
+        &args.customerId,
+        &args.endTime,
+        &args.eventName,
+        &args.filters,
+        &args.groupIdFilter,
+        &args.includeSensitiveData,
+        &args.maxResults,
+        &args.networkInfoFilter,
+        &args.orgUnitID,
+        &args.pageToken,
+        &args.resourceDetailsFilter,
+        &args.startTime,
+        &args.statusFilter,
     )?;
     reports_activities_list_execute(builder)
 }
@@ -307,57 +306,56 @@ pub fn reports_activities_list(
 
 pub fn reports_activities_watch_builder(
     client: &SimpleHttpClient,
-    userKey: String,
-    applicationName: String,
-    actorIpAddress: Option<String>,
-    customerId: Option<String>,
-    endTime: Option<String>,
-    eventName: Option<String>,
-    filters: Option<String>,
-    groupIdFilter: Option<String>,
-    maxResults: Option<i32>,
-    orgUnitID: Option<String>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    userKey: &String,
+    applicationName: &String,
+    actorIpAddress: &Option<String>,
+    customerId: &Option<String>,
+    endTime: &Option<String>,
+    eventName: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    maxResults: &Option<i32>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/activity/users/{}/applications/{}/watch",
-        userKey.as_str(),
-        applicationName.as_str(),
+        userKey, applicationName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = actorIpAddress {
+    if let Some(val) = actorIpAddress.as_ref() {
         query_parts.push(format!("actorIpAddress={}", val));
     }
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = eventName {
+    if let Some(val) = eventName.as_ref() {
         query_parts.push(format!("eventName={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = groupIdFilter {
+    if let Some(val) = groupIdFilter.as_ref() {
         query_parts.push(format!("groupIdFilter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orgUnitID {
+    if let Some(val) = orgUnitID.as_ref() {
         query_parts.push(format!("orgUnitID={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -531,18 +529,18 @@ pub fn reports_activities_watch(
 > {
     let builder = reports_activities_watch_builder(
         client,
-        args.userKey.clone(),
-        args.applicationName.clone(),
-        args.actorIpAddress.clone(),
-        args.customerId.clone(),
-        args.endTime.clone(),
-        args.eventName.clone(),
-        args.filters.clone(),
-        args.groupIdFilter.clone(),
-        args.maxResults.clone(),
-        args.orgUnitID.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.userKey,
+        &args.applicationName,
+        &args.actorIpAddress,
+        &args.customerId,
+        &args.endTime,
+        &args.eventName,
+        &args.filters,
+        &args.groupIdFilter,
+        &args.maxResults,
+        &args.orgUnitID,
+        &args.pageToken,
+        &args.startTime,
         &args.body,
     )?;
     reports_activities_watch_execute(builder)
@@ -709,26 +707,26 @@ pub fn admin_channels_stop(
 
 pub fn reports_customer_usage_reports_get_builder(
     client: &SimpleHttpClient,
-    date: String,
-    customerId: Option<String>,
-    pageToken: Option<String>,
-    parameters: Option<String>,
+    date: &String,
+    customerId: &Option<String>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/dates/{}",
-        date.as_str(),
+        date,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parameters {
+    if let Some(val) = parameters.as_ref() {
         query_parts.push(format!("parameters={}", val));
     }
 
@@ -886,10 +884,10 @@ pub fn reports_customer_usage_reports_get(
 > {
     let builder = reports_customer_usage_reports_get_builder(
         client,
-        args.date.clone(),
-        args.customerId.clone(),
-        args.pageToken.clone(),
-        args.parameters.clone(),
+        &args.date,
+        &args.customerId,
+        &args.pageToken,
+        &args.parameters,
     )?;
     reports_customer_usage_reports_get_execute(builder)
 }
@@ -902,38 +900,36 @@ pub fn reports_customer_usage_reports_get(
 
 pub fn reports_entity_usage_reports_get_builder(
     client: &SimpleHttpClient,
-    entityType: String,
-    entityKey: String,
-    date: String,
-    customerId: Option<String>,
-    filters: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    parameters: Option<String>,
+    entityType: &String,
+    entityKey: &String,
+    date: &String,
+    customerId: &Option<String>,
+    filters: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/{}/{}/dates/{}",
-        entityType.as_str(),
-        entityKey.as_str(),
-        date.as_str(),
+        entityType, entityKey, date,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parameters {
+    if let Some(val) = parameters.as_ref() {
         query_parts.push(format!("parameters={}", val));
     }
 
@@ -1099,14 +1095,14 @@ pub fn reports_entity_usage_reports_get(
 > {
     let builder = reports_entity_usage_reports_get_builder(
         client,
-        args.entityType.clone(),
-        args.entityKey.clone(),
-        args.date.clone(),
-        args.customerId.clone(),
-        args.filters.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.parameters.clone(),
+        &args.entityType,
+        &args.entityKey,
+        &args.date,
+        &args.customerId,
+        &args.filters,
+        &args.maxResults,
+        &args.pageToken,
+        &args.parameters,
     )?;
     reports_entity_usage_reports_get_execute(builder)
 }
@@ -1119,44 +1115,43 @@ pub fn reports_entity_usage_reports_get(
 
 pub fn reports_user_usage_report_get_builder(
     client: &SimpleHttpClient,
-    userKey: String,
-    date: String,
-    customerId: Option<String>,
-    filters: Option<String>,
-    groupIdFilter: Option<String>,
-    maxResults: Option<i32>,
-    orgUnitID: Option<String>,
-    pageToken: Option<String>,
-    parameters: Option<String>,
+    userKey: &String,
+    date: &String,
+    customerId: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    maxResults: &Option<i32>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://admin.googleapis.com/admin/reports/v1/usage/users/{}/dates/{}",
-        userKey.as_str(),
-        date.as_str(),
+        userKey, date,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = groupIdFilter {
+    if let Some(val) = groupIdFilter.as_ref() {
         query_parts.push(format!("groupIdFilter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orgUnitID {
+    if let Some(val) = orgUnitID.as_ref() {
         query_parts.push(format!("orgUnitID={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parameters {
+    if let Some(val) = parameters.as_ref() {
         query_parts.push(format!("parameters={}", val));
     }
 
@@ -1324,15 +1319,15 @@ pub fn reports_user_usage_report_get(
 > {
     let builder = reports_user_usage_report_get_builder(
         client,
-        args.userKey.clone(),
-        args.date.clone(),
-        args.customerId.clone(),
-        args.filters.clone(),
-        args.groupIdFilter.clone(),
-        args.maxResults.clone(),
-        args.orgUnitID.clone(),
-        args.pageToken.clone(),
-        args.parameters.clone(),
+        &args.userKey,
+        &args.date,
+        &args.customerId,
+        &args.filters,
+        &args.groupIdFilter,
+        &args.maxResults,
+        &args.orgUnitID,
+        &args.pageToken,
+        &args.parameters,
     )?;
     reports_user_usage_report_get_execute(builder)
 }

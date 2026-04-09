@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn drivelabels_labels_create_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<String>,
-    useAdminAccess: Option<bool>,
+    languageCode: &Option<String>,
+    useAdminAccess: &Option<bool>,
     body: &GoogleAppsDriveLabelsV2Label,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -38,10 +38,10 @@ pub fn drivelabels_labels_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
 
@@ -203,8 +203,8 @@ pub fn drivelabels_labels_create(
 > {
     let builder = drivelabels_labels_create_builder(
         client,
-        args.languageCode.clone(),
-        args.useAdminAccess.clone(),
+        &args.languageCode,
+        &args.useAdminAccess,
         &args.body,
     )?;
     drivelabels_labels_create_execute(builder)
@@ -218,19 +218,19 @@ pub fn drivelabels_labels_create(
 
 pub fn drivelabels_labels_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    useAdminAccess: Option<bool>,
-    writeControl_requiredRevisionId: Option<String>,
+    name: &String,
+    useAdminAccess: &Option<bool>,
+    writeControl_requiredRevisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
-    if let Some(val) = writeControl_requiredRevisionId {
+    if let Some(val) = writeControl_requiredRevisionId.as_ref() {
         query_parts.push(format!("writeControl.requiredRevisionId={}", val));
     }
 
@@ -386,9 +386,9 @@ pub fn drivelabels_labels_delete(
 > {
     let builder = drivelabels_labels_delete_builder(
         client,
-        args.name.clone(),
-        args.useAdminAccess.clone(),
-        args.writeControl_requiredRevisionId.clone(),
+        &args.name,
+        &args.useAdminAccess,
+        &args.writeControl_requiredRevisionId,
     )?;
     drivelabels_labels_delete_execute(builder)
 }
@@ -401,7 +401,7 @@ pub fn drivelabels_labels_delete(
 
 pub fn drivelabels_labels_delta_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -557,7 +557,7 @@ pub fn drivelabels_labels_delta(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_delta_builder(client, args.name.clone(), &args.body)?;
+    let builder = drivelabels_labels_delta_builder(client, &args.name, &args.body)?;
     drivelabels_labels_delta_execute(builder)
 }
 
@@ -569,7 +569,7 @@ pub fn drivelabels_labels_delta(
 
 pub fn drivelabels_labels_disable_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2DisableLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -724,7 +724,7 @@ pub fn drivelabels_labels_disable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_disable_builder(client, args.name.clone(), &args.body)?;
+    let builder = drivelabels_labels_disable_builder(client, &args.name, &args.body)?;
     drivelabels_labels_disable_execute(builder)
 }
 
@@ -736,7 +736,7 @@ pub fn drivelabels_labels_disable(
 
 pub fn drivelabels_labels_enable_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2EnableLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -891,7 +891,7 @@ pub fn drivelabels_labels_enable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_enable_builder(client, args.name.clone(), &args.body)?;
+    let builder = drivelabels_labels_enable_builder(client, &args.name, &args.body)?;
     drivelabels_labels_enable_execute(builder)
 }
 
@@ -903,7 +903,7 @@ pub fn drivelabels_labels_enable(
 
 pub fn drivelabels_labels_publish_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2PublishLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1058,7 +1058,7 @@ pub fn drivelabels_labels_publish(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_publish_builder(client, args.name.clone(), &args.body)?;
+    let builder = drivelabels_labels_publish_builder(client, &args.name, &args.body)?;
     drivelabels_labels_publish_execute(builder)
 }
 
@@ -1070,7 +1070,7 @@ pub fn drivelabels_labels_publish(
 
 pub fn drivelabels_labels_update_label_copy_mode_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1227,7 +1227,7 @@ pub fn drivelabels_labels_update_label_copy_mode(
     ApiError,
 > {
     let builder =
-        drivelabels_labels_update_label_copy_mode_builder(client, args.name.clone(), &args.body)?;
+        drivelabels_labels_update_label_copy_mode_builder(client, &args.name, &args.body)?;
     drivelabels_labels_update_label_copy_mode_execute(builder)
 }
 
@@ -1239,7 +1239,7 @@ pub fn drivelabels_labels_update_label_copy_mode(
 
 pub fn drivelabels_labels_update_label_enabled_app_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1396,9 +1396,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
     ApiError,
 > {
     let builder = drivelabels_labels_update_label_enabled_app_settings_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     drivelabels_labels_update_label_enabled_app_settings_execute(builder)
 }
@@ -1411,8 +1409,8 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
 
 pub fn drivelabels_labels_update_permissions_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    useAdminAccess: Option<bool>,
+    parent: &String,
+    useAdminAccess: &Option<bool>,
     body: &GoogleAppsDriveLabelsV2LabelPermission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1420,7 +1418,7 @@ pub fn drivelabels_labels_update_permissions_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
 
@@ -1582,8 +1580,8 @@ pub fn drivelabels_labels_update_permissions(
 > {
     let builder = drivelabels_labels_update_permissions_builder(
         client,
-        args.parent.clone(),
-        args.useAdminAccess.clone(),
+        &args.parent,
+        &args.useAdminAccess,
         &args.body,
     )?;
     drivelabels_labels_update_permissions_execute(builder)
@@ -1597,19 +1595,19 @@ pub fn drivelabels_labels_update_permissions(
 
 pub fn drivelabels_labels_locks_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}/locks",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1770,9 +1768,9 @@ pub fn drivelabels_labels_locks_list(
 > {
     let builder = drivelabels_labels_locks_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     drivelabels_labels_locks_list_execute(builder)
 }
@@ -1785,7 +1783,7 @@ pub fn drivelabels_labels_locks_list(
 
 pub fn drivelabels_labels_permissions_batch_delete_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1937,11 +1935,8 @@ pub fn drivelabels_labels_permissions_batch_delete(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_permissions_batch_delete_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        drivelabels_labels_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
     drivelabels_labels_permissions_batch_delete_execute(builder)
 }
 
@@ -1953,7 +1948,7 @@ pub fn drivelabels_labels_permissions_batch_delete(
 
 pub fn drivelabels_labels_permissions_batch_update_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2119,11 +2114,8 @@ pub fn drivelabels_labels_permissions_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_permissions_batch_update_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        drivelabels_labels_permissions_batch_update_builder(client, &args.parent, &args.body)?;
     drivelabels_labels_permissions_batch_update_execute(builder)
 }
 
@@ -2135,14 +2127,14 @@ pub fn drivelabels_labels_permissions_batch_update(
 
 pub fn drivelabels_limits_get_label_builder(
     client: &SimpleHttpClient,
-    name: Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/limits/label",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -2296,7 +2288,7 @@ pub fn drivelabels_limits_get_label(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_limits_get_label_builder(client, args.name.clone())?;
+    let builder = drivelabels_limits_get_label_builder(client, &args.name)?;
     drivelabels_limits_get_label_execute(builder)
 }
 
@@ -2308,15 +2300,15 @@ pub fn drivelabels_limits_get_label(
 
 pub fn drivelabels_users_get_capabilities_builder(
     client: &SimpleHttpClient,
-    name: String,
-    customer: Option<String>,
+    name: &String,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/users/{}/capabilities",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
 
@@ -2473,10 +2465,6 @@ pub fn drivelabels_users_get_capabilities(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_users_get_capabilities_builder(
-        client,
-        args.name.clone(),
-        args.customer.clone(),
-    )?;
+    let builder = drivelabels_users_get_capabilities_builder(client, &args.name, &args.customer)?;
     drivelabels_users_get_capabilities_execute(builder)
 }

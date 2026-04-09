@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn chromepolicy_customers_policies_resolve_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1ResolveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -187,7 +187,7 @@ pub fn chromepolicy_customers_policies_resolve(
     ApiError,
 > {
     let builder =
-        chromepolicy_customers_policies_resolve_builder(client, args.customer.clone(), &args.body)?;
+        chromepolicy_customers_policies_resolve_builder(client, &args.customer, &args.body)?;
     chromepolicy_customers_policies_resolve_execute(builder)
 }
 
@@ -199,7 +199,7 @@ pub fn chromepolicy_customers_policies_resolve(
 
 pub fn chromepolicy_customers_policies_groups_batch_delete_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -353,7 +353,7 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 > {
     let builder = chromepolicy_customers_policies_groups_batch_delete_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_batch_delete_execute(builder)
@@ -367,7 +367,7 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 
 pub fn chromepolicy_customers_policies_groups_batch_modify_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -521,7 +521,7 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 > {
     let builder = chromepolicy_customers_policies_groups_batch_modify_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_batch_modify_execute(builder)
@@ -535,7 +535,7 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 
 pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -704,7 +704,7 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 > {
     let builder = chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_list_group_priority_ordering_execute(builder)
@@ -718,7 +718,7 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 
 pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -873,7 +873,7 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 > {
     let builder = chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_update_group_priority_ordering_execute(builder)
@@ -887,7 +887,7 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 
 pub fn chromepolicy_customers_policies_networks_define_certificate_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1DefineCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1056,7 +1056,7 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 > {
     let builder = chromepolicy_customers_policies_networks_define_certificate_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_certificate_execute(builder)
@@ -1070,7 +1070,7 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 
 pub fn chromepolicy_customers_policies_networks_define_network_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1DefineNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1233,7 +1233,7 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 > {
     let builder = chromepolicy_customers_policies_networks_define_network_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_network_execute(builder)
@@ -1247,7 +1247,7 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 
 pub fn chromepolicy_customers_policies_networks_remove_certificate_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1RemoveCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1416,7 +1416,7 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 > {
     let builder = chromepolicy_customers_policies_networks_remove_certificate_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_certificate_execute(builder)
@@ -1430,7 +1430,7 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 
 pub fn chromepolicy_customers_policies_networks_remove_network_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1RemoveNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1593,7 +1593,7 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 > {
     let builder = chromepolicy_customers_policies_networks_remove_network_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_network_execute(builder)
@@ -1607,7 +1607,7 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1762,7 +1762,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 > {
     let builder = chromepolicy_customers_policies_orgunits_batch_inherit_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_orgunits_batch_inherit_execute(builder)
@@ -1776,7 +1776,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1931,7 +1931,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
 > {
     let builder = chromepolicy_customers_policies_orgunits_batch_modify_builder(
         client,
-        args.customer.clone(),
+        &args.customer,
         &args.body,
     )?;
     chromepolicy_customers_policies_orgunits_batch_modify_execute(builder)
@@ -1945,10 +1945,10 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
 
 pub fn chromepolicy_customers_policy_schemas_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1956,13 +1956,13 @@ pub fn chromepolicy_customers_policy_schemas_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2134,10 +2134,10 @@ pub fn chromepolicy_customers_policy_schemas_list(
 > {
     let builder = chromepolicy_customers_policy_schemas_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromepolicy_customers_policy_schemas_list_execute(builder)
 }
@@ -2150,7 +2150,7 @@ pub fn chromepolicy_customers_policy_schemas_list(
 
 pub fn chromepolicy_media_upload_builder(
     client: &SimpleHttpClient,
-    customer: String,
+    customer: &String,
     body: &GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2311,6 +2311,6 @@ pub fn chromepolicy_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_media_upload_builder(client, args.customer.clone(), &args.body)?;
+    let builder = chromepolicy_media_upload_builder(client, &args.customer, &args.body)?;
     chromepolicy_media_upload_execute(builder)
 }

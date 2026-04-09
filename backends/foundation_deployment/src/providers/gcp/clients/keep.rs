@@ -185,7 +185,7 @@ pub fn keep_notes_create(
 
 pub fn keep_notes_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://keep.googleapis.com/v1/notes/{}",);
@@ -327,7 +327,7 @@ pub fn keep_notes_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_delete_builder(client, args.name.clone())?;
+    let builder = keep_notes_delete_builder(client, &args.name)?;
     keep_notes_delete_execute(builder)
 }
 
@@ -339,7 +339,7 @@ pub fn keep_notes_delete(
 
 pub fn keep_notes_permissions_batch_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchCreatePermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -494,8 +494,7 @@ pub fn keep_notes_permissions_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        keep_notes_permissions_batch_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = keep_notes_permissions_batch_create_builder(client, &args.parent, &args.body)?;
     keep_notes_permissions_batch_create_execute(builder)
 }
 
@@ -507,7 +506,7 @@ pub fn keep_notes_permissions_batch_create(
 
 pub fn keep_notes_permissions_batch_delete_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchDeletePermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -654,7 +653,6 @@ pub fn keep_notes_permissions_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        keep_notes_permissions_batch_delete_builder(client, args.parent.clone(), &args.body)?;
+    let builder = keep_notes_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
     keep_notes_permissions_batch_delete_execute(builder)
 }

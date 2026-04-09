@@ -29,15 +29,15 @@ use serde::Serialize;
 
 pub fn deploymentmanager_deployments_cancel_preview_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
+    project: &String,
+    deployment: &String,
     body: &DeploymentsCancelPreviewRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/cancelPreview",
-        project.as_str(),
-        deployment.as_str(),
+        project,
+        deployment,
     );
 
     // Build request
@@ -185,8 +185,8 @@ pub fn deploymentmanager_deployments_cancel_preview(
 > {
     let builder = deploymentmanager_deployments_cancel_preview_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
+        &args.project,
+        &args.deployment,
         &args.body,
     )?;
     deploymentmanager_deployments_cancel_preview_execute(builder)
@@ -200,24 +200,24 @@ pub fn deploymentmanager_deployments_cancel_preview(
 
 pub fn deploymentmanager_deployments_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
-    deletePolicy: Option<String>,
-    header_bypassBillingFilter: Option<bool>,
+    project: &String,
+    deployment: &String,
+    deletePolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
-        project.as_str(),
-        deployment.as_str(),
+        project,
+        deployment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deletePolicy {
+    if let Some(val) = deletePolicy.as_ref() {
         query_parts.push(format!("deletePolicy={}", val));
     }
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
@@ -371,10 +371,10 @@ pub fn deploymentmanager_deployments_delete(
 > {
     let builder = deploymentmanager_deployments_delete_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
-        args.deletePolicy.clone(),
-        args.header_bypassBillingFilter.clone(),
+        &args.project,
+        &args.deployment,
+        &args.deletePolicy,
+        &args.header_bypassBillingFilter,
     )?;
     deploymentmanager_deployments_delete_execute(builder)
 }
@@ -387,24 +387,24 @@ pub fn deploymentmanager_deployments_delete(
 
 pub fn deploymentmanager_deployments_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    header_bypassBillingFilter: Option<bool>,
-    optionsRequestedPolicyVersion: Option<i32>,
+    project: &String,
+    resource: &String,
+    header_bypassBillingFilter: &Option<bool>,
+    optionsRequestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/getIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
 
@@ -558,10 +558,10 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 > {
     let builder = deploymentmanager_deployments_get_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.header_bypassBillingFilter.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
+        &args.project,
+        &args.resource,
+        &args.header_bypassBillingFilter,
+        &args.optionsRequestedPolicyVersion,
     )?;
     deploymentmanager_deployments_get_iam_policy_execute(builder)
 }
@@ -574,27 +574,27 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 
 pub fn deploymentmanager_deployments_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    createPolicy: Option<String>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
+    project: &String,
+    createPolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<bool>,
+    preview: &Option<bool>,
     body: &Deployment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = createPolicy {
+    if let Some(val) = createPolicy.as_ref() {
         query_parts.push(format!("createPolicy={}", val));
     }
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
-    if let Some(val) = preview {
+    if let Some(val) = preview.as_ref() {
         query_parts.push(format!("preview={}", val));
     }
 
@@ -752,10 +752,10 @@ pub fn deploymentmanager_deployments_insert(
 > {
     let builder = deploymentmanager_deployments_insert_builder(
         client,
-        args.project.clone(),
-        args.createPolicy.clone(),
-        args.header_bypassBillingFilter.clone(),
-        args.preview.clone(),
+        &args.project,
+        &args.createPolicy,
+        &args.header_bypassBillingFilter,
+        &args.preview,
         &args.body,
     )?;
     deploymentmanager_deployments_insert_execute(builder)
@@ -769,15 +769,15 @@ pub fn deploymentmanager_deployments_insert(
 
 pub fn deploymentmanager_deployments_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
+    project: &String,
+    resource: &String,
     body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/setIamPolicy",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
@@ -925,8 +925,8 @@ pub fn deploymentmanager_deployments_set_iam_policy(
 > {
     let builder = deploymentmanager_deployments_set_iam_policy_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
+        &args.project,
+        &args.resource,
         &args.body,
     )?;
     deploymentmanager_deployments_set_iam_policy_execute(builder)
@@ -940,15 +940,15 @@ pub fn deploymentmanager_deployments_set_iam_policy(
 
 pub fn deploymentmanager_deployments_stop_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
+    project: &String,
+    deployment: &String,
     body: &DeploymentsStopRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/stop",
-        project.as_str(),
-        deployment.as_str(),
+        project,
+        deployment,
     );
 
     // Build request
@@ -1096,8 +1096,8 @@ pub fn deploymentmanager_deployments_stop(
 > {
     let builder = deploymentmanager_deployments_stop_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
+        &args.project,
+        &args.deployment,
         &args.body,
     )?;
     deploymentmanager_deployments_stop_execute(builder)
@@ -1111,21 +1111,21 @@ pub fn deploymentmanager_deployments_stop(
 
 pub fn deploymentmanager_deployments_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    project: String,
-    resource: String,
-    header_bypassBillingFilter: Option<bool>,
+    project: &String,
+    resource: &String,
+    header_bypassBillingFilter: &Option<bool>,
     body: &TestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/testIamPermissions",
-        project.as_str(),
-        resource.as_str(),
+        project,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
@@ -1285,9 +1285,9 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
 > {
     let builder = deploymentmanager_deployments_test_iam_permissions_builder(
         client,
-        args.project.clone(),
-        args.resource.clone(),
-        args.header_bypassBillingFilter.clone(),
+        &args.project,
+        &args.resource,
+        &args.header_bypassBillingFilter,
         &args.body,
     )?;
     deploymentmanager_deployments_test_iam_permissions_execute(builder)
@@ -1301,22 +1301,22 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
 
 pub fn deploymentmanager_manifests_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
-    manifest: String,
-    header_bypassBillingFilter: Option<bool>,
+    project: &String,
+    deployment: &String,
+    manifest: &String,
+    header_bypassBillingFilter: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests/{}",
-        project.as_str(),
-        deployment.as_str(),
-        manifest.as_str(),
+        project,
+        deployment,
+        manifest,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
@@ -1470,10 +1470,10 @@ pub fn deploymentmanager_manifests_get(
 > {
     let builder = deploymentmanager_manifests_get_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
-        args.manifest.clone(),
-        args.header_bypassBillingFilter.clone(),
+        &args.project,
+        &args.deployment,
+        &args.manifest,
+        &args.header_bypassBillingFilter,
     )?;
     deploymentmanager_manifests_get_execute(builder)
 }
@@ -1486,32 +1486,32 @@ pub fn deploymentmanager_manifests_get(
 
 pub fn deploymentmanager_manifests_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
+    project: &String,
+    deployment: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/manifests",
-        project.as_str(),
-        deployment.as_str(),
+        project,
+        deployment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1673,12 +1673,12 @@ pub fn deploymentmanager_manifests_list(
 > {
     let builder = deploymentmanager_manifests_list_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.deployment,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
     )?;
     deploymentmanager_manifests_list_execute(builder)
 }
@@ -1691,20 +1691,20 @@ pub fn deploymentmanager_manifests_list(
 
 pub fn deploymentmanager_operations_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    operation: String,
-    header_bypassBillingFilter: Option<bool>,
+    project: &String,
+    operation: &String,
+    header_bypassBillingFilter: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations/{}",
-        project.as_str(),
-        operation.as_str(),
+        project,
+        operation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
@@ -1856,9 +1856,9 @@ pub fn deploymentmanager_operations_get(
 > {
     let builder = deploymentmanager_operations_get_builder(
         client,
-        args.project.clone(),
-        args.operation.clone(),
-        args.header_bypassBillingFilter.clone(),
+        &args.project,
+        &args.operation,
+        &args.header_bypassBillingFilter,
     )?;
     deploymentmanager_operations_get_execute(builder)
 }
@@ -1871,30 +1871,30 @@ pub fn deploymentmanager_operations_get(
 
 pub fn deploymentmanager_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/operations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2054,11 +2054,11 @@ pub fn deploymentmanager_operations_list(
 > {
     let builder = deploymentmanager_operations_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
     )?;
     deploymentmanager_operations_list_execute(builder)
 }
@@ -2071,22 +2071,22 @@ pub fn deploymentmanager_operations_list(
 
 pub fn deploymentmanager_resources_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
-    resource: String,
-    header_bypassBillingFilter: Option<bool>,
+    project: &String,
+    deployment: &String,
+    resource: &String,
+    header_bypassBillingFilter: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources/{}",
-        project.as_str(),
-        deployment.as_str(),
-        resource.as_str(),
+        project,
+        deployment,
+        resource,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = header_bypassBillingFilter {
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
         query_parts.push(format!("header.bypassBillingFilter={}", val));
     }
 
@@ -2240,10 +2240,10 @@ pub fn deploymentmanager_resources_get(
 > {
     let builder = deploymentmanager_resources_get_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
-        args.resource.clone(),
-        args.header_bypassBillingFilter.clone(),
+        &args.project,
+        &args.deployment,
+        &args.resource,
+        &args.header_bypassBillingFilter,
     )?;
     deploymentmanager_resources_get_execute(builder)
 }
@@ -2256,32 +2256,32 @@ pub fn deploymentmanager_resources_get(
 
 pub fn deploymentmanager_resources_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    deployment: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
+    project: &String,
+    deployment: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}/resources",
-        project.as_str(),
-        deployment.as_str(),
+        project,
+        deployment,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2443,12 +2443,12 @@ pub fn deploymentmanager_resources_list(
 > {
     let builder = deploymentmanager_resources_list_builder(
         client,
-        args.project.clone(),
-        args.deployment.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.deployment,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
     )?;
     deploymentmanager_resources_list_execute(builder)
 }
@@ -2461,30 +2461,30 @@ pub fn deploymentmanager_resources_list(
 
 pub fn deploymentmanager_types_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    filter: Option<String>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
+    project: &String,
+    filter: &Option<String>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/types",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2644,11 +2644,11 @@ pub fn deploymentmanager_types_list(
 > {
     let builder = deploymentmanager_types_list_builder(
         client,
-        args.project.clone(),
-        args.filter.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
     )?;
     deploymentmanager_types_list_execute(builder)
 }

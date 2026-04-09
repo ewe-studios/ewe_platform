@@ -174,14 +174,13 @@ pub fn drive_about_get(
 
 pub fn drive_accessproposals_get_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    proposalId: String,
+    fileId: &String,
+    proposalId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals/{}",
-        fileId.as_str(),
-        proposalId.as_str(),
+        fileId, proposalId,
     );
 
     // Build request
@@ -327,8 +326,7 @@ pub fn drive_accessproposals_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drive_accessproposals_get_builder(client, args.fileId.clone(), args.proposalId.clone())?;
+    let builder = drive_accessproposals_get_builder(client, &args.fileId, &args.proposalId)?;
     drive_accessproposals_get_execute(builder)
 }
 
@@ -340,22 +338,22 @@ pub fn drive_accessproposals_get(
 
 pub fn drive_accessproposals_list_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    fileId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -513,12 +511,8 @@ pub fn drive_accessproposals_list(
         + 'static,
     ApiError,
 > {
-    let builder = drive_accessproposals_list_builder(
-        client,
-        args.fileId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        drive_accessproposals_list_builder(client, &args.fileId, &args.pageSize, &args.pageToken)?;
     drive_accessproposals_list_execute(builder)
 }
 
@@ -530,15 +524,14 @@ pub fn drive_accessproposals_list(
 
 pub fn drive_accessproposals_resolve_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    proposalId: String,
+    fileId: &String,
+    proposalId: &String,
     body: &ResolveAccessProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/accessproposals/{}:resolve",
-        fileId.as_str(),
-        proposalId.as_str(),
+        fileId, proposalId,
     );
 
     // Build request
@@ -681,12 +674,8 @@ pub fn drive_accessproposals_resolve(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_accessproposals_resolve_builder(
-        client,
-        args.fileId.clone(),
-        args.proposalId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        drive_accessproposals_resolve_builder(client, &args.fileId, &args.proposalId, &args.body)?;
     drive_accessproposals_resolve_execute(builder)
 }
 
@@ -698,14 +687,13 @@ pub fn drive_accessproposals_resolve(
 
 pub fn drive_approvals_get_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    approvalId: String,
+    fileId: &String,
+    approvalId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/approvals/{}",
-        fileId.as_str(),
-        approvalId.as_str(),
+        fileId, approvalId,
     );
 
     // Build request
@@ -847,8 +835,7 @@ pub fn drive_approvals_get(
     impl StreamIterator<D = Result<ApiResponse<Approval>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        drive_approvals_get_builder(client, args.fileId.clone(), args.approvalId.clone())?;
+    let builder = drive_approvals_get_builder(client, &args.fileId, &args.approvalId)?;
     drive_approvals_get_execute(builder)
 }
 
@@ -860,22 +847,22 @@ pub fn drive_approvals_get(
 
 pub fn drive_approvals_list_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    fileId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/approvals",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1029,12 +1016,8 @@ pub fn drive_approvals_list(
         + 'static,
     ApiError,
 > {
-    let builder = drive_approvals_list_builder(
-        client,
-        args.fileId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        drive_approvals_list_builder(client, &args.fileId, &args.pageSize, &args.pageToken)?;
     drive_approvals_list_execute(builder)
 }
 
@@ -1046,13 +1029,10 @@ pub fn drive_approvals_list(
 
 pub fn drive_apps_get_builder(
     client: &SimpleHttpClient,
-    appId: String,
+    appId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/apps/{}",
-        appId.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/apps/{}", appId,);
 
     // Build request
     let builder = client
@@ -1191,7 +1171,7 @@ pub fn drive_apps_get(
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_apps_get_builder(client, args.appId.clone())?;
+    let builder = drive_apps_get_builder(client, &args.appId)?;
     drive_apps_get_execute(builder)
 }
 
@@ -1203,22 +1183,22 @@ pub fn drive_apps_get(
 
 pub fn drive_apps_list_builder(
     client: &SimpleHttpClient,
-    appFilterExtensions: Option<String>,
-    appFilterMimeTypes: Option<String>,
-    languageCode: Option<String>,
+    appFilterExtensions: &Option<String>,
+    appFilterMimeTypes: &Option<String>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = appFilterExtensions {
+    if let Some(val) = appFilterExtensions.as_ref() {
         query_parts.push(format!("appFilterExtensions={}", val));
     }
-    if let Some(val) = appFilterMimeTypes {
+    if let Some(val) = appFilterMimeTypes.as_ref() {
         query_parts.push(format!("appFilterMimeTypes={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -1370,9 +1350,9 @@ pub fn drive_apps_list(
 > {
     let builder = drive_apps_list_builder(
         client,
-        args.appFilterExtensions.clone(),
-        args.appFilterMimeTypes.clone(),
-        args.languageCode.clone(),
+        &args.appFilterExtensions,
+        &args.appFilterMimeTypes,
+        &args.languageCode,
     )?;
     drive_apps_list_execute(builder)
 }
@@ -1385,26 +1365,26 @@ pub fn drive_apps_list(
 
 pub fn drive_changes_get_start_page_token_builder(
     client: &SimpleHttpClient,
-    driveId: Option<String>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    teamDriveId: Option<String>,
+    driveId: &Option<String>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
+    teamDriveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes/startPageToken",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = driveId {
+    if let Some(val) = driveId.as_ref() {
         query_parts.push(format!("driveId={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
-    if let Some(val) = teamDriveId {
+    if let Some(val) = teamDriveId.as_ref() {
         query_parts.push(format!("teamDriveId={}", val));
     }
 
@@ -1562,10 +1542,10 @@ pub fn drive_changes_get_start_page_token(
 > {
     let builder = drive_changes_get_start_page_token_builder(
         client,
-        args.driveId.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
-        args.teamDriveId.clone(),
+        &args.driveId,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.teamDriveId,
     )?;
     drive_changes_get_start_page_token_execute(builder)
 }
@@ -1731,13 +1711,13 @@ pub fn drive_channels_stop(
 
 pub fn drive_comments_create_builder(
     client: &SimpleHttpClient,
-    fileId: String,
+    fileId: &String,
     body: &Comment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
@@ -1881,7 +1861,7 @@ pub fn drive_comments_create(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_create_builder(client, args.fileId.clone(), &args.body)?;
+    let builder = drive_comments_create_builder(client, &args.fileId, &args.body)?;
     drive_comments_create_execute(builder)
 }
 
@@ -1893,14 +1873,13 @@ pub fn drive_comments_create(
 
 pub fn drive_comments_delete_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    commentId: String,
+    fileId: &String,
+    commentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
-        fileId.as_str(),
-        commentId.as_str(),
+        fileId, commentId,
     );
 
     // Build request
@@ -2039,8 +2018,7 @@ pub fn drive_comments_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        drive_comments_delete_builder(client, args.fileId.clone(), args.commentId.clone())?;
+    let builder = drive_comments_delete_builder(client, &args.fileId, &args.commentId)?;
     drive_comments_delete_execute(builder)
 }
 
@@ -2052,22 +2030,19 @@ pub fn drive_comments_delete(
 
 pub fn drive_drives_delete_builder(
     client: &SimpleHttpClient,
-    driveId: String,
-    allowItemDeletion: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    driveId: &String,
+    allowItemDeletion: &Option<bool>,
+    useDomainAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/drives/{}",
-        driveId.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowItemDeletion {
+    if let Some(val) = allowItemDeletion.as_ref() {
         query_parts.push(format!("allowItemDeletion={}", val));
     }
-    if let Some(val) = useDomainAdminAccess {
+    if let Some(val) = useDomainAdminAccess.as_ref() {
         query_parts.push(format!("useDomainAdminAccess={}", val));
     }
 
@@ -2216,9 +2191,9 @@ pub fn drive_drives_delete(
 > {
     let builder = drive_drives_delete_builder(
         client,
-        args.driveId.clone(),
-        args.allowItemDeletion.clone(),
-        args.useDomainAdminAccess.clone(),
+        &args.driveId,
+        &args.allowItemDeletion,
+        &args.useDomainAdminAccess,
     )?;
     drive_drives_delete_execute(builder)
 }
@@ -2231,12 +2206,12 @@ pub fn drive_drives_delete(
 
 pub fn drive_drives_hide_builder(
     client: &SimpleHttpClient,
-    driveId: String,
+    driveId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/drives/{}/hide",
-        driveId.as_str(),
+        driveId,
     );
 
     // Build request
@@ -2376,7 +2351,7 @@ pub fn drive_drives_hide(
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_hide_builder(client, args.driveId.clone())?;
+    let builder = drive_drives_hide_builder(client, &args.driveId)?;
     drive_drives_hide_execute(builder)
 }
 
@@ -2388,26 +2363,26 @@ pub fn drive_drives_hide(
 
 pub fn drive_drives_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    q: Option<String>,
-    useDomainAdminAccess: Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
+    useDomainAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = useDomainAdminAccess {
+    if let Some(val) = useDomainAdminAccess.as_ref() {
         query_parts.push(format!("useDomainAdminAccess={}", val));
     }
 
@@ -2561,10 +2536,10 @@ pub fn drive_drives_list(
 > {
     let builder = drive_drives_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.q.clone(),
-        args.useDomainAdminAccess.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.q,
+        &args.useDomainAdminAccess,
     )?;
     drive_drives_list_execute(builder)
 }
@@ -2577,12 +2552,12 @@ pub fn drive_drives_list(
 
 pub fn drive_drives_unhide_builder(
     client: &SimpleHttpClient,
-    driveId: String,
+    driveId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/drives/{}/unhide",
-        driveId.as_str(),
+        driveId,
     );
 
     // Build request
@@ -2722,7 +2697,7 @@ pub fn drive_drives_unhide(
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_unhide_builder(client, args.driveId.clone())?;
+    let builder = drive_drives_unhide_builder(client, &args.driveId)?;
     drive_drives_unhide_execute(builder)
 }
 
@@ -2734,47 +2709,44 @@ pub fn drive_drives_unhide(
 
 pub fn drive_files_copy_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    enforceSingleParent: Option<bool>,
-    ignoreDefaultVisibility: Option<bool>,
-    includeLabels: Option<String>,
-    includePermissionsForView: Option<String>,
-    keepRevisionForever: Option<bool>,
-    ocrLanguage: Option<String>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
+    fileId: &String,
+    enforceSingleParent: &Option<bool>,
+    ignoreDefaultVisibility: &Option<bool>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    keepRevisionForever: &Option<bool>,
+    ocrLanguage: &Option<String>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
     body: &File,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/files/{}/copy",
-        fileId.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/copy", fileId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enforceSingleParent {
+    if let Some(val) = enforceSingleParent.as_ref() {
         query_parts.push(format!("enforceSingleParent={}", val));
     }
-    if let Some(val) = ignoreDefaultVisibility {
+    if let Some(val) = ignoreDefaultVisibility.as_ref() {
         query_parts.push(format!("ignoreDefaultVisibility={}", val));
     }
-    if let Some(val) = includeLabels {
+    if let Some(val) = includeLabels.as_ref() {
         query_parts.push(format!("includeLabels={}", val));
     }
-    if let Some(val) = includePermissionsForView {
+    if let Some(val) = includePermissionsForView.as_ref() {
         query_parts.push(format!("includePermissionsForView={}", val));
     }
-    if let Some(val) = keepRevisionForever {
+    if let Some(val) = keepRevisionForever.as_ref() {
         query_parts.push(format!("keepRevisionForever={}", val));
     }
-    if let Some(val) = ocrLanguage {
+    if let Some(val) = ocrLanguage.as_ref() {
         query_parts.push(format!("ocrLanguage={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
 
@@ -2942,15 +2914,15 @@ pub fn drive_files_copy(
 > {
     let builder = drive_files_copy_builder(
         client,
-        args.fileId.clone(),
-        args.enforceSingleParent.clone(),
-        args.ignoreDefaultVisibility.clone(),
-        args.includeLabels.clone(),
-        args.includePermissionsForView.clone(),
-        args.keepRevisionForever.clone(),
-        args.ocrLanguage.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
+        &args.fileId,
+        &args.enforceSingleParent,
+        &args.ignoreDefaultVisibility,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.keepRevisionForever,
+        &args.ocrLanguage,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
         &args.body,
     )?;
     drive_files_copy_execute(builder)
@@ -2964,15 +2936,15 @@ pub fn drive_files_copy(
 
 pub fn drive_files_create_builder(
     client: &SimpleHttpClient,
-    enforceSingleParent: Option<bool>,
-    ignoreDefaultVisibility: Option<bool>,
-    includeLabels: Option<String>,
-    includePermissionsForView: Option<String>,
-    keepRevisionForever: Option<bool>,
-    ocrLanguage: Option<String>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useContentAsIndexableText: Option<bool>,
+    enforceSingleParent: &Option<bool>,
+    ignoreDefaultVisibility: &Option<bool>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    keepRevisionForever: &Option<bool>,
+    ocrLanguage: &Option<String>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
+    useContentAsIndexableText: &Option<bool>,
     body: &File,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2980,31 +2952,31 @@ pub fn drive_files_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enforceSingleParent {
+    if let Some(val) = enforceSingleParent.as_ref() {
         query_parts.push(format!("enforceSingleParent={}", val));
     }
-    if let Some(val) = ignoreDefaultVisibility {
+    if let Some(val) = ignoreDefaultVisibility.as_ref() {
         query_parts.push(format!("ignoreDefaultVisibility={}", val));
     }
-    if let Some(val) = includeLabels {
+    if let Some(val) = includeLabels.as_ref() {
         query_parts.push(format!("includeLabels={}", val));
     }
-    if let Some(val) = includePermissionsForView {
+    if let Some(val) = includePermissionsForView.as_ref() {
         query_parts.push(format!("includePermissionsForView={}", val));
     }
-    if let Some(val) = keepRevisionForever {
+    if let Some(val) = keepRevisionForever.as_ref() {
         query_parts.push(format!("keepRevisionForever={}", val));
     }
-    if let Some(val) = ocrLanguage {
+    if let Some(val) = ocrLanguage.as_ref() {
         query_parts.push(format!("ocrLanguage={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
-    if let Some(val) = useContentAsIndexableText {
+    if let Some(val) = useContentAsIndexableText.as_ref() {
         query_parts.push(format!("useContentAsIndexableText={}", val));
     }
 
@@ -3172,15 +3144,15 @@ pub fn drive_files_create(
 > {
     let builder = drive_files_create_builder(
         client,
-        args.enforceSingleParent.clone(),
-        args.ignoreDefaultVisibility.clone(),
-        args.includeLabels.clone(),
-        args.includePermissionsForView.clone(),
-        args.keepRevisionForever.clone(),
-        args.ocrLanguage.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
-        args.useContentAsIndexableText.clone(),
+        &args.enforceSingleParent,
+        &args.ignoreDefaultVisibility,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.keepRevisionForever,
+        &args.ocrLanguage,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.useContentAsIndexableText,
         &args.body,
     )?;
     drive_files_create_execute(builder)
@@ -3194,26 +3166,23 @@ pub fn drive_files_create(
 
 pub fn drive_files_delete_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    enforceSingleParent: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
+    fileId: &String,
+    enforceSingleParent: &Option<bool>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/files/{}",
-        fileId.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enforceSingleParent {
+    if let Some(val) = enforceSingleParent.as_ref() {
         query_parts.push(format!("enforceSingleParent={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
 
@@ -3364,10 +3333,10 @@ pub fn drive_files_delete(
 > {
     let builder = drive_files_delete_builder(
         client,
-        args.fileId.clone(),
-        args.enforceSingleParent.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
+        &args.fileId,
+        &args.enforceSingleParent,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
     )?;
     drive_files_delete_execute(builder)
 }
@@ -3380,22 +3349,22 @@ pub fn drive_files_delete(
 
 pub fn drive_files_download_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    mimeType: Option<String>,
-    revisionId: Option<String>,
+    fileId: &String,
+    mimeType: &Option<String>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/download",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = mimeType {
+    if let Some(val) = mimeType.as_ref() {
         query_parts.push(format!("mimeType={}", val));
     }
-    if let Some(val) = revisionId {
+    if let Some(val) = revisionId.as_ref() {
         query_parts.push(format!("revisionId={}", val));
     }
 
@@ -3545,12 +3514,8 @@ pub fn drive_files_download(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_download_builder(
-        client,
-        args.fileId.clone(),
-        args.mimeType.clone(),
-        args.revisionId.clone(),
-    )?;
+    let builder =
+        drive_files_download_builder(client, &args.fileId, &args.mimeType, &args.revisionId)?;
     drive_files_download_execute(builder)
 }
 
@@ -3562,18 +3527,18 @@ pub fn drive_files_download(
 
 pub fn drive_files_empty_trash_builder(
     client: &SimpleHttpClient,
-    driveId: Option<String>,
-    enforceSingleParent: Option<bool>,
+    driveId: &Option<String>,
+    enforceSingleParent: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/trash",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = driveId {
+    if let Some(val) = driveId.as_ref() {
         query_parts.push(format!("driveId={}", val));
     }
-    if let Some(val) = enforceSingleParent {
+    if let Some(val) = enforceSingleParent.as_ref() {
         query_parts.push(format!("enforceSingleParent={}", val));
     }
 
@@ -3718,11 +3683,8 @@ pub fn drive_files_empty_trash(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_empty_trash_builder(
-        client,
-        args.driveId.clone(),
-        args.enforceSingleParent.clone(),
-    )?;
+    let builder =
+        drive_files_empty_trash_builder(client, &args.driveId, &args.enforceSingleParent)?;
     drive_files_empty_trash_execute(builder)
 }
 
@@ -3734,22 +3696,22 @@ pub fn drive_files_empty_trash(
 
 pub fn drive_files_generate_ids_builder(
     client: &SimpleHttpClient,
-    count: Option<i32>,
-    space: Option<String>,
-    type_rs: Option<String>,
+    count: &Option<i32>,
+    space: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/generateIds",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = count {
+    if let Some(val) = count.as_ref() {
         query_parts.push(format!("count={}", val));
     }
-    if let Some(val) = space {
+    if let Some(val) = space.as_ref() {
         query_parts.push(format!("space={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
 
@@ -3903,12 +3865,8 @@ pub fn drive_files_generate_ids(
         + 'static,
     ApiError,
 > {
-    let builder = drive_files_generate_ids_builder(
-        client,
-        args.count.clone(),
-        args.space.clone(),
-        args.type_rs.clone(),
-    )?;
+    let builder =
+        drive_files_generate_ids_builder(client, &args.count, &args.space, &args.type_rs)?;
     drive_files_generate_ids_execute(builder)
 }
 
@@ -3920,22 +3878,22 @@ pub fn drive_files_generate_ids(
 
 pub fn drive_files_list_labels_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    fileId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/listLabels",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4085,12 +4043,8 @@ pub fn drive_files_list_labels(
     impl StreamIterator<D = Result<ApiResponse<LabelList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_list_labels_builder(
-        client,
-        args.fileId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        drive_files_list_labels_builder(client, &args.fileId, &args.maxResults, &args.pageToken)?;
     drive_files_list_labels_execute(builder)
 }
 
@@ -4102,13 +4056,13 @@ pub fn drive_files_list_labels(
 
 pub fn drive_files_modify_labels_builder(
     client: &SimpleHttpClient,
-    fileId: String,
+    fileId: &String,
     body: &ModifyLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/modifyLabels",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
@@ -4256,7 +4210,7 @@ pub fn drive_files_modify_labels(
         + 'static,
     ApiError,
 > {
-    let builder = drive_files_modify_labels_builder(client, args.fileId.clone(), &args.body)?;
+    let builder = drive_files_modify_labels_builder(client, &args.fileId, &args.body)?;
     drive_files_modify_labels_execute(builder)
 }
 
@@ -4268,35 +4222,32 @@ pub fn drive_files_modify_labels(
 
 pub fn drive_files_watch_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    acknowledgeAbuse: Option<bool>,
-    includeLabels: Option<String>,
-    includePermissionsForView: Option<String>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
+    fileId: &String,
+    acknowledgeAbuse: &Option<bool>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/files/{}/watch",
-        fileId.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/watch", fileId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = acknowledgeAbuse {
+    if let Some(val) = acknowledgeAbuse.as_ref() {
         query_parts.push(format!("acknowledgeAbuse={}", val));
     }
-    if let Some(val) = includeLabels {
+    if let Some(val) = includeLabels.as_ref() {
         query_parts.push(format!("includeLabels={}", val));
     }
-    if let Some(val) = includePermissionsForView {
+    if let Some(val) = includePermissionsForView.as_ref() {
         query_parts.push(format!("includePermissionsForView={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
 
@@ -4458,12 +4409,12 @@ pub fn drive_files_watch(
 > {
     let builder = drive_files_watch_builder(
         client,
-        args.fileId.clone(),
-        args.acknowledgeAbuse.clone(),
-        args.includeLabels.clone(),
-        args.includePermissionsForView.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
+        &args.fileId,
+        &args.acknowledgeAbuse,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
         &args.body,
     )?;
     drive_files_watch_execute(builder)
@@ -4477,13 +4428,10 @@ pub fn drive_files_watch(
 
 pub fn drive_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://www.googleapis.com/drive/v3/operations/{}",
-        name.as_str(),
-    );
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/operations/{}", name,);
 
     // Build request
     let builder = client
@@ -4622,7 +4570,7 @@ pub fn drive_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_operations_get_builder(client, args.name.clone())?;
+    let builder = drive_operations_get_builder(client, &args.name)?;
     drive_operations_get_execute(builder)
 }
 
@@ -4634,51 +4582,51 @@ pub fn drive_operations_get(
 
 pub fn drive_permissions_create_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    emailMessage: Option<String>,
-    enforceExpansiveAccess: Option<bool>,
-    enforceSingleParent: Option<bool>,
-    moveToNewOwnersRoot: Option<bool>,
-    sendNotificationEmail: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    transferOwnership: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    fileId: &String,
+    emailMessage: &Option<String>,
+    enforceExpansiveAccess: &Option<bool>,
+    enforceSingleParent: &Option<bool>,
+    moveToNewOwnersRoot: &Option<bool>,
+    sendNotificationEmail: &Option<bool>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
+    transferOwnership: &Option<bool>,
+    useDomainAdminAccess: &Option<bool>,
     body: &Permission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = emailMessage {
+    if let Some(val) = emailMessage.as_ref() {
         query_parts.push(format!("emailMessage={}", val));
     }
-    if let Some(val) = enforceExpansiveAccess {
+    if let Some(val) = enforceExpansiveAccess.as_ref() {
         query_parts.push(format!("enforceExpansiveAccess={}", val));
     }
-    if let Some(val) = enforceSingleParent {
+    if let Some(val) = enforceSingleParent.as_ref() {
         query_parts.push(format!("enforceSingleParent={}", val));
     }
-    if let Some(val) = moveToNewOwnersRoot {
+    if let Some(val) = moveToNewOwnersRoot.as_ref() {
         query_parts.push(format!("moveToNewOwnersRoot={}", val));
     }
-    if let Some(val) = sendNotificationEmail {
+    if let Some(val) = sendNotificationEmail.as_ref() {
         query_parts.push(format!("sendNotificationEmail={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
-    if let Some(val) = transferOwnership {
+    if let Some(val) = transferOwnership.as_ref() {
         query_parts.push(format!("transferOwnership={}", val));
     }
-    if let Some(val) = useDomainAdminAccess {
+    if let Some(val) = useDomainAdminAccess.as_ref() {
         query_parts.push(format!("useDomainAdminAccess={}", val));
     }
 
@@ -4848,16 +4796,16 @@ pub fn drive_permissions_create(
 > {
     let builder = drive_permissions_create_builder(
         client,
-        args.fileId.clone(),
-        args.emailMessage.clone(),
-        args.enforceExpansiveAccess.clone(),
-        args.enforceSingleParent.clone(),
-        args.moveToNewOwnersRoot.clone(),
-        args.sendNotificationEmail.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
-        args.transferOwnership.clone(),
-        args.useDomainAdminAccess.clone(),
+        &args.fileId,
+        &args.emailMessage,
+        &args.enforceExpansiveAccess,
+        &args.enforceSingleParent,
+        &args.moveToNewOwnersRoot,
+        &args.sendNotificationEmail,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.transferOwnership,
+        &args.useDomainAdminAccess,
         &args.body,
     )?;
     drive_permissions_create_execute(builder)
@@ -4871,32 +4819,31 @@ pub fn drive_permissions_create(
 
 pub fn drive_permissions_delete_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    permissionId: String,
-    enforceExpansiveAccess: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    fileId: &String,
+    permissionId: &String,
+    enforceExpansiveAccess: &Option<bool>,
+    supportsAllDrives: &Option<bool>,
+    supportsTeamDrives: &Option<bool>,
+    useDomainAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
-        fileId.as_str(),
-        permissionId.as_str(),
+        fileId, permissionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enforceExpansiveAccess {
+    if let Some(val) = enforceExpansiveAccess.as_ref() {
         query_parts.push(format!("enforceExpansiveAccess={}", val));
     }
-    if let Some(val) = supportsAllDrives {
+    if let Some(val) = supportsAllDrives.as_ref() {
         query_parts.push(format!("supportsAllDrives={}", val));
     }
-    if let Some(val) = supportsTeamDrives {
+    if let Some(val) = supportsTeamDrives.as_ref() {
         query_parts.push(format!("supportsTeamDrives={}", val));
     }
-    if let Some(val) = useDomainAdminAccess {
+    if let Some(val) = useDomainAdminAccess.as_ref() {
         query_parts.push(format!("useDomainAdminAccess={}", val));
     }
 
@@ -5051,12 +4998,12 @@ pub fn drive_permissions_delete(
 > {
     let builder = drive_permissions_delete_builder(
         client,
-        args.fileId.clone(),
-        args.permissionId.clone(),
-        args.enforceExpansiveAccess.clone(),
-        args.supportsAllDrives.clone(),
-        args.supportsTeamDrives.clone(),
-        args.useDomainAdminAccess.clone(),
+        &args.fileId,
+        &args.permissionId,
+        &args.enforceExpansiveAccess,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.useDomainAdminAccess,
     )?;
     drive_permissions_delete_execute(builder)
 }
@@ -5069,15 +5016,14 @@ pub fn drive_permissions_delete(
 
 pub fn drive_replies_create_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    commentId: String,
+    fileId: &String,
+    commentId: &String,
     body: &Reply,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies",
-        fileId.as_str(),
-        commentId.as_str(),
+        fileId, commentId,
     );
 
     // Build request
@@ -5223,12 +5169,7 @@ pub fn drive_replies_create(
     impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_create_builder(
-        client,
-        args.fileId.clone(),
-        args.commentId.clone(),
-        &args.body,
-    )?;
+    let builder = drive_replies_create_builder(client, &args.fileId, &args.commentId, &args.body)?;
     drive_replies_create_execute(builder)
 }
 
@@ -5240,16 +5181,14 @@ pub fn drive_replies_create(
 
 pub fn drive_replies_delete_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    commentId: String,
-    replyId: String,
+    fileId: &String,
+    commentId: &String,
+    replyId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
-        fileId.as_str(),
-        commentId.as_str(),
-        replyId.as_str(),
+        fileId, commentId, replyId,
     );
 
     // Build request
@@ -5390,12 +5329,8 @@ pub fn drive_replies_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_delete_builder(
-        client,
-        args.fileId.clone(),
-        args.commentId.clone(),
-        args.replyId.clone(),
-    )?;
+    let builder =
+        drive_replies_delete_builder(client, &args.fileId, &args.commentId, &args.replyId)?;
     drive_replies_delete_execute(builder)
 }
 
@@ -5407,14 +5342,13 @@ pub fn drive_replies_delete(
 
 pub fn drive_revisions_delete_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    revisionId: String,
+    fileId: &String,
+    revisionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
-        fileId.as_str(),
-        revisionId.as_str(),
+        fileId, revisionId,
     );
 
     // Build request
@@ -5553,8 +5487,7 @@ pub fn drive_revisions_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        drive_revisions_delete_builder(client, args.fileId.clone(), args.revisionId.clone())?;
+    let builder = drive_revisions_delete_builder(client, &args.fileId, &args.revisionId)?;
     drive_revisions_delete_execute(builder)
 }
 
@@ -5566,22 +5499,22 @@ pub fn drive_revisions_delete(
 
 pub fn drive_revisions_list_builder(
     client: &SimpleHttpClient,
-    fileId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    fileId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/files/{}/revisions",
-        fileId.as_str(),
+        fileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -5735,12 +5668,8 @@ pub fn drive_revisions_list(
         + 'static,
     ApiError,
 > {
-    let builder = drive_revisions_list_builder(
-        client,
-        args.fileId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        drive_revisions_list_builder(client, &args.fileId, &args.pageSize, &args.pageToken)?;
     drive_revisions_list_execute(builder)
 }
 
@@ -5752,12 +5681,12 @@ pub fn drive_revisions_list(
 
 pub fn drive_teamdrives_delete_builder(
     client: &SimpleHttpClient,
-    teamDriveId: String,
+    teamDriveId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/drive/v3/teamdrives/{}",
-        teamDriveId.as_str(),
+        teamDriveId,
     );
 
     // Build request
@@ -5894,7 +5823,7 @@ pub fn drive_teamdrives_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_teamdrives_delete_builder(client, args.teamDriveId.clone())?;
+    let builder = drive_teamdrives_delete_builder(client, &args.teamDriveId)?;
     drive_teamdrives_delete_execute(builder)
 }
 
@@ -5906,26 +5835,26 @@ pub fn drive_teamdrives_delete(
 
 pub fn drive_teamdrives_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    q: Option<String>,
-    useDomainAdminAccess: Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
+    useDomainAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/teamdrives",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = useDomainAdminAccess {
+    if let Some(val) = useDomainAdminAccess.as_ref() {
         query_parts.push(format!("useDomainAdminAccess={}", val));
     }
 
@@ -6083,10 +6012,10 @@ pub fn drive_teamdrives_list(
 > {
     let builder = drive_teamdrives_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.q.clone(),
-        args.useDomainAdminAccess.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.q,
+        &args.useDomainAdminAccess,
     )?;
     drive_teamdrives_list_execute(builder)
 }

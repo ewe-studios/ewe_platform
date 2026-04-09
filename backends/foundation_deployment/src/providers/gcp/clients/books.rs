@@ -29,20 +29,19 @@ use serde::Serialize;
 
 pub fn books_bookshelves_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    shelf: String,
-    source: Option<String>,
+    userId: &String,
+    shelf: &String,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}",
-        userId.as_str(),
-        shelf.as_str(),
+        userId, shelf,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -192,12 +191,7 @@ pub fn books_bookshelves_get(
     impl StreamIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_bookshelves_get_builder(
-        client,
-        args.userId.clone(),
-        args.shelf.clone(),
-        args.source.clone(),
-    )?;
+    let builder = books_bookshelves_get_builder(client, &args.userId, &args.shelf, &args.source)?;
     books_bookshelves_get_execute(builder)
 }
 
@@ -209,18 +203,18 @@ pub fn books_bookshelves_get(
 
 pub fn books_bookshelves_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    source: Option<String>,
+    userId: &String,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -368,7 +362,7 @@ pub fn books_bookshelves_list(
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_bookshelves_list_builder(client, args.userId.clone(), args.source.clone())?;
+    let builder = books_bookshelves_list_builder(client, &args.userId, &args.source)?;
     books_bookshelves_list_execute(builder)
 }
 
@@ -380,32 +374,31 @@ pub fn books_bookshelves_list(
 
 pub fn books_bookshelves_volumes_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    shelf: String,
-    maxResults: Option<i32>,
-    showPreorders: Option<bool>,
-    source: Option<String>,
-    startIndex: Option<i32>,
+    userId: &String,
+    shelf: &String,
+    maxResults: &Option<i32>,
+    showPreorders: &Option<bool>,
+    source: &Option<String>,
+    startIndex: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/users/{}/bookshelves/{}/volumes",
-        userId.as_str(),
-        shelf.as_str(),
+        userId, shelf,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = showPreorders {
+    if let Some(val) = showPreorders.as_ref() {
         query_parts.push(format!("showPreorders={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
 
@@ -563,12 +556,12 @@ pub fn books_bookshelves_volumes_list(
 > {
     let builder = books_bookshelves_volumes_list_builder(
         client,
-        args.userId.clone(),
-        args.shelf.clone(),
-        args.maxResults.clone(),
-        args.showPreorders.clone(),
-        args.source.clone(),
-        args.startIndex.clone(),
+        &args.userId,
+        &args.shelf,
+        &args.maxResults,
+        &args.showPreorders,
+        &args.source,
+        &args.startIndex,
     )?;
     books_bookshelves_volumes_list_execute(builder)
 }
@@ -581,26 +574,26 @@ pub fn books_bookshelves_volumes_list(
 
 pub fn books_cloudloading_add_book_builder(
     client: &SimpleHttpClient,
-    drive_document_id: Option<String>,
-    mime_type: Option<String>,
-    name: Option<String>,
-    upload_client_token: Option<String>,
+    drive_document_id: &Option<String>,
+    mime_type: &Option<String>,
+    name: &Option<String>,
+    upload_client_token: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/cloudloading/addBook",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = drive_document_id {
+    if let Some(val) = drive_document_id.as_ref() {
         query_parts.push(format!("drive_document_id={}", val));
     }
-    if let Some(val) = mime_type {
+    if let Some(val) = mime_type.as_ref() {
         query_parts.push(format!("mime_type={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = upload_client_token {
+    if let Some(val) = upload_client_token.as_ref() {
         query_parts.push(format!("upload_client_token={}", val));
     }
 
@@ -758,10 +751,10 @@ pub fn books_cloudloading_add_book(
 > {
     let builder = books_cloudloading_add_book_builder(
         client,
-        args.drive_document_id.clone(),
-        args.mime_type.clone(),
-        args.name.clone(),
-        args.upload_client_token.clone(),
+        &args.drive_document_id,
+        &args.mime_type,
+        &args.name,
+        &args.upload_client_token,
     )?;
     books_cloudloading_add_book_execute(builder)
 }
@@ -934,7 +927,7 @@ pub fn books_cloudloading_update_book(
 
 pub fn books_familysharing_get_family_info_builder(
     client: &SimpleHttpClient,
-    source: Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -942,7 +935,7 @@ pub fn books_familysharing_get_family_info_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -1088,7 +1081,7 @@ pub fn books_familysharing_get_family_info(
     impl StreamIterator<D = Result<ApiResponse<FamilyInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_get_family_info_builder(client, args.source.clone())?;
+    let builder = books_familysharing_get_family_info_builder(client, &args.source)?;
     books_familysharing_get_family_info_execute(builder)
 }
 
@@ -1100,22 +1093,22 @@ pub fn books_familysharing_get_family_info(
 
 pub fn books_familysharing_share_builder(
     client: &SimpleHttpClient,
-    docId: Option<String>,
-    source: Option<String>,
-    volumeId: Option<String>,
+    docId: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/share",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = docId {
+    if let Some(val) = docId.as_ref() {
         query_parts.push(format!("docId={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = volumeId {
+    if let Some(val) = volumeId.as_ref() {
         query_parts.push(format!("volumeId={}", val));
     }
 
@@ -1265,12 +1258,8 @@ pub fn books_familysharing_share(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_share_builder(
-        client,
-        args.docId.clone(),
-        args.source.clone(),
-        args.volumeId.clone(),
-    )?;
+    let builder =
+        books_familysharing_share_builder(client, &args.docId, &args.source, &args.volumeId)?;
     books_familysharing_share_execute(builder)
 }
 
@@ -1282,22 +1271,22 @@ pub fn books_familysharing_share(
 
 pub fn books_familysharing_unshare_builder(
     client: &SimpleHttpClient,
-    docId: Option<String>,
-    source: Option<String>,
-    volumeId: Option<String>,
+    docId: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/familysharing/unshare",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = docId {
+    if let Some(val) = docId.as_ref() {
         query_parts.push(format!("docId={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = volumeId {
+    if let Some(val) = volumeId.as_ref() {
         query_parts.push(format!("volumeId={}", val));
     }
 
@@ -1447,12 +1436,8 @@ pub fn books_familysharing_unshare(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_familysharing_unshare_builder(
-        client,
-        args.docId.clone(),
-        args.source.clone(),
-        args.volumeId.clone(),
-    )?;
+    let builder =
+        books_familysharing_unshare_builder(client, &args.docId, &args.source, &args.volumeId)?;
     books_familysharing_unshare_execute(builder)
 }
 
@@ -1464,24 +1449,23 @@ pub fn books_familysharing_unshare(
 
 pub fn books_layers_get_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    summaryId: String,
-    contentVersion: Option<String>,
-    source: Option<String>,
+    volumeId: &String,
+    summaryId: &String,
+    contentVersion: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary/{}",
-        volumeId.as_str(),
-        summaryId.as_str(),
+        volumeId, summaryId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = contentVersion {
+    if let Some(val) = contentVersion.as_ref() {
         query_parts.push(format!("contentVersion={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -1639,10 +1623,10 @@ pub fn books_layers_get(
 > {
     let builder = books_layers_get_builder(
         client,
-        args.volumeId.clone(),
-        args.summaryId.clone(),
-        args.contentVersion.clone(),
-        args.source.clone(),
+        &args.volumeId,
+        &args.summaryId,
+        &args.contentVersion,
+        &args.source,
     )?;
     books_layers_get_execute(builder)
 }
@@ -1655,30 +1639,30 @@ pub fn books_layers_get(
 
 pub fn books_layers_list_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    contentVersion: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    source: Option<String>,
+    volumeId: &String,
+    contentVersion: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layersummary",
-        volumeId.as_str(),
+        volumeId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = contentVersion {
+    if let Some(val) = contentVersion.as_ref() {
         query_parts.push(format!("contentVersion={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -1838,11 +1822,11 @@ pub fn books_layers_list(
 > {
     let builder = books_layers_list_builder(
         client,
-        args.volumeId.clone(),
-        args.contentVersion.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.source.clone(),
+        &args.volumeId,
+        &args.contentVersion,
+        &args.maxResults,
+        &args.pageToken,
+        &args.source,
     )?;
     books_layers_list_execute(builder)
 }
@@ -1855,26 +1839,24 @@ pub fn books_layers_list(
 
 pub fn books_layers_volume_annotations_get_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    layerId: String,
-    annotationId: String,
-    locale: Option<String>,
-    source: Option<String>,
+    volumeId: &String,
+    layerId: &String,
+    annotationId: &String,
+    locale: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/layers/{}/annotations/{}",
-        volumeId.as_str(),
-        layerId.as_str(),
-        annotationId.as_str(),
+        volumeId, layerId, annotationId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -2034,11 +2016,11 @@ pub fn books_layers_volume_annotations_get(
 > {
     let builder = books_layers_volume_annotations_get_builder(
         client,
-        args.volumeId.clone(),
-        args.layerId.clone(),
-        args.annotationId.clone(),
-        args.locale.clone(),
-        args.source.clone(),
+        &args.volumeId,
+        &args.layerId,
+        &args.annotationId,
+        &args.locale,
+        &args.source,
     )?;
     books_layers_volume_annotations_get_execute(builder)
 }
@@ -2051,14 +2033,14 @@ pub fn books_layers_volume_annotations_get(
 
 pub fn books_myconfig_get_user_settings_builder(
     client: &SimpleHttpClient,
-    country: Option<String>,
+    country: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/myconfig/getUserSettings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
 
@@ -2208,7 +2190,7 @@ pub fn books_myconfig_get_user_settings(
         + 'static,
     ApiError,
 > {
-    let builder = books_myconfig_get_user_settings_builder(client, args.country.clone())?;
+    let builder = books_myconfig_get_user_settings_builder(client, &args.country)?;
     books_myconfig_get_user_settings_execute(builder)
 }
 
@@ -2381,18 +2363,18 @@ pub fn books_myconfig_update_user_settings(
 
 pub fn books_mylibrary_annotations_delete_builder(
     client: &SimpleHttpClient,
-    annotationId: String,
-    source: Option<String>,
+    annotationId: &String,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/annotations/{}",
-        annotationId.as_str(),
+        annotationId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -2540,11 +2522,8 @@ pub fn books_mylibrary_annotations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_annotations_delete_builder(
-        client,
-        args.annotationId.clone(),
-        args.source.clone(),
-    )?;
+    let builder =
+        books_mylibrary_annotations_delete_builder(client, &args.annotationId, &args.source)?;
     books_mylibrary_annotations_delete_execute(builder)
 }
 
@@ -2556,10 +2535,10 @@ pub fn books_mylibrary_annotations_delete(
 
 pub fn books_mylibrary_annotations_insert_builder(
     client: &SimpleHttpClient,
-    annotationId: Option<String>,
-    country: Option<String>,
-    showOnlySummaryInResponse: Option<bool>,
-    source: Option<String>,
+    annotationId: &Option<String>,
+    country: &Option<String>,
+    showOnlySummaryInResponse: &Option<bool>,
+    source: &Option<String>,
     body: &Annotation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2567,16 +2546,16 @@ pub fn books_mylibrary_annotations_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = annotationId {
+    if let Some(val) = annotationId.as_ref() {
         query_parts.push(format!("annotationId={}", val));
     }
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = showOnlySummaryInResponse {
+    if let Some(val) = showOnlySummaryInResponse.as_ref() {
         query_parts.push(format!("showOnlySummaryInResponse={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -2734,10 +2713,10 @@ pub fn books_mylibrary_annotations_insert(
 > {
     let builder = books_mylibrary_annotations_insert_builder(
         client,
-        args.annotationId.clone(),
-        args.country.clone(),
-        args.showOnlySummaryInResponse.clone(),
-        args.source.clone(),
+        &args.annotationId,
+        &args.country,
+        &args.showOnlySummaryInResponse,
+        &args.source,
         &args.body,
     )?;
     books_mylibrary_annotations_insert_execute(builder)
@@ -2751,18 +2730,18 @@ pub fn books_mylibrary_annotations_insert(
 
 pub fn books_mylibrary_bookshelves_clear_volumes_builder(
     client: &SimpleHttpClient,
-    shelf: String,
-    source: Option<String>,
+    shelf: &String,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/clearVolumes",
-        shelf.as_str(),
+        shelf,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -2910,11 +2889,8 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_clear_volumes_builder(
-        client,
-        args.shelf.clone(),
-        args.source.clone(),
-    )?;
+    let builder =
+        books_mylibrary_bookshelves_clear_volumes_builder(client, &args.shelf, &args.source)?;
     books_mylibrary_bookshelves_clear_volumes_execute(builder)
 }
 
@@ -2926,18 +2902,18 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
 
 pub fn books_mylibrary_bookshelves_get_builder(
     client: &SimpleHttpClient,
-    shelf: String,
-    source: Option<String>,
+    shelf: &String,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}",
-        shelf.as_str(),
+        shelf,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -3085,8 +3061,7 @@ pub fn books_mylibrary_bookshelves_get(
     impl StreamIterator<D = Result<ApiResponse<Bookshelf>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        books_mylibrary_bookshelves_get_builder(client, args.shelf.clone(), args.source.clone())?;
+    let builder = books_mylibrary_bookshelves_get_builder(client, &args.shelf, &args.source)?;
     books_mylibrary_bookshelves_get_execute(builder)
 }
 
@@ -3098,14 +3073,14 @@ pub fn books_mylibrary_bookshelves_get(
 
 pub fn books_mylibrary_bookshelves_list_builder(
     client: &SimpleHttpClient,
-    source: Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/mylibrary/bookshelves",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -3251,7 +3226,7 @@ pub fn books_mylibrary_bookshelves_list(
     impl StreamIterator<D = Result<ApiResponse<Bookshelves>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_mylibrary_bookshelves_list_builder(client, args.source.clone())?;
+    let builder = books_mylibrary_bookshelves_list_builder(client, &args.source)?;
     books_mylibrary_bookshelves_list_execute(builder)
 }
 
@@ -3263,42 +3238,42 @@ pub fn books_mylibrary_bookshelves_list(
 
 pub fn books_mylibrary_bookshelves_volumes_list_builder(
     client: &SimpleHttpClient,
-    shelf: String,
-    country: Option<String>,
-    maxResults: Option<i32>,
-    projection: Option<String>,
-    q: Option<String>,
-    showPreorders: Option<bool>,
-    source: Option<String>,
-    startIndex: Option<i32>,
+    shelf: &String,
+    country: &Option<String>,
+    maxResults: &Option<i32>,
+    projection: &Option<String>,
+    q: &Option<String>,
+    showPreorders: &Option<bool>,
+    source: &Option<String>,
+    startIndex: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/bookshelves/{}/volumes",
-        shelf.as_str(),
+        shelf,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = showPreorders {
+    if let Some(val) = showPreorders.as_ref() {
         query_parts.push(format!("showPreorders={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
 
@@ -3460,14 +3435,14 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 > {
     let builder = books_mylibrary_bookshelves_volumes_list_builder(
         client,
-        args.shelf.clone(),
-        args.country.clone(),
-        args.maxResults.clone(),
-        args.projection.clone(),
-        args.q.clone(),
-        args.showPreorders.clone(),
-        args.source.clone(),
-        args.startIndex.clone(),
+        &args.shelf,
+        &args.country,
+        &args.maxResults,
+        &args.projection,
+        &args.q,
+        &args.showPreorders,
+        &args.source,
+        &args.startIndex,
     )?;
     books_mylibrary_bookshelves_volumes_list_execute(builder)
 }
@@ -3480,22 +3455,22 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 
 pub fn books_mylibrary_readingpositions_get_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    contentVersion: Option<String>,
-    source: Option<String>,
+    volumeId: &String,
+    contentVersion: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/mylibrary/readingpositions/{}",
-        volumeId.as_str(),
+        volumeId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = contentVersion {
+    if let Some(val) = contentVersion.as_ref() {
         query_parts.push(format!("contentVersion={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -3651,9 +3626,9 @@ pub fn books_mylibrary_readingpositions_get(
 > {
     let builder = books_mylibrary_readingpositions_get_builder(
         client,
-        args.volumeId.clone(),
-        args.contentVersion.clone(),
-        args.source.clone(),
+        &args.volumeId,
+        &args.contentVersion,
+        &args.source,
     )?;
     books_mylibrary_readingpositions_get_execute(builder)
 }
@@ -3666,14 +3641,14 @@ pub fn books_mylibrary_readingpositions_get(
 
 pub fn books_onboarding_list_categories_builder(
     client: &SimpleHttpClient,
-    locale: Option<String>,
+    locale: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/onboarding/listCategories",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
 
@@ -3819,7 +3794,7 @@ pub fn books_onboarding_list_categories(
     impl StreamIterator<D = Result<ApiResponse<Category>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = books_onboarding_list_categories_builder(client, args.locale.clone())?;
+    let builder = books_onboarding_list_categories_builder(client, &args.locale)?;
     books_onboarding_list_categories_execute(builder)
 }
 
@@ -3831,11 +3806,11 @@ pub fn books_onboarding_list_categories(
 
 pub fn books_onboarding_list_category_volumes_builder(
     client: &SimpleHttpClient,
-    categoryId: Option<String>,
-    locale: Option<String>,
-    maxAllowedMaturityRating: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    categoryId: &Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3843,19 +3818,19 @@ pub fn books_onboarding_list_category_volumes_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = categoryId {
+    if let Some(val) = categoryId.as_ref() {
         query_parts.push(format!("categoryId={}", val));
     }
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxAllowedMaturityRating {
+    if let Some(val) = maxAllowedMaturityRating.as_ref() {
         query_parts.push(format!("maxAllowedMaturityRating={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4011,11 +3986,11 @@ pub fn books_onboarding_list_category_volumes(
 > {
     let builder = books_onboarding_list_category_volumes_builder(
         client,
-        args.categoryId.clone(),
-        args.locale.clone(),
-        args.maxAllowedMaturityRating.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.categoryId,
+        &args.locale,
+        &args.maxAllowedMaturityRating,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     books_onboarding_list_category_volumes_execute(builder)
 }
@@ -4028,22 +4003,22 @@ pub fn books_onboarding_list_category_volumes(
 
 pub fn books_personalizedstream_get_builder(
     client: &SimpleHttpClient,
-    locale: Option<String>,
-    maxAllowedMaturityRating: Option<String>,
-    source: Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/personalizedstream/get",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxAllowedMaturityRating {
+    if let Some(val) = maxAllowedMaturityRating.as_ref() {
         query_parts.push(format!("maxAllowedMaturityRating={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -4199,9 +4174,9 @@ pub fn books_personalizedstream_get(
 > {
     let builder = books_personalizedstream_get_builder(
         client,
-        args.locale.clone(),
-        args.maxAllowedMaturityRating.clone(),
-        args.source.clone(),
+        &args.locale,
+        &args.maxAllowedMaturityRating,
+        &args.source,
     )?;
     books_personalizedstream_get_execute(builder)
 }
@@ -4214,42 +4189,42 @@ pub fn books_personalizedstream_get(
 
 pub fn books_promooffer_accept_builder(
     client: &SimpleHttpClient,
-    androidId: Option<String>,
-    device: Option<String>,
-    manufacturer: Option<String>,
-    model: Option<String>,
-    offerId: Option<String>,
-    product: Option<String>,
-    serial: Option<String>,
-    volumeId: Option<String>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    offerId: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/accept",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = androidId {
+    if let Some(val) = androidId.as_ref() {
         query_parts.push(format!("androidId={}", val));
     }
-    if let Some(val) = device {
+    if let Some(val) = device.as_ref() {
         query_parts.push(format!("device={}", val));
     }
-    if let Some(val) = manufacturer {
+    if let Some(val) = manufacturer.as_ref() {
         query_parts.push(format!("manufacturer={}", val));
     }
-    if let Some(val) = model {
+    if let Some(val) = model.as_ref() {
         query_parts.push(format!("model={}", val));
     }
-    if let Some(val) = offerId {
+    if let Some(val) = offerId.as_ref() {
         query_parts.push(format!("offerId={}", val));
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = serial {
+    if let Some(val) = serial.as_ref() {
         query_parts.push(format!("serial={}", val));
     }
-    if let Some(val) = volumeId {
+    if let Some(val) = volumeId.as_ref() {
         query_parts.push(format!("volumeId={}", val));
     }
 
@@ -4411,14 +4386,14 @@ pub fn books_promooffer_accept(
 > {
     let builder = books_promooffer_accept_builder(
         client,
-        args.androidId.clone(),
-        args.device.clone(),
-        args.manufacturer.clone(),
-        args.model.clone(),
-        args.offerId.clone(),
-        args.product.clone(),
-        args.serial.clone(),
-        args.volumeId.clone(),
+        &args.androidId,
+        &args.device,
+        &args.manufacturer,
+        &args.model,
+        &args.offerId,
+        &args.product,
+        &args.serial,
+        &args.volumeId,
     )?;
     books_promooffer_accept_execute(builder)
 }
@@ -4431,38 +4406,38 @@ pub fn books_promooffer_accept(
 
 pub fn books_promooffer_dismiss_builder(
     client: &SimpleHttpClient,
-    androidId: Option<String>,
-    device: Option<String>,
-    manufacturer: Option<String>,
-    model: Option<String>,
-    offerId: Option<String>,
-    product: Option<String>,
-    serial: Option<String>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    offerId: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/dismiss",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = androidId {
+    if let Some(val) = androidId.as_ref() {
         query_parts.push(format!("androidId={}", val));
     }
-    if let Some(val) = device {
+    if let Some(val) = device.as_ref() {
         query_parts.push(format!("device={}", val));
     }
-    if let Some(val) = manufacturer {
+    if let Some(val) = manufacturer.as_ref() {
         query_parts.push(format!("manufacturer={}", val));
     }
-    if let Some(val) = model {
+    if let Some(val) = model.as_ref() {
         query_parts.push(format!("model={}", val));
     }
-    if let Some(val) = offerId {
+    if let Some(val) = offerId.as_ref() {
         query_parts.push(format!("offerId={}", val));
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = serial {
+    if let Some(val) = serial.as_ref() {
         query_parts.push(format!("serial={}", val));
     }
 
@@ -4622,13 +4597,13 @@ pub fn books_promooffer_dismiss(
 > {
     let builder = books_promooffer_dismiss_builder(
         client,
-        args.androidId.clone(),
-        args.device.clone(),
-        args.manufacturer.clone(),
-        args.model.clone(),
-        args.offerId.clone(),
-        args.product.clone(),
-        args.serial.clone(),
+        &args.androidId,
+        &args.device,
+        &args.manufacturer,
+        &args.model,
+        &args.offerId,
+        &args.product,
+        &args.serial,
     )?;
     books_promooffer_dismiss_execute(builder)
 }
@@ -4641,34 +4616,34 @@ pub fn books_promooffer_dismiss(
 
 pub fn books_promooffer_get_builder(
     client: &SimpleHttpClient,
-    androidId: Option<String>,
-    device: Option<String>,
-    manufacturer: Option<String>,
-    model: Option<String>,
-    product: Option<String>,
-    serial: Option<String>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/promooffer/get",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = androidId {
+    if let Some(val) = androidId.as_ref() {
         query_parts.push(format!("androidId={}", val));
     }
-    if let Some(val) = device {
+    if let Some(val) = device.as_ref() {
         query_parts.push(format!("device={}", val));
     }
-    if let Some(val) = manufacturer {
+    if let Some(val) = manufacturer.as_ref() {
         query_parts.push(format!("manufacturer={}", val));
     }
-    if let Some(val) = model {
+    if let Some(val) = model.as_ref() {
         query_parts.push(format!("model={}", val));
     }
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
-    if let Some(val) = serial {
+    if let Some(val) = serial.as_ref() {
         query_parts.push(format!("serial={}", val));
     }
 
@@ -4826,12 +4801,12 @@ pub fn books_promooffer_get(
 > {
     let builder = books_promooffer_get_builder(
         client,
-        args.androidId.clone(),
-        args.device.clone(),
-        args.manufacturer.clone(),
-        args.model.clone(),
-        args.product.clone(),
-        args.serial.clone(),
+        &args.androidId,
+        &args.device,
+        &args.manufacturer,
+        &args.model,
+        &args.product,
+        &args.serial,
     )?;
     books_promooffer_get_execute(builder)
 }
@@ -4844,38 +4819,35 @@ pub fn books_promooffer_get(
 
 pub fn books_volumes_get_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    country: Option<String>,
-    includeNonComicsSeries: Option<bool>,
-    partner: Option<String>,
-    projection: Option<String>,
-    source: Option<String>,
-    user_library_consistent_read: Option<bool>,
+    volumeId: &String,
+    country: &Option<String>,
+    includeNonComicsSeries: &Option<bool>,
+    partner: &Option<String>,
+    projection: &Option<String>,
+    source: &Option<String>,
+    user_library_consistent_read: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://books.googleapis.com/books/v1/volumes/{}",
-        volumeId.as_str(),
-    );
+    let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/{}", volumeId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = includeNonComicsSeries {
+    if let Some(val) = includeNonComicsSeries.as_ref() {
         query_parts.push(format!("includeNonComicsSeries={}", val));
     }
-    if let Some(val) = partner {
+    if let Some(val) = partner.as_ref() {
         query_parts.push(format!("partner={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = user_library_consistent_read {
+    if let Some(val) = user_library_consistent_read.as_ref() {
         query_parts.push(format!("user_library_consistent_read={}", val));
     }
 
@@ -5035,13 +5007,13 @@ pub fn books_volumes_get(
 > {
     let builder = books_volumes_get_builder(
         client,
-        args.volumeId.clone(),
-        args.country.clone(),
-        args.includeNonComicsSeries.clone(),
-        args.partner.clone(),
-        args.projection.clone(),
-        args.source.clone(),
-        args.user_library_consistent_read.clone(),
+        &args.volumeId,
+        &args.country,
+        &args.includeNonComicsSeries,
+        &args.partner,
+        &args.projection,
+        &args.source,
+        &args.user_library_consistent_read,
     )?;
     books_volumes_get_execute(builder)
 }
@@ -5054,30 +5026,30 @@ pub fn books_volumes_get(
 
 pub fn books_volumes_associated_list_builder(
     client: &SimpleHttpClient,
-    volumeId: String,
-    association: Option<String>,
-    locale: Option<String>,
-    maxAllowedMaturityRating: Option<String>,
-    source: Option<String>,
+    volumeId: &String,
+    association: &Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://books.googleapis.com/books/v1/volumes/{}/associated",
-        volumeId.as_str(),
+        volumeId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = association {
+    if let Some(val) = association.as_ref() {
         query_parts.push(format!("association={}", val));
     }
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxAllowedMaturityRating {
+    if let Some(val) = maxAllowedMaturityRating.as_ref() {
         query_parts.push(format!("maxAllowedMaturityRating={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -5233,11 +5205,11 @@ pub fn books_volumes_associated_list(
 > {
     let builder = books_volumes_associated_list_builder(
         client,
-        args.volumeId.clone(),
-        args.association.clone(),
-        args.locale.clone(),
-        args.maxAllowedMaturityRating.clone(),
-        args.source.clone(),
+        &args.volumeId,
+        &args.association,
+        &args.locale,
+        &args.maxAllowedMaturityRating,
+        &args.source,
     )?;
     books_volumes_associated_list_execute(builder)
 }
@@ -5250,38 +5222,38 @@ pub fn books_volumes_associated_list(
 
 pub fn books_volumes_mybooks_list_builder(
     client: &SimpleHttpClient,
-    acquireMethod: Option<String>,
-    country: Option<String>,
-    locale: Option<String>,
-    maxResults: Option<i32>,
-    processingState: Option<String>,
-    source: Option<String>,
-    startIndex: Option<i32>,
+    acquireMethod: &Option<String>,
+    country: &Option<String>,
+    locale: &Option<String>,
+    maxResults: &Option<i32>,
+    processingState: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/mybooks",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = acquireMethod {
+    if let Some(val) = acquireMethod.as_ref() {
         query_parts.push(format!("acquireMethod={}", val));
     }
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = processingState {
+    if let Some(val) = processingState.as_ref() {
         query_parts.push(format!("processingState={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
 
@@ -5441,13 +5413,13 @@ pub fn books_volumes_mybooks_list(
 > {
     let builder = books_volumes_mybooks_list_builder(
         client,
-        args.acquireMethod.clone(),
-        args.country.clone(),
-        args.locale.clone(),
-        args.maxResults.clone(),
-        args.processingState.clone(),
-        args.source.clone(),
-        args.startIndex.clone(),
+        &args.acquireMethod,
+        &args.country,
+        &args.locale,
+        &args.maxResults,
+        &args.processingState,
+        &args.source,
+        &args.startIndex,
     )?;
     books_volumes_mybooks_list_execute(builder)
 }
@@ -5460,22 +5432,22 @@ pub fn books_volumes_mybooks_list(
 
 pub fn books_volumes_recommended_list_builder(
     client: &SimpleHttpClient,
-    locale: Option<String>,
-    maxAllowedMaturityRating: Option<String>,
-    source: Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/recommended",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxAllowedMaturityRating {
+    if let Some(val) = maxAllowedMaturityRating.as_ref() {
         query_parts.push(format!("maxAllowedMaturityRating={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
 
@@ -5627,9 +5599,9 @@ pub fn books_volumes_recommended_list(
 > {
     let builder = books_volumes_recommended_list_builder(
         client,
-        args.locale.clone(),
-        args.maxAllowedMaturityRating.clone(),
-        args.source.clone(),
+        &args.locale,
+        &args.maxAllowedMaturityRating,
+        &args.source,
     )?;
     books_volumes_recommended_list_execute(builder)
 }
@@ -5642,34 +5614,34 @@ pub fn books_volumes_recommended_list(
 
 pub fn books_volumes_useruploaded_list_builder(
     client: &SimpleHttpClient,
-    locale: Option<String>,
-    maxResults: Option<i32>,
-    processingState: Option<String>,
-    source: Option<String>,
-    startIndex: Option<i32>,
-    volumeId: Option<String>,
+    locale: &Option<String>,
+    maxResults: &Option<i32>,
+    processingState: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<i32>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://books.googleapis.com/books/v1/volumes/useruploaded",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = locale {
+    if let Some(val) = locale.as_ref() {
         query_parts.push(format!("locale={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = processingState {
+    if let Some(val) = processingState.as_ref() {
         query_parts.push(format!("processingState={}", val));
     }
-    if let Some(val) = source {
+    if let Some(val) = source.as_ref() {
         query_parts.push(format!("source={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
-    if let Some(val) = volumeId {
+    if let Some(val) = volumeId.as_ref() {
         query_parts.push(format!("volumeId={}", val));
     }
 
@@ -5827,12 +5799,12 @@ pub fn books_volumes_useruploaded_list(
 > {
     let builder = books_volumes_useruploaded_list_builder(
         client,
-        args.locale.clone(),
-        args.maxResults.clone(),
-        args.processingState.clone(),
-        args.source.clone(),
-        args.startIndex.clone(),
-        args.volumeId.clone(),
+        &args.locale,
+        &args.maxResults,
+        &args.processingState,
+        &args.source,
+        &args.startIndex,
+        &args.volumeId,
     )?;
     books_volumes_useruploaded_list_execute(builder)
 }

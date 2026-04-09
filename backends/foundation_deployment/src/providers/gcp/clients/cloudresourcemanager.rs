@@ -29,22 +29,22 @@ use serde::Serialize;
 
 pub fn cloudresourcemanager_effective_tags_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    parent: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/effectiveTags",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -200,9 +200,9 @@ pub fn cloudresourcemanager_effective_tags_list(
 > {
     let builder = cloudresourcemanager_effective_tags_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.parent.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
     )?;
     cloudresourcemanager_effective_tags_list_execute(builder)
 }
@@ -371,7 +371,7 @@ pub fn cloudresourcemanager_folders_create(
 
 pub fn cloudresourcemanager_folders_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}",);
@@ -513,7 +513,7 @@ pub fn cloudresourcemanager_folders_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_delete_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_folders_delete_builder(client, &args.name)?;
     cloudresourcemanager_folders_delete_execute(builder)
 }
 
@@ -525,7 +525,7 @@ pub fn cloudresourcemanager_folders_delete(
 
 pub fn cloudresourcemanager_folders_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -673,11 +673,8 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_get_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_folders_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_folders_get_iam_policy_execute(builder)
 }
 
@@ -689,7 +686,7 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
 
 pub fn cloudresourcemanager_folders_move_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &MoveFolderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -836,7 +833,7 @@ pub fn cloudresourcemanager_folders_move(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_move_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudresourcemanager_folders_move_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_folders_move_execute(builder)
 }
 
@@ -848,22 +845,22 @@ pub fn cloudresourcemanager_folders_move(
 
 pub fn cloudresourcemanager_folders_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -1019,9 +1016,9 @@ pub fn cloudresourcemanager_folders_search(
 > {
     let builder = cloudresourcemanager_folders_search_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudresourcemanager_folders_search_execute(builder)
 }
@@ -1034,7 +1031,7 @@ pub fn cloudresourcemanager_folders_search(
 
 pub fn cloudresourcemanager_folders_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1182,11 +1179,8 @@ pub fn cloudresourcemanager_folders_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_folders_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_folders_set_iam_policy_execute(builder)
 }
 
@@ -1198,7 +1192,7 @@ pub fn cloudresourcemanager_folders_set_iam_policy(
 
 pub fn cloudresourcemanager_folders_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1356,7 +1350,7 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
 > {
     let builder = cloudresourcemanager_folders_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_folders_test_iam_permissions_execute(builder)
@@ -1370,7 +1364,7 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
 
 pub fn cloudresourcemanager_folders_undelete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &UndeleteFolderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1518,8 +1512,7 @@ pub fn cloudresourcemanager_folders_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_folders_undelete_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudresourcemanager_folders_undelete_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_folders_undelete_execute(builder)
 }
 
@@ -1687,7 +1680,7 @@ pub fn cloudresourcemanager_liens_create(
 
 pub fn cloudresourcemanager_liens_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens/{}",);
@@ -1829,7 +1822,7 @@ pub fn cloudresourcemanager_liens_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_delete_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_liens_delete_builder(client, &args.name)?;
     cloudresourcemanager_liens_delete_execute(builder)
 }
 
@@ -1841,7 +1834,7 @@ pub fn cloudresourcemanager_liens_delete(
 
 pub fn cloudresourcemanager_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/operations/{}",);
@@ -1983,7 +1976,7 @@ pub fn cloudresourcemanager_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_operations_get_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_operations_get_builder(client, &args.name)?;
     cloudresourcemanager_operations_get_execute(builder)
 }
 
@@ -1995,7 +1988,7 @@ pub fn cloudresourcemanager_operations_get(
 
 pub fn cloudresourcemanager_organizations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/organizations/{}",);
@@ -2141,7 +2134,7 @@ pub fn cloudresourcemanager_organizations_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_organizations_get_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_organizations_get_builder(client, &args.name)?;
     cloudresourcemanager_organizations_get_execute(builder)
 }
 
@@ -2153,7 +2146,7 @@ pub fn cloudresourcemanager_organizations_get(
 
 pub fn cloudresourcemanager_organizations_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2303,7 +2296,7 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
 > {
     let builder = cloudresourcemanager_organizations_get_iam_policy_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_organizations_get_iam_policy_execute(builder)
@@ -2317,9 +2310,9 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
 
 pub fn cloudresourcemanager_organizations_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2327,13 +2320,13 @@ pub fn cloudresourcemanager_organizations_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -2493,9 +2486,9 @@ pub fn cloudresourcemanager_organizations_search(
 > {
     let builder = cloudresourcemanager_organizations_search_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudresourcemanager_organizations_search_execute(builder)
 }
@@ -2508,7 +2501,7 @@ pub fn cloudresourcemanager_organizations_search(
 
 pub fn cloudresourcemanager_organizations_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2658,7 +2651,7 @@ pub fn cloudresourcemanager_organizations_set_iam_policy(
 > {
     let builder = cloudresourcemanager_organizations_set_iam_policy_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_organizations_set_iam_policy_execute(builder)
@@ -2672,7 +2665,7 @@ pub fn cloudresourcemanager_organizations_set_iam_policy(
 
 pub fn cloudresourcemanager_organizations_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2831,7 +2824,7 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions(
 > {
     let builder = cloudresourcemanager_organizations_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_organizations_test_iam_permissions_execute(builder)
@@ -3001,7 +2994,7 @@ pub fn cloudresourcemanager_projects_create(
 
 pub fn cloudresourcemanager_projects_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}",);
@@ -3143,7 +3136,7 @@ pub fn cloudresourcemanager_projects_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_delete_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_projects_delete_builder(client, &args.name)?;
     cloudresourcemanager_projects_delete_execute(builder)
 }
 
@@ -3155,7 +3148,7 @@ pub fn cloudresourcemanager_projects_delete(
 
 pub fn cloudresourcemanager_projects_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3303,11 +3296,8 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_get_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_projects_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_projects_get_iam_policy_execute(builder)
 }
 
@@ -3319,7 +3309,7 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
 
 pub fn cloudresourcemanager_projects_move_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &MoveProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3466,8 +3456,7 @@ pub fn cloudresourcemanager_projects_move(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_projects_move_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudresourcemanager_projects_move_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_projects_move_execute(builder)
 }
 
@@ -3479,22 +3468,22 @@ pub fn cloudresourcemanager_projects_move(
 
 pub fn cloudresourcemanager_projects_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -3650,9 +3639,9 @@ pub fn cloudresourcemanager_projects_search(
 > {
     let builder = cloudresourcemanager_projects_search_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudresourcemanager_projects_search_execute(builder)
 }
@@ -3665,7 +3654,7 @@ pub fn cloudresourcemanager_projects_search(
 
 pub fn cloudresourcemanager_projects_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3813,11 +3802,8 @@ pub fn cloudresourcemanager_projects_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_projects_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_projects_set_iam_policy_execute(builder)
 }
 
@@ -3829,7 +3815,7 @@ pub fn cloudresourcemanager_projects_set_iam_policy(
 
 pub fn cloudresourcemanager_projects_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3987,7 +3973,7 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
 > {
     let builder = cloudresourcemanager_projects_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_projects_test_iam_permissions_execute(builder)
@@ -4001,7 +3987,7 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
 
 pub fn cloudresourcemanager_projects_undelete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &UndeleteProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4149,8 +4135,7 @@ pub fn cloudresourcemanager_projects_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_projects_undelete_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudresourcemanager_projects_undelete_builder(client, &args.name, &args.body)?;
     cloudresourcemanager_projects_undelete_execute(builder)
 }
 
@@ -4162,7 +4147,7 @@ pub fn cloudresourcemanager_projects_undelete(
 
 pub fn cloudresourcemanager_tag_bindings_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
+    validateOnly: &Option<bool>,
     body: &TagBinding,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4170,7 +4155,7 @@ pub fn cloudresourcemanager_tag_bindings_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -4320,11 +4305,8 @@ pub fn cloudresourcemanager_tag_bindings_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_bindings_create_builder(
-        client,
-        args.validateOnly.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_bindings_create_builder(client, &args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_bindings_create_execute(builder)
 }
 
@@ -4336,7 +4318,7 @@ pub fn cloudresourcemanager_tag_bindings_create(
 
 pub fn cloudresourcemanager_tag_bindings_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings/{}",);
@@ -4478,7 +4460,7 @@ pub fn cloudresourcemanager_tag_bindings_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_bindings_delete_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_tag_bindings_delete_builder(client, &args.name)?;
     cloudresourcemanager_tag_bindings_delete_execute(builder)
 }
 
@@ -4490,7 +4472,7 @@ pub fn cloudresourcemanager_tag_bindings_delete(
 
 pub fn cloudresourcemanager_tag_keys_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
+    validateOnly: &Option<bool>,
     body: &TagKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4498,7 +4480,7 @@ pub fn cloudresourcemanager_tag_keys_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -4648,11 +4630,8 @@ pub fn cloudresourcemanager_tag_keys_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_create_builder(
-        client,
-        args.validateOnly.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_keys_create_builder(client, &args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_keys_create_execute(builder)
 }
 
@@ -4664,19 +4643,19 @@ pub fn cloudresourcemanager_tag_keys_create(
 
 pub fn cloudresourcemanager_tag_keys_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    etag: Option<String>,
-    validateOnly: Option<bool>,
+    name: &String,
+    etag: &Option<String>,
+    validateOnly: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = etag {
+    if let Some(val) = etag.as_ref() {
         query_parts.push(format!("etag={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -4828,9 +4807,9 @@ pub fn cloudresourcemanager_tag_keys_delete(
 > {
     let builder = cloudresourcemanager_tag_keys_delete_builder(
         client,
-        args.name.clone(),
-        args.etag.clone(),
-        args.validateOnly.clone(),
+        &args.name,
+        &args.etag,
+        &args.validateOnly,
     )?;
     cloudresourcemanager_tag_keys_delete_execute(builder)
 }
@@ -4843,7 +4822,7 @@ pub fn cloudresourcemanager_tag_keys_delete(
 
 pub fn cloudresourcemanager_tag_keys_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4991,11 +4970,8 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_get_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_keys_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_keys_get_iam_policy_execute(builder)
 }
 
@@ -5007,7 +4983,7 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_keys_get_namespaced_builder(
     client: &SimpleHttpClient,
-    name: Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5015,7 +4991,7 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -5161,7 +5137,7 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
     impl StreamIterator<D = Result<ApiResponse<TagKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_get_namespaced_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_tag_keys_get_namespaced_builder(client, &args.name)?;
     cloudresourcemanager_tag_keys_get_namespaced_execute(builder)
 }
 
@@ -5173,7 +5149,7 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
 
 pub fn cloudresourcemanager_tag_keys_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5321,11 +5297,8 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_keys_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_keys_set_iam_policy_execute(builder)
 }
 
@@ -5337,7 +5310,7 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy(
 
 pub fn cloudresourcemanager_tag_keys_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5495,7 +5468,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
 > {
     let builder = cloudresourcemanager_tag_keys_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_tag_keys_test_iam_permissions_execute(builder)
@@ -5509,7 +5482,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
 
 pub fn cloudresourcemanager_tag_values_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
+    validateOnly: &Option<bool>,
     body: &TagValue,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5517,7 +5490,7 @@ pub fn cloudresourcemanager_tag_values_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -5667,11 +5640,8 @@ pub fn cloudresourcemanager_tag_values_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_create_builder(
-        client,
-        args.validateOnly.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_values_create_builder(client, &args.validateOnly, &args.body)?;
     cloudresourcemanager_tag_values_create_execute(builder)
 }
 
@@ -5683,19 +5653,19 @@ pub fn cloudresourcemanager_tag_values_create(
 
 pub fn cloudresourcemanager_tag_values_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    etag: Option<String>,
-    validateOnly: Option<bool>,
+    name: &String,
+    etag: &Option<String>,
+    validateOnly: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = etag {
+    if let Some(val) = etag.as_ref() {
         query_parts.push(format!("etag={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -5847,9 +5817,9 @@ pub fn cloudresourcemanager_tag_values_delete(
 > {
     let builder = cloudresourcemanager_tag_values_delete_builder(
         client,
-        args.name.clone(),
-        args.etag.clone(),
-        args.validateOnly.clone(),
+        &args.name,
+        &args.etag,
+        &args.validateOnly,
     )?;
     cloudresourcemanager_tag_values_delete_execute(builder)
 }
@@ -5862,7 +5832,7 @@ pub fn cloudresourcemanager_tag_values_delete(
 
 pub fn cloudresourcemanager_tag_values_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6010,11 +5980,8 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_get_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_values_get_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_values_get_iam_policy_execute(builder)
 }
 
@@ -6026,7 +5993,7 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_values_get_namespaced_builder(
     client: &SimpleHttpClient,
-    name: Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6034,7 +6001,7 @@ pub fn cloudresourcemanager_tag_values_get_namespaced_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -6180,8 +6147,7 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
     impl StreamIterator<D = Result<ApiResponse<TagValue>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_get_namespaced_builder(client, args.name.clone())?;
+    let builder = cloudresourcemanager_tag_values_get_namespaced_builder(client, &args.name)?;
     cloudresourcemanager_tag_values_get_namespaced_execute(builder)
 }
 
@@ -6193,7 +6159,7 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
 
 pub fn cloudresourcemanager_tag_values_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6341,11 +6307,8 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_values_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudresourcemanager_tag_values_set_iam_policy_execute(builder)
 }
 
@@ -6357,7 +6320,7 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy(
 
 pub fn cloudresourcemanager_tag_values_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6515,7 +6478,7 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
 > {
     let builder = cloudresourcemanager_tag_values_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudresourcemanager_tag_values_test_iam_permissions_execute(builder)
@@ -6529,8 +6492,8 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
 
 pub fn cloudresourcemanager_tag_values_tag_holds_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    validateOnly: Option<bool>,
+    parent: &String,
+    validateOnly: &Option<bool>,
     body: &TagHold,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6539,7 +6502,7 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -6693,8 +6656,8 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create(
 > {
     let builder = cloudresourcemanager_tag_values_tag_holds_create_builder(
         client,
-        args.parent.clone(),
-        args.validateOnly.clone(),
+        &args.parent,
+        &args.validateOnly,
         &args.body,
     )?;
     cloudresourcemanager_tag_values_tag_holds_create_execute(builder)

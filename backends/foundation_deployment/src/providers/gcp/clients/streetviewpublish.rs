@@ -185,12 +185,12 @@ pub fn streetviewpublish_photo_create(
 
 pub fn streetviewpublish_photo_delete_builder(
     client: &SimpleHttpClient,
-    photoId: String,
+    photoId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photo/{}",
-        photoId.as_str(),
+        photoId,
     );
 
     // Build request
@@ -330,7 +330,7 @@ pub fn streetviewpublish_photo_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_delete_builder(client, args.photoId.clone())?;
+    let builder = streetviewpublish_photo_delete_builder(client, &args.photoId)?;
     streetviewpublish_photo_delete_execute(builder)
 }
 
@@ -498,19 +498,16 @@ pub fn streetviewpublish_photo_start_upload(
 
 pub fn streetviewpublish_photo_update_builder(
     client: &SimpleHttpClient,
-    id: String,
-    updateMask: Option<String>,
+    id: &String,
+    updateMask: &Option<String>,
     body: &Photo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://streetviewpublish.googleapis.com/v1/photo/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -662,12 +659,8 @@ pub fn streetviewpublish_photo_update(
     impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_update_builder(
-        client,
-        args.id.clone(),
-        args.updateMask.clone(),
-        &args.body,
-    )?;
+    let builder =
+        streetviewpublish_photo_update_builder(client, &args.id, &args.updateMask, &args.body)?;
     streetviewpublish_photo_update_execute(builder)
 }
 
@@ -679,7 +672,7 @@ pub fn streetviewpublish_photo_update(
 
 pub fn streetviewpublish_photo_sequence_create_builder(
     client: &SimpleHttpClient,
-    inputType: Option<String>,
+    inputType: &Option<String>,
     body: &PhotoSequence,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -687,7 +680,7 @@ pub fn streetviewpublish_photo_sequence_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = inputType {
+    if let Some(val) = inputType.as_ref() {
         query_parts.push(format!("inputType={}", val));
     }
 
@@ -837,11 +830,8 @@ pub fn streetviewpublish_photo_sequence_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_sequence_create_builder(
-        client,
-        args.inputType.clone(),
-        &args.body,
-    )?;
+    let builder =
+        streetviewpublish_photo_sequence_create_builder(client, &args.inputType, &args.body)?;
     streetviewpublish_photo_sequence_create_execute(builder)
 }
 
@@ -853,12 +843,12 @@ pub fn streetviewpublish_photo_sequence_create(
 
 pub fn streetviewpublish_photo_sequence_delete_builder(
     client: &SimpleHttpClient,
-    sequenceId: String,
+    sequenceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
-        sequenceId.as_str(),
+        sequenceId,
     );
 
     // Build request
@@ -998,7 +988,7 @@ pub fn streetviewpublish_photo_sequence_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_sequence_delete_builder(client, args.sequenceId.clone())?;
+    let builder = streetviewpublish_photo_sequence_delete_builder(client, &args.sequenceId)?;
     streetviewpublish_photo_sequence_delete_execute(builder)
 }
 
@@ -1167,22 +1157,22 @@ pub fn streetviewpublish_photo_sequence_start_upload(
 
 pub fn streetviewpublish_photo_sequences_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequences",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1342,9 +1332,9 @@ pub fn streetviewpublish_photo_sequences_list(
 > {
     let builder = streetviewpublish_photo_sequences_list_builder(
         client,
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     streetviewpublish_photo_sequences_list_execute(builder)
 }
@@ -1517,22 +1507,22 @@ pub fn streetviewpublish_photos_batch_delete(
 
 pub fn streetviewpublish_photos_batch_get_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<String>,
-    photoIds: Option<String>,
-    view: Option<String>,
+    languageCode: &Option<String>,
+    photoIds: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = photoIds {
+    if let Some(val) = photoIds.as_ref() {
         query_parts.push(format!("photoIds={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -1688,9 +1678,9 @@ pub fn streetviewpublish_photos_batch_get(
 > {
     let builder = streetviewpublish_photos_batch_get_builder(
         client,
-        args.languageCode.clone(),
-        args.photoIds.clone(),
-        args.view.clone(),
+        &args.languageCode,
+        &args.photoIds,
+        &args.view,
     )?;
     streetviewpublish_photos_batch_get_execute(builder)
 }
@@ -1863,30 +1853,30 @@ pub fn streetviewpublish_photos_batch_update(
 
 pub fn streetviewpublish_photos_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    view: Option<String>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2046,11 +2036,11 @@ pub fn streetviewpublish_photos_list(
 > {
     let builder = streetviewpublish_photos_list_builder(
         client,
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.view.clone(),
+        &args.filter,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
     )?;
     streetviewpublish_photos_list_execute(builder)
 }

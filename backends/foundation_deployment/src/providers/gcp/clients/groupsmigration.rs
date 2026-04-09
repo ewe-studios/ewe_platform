@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn groupsmigration_archive_insert_builder(
     client: &SimpleHttpClient,
-    groupId: String,
+    groupId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://groupsmigration.googleapis.com/groups/v1/groups/{}/archive",
-        groupId.as_str(),
+        groupId,
     );
 
     // Build request
@@ -174,6 +174,6 @@ pub fn groupsmigration_archive_insert(
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groupsmigration_archive_insert_builder(client, args.groupId.clone())?;
+    let builder = groupsmigration_archive_insert_builder(client, &args.groupId)?;
     groupsmigration_archive_insert_execute(builder)
 }

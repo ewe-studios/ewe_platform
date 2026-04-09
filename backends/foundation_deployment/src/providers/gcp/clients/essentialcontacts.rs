@@ -29,10 +29,10 @@ use serde::Serialize;
 
 pub fn essentialcontacts_folders_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    notificationCategories: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -40,13 +40,13 @@ pub fn essentialcontacts_folders_contacts_compute_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = notificationCategories {
+    if let Some(val) = notificationCategories.as_ref() {
         query_parts.push(format!("notificationCategories={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -218,10 +218,10 @@ pub fn essentialcontacts_folders_contacts_compute(
 > {
     let builder = essentialcontacts_folders_contacts_compute_builder(
         client,
-        args.parent.clone(),
-        args.notificationCategories.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.notificationCategories,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     essentialcontacts_folders_contacts_compute_execute(builder)
 }
@@ -234,7 +234,7 @@ pub fn essentialcontacts_folders_contacts_compute(
 
 pub fn essentialcontacts_folders_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -390,7 +390,7 @@ pub fn essentialcontacts_folders_contacts_create(
     ApiError,
 > {
     let builder =
-        essentialcontacts_folders_contacts_create_builder(client, args.parent.clone(), &args.body)?;
+        essentialcontacts_folders_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_folders_contacts_create_execute(builder)
 }
 
@@ -402,7 +402,7 @@ pub fn essentialcontacts_folders_contacts_create(
 
 pub fn essentialcontacts_folders_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -556,7 +556,7 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 > {
     let builder = essentialcontacts_folders_contacts_send_test_message_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     essentialcontacts_folders_contacts_send_test_message_execute(builder)
@@ -570,10 +570,10 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 
 pub fn essentialcontacts_organizations_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    notificationCategories: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -581,13 +581,13 @@ pub fn essentialcontacts_organizations_contacts_compute_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = notificationCategories {
+    if let Some(val) = notificationCategories.as_ref() {
         query_parts.push(format!("notificationCategories={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -759,10 +759,10 @@ pub fn essentialcontacts_organizations_contacts_compute(
 > {
     let builder = essentialcontacts_organizations_contacts_compute_builder(
         client,
-        args.parent.clone(),
-        args.notificationCategories.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.notificationCategories,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     essentialcontacts_organizations_contacts_compute_execute(builder)
 }
@@ -775,7 +775,7 @@ pub fn essentialcontacts_organizations_contacts_compute(
 
 pub fn essentialcontacts_organizations_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -931,11 +931,8 @@ pub fn essentialcontacts_organizations_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_organizations_contacts_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        essentialcontacts_organizations_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_organizations_contacts_create_execute(builder)
 }
 
@@ -947,7 +944,7 @@ pub fn essentialcontacts_organizations_contacts_create(
 
 pub fn essentialcontacts_organizations_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1102,7 +1099,7 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 > {
     let builder = essentialcontacts_organizations_contacts_send_test_message_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     essentialcontacts_organizations_contacts_send_test_message_execute(builder)
@@ -1116,10 +1113,10 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 
 pub fn essentialcontacts_projects_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    notificationCategories: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1127,13 +1124,13 @@ pub fn essentialcontacts_projects_contacts_compute_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = notificationCategories {
+    if let Some(val) = notificationCategories.as_ref() {
         query_parts.push(format!("notificationCategories={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1305,10 +1302,10 @@ pub fn essentialcontacts_projects_contacts_compute(
 > {
     let builder = essentialcontacts_projects_contacts_compute_builder(
         client,
-        args.parent.clone(),
-        args.notificationCategories.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.notificationCategories,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     essentialcontacts_projects_contacts_compute_execute(builder)
 }
@@ -1321,7 +1318,7 @@ pub fn essentialcontacts_projects_contacts_compute(
 
 pub fn essentialcontacts_projects_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1476,11 +1473,8 @@ pub fn essentialcontacts_projects_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_projects_contacts_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        essentialcontacts_projects_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_projects_contacts_create_execute(builder)
 }
 
@@ -1492,7 +1486,7 @@ pub fn essentialcontacts_projects_contacts_create(
 
 pub fn essentialcontacts_projects_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1647,7 +1641,7 @@ pub fn essentialcontacts_projects_contacts_send_test_message(
 > {
     let builder = essentialcontacts_projects_contacts_send_test_message_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     essentialcontacts_projects_contacts_send_test_message_execute(builder)

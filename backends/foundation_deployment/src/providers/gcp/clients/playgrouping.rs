@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn playgrouping_apps_tokens_verify_builder(
     client: &SimpleHttpClient,
-    appPackage: String,
-    token: String,
+    appPackage: &String,
+    token: &String,
     body: &VerifyTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -184,12 +184,8 @@ pub fn playgrouping_apps_tokens_verify(
         + 'static,
     ApiError,
 > {
-    let builder = playgrouping_apps_tokens_verify_builder(
-        client,
-        args.appPackage.clone(),
-        args.token.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playgrouping_apps_tokens_verify_builder(client, &args.appPackage, &args.token, &args.body)?;
     playgrouping_apps_tokens_verify_execute(builder)
 }
 
@@ -201,8 +197,8 @@ pub fn playgrouping_apps_tokens_verify(
 
 pub fn playgrouping_apps_tokens_tags_create_or_update_builder(
     client: &SimpleHttpClient,
-    appPackage: String,
-    token: String,
+    appPackage: &String,
+    token: &String,
     body: &CreateOrUpdateTagsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -363,8 +359,8 @@ pub fn playgrouping_apps_tokens_tags_create_or_update(
 > {
     let builder = playgrouping_apps_tokens_tags_create_or_update_builder(
         client,
-        args.appPackage.clone(),
-        args.token.clone(),
+        &args.appPackage,
+        &args.token,
         &args.body,
     )?;
     playgrouping_apps_tokens_tags_create_or_update_execute(builder)

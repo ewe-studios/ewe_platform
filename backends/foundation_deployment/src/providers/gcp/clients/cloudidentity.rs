@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn cloudidentity_customers_userinvitations_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -41,16 +41,16 @@ pub fn cloudidentity_customers_userinvitations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -214,11 +214,11 @@ pub fn cloudidentity_customers_userinvitations_list(
 > {
     let builder = cloudidentity_customers_userinvitations_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudidentity_customers_userinvitations_list_execute(builder)
 }
@@ -231,7 +231,7 @@ pub fn cloudidentity_customers_userinvitations_list(
 
 pub fn cloudidentity_devices_cancel_wipe_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -378,7 +378,7 @@ pub fn cloudidentity_devices_cancel_wipe(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_cancel_wipe_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudidentity_devices_cancel_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_cancel_wipe_execute(builder)
 }
 
@@ -390,7 +390,7 @@ pub fn cloudidentity_devices_cancel_wipe(
 
 pub fn cloudidentity_devices_create_builder(
     client: &SimpleHttpClient,
-    customer: Option<String>,
+    customer: &Option<String>,
     body: &GoogleAppsCloudidentityDevicesV1Device,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -398,7 +398,7 @@ pub fn cloudidentity_devices_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
 
@@ -548,7 +548,7 @@ pub fn cloudidentity_devices_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_create_builder(client, args.customer.clone(), &args.body)?;
+    let builder = cloudidentity_devices_create_builder(client, &args.customer, &args.body)?;
     cloudidentity_devices_create_execute(builder)
 }
 
@@ -560,15 +560,15 @@ pub fn cloudidentity_devices_create(
 
 pub fn cloudidentity_devices_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    customer: Option<String>,
+    name: &String,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
 
@@ -716,8 +716,7 @@ pub fn cloudidentity_devices_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_devices_delete_builder(client, args.name.clone(), args.customer.clone())?;
+    let builder = cloudidentity_devices_delete_builder(client, &args.name, &args.customer)?;
     cloudidentity_devices_delete_execute(builder)
 }
 
@@ -729,7 +728,7 @@ pub fn cloudidentity_devices_delete(
 
 pub fn cloudidentity_devices_wipe_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleAppsCloudidentityDevicesV1WipeDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -876,7 +875,7 @@ pub fn cloudidentity_devices_wipe(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_devices_wipe_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudidentity_devices_wipe_builder(client, &args.name, &args.body)?;
     cloudidentity_devices_wipe_execute(builder)
 }
 
@@ -888,31 +887,31 @@ pub fn cloudidentity_devices_wipe(
 
 pub fn cloudidentity_devices_device_users_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    customer: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    customer: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/devices/{}/deviceUsers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customer {
+    if let Some(val) = customer.as_ref() {
         query_parts.push(format!("customer={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1088,12 +1087,12 @@ pub fn cloudidentity_devices_device_users_list(
 > {
     let builder = cloudidentity_devices_device_users_list_builder(
         client,
-        args.parent.clone(),
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudidentity_devices_device_users_list_execute(builder)
 }
@@ -1106,14 +1105,14 @@ pub fn cloudidentity_devices_device_users_list(
 
 pub fn cloudidentity_devices_device_users_lookup_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    androidId: Option<String>,
-    iosDeviceId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    partner: Option<String>,
-    rawResourceId: Option<String>,
-    userId: Option<String>,
+    parent: &String,
+    androidId: &Option<String>,
+    iosDeviceId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    partner: &Option<String>,
+    rawResourceId: &Option<String>,
+    userId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1121,25 +1120,25 @@ pub fn cloudidentity_devices_device_users_lookup_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = androidId {
+    if let Some(val) = androidId.as_ref() {
         query_parts.push(format!("androidId={}", val));
     }
-    if let Some(val) = iosDeviceId {
+    if let Some(val) = iosDeviceId.as_ref() {
         query_parts.push(format!("iosDeviceId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = partner {
+    if let Some(val) = partner.as_ref() {
         query_parts.push(format!("partner={}", val));
     }
-    if let Some(val) = rawResourceId {
+    if let Some(val) = rawResourceId.as_ref() {
         query_parts.push(format!("rawResourceId={}", val));
     }
-    if let Some(val) = userId {
+    if let Some(val) = userId.as_ref() {
         query_parts.push(format!("userId={}", val));
     }
 
@@ -1319,14 +1318,14 @@ pub fn cloudidentity_devices_device_users_lookup(
 > {
     let builder = cloudidentity_devices_device_users_lookup_builder(
         client,
-        args.parent.clone(),
-        args.androidId.clone(),
-        args.iosDeviceId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.partner.clone(),
-        args.rawResourceId.clone(),
-        args.userId.clone(),
+        &args.parent,
+        &args.androidId,
+        &args.iosDeviceId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partner,
+        &args.rawResourceId,
+        &args.userId,
     )?;
     cloudidentity_devices_device_users_lookup_execute(builder)
 }
@@ -1339,7 +1338,7 @@ pub fn cloudidentity_devices_device_users_lookup(
 
 pub fn cloudidentity_groups_create_builder(
     client: &SimpleHttpClient,
-    initialGroupConfig: Option<String>,
+    initialGroupConfig: &Option<String>,
     body: &Group,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1347,7 +1346,7 @@ pub fn cloudidentity_groups_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = initialGroupConfig {
+    if let Some(val) = initialGroupConfig.as_ref() {
         query_parts.push(format!("initialGroupConfig={}", val));
     }
 
@@ -1498,7 +1497,7 @@ pub fn cloudidentity_groups_create(
     ApiError,
 > {
     let builder =
-        cloudidentity_groups_create_builder(client, args.initialGroupConfig.clone(), &args.body)?;
+        cloudidentity_groups_create_builder(client, &args.initialGroupConfig, &args.body)?;
     cloudidentity_groups_create_execute(builder)
 }
 
@@ -1510,7 +1509,7 @@ pub fn cloudidentity_groups_create(
 
 pub fn cloudidentity_groups_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups/{}",);
@@ -1652,7 +1651,7 @@ pub fn cloudidentity_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_delete_builder(client, args.name.clone())?;
+    let builder = cloudidentity_groups_delete_builder(client, &args.name)?;
     cloudidentity_groups_delete_execute(builder)
 }
 
@@ -1664,8 +1663,8 @@ pub fn cloudidentity_groups_delete(
 
 pub fn cloudidentity_groups_get_security_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
-    readMask: Option<String>,
+    name: &String,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1673,7 +1672,7 @@ pub fn cloudidentity_groups_get_security_settings_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -1825,11 +1824,8 @@ pub fn cloudidentity_groups_get_security_settings(
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_get_security_settings_builder(
-        client,
-        args.name.clone(),
-        args.readMask.clone(),
-    )?;
+    let builder =
+        cloudidentity_groups_get_security_settings_builder(client, &args.name, &args.readMask)?;
     cloudidentity_groups_get_security_settings_execute(builder)
 }
 
@@ -1841,18 +1837,18 @@ pub fn cloudidentity_groups_get_security_settings(
 
 pub fn cloudidentity_groups_lookup_builder(
     client: &SimpleHttpClient,
-    groupKey_id: Option<String>,
-    groupKey_namespace: Option<String>,
+    groupKey_id: &Option<String>,
+    groupKey_namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:lookup",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = groupKey_id {
+    if let Some(val) = groupKey_id.as_ref() {
         query_parts.push(format!("groupKey.id={}", val));
     }
-    if let Some(val) = groupKey_namespace {
+    if let Some(val) = groupKey_namespace.as_ref() {
         query_parts.push(format!("groupKey.namespace={}", val));
     }
 
@@ -2004,11 +2000,8 @@ pub fn cloudidentity_groups_lookup(
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_groups_lookup_builder(
-        client,
-        args.groupKey_id.clone(),
-        args.groupKey_namespace.clone(),
-    )?;
+    let builder =
+        cloudidentity_groups_lookup_builder(client, &args.groupKey_id, &args.groupKey_namespace)?;
     cloudidentity_groups_lookup_execute(builder)
 }
 
@@ -2020,26 +2013,26 @@ pub fn cloudidentity_groups_lookup(
 
 pub fn cloudidentity_groups_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    view: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/groups:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2197,10 +2190,10 @@ pub fn cloudidentity_groups_search(
 > {
     let builder = cloudidentity_groups_search_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.view.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.view,
     )?;
     cloudidentity_groups_search_execute(builder)
 }
@@ -2213,8 +2206,8 @@ pub fn cloudidentity_groups_search(
 
 pub fn cloudidentity_groups_memberships_check_transitive_membership_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    query: Option<String>,
+    parent: &String,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2223,7 +2216,7 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -2381,8 +2374,8 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
 > {
     let builder = cloudidentity_groups_memberships_check_transitive_membership_builder(
         client,
-        args.parent.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.query,
     )?;
     cloudidentity_groups_memberships_check_transitive_membership_execute(builder)
 }
@@ -2395,7 +2388,7 @@ pub fn cloudidentity_groups_memberships_check_transitive_membership(
 
 pub fn cloudidentity_groups_memberships_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Membership,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2543,7 +2536,7 @@ pub fn cloudidentity_groups_memberships_create(
     ApiError,
 > {
     let builder =
-        cloudidentity_groups_memberships_create_builder(client, args.parent.clone(), &args.body)?;
+        cloudidentity_groups_memberships_create_builder(client, &args.parent, &args.body)?;
     cloudidentity_groups_memberships_create_execute(builder)
 }
 
@@ -2555,8 +2548,8 @@ pub fn cloudidentity_groups_memberships_create(
 
 pub fn cloudidentity_groups_memberships_get_membership_graph_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    query: Option<String>,
+    parent: &String,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2565,7 +2558,7 @@ pub fn cloudidentity_groups_memberships_get_membership_graph_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -2715,8 +2708,8 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
 > {
     let builder = cloudidentity_groups_memberships_get_membership_graph_builder(
         client,
-        args.parent.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.query,
     )?;
     cloudidentity_groups_memberships_get_membership_graph_execute(builder)
 }
@@ -2729,9 +2722,9 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
 
 pub fn cloudidentity_groups_memberships_lookup_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    memberKey_id: Option<String>,
-    memberKey_namespace: Option<String>,
+    parent: &String,
+    memberKey_id: &Option<String>,
+    memberKey_namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2739,10 +2732,10 @@ pub fn cloudidentity_groups_memberships_lookup_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = memberKey_id {
+    if let Some(val) = memberKey_id.as_ref() {
         query_parts.push(format!("memberKey.id={}", val));
     }
-    if let Some(val) = memberKey_namespace {
+    if let Some(val) = memberKey_namespace.as_ref() {
         query_parts.push(format!("memberKey.namespace={}", val));
     }
 
@@ -2902,9 +2895,9 @@ pub fn cloudidentity_groups_memberships_lookup(
 > {
     let builder = cloudidentity_groups_memberships_lookup_builder(
         client,
-        args.parent.clone(),
-        args.memberKey_id.clone(),
-        args.memberKey_namespace.clone(),
+        &args.parent,
+        &args.memberKey_id,
+        &args.memberKey_namespace,
     )?;
     cloudidentity_groups_memberships_lookup_execute(builder)
 }
@@ -2917,11 +2910,11 @@ pub fn cloudidentity_groups_memberships_lookup(
 
 pub fn cloudidentity_groups_memberships_search_direct_groups_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    parent: &String,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2930,16 +2923,16 @@ pub fn cloudidentity_groups_memberships_search_direct_groups_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -3103,11 +3096,11 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
 > {
     let builder = cloudidentity_groups_memberships_search_direct_groups_builder(
         client,
-        args.parent.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudidentity_groups_memberships_search_direct_groups_execute(builder)
 }
@@ -3120,10 +3113,10 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
 
 pub fn cloudidentity_groups_memberships_search_transitive_groups_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3132,13 +3125,13 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -3300,10 +3293,10 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
 > {
     let builder = cloudidentity_groups_memberships_search_transitive_groups_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     cloudidentity_groups_memberships_search_transitive_groups_execute(builder)
 }
@@ -3316,9 +3309,9 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
 
 pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3327,10 +3320,10 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3490,9 +3483,9 @@ pub fn cloudidentity_groups_memberships_search_transitive_memberships(
 > {
     let builder = cloudidentity_groups_memberships_search_transitive_memberships_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudidentity_groups_memberships_search_transitive_memberships_execute(builder)
 }
@@ -3661,7 +3654,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_create(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3804,8 +3797,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_oidc_sso_profiles_delete_builder(client, args.name.clone())?;
+    let builder = cloudidentity_inbound_oidc_sso_profiles_delete_builder(client, &args.name)?;
     cloudidentity_inbound_oidc_sso_profiles_delete_execute(builder)
 }
 
@@ -3973,7 +3965,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_create(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4116,8 +4108,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudidentity_inbound_saml_sso_profiles_delete_builder(client, args.name.clone())?;
+    let builder = cloudidentity_inbound_saml_sso_profiles_delete_builder(client, &args.name)?;
     cloudidentity_inbound_saml_sso_profiles_delete_execute(builder)
 }
 
@@ -4129,7 +4120,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_delete(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AddIdpCredentialRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4280,7 +4271,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
 > {
     let builder = cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_add_execute(builder)
@@ -4294,9 +4285,9 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_add(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4305,10 +4296,10 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4468,9 +4459,9 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list(
 > {
     let builder = cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_execute(builder)
 }
@@ -4639,7 +4630,7 @@ pub fn cloudidentity_inbound_sso_assignments_create(
 
 pub fn cloudidentity_inbound_sso_assignments_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/inboundSsoAssignments/{}",);
@@ -4781,7 +4772,7 @@ pub fn cloudidentity_inbound_sso_assignments_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_inbound_sso_assignments_delete_builder(client, args.name.clone())?;
+    let builder = cloudidentity_inbound_sso_assignments_delete_builder(client, &args.name)?;
     cloudidentity_inbound_sso_assignments_delete_execute(builder)
 }
 
@@ -4793,7 +4784,7 @@ pub fn cloudidentity_inbound_sso_assignments_delete(
 
 pub fn cloudidentity_policies_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies/{}",);
@@ -4935,7 +4926,7 @@ pub fn cloudidentity_policies_get(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_policies_get_builder(client, args.name.clone())?;
+    let builder = cloudidentity_policies_get_builder(client, &args.name)?;
     cloudidentity_policies_get_execute(builder)
 }
 
@@ -4947,22 +4938,22 @@ pub fn cloudidentity_policies_get(
 
 pub fn cloudidentity_policies_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudidentity.googleapis.com/v1/policies",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -5116,11 +5107,7 @@ pub fn cloudidentity_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder = cloudidentity_policies_list_builder(
-        client,
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        cloudidentity_policies_list_builder(client, &args.filter, &args.pageSize, &args.pageToken)?;
     cloudidentity_policies_list_execute(builder)
 }

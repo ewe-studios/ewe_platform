@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn kmsinventory_organizations_protected_resources_search_builder(
     client: &SimpleHttpClient,
-    scope: String,
-    cryptoKey: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceTypes: Option<String>,
+    scope: &String,
+    cryptoKey: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -42,16 +42,16 @@ pub fn kmsinventory_organizations_protected_resources_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cryptoKey {
+    if let Some(val) = cryptoKey.as_ref() {
         query_parts.push(format!("cryptoKey={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceTypes {
+    if let Some(val) = resourceTypes.as_ref() {
         query_parts.push(format!("resourceTypes={}", val));
     }
 
@@ -225,11 +225,11 @@ pub fn kmsinventory_organizations_protected_resources_search(
 > {
     let builder = kmsinventory_organizations_protected_resources_search_builder(
         client,
-        args.scope.clone(),
-        args.cryptoKey.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceTypes.clone(),
+        &args.scope,
+        &args.cryptoKey,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceTypes,
     )?;
     kmsinventory_organizations_protected_resources_search_execute(builder)
 }
@@ -242,19 +242,19 @@ pub fn kmsinventory_organizations_protected_resources_search(
 
 pub fn kmsinventory_projects_crypto_keys_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://kmsinventory.googleapis.com/v1/projects/{}/cryptoKeys",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -415,9 +415,9 @@ pub fn kmsinventory_projects_crypto_keys_list(
 > {
     let builder = kmsinventory_projects_crypto_keys_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     kmsinventory_projects_crypto_keys_list_execute(builder)
 }
@@ -430,11 +430,11 @@ pub fn kmsinventory_projects_crypto_keys_list(
 
 pub fn kmsinventory_projects_protected_resources_search_builder(
     client: &SimpleHttpClient,
-    scope: String,
-    cryptoKey: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resourceTypes: Option<String>,
+    scope: &String,
+    cryptoKey: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resourceTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -442,16 +442,16 @@ pub fn kmsinventory_projects_protected_resources_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cryptoKey {
+    if let Some(val) = cryptoKey.as_ref() {
         query_parts.push(format!("cryptoKey={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resourceTypes {
+    if let Some(val) = resourceTypes.as_ref() {
         query_parts.push(format!("resourceTypes={}", val));
     }
 
@@ -625,11 +625,11 @@ pub fn kmsinventory_projects_protected_resources_search(
 > {
     let builder = kmsinventory_projects_protected_resources_search_builder(
         client,
-        args.scope.clone(),
-        args.cryptoKey.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resourceTypes.clone(),
+        &args.scope,
+        &args.cryptoKey,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resourceTypes,
     )?;
     kmsinventory_projects_protected_resources_search_execute(builder)
 }

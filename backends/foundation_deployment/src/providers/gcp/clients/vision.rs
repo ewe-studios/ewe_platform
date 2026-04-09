@@ -669,7 +669,7 @@ pub fn vision_images_async_batch_annotate(
 
 pub fn vision_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -816,7 +816,7 @@ pub fn vision_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = vision_operations_cancel_builder(client, &args.name, &args.body)?;
     vision_operations_cancel_execute(builder)
 }
 
@@ -828,7 +828,7 @@ pub fn vision_operations_cancel(
 
 pub fn vision_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vision.googleapis.com/v1/operations/{}",);
@@ -970,7 +970,7 @@ pub fn vision_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_operations_delete_builder(client, args.name.clone())?;
+    let builder = vision_operations_delete_builder(client, &args.name)?;
     vision_operations_delete_execute(builder)
 }
 
@@ -982,7 +982,7 @@ pub fn vision_operations_delete(
 
 pub fn vision_projects_files_annotate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1137,7 +1137,7 @@ pub fn vision_projects_files_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_files_annotate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = vision_projects_files_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_files_annotate_execute(builder)
 }
 
@@ -1149,7 +1149,7 @@ pub fn vision_projects_files_annotate(
 
 pub fn vision_projects_files_async_batch_annotate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AsyncBatchAnnotateFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1297,11 +1297,8 @@ pub fn vision_projects_files_async_batch_annotate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_files_async_batch_annotate_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        vision_projects_files_async_batch_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_files_async_batch_annotate_execute(builder)
 }
 
@@ -1313,7 +1310,7 @@ pub fn vision_projects_files_async_batch_annotate(
 
 pub fn vision_projects_images_annotate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1468,7 +1465,7 @@ pub fn vision_projects_images_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = vision_projects_images_annotate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = vision_projects_images_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_images_annotate_execute(builder)
 }
 
@@ -1480,7 +1477,7 @@ pub fn vision_projects_images_annotate(
 
 pub fn vision_projects_images_async_batch_annotate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AsyncBatchAnnotateImagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1628,10 +1625,7 @@ pub fn vision_projects_images_async_batch_annotate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vision_projects_images_async_batch_annotate_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        vision_projects_images_async_batch_annotate_builder(client, &args.parent, &args.body)?;
     vision_projects_images_async_batch_annotate_execute(builder)
 }

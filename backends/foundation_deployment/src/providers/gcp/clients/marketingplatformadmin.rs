@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
     body: &FindSalesPartnerManagedClientsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -189,7 +189,7 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 > {
     let builder = marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
         client,
-        args.organization.clone(),
+        &args.organization,
         &args.body,
     )?;
     marketingplatformadmin_organizations_find_sales_partner_managed_clients_execute(builder)
@@ -203,7 +203,7 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 
 pub fn marketingplatformadmin_organizations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -350,7 +350,7 @@ pub fn marketingplatformadmin_organizations_get(
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_get_builder(client, args.name.clone())?;
+    let builder = marketingplatformadmin_organizations_get_builder(client, &args.name)?;
     marketingplatformadmin_organizations_get_execute(builder)
 }
 
@@ -362,8 +362,8 @@ pub fn marketingplatformadmin_organizations_get(
 
 pub fn marketingplatformadmin_organizations_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -371,10 +371,10 @@ pub fn marketingplatformadmin_organizations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -526,11 +526,8 @@ pub fn marketingplatformadmin_organizations_list(
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        marketingplatformadmin_organizations_list_builder(client, &args.pageSize, &args.pageToken)?;
     marketingplatformadmin_organizations_list_execute(builder)
 }
 
@@ -542,7 +539,7 @@ pub fn marketingplatformadmin_organizations_list(
 
 pub fn marketingplatformadmin_organizations_report_property_usage_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
     body: &ReportPropertyUsageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -701,7 +698,7 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 > {
     let builder = marketingplatformadmin_organizations_report_property_usage_builder(
         client,
-        args.organization.clone(),
+        &args.organization,
         &args.body,
     )?;
     marketingplatformadmin_organizations_report_property_usage_execute(builder)
@@ -715,7 +712,7 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AnalyticsAccountLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -870,7 +867,7 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create(
 > {
     let builder = marketingplatformadmin_organizations_analytics_account_links_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     marketingplatformadmin_organizations_analytics_account_links_create_execute(builder)

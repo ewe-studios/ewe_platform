@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn get_organizations_builder(
     client: &SimpleHttpClient,
-    page: Option<String>,
-    per_page: Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.planetscale.com/v1/organizations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -185,7 +185,7 @@ pub fn get_organizations(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_builder(client, args.page.clone(), args.per_page.clone())?;
+    let builder = get_organizations_builder(client, &args.page, &args.per_page)?;
     get_organizations_execute(builder)
 }
 
@@ -197,12 +197,12 @@ pub fn get_organizations(
 
 pub fn get_organizations_organization_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
@@ -339,7 +339,7 @@ pub fn get_organizations_organization(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_builder(client, args.organization.clone())?;
+    let builder = get_organizations_organization_builder(client, &args.organization)?;
     get_organizations_organization_execute(builder)
 }
 
@@ -351,12 +351,12 @@ pub fn get_organizations_organization(
 
 pub fn patch_organizations_organization_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
@@ -493,7 +493,7 @@ pub fn patch_organizations_organization(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_builder(client, args.organization.clone())?;
+    let builder = patch_organizations_organization_builder(client, &args.organization)?;
     patch_organizations_organization_execute(builder)
 }
 
@@ -505,26 +505,26 @@ pub fn patch_organizations_organization(
 
 pub fn get_organizations_organization_audit_log_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    starting_after: Option<String>,
-    ending_before: Option<String>,
-    limit: Option<String>,
+    organization: &String,
+    starting_after: &Option<String>,
+    ending_before: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/audit-log",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -675,10 +675,10 @@ pub fn get_organizations_organization_audit_log(
 > {
     let builder = get_organizations_organization_audit_log_builder(
         client,
-        args.organization.clone(),
-        args.starting_after.clone(),
-        args.ending_before.clone(),
-        args.limit.clone(),
+        &args.organization,
+        &args.starting_after,
+        &args.ending_before,
+        &args.limit,
     )?;
     get_organizations_organization_audit_log_execute(builder)
 }
@@ -691,26 +691,26 @@ pub fn get_organizations_organization_audit_log(
 
 pub fn get_organizations_organization_cluster_size_skus_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    engine: Option<String>,
-    rates: Option<String>,
-    region: Option<String>,
+    organization: &String,
+    engine: &Option<String>,
+    rates: &Option<String>,
+    region: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/cluster-size-skus",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = engine {
+    if let Some(val) = engine.as_ref() {
         query_parts.push(format!("engine={}", val));
     }
-    if let Some(val) = rates {
+    if let Some(val) = rates.as_ref() {
         query_parts.push(format!("rates={}", val));
     }
-    if let Some(val) = region {
+    if let Some(val) = region.as_ref() {
         query_parts.push(format!("region={}", val));
     }
 
@@ -861,10 +861,10 @@ pub fn get_organizations_organization_cluster_size_skus(
 > {
     let builder = get_organizations_organization_cluster_size_skus_builder(
         client,
-        args.organization.clone(),
-        args.engine.clone(),
-        args.rates.clone(),
-        args.region.clone(),
+        &args.organization,
+        &args.engine,
+        &args.rates,
+        &args.region,
     )?;
     get_organizations_organization_cluster_size_skus_execute(builder)
 }
@@ -877,26 +877,26 @@ pub fn get_organizations_organization_cluster_size_skus(
 
 pub fn get_organizations_organization_databases_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    q: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -1047,10 +1047,10 @@ pub fn get_organizations_organization_databases(
 > {
     let builder = get_organizations_organization_databases_builder(
         client,
-        args.organization.clone(),
-        args.q.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.q,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_execute(builder)
 }
@@ -1063,12 +1063,12 @@ pub fn get_organizations_organization_databases(
 
 pub fn post_organizations_organization_databases_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
@@ -1205,8 +1205,7 @@ pub fn post_organizations_organization_databases(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_organizations_organization_databases_builder(client, args.organization.clone())?;
+    let builder = post_organizations_organization_databases_builder(client, &args.organization)?;
     post_organizations_organization_databases_execute(builder)
 }
 
@@ -1218,14 +1217,13 @@ pub fn post_organizations_organization_databases(
 
 pub fn get_organizations_organization_databases_database_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -1366,8 +1364,8 @@ pub fn get_organizations_organization_databases_database(
 > {
     let builder = get_organizations_organization_databases_database_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     get_organizations_organization_databases_database_execute(builder)
 }
@@ -1380,14 +1378,13 @@ pub fn get_organizations_organization_databases_database(
 
 pub fn patch_organizations_organization_databases_database_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -1528,8 +1525,8 @@ pub fn patch_organizations_organization_databases_database(
 > {
     let builder = patch_organizations_organization_databases_database_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     patch_organizations_organization_databases_database_execute(builder)
 }
@@ -1542,14 +1539,13 @@ pub fn patch_organizations_organization_databases_database(
 
 pub fn delete_organizations_organization_databases_database_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -1690,8 +1686,8 @@ pub fn delete_organizations_organization_databases_database(
 > {
     let builder = delete_organizations_organization_databases_database_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     delete_organizations_organization_databases_database_execute(builder)
 }
@@ -1704,24 +1700,23 @@ pub fn delete_organizations_organization_databases_database(
 
 pub fn get_organizations_organization_databases_database_backup_policies_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/backup-policies",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -1872,10 +1867,10 @@ pub fn get_organizations_organization_databases_database_backup_policies(
 > {
     let builder = get_organizations_organization_databases_database_backup_policies_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_backup_policies_execute(builder)
 }
@@ -1888,14 +1883,13 @@ pub fn get_organizations_organization_databases_database_backup_policies(
 
 pub fn post_organizations_organization_databases_database_backup_policies_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/backup-policies",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -2036,8 +2030,8 @@ pub fn post_organizations_organization_databases_database_backup_policies(
 > {
     let builder = post_organizations_organization_databases_database_backup_policies_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_backup_policies_execute(builder)
 }
@@ -2050,16 +2044,14 @@ pub fn post_organizations_organization_databases_database_backup_policies(
 
 pub fn get_organizations_organization_databases_database_backup_policies_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
+    id: &String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/backup-policies/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -2202,9 +2194,9 @@ pub fn get_organizations_organization_databases_database_backup_policies_id(
 > {
     let builder = get_organizations_organization_databases_database_backup_policies_id_builder(
         client,
-        args.id.clone(),
-        args.organization.clone(),
-        args.database.clone(),
+        &args.id,
+        &args.organization,
+        &args.database,
     )?;
     get_organizations_organization_databases_database_backup_policies_id_execute(builder)
 }
@@ -2217,16 +2209,14 @@ pub fn get_organizations_organization_databases_database_backup_policies_id(
 
 pub fn patch_organizations_organization_databases_database_backup_policies_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
+    id: &String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/backup-policies/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -2370,9 +2360,9 @@ pub fn patch_organizations_organization_databases_database_backup_policies_id(
 > {
     let builder = patch_organizations_organization_databases_database_backup_policies_id_builder(
         client,
-        args.id.clone(),
-        args.organization.clone(),
-        args.database.clone(),
+        &args.id,
+        &args.organization,
+        &args.database,
     )?;
     patch_organizations_organization_databases_database_backup_policies_id_execute(builder)
 }
@@ -2385,16 +2375,14 @@ pub fn patch_organizations_organization_databases_database_backup_policies_id(
 
 pub fn delete_organizations_organization_databases_database_backup_policies_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
+    id: &String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/backup-policies/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -2538,9 +2526,9 @@ pub fn delete_organizations_organization_databases_database_backup_policies_id(
 > {
     let builder = delete_organizations_organization_databases_database_backup_policies_id_builder(
         client,
-        args.id.clone(),
-        args.organization.clone(),
-        args.database.clone(),
+        &args.id,
+        &args.organization,
+        &args.database,
     )?;
     delete_organizations_organization_databases_database_backup_policies_id_execute(builder)
 }
@@ -2553,40 +2541,39 @@ pub fn delete_organizations_organization_databases_database_backup_policies_id(
 
 pub fn get_organizations_organization_databases_database_branches_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    q: Option<String>,
-    production: Option<String>,
-    safe_migrations: Option<String>,
-    order: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    q: &Option<String>,
+    production: &Option<String>,
+    safe_migrations: &Option<String>,
+    order: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = production {
+    if let Some(val) = production.as_ref() {
         query_parts.push(format!("production={}", val));
     }
-    if let Some(val) = safe_migrations {
+    if let Some(val) = safe_migrations.as_ref() {
         query_parts.push(format!("safe_migrations={}", val));
     }
-    if let Some(val) = order {
+    if let Some(val) = order.as_ref() {
         query_parts.push(format!("order={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -2745,14 +2732,14 @@ pub fn get_organizations_organization_databases_database_branches(
 > {
     let builder = get_organizations_organization_databases_database_branches_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.q.clone(),
-        args.production.clone(),
-        args.safe_migrations.clone(),
-        args.order.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.q,
+        &args.production,
+        &args.safe_migrations,
+        &args.order,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_branches_execute(builder)
 }
@@ -2765,14 +2752,13 @@ pub fn get_organizations_organization_databases_database_branches(
 
 pub fn post_organizations_organization_databases_database_branches_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -2913,8 +2899,8 @@ pub fn post_organizations_organization_databases_database_branches(
 > {
     let builder = post_organizations_organization_databases_database_branches_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_branches_execute(builder)
 }
@@ -2927,16 +2913,14 @@ pub fn post_organizations_organization_databases_database_branches(
 
 pub fn get_organizations_organization_databases_database_branches_branch_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -3079,9 +3063,9 @@ pub fn get_organizations_organization_databases_database_branches_branch(
 > {
     let builder = get_organizations_organization_databases_database_branches_branch_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
     )?;
     get_organizations_organization_databases_database_branches_branch_execute(builder)
 }
@@ -3094,16 +3078,14 @@ pub fn get_organizations_organization_databases_database_branches_branch(
 
 pub fn patch_organizations_organization_databases_database_branches_branch_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -3246,9 +3228,9 @@ pub fn patch_organizations_organization_databases_database_branches_branch(
 > {
     let builder = patch_organizations_organization_databases_database_branches_branch_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
     )?;
     patch_organizations_organization_databases_database_branches_branch_execute(builder)
 }
@@ -3261,22 +3243,20 @@ pub fn patch_organizations_organization_databases_database_branches_branch(
 
 pub fn delete_organizations_organization_databases_database_branches_branch_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    delete_descendants: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    delete_descendants: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = delete_descendants {
+    if let Some(val) = delete_descendants.as_ref() {
         query_parts.push(format!("delete_descendants={}", val));
     }
 
@@ -3427,10 +3407,10 @@ pub fn delete_organizations_organization_databases_database_branches_branch(
 > {
     let builder = delete_organizations_organization_databases_database_branches_branch_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
-        args.delete_descendants.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
+        &args.delete_descendants,
     )?;
     delete_organizations_organization_databases_database_branches_branch_execute(builder)
 }
@@ -3443,54 +3423,52 @@ pub fn delete_organizations_organization_databases_database_branches_branch(
 
 pub fn get_organizations_organization_databases_database_branches_branch_backups_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    all: Option<String>,
-    state: Option<String>,
-    policy: Option<String>,
-    from: Option<String>,
-    to: Option<String>,
-    running_at: Option<String>,
-    production: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    all: &Option<String>,
+    state: &Option<String>,
+    policy: &Option<String>,
+    from: &Option<String>,
+    to: &Option<String>,
+    running_at: &Option<String>,
+    production: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/backups",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = all {
+    if let Some(val) = all.as_ref() {
         query_parts.push(format!("all={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = policy {
+    if let Some(val) = policy.as_ref() {
         query_parts.push(format!("policy={}", val));
     }
-    if let Some(val) = from {
+    if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
     }
-    if let Some(val) = to {
+    if let Some(val) = to.as_ref() {
         query_parts.push(format!("to={}", val));
     }
-    if let Some(val) = running_at {
+    if let Some(val) = running_at.as_ref() {
         query_parts.push(format!("running_at={}", val));
     }
-    if let Some(val) = production {
+    if let Some(val) = production.as_ref() {
         query_parts.push(format!("production={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -3659,18 +3637,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
     let builder =
         get_organizations_organization_databases_database_branches_branch_backups_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.all.clone(),
-            args.state.clone(),
-            args.policy.clone(),
-            args.from.clone(),
-            args.to.clone(),
-            args.running_at.clone(),
-            args.production.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.all,
+            &args.state,
+            &args.policy,
+            &args.from,
+            &args.to,
+            &args.running_at,
+            &args.production,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_backups_execute(builder)
 }
@@ -3683,16 +3661,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
 
 pub fn post_organizations_organization_databases_database_branches_branch_backups_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/backups",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -3837,9 +3813,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_backup
     let builder =
         post_organizations_organization_databases_database_branches_branch_backups_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_backups_execute(builder)
 }
@@ -3852,18 +3828,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_backup
 
 pub fn get_organizations_organization_databases_database_branches_branch_backups_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
-    branch: String,
+    id: &String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/backups/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -4010,10 +3983,10 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
     let builder =
         get_organizations_organization_databases_database_branches_branch_backups_id_builder(
             client,
-            args.id.clone(),
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.id,
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     get_organizations_organization_databases_database_branches_branch_backups_id_execute(builder)
 }
@@ -4026,18 +3999,15 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
 
 pub fn patch_organizations_organization_databases_database_branches_branch_backups_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
-    branch: String,
+    id: &String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/backups/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -4185,10 +4155,10 @@ pub fn patch_organizations_organization_databases_database_branches_branch_backu
     let builder =
         patch_organizations_organization_databases_database_branches_branch_backups_id_builder(
             client,
-            args.id.clone(),
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.id,
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     patch_organizations_organization_databases_database_branches_branch_backups_id_execute(builder)
 }
@@ -4201,18 +4171,15 @@ pub fn patch_organizations_organization_databases_database_branches_branch_backu
 
 pub fn delete_organizations_organization_databases_database_branches_branch_backups_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
-    branch: String,
+    id: &String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/backups/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -4361,10 +4328,10 @@ pub fn delete_organizations_organization_databases_database_branches_branch_back
     let builder =
         delete_organizations_organization_databases_database_branches_branch_backups_id_builder(
             client,
-            args.id.clone(),
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.id,
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     delete_organizations_organization_databases_database_branches_branch_backups_id_execute(builder)
 }
@@ -4377,26 +4344,24 @@ pub fn delete_organizations_organization_databases_database_branches_branch_back
 
 pub fn get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncer-resizes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -4553,11 +4518,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
     let builder =
         get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_bouncer_resizes_execute(
         builder,
@@ -4572,26 +4537,24 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 
 pub fn get_organizations_organization_databases_database_branches_branch_bouncers_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -4746,11 +4709,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
     let builder =
         get_organizations_organization_databases_database_branches_branch_bouncers_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_bouncers_execute(builder)
 }
@@ -4763,16 +4726,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 
 pub fn post_organizations_organization_databases_database_branches_branch_bouncers_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -4917,9 +4878,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_bounce
     let builder =
         post_organizations_organization_databases_database_branches_branch_bouncers_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_bouncers_execute(builder)
 }
@@ -4932,18 +4893,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_bounce
 
 pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    bouncer: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    bouncer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        bouncer.as_str(),
+        organization, database, branch, bouncer,
     );
 
     // Build request
@@ -5092,10 +5050,10 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
     let builder =
         get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.bouncer.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.bouncer,
         )?;
     get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
         builder,
@@ -5110,18 +5068,15 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 
 pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    bouncer: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    bouncer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        bouncer.as_str(),
+        organization, database, branch, bouncer,
     );
 
     // Build request
@@ -5267,7 +5222,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.bouncer.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder(client, &args.organization, &args.database, &args.branch, &args.bouncer)?;
     delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
         builder,
     )
@@ -5281,28 +5236,28 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
 
 pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    bouncer: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    bouncer: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers/{}/resizes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        bouncer.as_str(),
+        organization,
+        database,
+        branch,
+        bouncer,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -5455,7 +5410,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.bouncer.clone(), args.page.clone(), args.per_page.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, &args.organization, &args.database, &args.branch, &args.bouncer, &args.page, &args.per_page)?;
     get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(builder)
 }
 
@@ -5467,18 +5422,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 
 pub fn patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    bouncer: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    bouncer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers/{}/resizes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        bouncer.as_str(),
+        organization,
+        database,
+        branch,
+        bouncer,
     );
 
     // Build request
@@ -5621,7 +5576,7 @@ pub fn patch_organizations_organization_databases_database_branches_branch_bounc
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.bouncer.clone())?;
+    let builder = patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, &args.organization, &args.database, &args.branch, &args.bouncer)?;
     patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(builder)
 }
 
@@ -5633,18 +5588,18 @@ pub fn patch_organizations_organization_databases_database_branches_branch_bounc
 
 pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    bouncer: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    bouncer: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/bouncers/{}/resizes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        bouncer.as_str(),
+        organization,
+        database,
+        branch,
+        bouncer,
     );
 
     // Build request
@@ -5788,7 +5743,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.bouncer.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder(client, &args.organization, &args.database, &args.branch, &args.bouncer)?;
     delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(builder)
 }
 
@@ -5800,26 +5755,24 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
 
 pub fn get_organizations_organization_databases_database_branches_branch_changes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/changes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -5974,11 +5927,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
     let builder =
         get_organizations_organization_databases_database_branches_branch_changes_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_changes_execute(builder)
 }
@@ -5991,16 +5944,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
 
 pub fn patch_organizations_organization_databases_database_branches_branch_changes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/changes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -6145,9 +6096,9 @@ pub fn patch_organizations_organization_databases_database_branches_branch_chang
     let builder =
         patch_organizations_organization_databases_database_branches_branch_changes_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     patch_organizations_organization_databases_database_branches_branch_changes_execute(builder)
 }
@@ -6160,18 +6111,15 @@ pub fn patch_organizations_organization_databases_database_branches_branch_chang
 
 pub fn get_organizations_organization_databases_database_branches_branch_changes_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/changes/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -6318,10 +6266,10 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
     let builder =
         get_organizations_organization_databases_database_branches_branch_changes_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     get_organizations_organization_databases_database_branches_branch_changes_id_execute(builder)
 }
@@ -6334,16 +6282,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
 
 pub fn patch_organizations_organization_databases_database_branches_branch_cluster_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/cluster",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -6488,9 +6434,9 @@ pub fn patch_organizations_organization_databases_database_branches_branch_clust
     let builder =
         patch_organizations_organization_databases_database_branches_branch_cluster_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     patch_organizations_organization_databases_database_branches_branch_cluster_execute(builder)
 }
@@ -6503,16 +6449,14 @@ pub fn patch_organizations_organization_databases_database_branches_branch_clust
 
 pub fn post_organizations_organization_databases_database_branches_branch_demote_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/demote",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -6657,9 +6601,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_demote
     let builder =
         post_organizations_organization_databases_database_branches_branch_demote_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_demote_execute(builder)
 }
@@ -6672,16 +6616,14 @@ pub fn post_organizations_organization_databases_database_branches_branch_demote
 
 pub fn get_organizations_organization_databases_database_branches_branch_extensions_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/extensions",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -6826,9 +6768,9 @@ pub fn get_organizations_organization_databases_database_branches_branch_extensi
     let builder =
         get_organizations_organization_databases_database_branches_branch_extensions_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     get_organizations_organization_databases_database_branches_branch_extensions_execute(builder)
 }
@@ -6841,26 +6783,24 @@ pub fn get_organizations_organization_databases_database_branches_branch_extensi
 
 pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -7015,11 +6955,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
     let builder =
         get_organizations_organization_databases_database_branches_branch_keyspaces_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_keyspaces_execute(builder)
 }
@@ -7032,16 +6972,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 
 pub fn post_organizations_organization_databases_database_branches_branch_keyspaces_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -7186,9 +7124,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_keyspa
     let builder =
         post_organizations_organization_databases_database_branches_branch_keyspaces_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_keyspaces_execute(builder)
 }
@@ -7201,18 +7139,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_keyspa
 
 pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization, database, branch, keyspace,
     );
 
     // Build request
@@ -7358,7 +7293,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
         builder,
     )
@@ -7372,18 +7307,15 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 
 pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization, database, branch, keyspace,
     );
 
     // Build request
@@ -7526,7 +7458,7 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
         builder,
     )
@@ -7540,18 +7472,15 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
 
 pub fn delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization, database, branch, keyspace,
     );
 
     // Build request
@@ -7694,7 +7623,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_keys
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
         builder,
     )
@@ -7708,18 +7637,18 @@ pub fn delete_organizations_organization_databases_database_branches_branch_keys
 
 pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}/rollout-status",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization,
+        database,
+        branch,
+        keyspace,
     );
 
     // Build request
@@ -7863,7 +7792,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_execute(builder)
 }
 
@@ -7875,18 +7804,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 
 pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}/vschema",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization,
+        database,
+        branch,
+        keyspace,
     );
 
     // Build request
@@ -8029,7 +7958,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(builder)
 }
 
@@ -8041,18 +7970,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 
 pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/keyspaces/{}/vschema",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        keyspace.as_str(),
+        organization,
+        database,
+        branch,
+        keyspace,
     );
 
     // Build request
@@ -8196,7 +8125,7 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.keyspace.clone())?;
+    let builder = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder(client, &args.organization, &args.database, &args.branch, &args.keyspace)?;
     patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(builder)
 }
 
@@ -8208,16 +8137,14 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
 
 pub fn get_organizations_organization_databases_database_branches_branch_parameters_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/parameters",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -8362,9 +8289,9 @@ pub fn get_organizations_organization_databases_database_branches_branch_paramet
     let builder =
         get_organizations_organization_databases_database_branches_branch_parameters_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     get_organizations_organization_databases_database_branches_branch_parameters_execute(builder)
 }
@@ -8377,30 +8304,28 @@ pub fn get_organizations_organization_databases_database_branches_branch_paramet
 
 pub fn get_organizations_organization_databases_database_branches_branch_passwords_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    read_only_region_id: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    read_only_region_id: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = read_only_region_id {
+    if let Some(val) = read_only_region_id.as_ref() {
         query_parts.push(format!("read_only_region_id={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -8557,12 +8482,12 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
     let builder =
         get_organizations_organization_databases_database_branches_branch_passwords_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.read_only_region_id.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.read_only_region_id,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_passwords_execute(builder)
 }
@@ -8575,16 +8500,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
 
 pub fn post_organizations_organization_databases_database_branches_branch_passwords_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -8729,9 +8652,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
     let builder =
         post_organizations_organization_databases_database_branches_branch_passwords_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_passwords_execute(builder)
 }
@@ -8744,18 +8667,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
 
 pub fn get_organizations_organization_databases_database_branches_branch_passwords_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -8903,10 +8823,10 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
     let builder =
         get_organizations_organization_databases_database_branches_branch_passwords_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     get_organizations_organization_databases_database_branches_branch_passwords_id_execute(builder)
 }
@@ -8919,18 +8839,15 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
 
 pub fn patch_organizations_organization_databases_database_branches_branch_passwords_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -9079,10 +8996,10 @@ pub fn patch_organizations_organization_databases_database_branches_branch_passw
     let builder =
         patch_organizations_organization_databases_database_branches_branch_passwords_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     patch_organizations_organization_databases_database_branches_branch_passwords_id_execute(
         builder,
@@ -9097,18 +9014,15 @@ pub fn patch_organizations_organization_databases_database_branches_branch_passw
 
 pub fn delete_organizations_organization_databases_database_branches_branch_passwords_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -9257,10 +9171,10 @@ pub fn delete_organizations_organization_databases_database_branches_branch_pass
     let builder =
         delete_organizations_organization_databases_database_branches_branch_passwords_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     delete_organizations_organization_databases_database_branches_branch_passwords_id_execute(
         builder,
@@ -9275,18 +9189,18 @@ pub fn delete_organizations_organization_databases_database_branches_branch_pass
 
 pub fn post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/passwords/{}/renew",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -9432,7 +9346,7 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     post_organizations_organization_databases_database_branches_branch_passwords_id_renew_execute(
         builder,
     )
@@ -9446,16 +9360,14 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
 
 pub fn post_organizations_organization_databases_database_branches_branch_promote_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/promote",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -9600,9 +9512,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_promot
     let builder =
         post_organizations_organization_databases_database_branches_branch_promote_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_promote_execute(builder)
 }
@@ -9615,30 +9527,28 @@ pub fn post_organizations_organization_databases_database_branches_branch_promot
 
 pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    starting_after: Option<String>,
-    ending_before: Option<String>,
-    limit: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    starting_after: &Option<String>,
+    ending_before: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/query-patterns",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = starting_after {
+    if let Some(val) = starting_after.as_ref() {
         query_parts.push(format!("starting_after={}", val));
     }
-    if let Some(val) = ending_before {
+    if let Some(val) = ending_before.as_ref() {
         query_parts.push(format!("ending_before={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -9797,12 +9707,12 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
     let builder =
         get_organizations_organization_databases_database_branches_branch_query_patterns_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.starting_after.clone(),
-            args.ending_before.clone(),
-            args.limit.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.starting_after,
+            &args.ending_before,
+            &args.limit,
         )?;
     get_organizations_organization_databases_database_branches_branch_query_patterns_execute(
         builder,
@@ -9817,16 +9727,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 
 pub fn post_organizations_organization_databases_database_branches_branch_query_patterns_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/query-patterns",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -9973,9 +9881,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_query_
     let builder =
         post_organizations_organization_databases_database_branches_branch_query_patterns_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_query_patterns_execute(
         builder,
@@ -9990,18 +9898,18 @@ pub fn post_organizations_organization_databases_database_branches_branch_query_
 
 pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/query-patterns/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -10147,7 +10055,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     get_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
         builder,
     )
@@ -10161,18 +10069,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 
 pub fn delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/query-patterns/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -10315,7 +10223,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_quer
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     delete_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
         builder,
     )
@@ -10329,18 +10237,18 @@ pub fn delete_organizations_organization_databases_database_branches_branch_quer
 
 pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/query-patterns/{}/download",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -10483,7 +10391,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_execute(builder)
 }
 
@@ -10495,16 +10403,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 
 pub fn delete_organizations_organization_databases_database_branches_branch_resizes_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/resizes",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -10649,9 +10555,9 @@ pub fn delete_organizations_organization_databases_database_branches_branch_resi
     let builder =
         delete_organizations_organization_databases_database_branches_branch_resizes_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     delete_organizations_organization_databases_database_branches_branch_resizes_execute(builder)
 }
@@ -10664,26 +10570,24 @@ pub fn delete_organizations_organization_databases_database_branches_branch_resi
 
 pub fn get_organizations_organization_databases_database_branches_branch_roles_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -10837,11 +10741,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles(
 > {
     let builder = get_organizations_organization_databases_database_branches_branch_roles_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_branches_branch_roles_execute(builder)
 }
@@ -10854,16 +10758,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles(
 
 pub fn post_organizations_organization_databases_database_branches_branch_roles_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -11007,9 +10909,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles(
 > {
     let builder = post_organizations_organization_databases_database_branches_branch_roles_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
     )?;
     post_organizations_organization_databases_database_branches_branch_roles_execute(builder)
 }
@@ -11022,16 +10924,14 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles(
 
 pub fn get_organizations_organization_databases_database_branches_branch_roles_default_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/default",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -11178,9 +11078,9 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_d
     let builder =
         get_organizations_organization_databases_database_branches_branch_roles_default_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     get_organizations_organization_databases_database_branches_branch_roles_default_execute(builder)
 }
@@ -11193,16 +11093,16 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_d
 
 pub fn post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/reset-default",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization,
+        database,
+        branch,
     );
 
     // Build request
@@ -11343,7 +11243,7 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone())?;
+    let builder = post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder(client, &args.organization, &args.database, &args.branch)?;
     post_organizations_organization_databases_database_branches_branch_roles_reset_default_execute(
         builder,
     )
@@ -11357,18 +11257,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 
 pub fn get_organizations_organization_databases_database_branches_branch_roles_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -11515,10 +11412,10 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_i
     let builder =
         get_organizations_organization_databases_database_branches_branch_roles_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     get_organizations_organization_databases_database_branches_branch_roles_id_execute(builder)
 }
@@ -11531,18 +11428,15 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_i
 
 pub fn patch_organizations_organization_databases_database_branches_branch_roles_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -11689,10 +11583,10 @@ pub fn patch_organizations_organization_databases_database_branches_branch_roles
     let builder =
         patch_organizations_organization_databases_database_branches_branch_roles_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     patch_organizations_organization_databases_database_branches_branch_roles_id_execute(builder)
 }
@@ -11705,24 +11599,21 @@ pub fn patch_organizations_organization_databases_database_branches_branch_roles
 
 pub fn delete_organizations_organization_databases_database_branches_branch_roles_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
-    successor: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
+    successor: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = successor {
+    if let Some(val) = successor.as_ref() {
         query_parts.push(format!("successor={}", val));
     }
 
@@ -11878,11 +11769,11 @@ pub fn delete_organizations_organization_databases_database_branches_branch_role
     let builder =
         delete_organizations_organization_databases_database_branches_branch_roles_id_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
-            args.successor.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
+            &args.successor,
         )?;
     delete_organizations_organization_databases_database_branches_branch_roles_id_execute(builder)
 }
@@ -11895,18 +11786,18 @@ pub fn delete_organizations_organization_databases_database_branches_branch_role
 
 pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}/reassign",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -12052,7 +11943,7 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     post_organizations_organization_databases_database_branches_branch_roles_id_reassign_execute(
         builder,
     )
@@ -12066,18 +11957,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 
 pub fn post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}/renew",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -12226,10 +12114,10 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
     let builder =
         post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     post_organizations_organization_databases_database_branches_branch_roles_id_renew_execute(
         builder,
@@ -12244,18 +12132,15 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 
 pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/roles/{}/reset",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization, database, branch, id,
     );
 
     // Build request
@@ -12404,10 +12289,10 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
     let builder =
         post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.id.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.id,
         )?;
     post_organizations_organization_databases_database_branches_branch_roles_id_reset_execute(
         builder,
@@ -12422,16 +12307,14 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 
 pub fn post_organizations_organization_databases_database_branches_branch_safe_migrations_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/safe-migrations",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -12578,9 +12461,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_safe_m
     let builder =
         post_organizations_organization_databases_database_branches_branch_safe_migrations_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
         builder,
@@ -12595,16 +12478,14 @@ pub fn post_organizations_organization_databases_database_branches_branch_safe_m
 
 pub fn delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/safe-migrations",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -12748,7 +12629,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_safe
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder(client, &args.organization, &args.database, &args.branch)?;
     delete_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
         builder,
     )
@@ -12762,26 +12643,24 @@ pub fn delete_organizations_organization_databases_database_branches_branch_safe
 
 pub fn get_organizations_organization_databases_database_branches_branch_schema_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    keyspace: Option<String>,
-    namespace: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    keyspace: &Option<String>,
+    namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/schema",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = keyspace {
+    if let Some(val) = keyspace.as_ref() {
         query_parts.push(format!("keyspace={}", val));
     }
-    if let Some(val) = namespace {
+    if let Some(val) = namespace.as_ref() {
         query_parts.push(format!("namespace={}", val));
     }
 
@@ -12935,11 +12814,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema(
 > {
     let builder = get_organizations_organization_databases_database_branches_branch_schema_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.branch.clone(),
-        args.keyspace.clone(),
-        args.namespace.clone(),
+        &args.organization,
+        &args.database,
+        &args.branch,
+        &args.keyspace,
+        &args.namespace,
     )?;
     get_organizations_organization_databases_database_branches_branch_schema_execute(builder)
 }
@@ -12952,26 +12831,24 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema(
 
 pub fn get_organizations_organization_databases_database_branches_branch_schema_lint_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/schema/lint",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -13127,11 +13004,11 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
     let builder =
         get_organizations_organization_databases_database_branches_branch_schema_lint_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_branches_branch_schema_lint_execute(builder)
 }
@@ -13144,38 +13021,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
 
 pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    page: Option<String>,
-    per_page: Option<String>,
-    period: Option<String>,
-    created_at: Option<String>,
-    fingerprint: Option<String>,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
+    period: &Option<String>,
+    created_at: &Option<String>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
-    if let Some(val) = period {
+    if let Some(val) = period.as_ref() {
         query_parts.push(format!("period={}", val));
     }
-    if let Some(val) = created_at {
+    if let Some(val) = created_at.as_ref() {
         query_parts.push(format!("created_at={}", val));
     }
-    if let Some(val) = fingerprint {
+    if let Some(val) = fingerprint.as_ref() {
         query_parts.push(format!("fingerprint={}", val));
     }
 
@@ -13338,14 +13213,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
     let builder =
         get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
-            args.period.clone(),
-            args.created_at.clone(),
-            args.fingerprint.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
+            &args.page,
+            &args.per_page,
+            &args.period,
+            &args.created_at,
+            &args.fingerprint,
         )?;
     get_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
         builder,
@@ -13360,16 +13235,14 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
 
 pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
+        organization, database, branch,
     );
 
     // Build request
@@ -13516,9 +13389,9 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
     let builder =
         post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.branch.clone(),
+            &args.organization,
+            &args.database,
+            &args.branch,
         )?;
     post_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
         builder,
@@ -13533,18 +13406,18 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
 
 pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    budget_id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    budget_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets/{}/rules",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        budget_id.as_str(),
+        organization,
+        database,
+        branch,
+        budget_id,
     );
 
     // Build request
@@ -13688,7 +13561,7 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.budget_id.clone())?;
+    let builder = post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder(client, &args.organization, &args.database, &args.branch, &args.budget_id)?;
     post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_execute(builder)
 }
 
@@ -13700,20 +13573,20 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
 
 pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    budget_id: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    budget_id: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets/{}/rules/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        budget_id.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        budget_id,
+        id,
     );
 
     // Build request
@@ -13859,7 +13732,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.budget_id.clone(), args.id.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder(client, &args.organization, &args.database, &args.branch, &args.budget_id, &args.id)?;
     delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_execute(builder)
 }
 
@@ -13871,18 +13744,18 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
 
 pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -14028,7 +13901,7 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
         builder,
     )
@@ -14042,18 +13915,18 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
 
 pub fn patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -14196,7 +14069,7 @@ pub fn patch_organizations_organization_databases_database_branches_branch_traff
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
         builder,
     )
@@ -14210,18 +14083,18 @@ pub fn patch_organizations_organization_databases_database_branches_branch_traff
 
 pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    branch: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    branch: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/branches/{}/traffic/budgets/{}",
-        organization.as_str(),
-        database.as_str(),
-        branch.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        branch,
+        id,
     );
 
     // Build request
@@ -14364,7 +14237,7 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, args.organization.clone(), args.database.clone(), args.branch.clone(), args.id.clone())?;
+    let builder = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder(client, &args.organization, &args.database, &args.branch, &args.id)?;
     delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
         builder,
     )
@@ -14378,24 +14251,23 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
 
 pub fn get_organizations_organization_databases_database_cidrs_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/cidrs",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -14546,10 +14418,10 @@ pub fn get_organizations_organization_databases_database_cidrs(
 > {
     let builder = get_organizations_organization_databases_database_cidrs_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_cidrs_execute(builder)
 }
@@ -14562,14 +14434,13 @@ pub fn get_organizations_organization_databases_database_cidrs(
 
 pub fn post_organizations_organization_databases_database_cidrs_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/cidrs",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -14710,8 +14581,8 @@ pub fn post_organizations_organization_databases_database_cidrs(
 > {
     let builder = post_organizations_organization_databases_database_cidrs_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_cidrs_execute(builder)
 }
@@ -14724,16 +14595,14 @@ pub fn post_organizations_organization_databases_database_cidrs(
 
 pub fn get_organizations_organization_databases_database_cidrs_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/cidrs/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -14876,9 +14745,9 @@ pub fn get_organizations_organization_databases_database_cidrs_id(
 > {
     let builder = get_organizations_organization_databases_database_cidrs_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     get_organizations_organization_databases_database_cidrs_id_execute(builder)
 }
@@ -14891,16 +14760,14 @@ pub fn get_organizations_organization_databases_database_cidrs_id(
 
 pub fn put_organizations_organization_databases_database_cidrs_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/cidrs/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -15043,9 +14910,9 @@ pub fn put_organizations_organization_databases_database_cidrs_id(
 > {
     let builder = put_organizations_organization_databases_database_cidrs_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     put_organizations_organization_databases_database_cidrs_id_execute(builder)
 }
@@ -15058,16 +14925,14 @@ pub fn put_organizations_organization_databases_database_cidrs_id(
 
 pub fn delete_organizations_organization_databases_database_cidrs_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/cidrs/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -15210,9 +15075,9 @@ pub fn delete_organizations_organization_databases_database_cidrs_id(
 > {
     let builder = delete_organizations_organization_databases_database_cidrs_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     delete_organizations_organization_databases_database_cidrs_id_execute(builder)
 }
@@ -15225,24 +15090,23 @@ pub fn delete_organizations_organization_databases_database_cidrs_id(
 
 pub fn get_organizations_organization_databases_database_deploy_queue_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-queue",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -15393,10 +15257,10 @@ pub fn get_organizations_organization_databases_database_deploy_queue(
 > {
     let builder = get_organizations_organization_databases_database_deploy_queue_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_deploy_queue_execute(builder)
 }
@@ -15409,44 +15273,43 @@ pub fn get_organizations_organization_databases_database_deploy_queue(
 
 pub fn get_organizations_organization_databases_database_deploy_requests_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    state: Option<String>,
-    branch: Option<String>,
-    into_branch: Option<String>,
-    deployed_at: Option<String>,
-    running_at: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    state: &Option<String>,
+    branch: &Option<String>,
+    into_branch: &Option<String>,
+    deployed_at: &Option<String>,
+    running_at: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = branch {
+    if let Some(val) = branch.as_ref() {
         query_parts.push(format!("branch={}", val));
     }
-    if let Some(val) = into_branch {
+    if let Some(val) = into_branch.as_ref() {
         query_parts.push(format!("into_branch={}", val));
     }
-    if let Some(val) = deployed_at {
+    if let Some(val) = deployed_at.as_ref() {
         query_parts.push(format!("deployed_at={}", val));
     }
-    if let Some(val) = running_at {
+    if let Some(val) = running_at.as_ref() {
         query_parts.push(format!("running_at={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -15607,15 +15470,15 @@ pub fn get_organizations_organization_databases_database_deploy_requests(
 > {
     let builder = get_organizations_organization_databases_database_deploy_requests_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.state.clone(),
-        args.branch.clone(),
-        args.into_branch.clone(),
-        args.deployed_at.clone(),
-        args.running_at.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.state,
+        &args.branch,
+        &args.into_branch,
+        &args.deployed_at,
+        &args.running_at,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_deploy_requests_execute(builder)
 }
@@ -15628,14 +15491,13 @@ pub fn get_organizations_organization_databases_database_deploy_requests(
 
 pub fn post_organizations_organization_databases_database_deploy_requests_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -15776,8 +15638,8 @@ pub fn post_organizations_organization_databases_database_deploy_requests(
 > {
     let builder = post_organizations_organization_databases_database_deploy_requests_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_deploy_requests_execute(builder)
 }
@@ -15790,16 +15652,14 @@ pub fn post_organizations_organization_databases_database_deploy_requests(
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -15943,9 +15803,9 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number(
 > {
     let builder = get_organizations_organization_databases_database_deploy_requests_number_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.number.clone(),
+        &args.organization,
+        &args.database,
+        &args.number,
     )?;
     get_organizations_organization_databases_database_deploy_requests_number_execute(builder)
 }
@@ -15958,16 +15818,14 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number(
 
 pub fn patch_organizations_organization_databases_database_deploy_requests_number_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -16112,9 +15970,9 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
     let builder =
         patch_organizations_organization_databases_database_deploy_requests_number_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     patch_organizations_organization_databases_database_deploy_requests_number_execute(builder)
 }
@@ -16127,16 +15985,16 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/apply-deploy",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -16277,7 +16135,7 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder(client, &args.organization, &args.database, &args.number)?;
     post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_execute(
         builder,
     )
@@ -16291,16 +16149,16 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/auto-apply",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -16444,7 +16302,7 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder(client, &args.organization, &args.database, &args.number)?;
     put_organizations_organization_databases_database_deploy_requests_number_auto_apply_execute(
         builder,
     )
@@ -16458,16 +16316,16 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/auto-delete-branch",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -16608,7 +16466,7 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder(client, &args.organization, &args.database, &args.number)?;
     put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_execute(builder)
 }
 
@@ -16620,16 +16478,14 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_cancel_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/cancel",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -16776,9 +16632,9 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     let builder =
         post_organizations_organization_databases_database_deploy_requests_number_cancel_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     post_organizations_organization_databases_database_deploy_requests_number_cancel_execute(
         builder,
@@ -16793,16 +16649,16 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/complete-deploy",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -16943,7 +16799,7 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder(client, &args.organization, &args.database, &args.number)?;
     post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_execute(builder)
 }
 
@@ -16955,16 +16811,14 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_deploy_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/deploy",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -17111,9 +16965,9 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     let builder =
         post_organizations_organization_databases_database_deploy_requests_number_deploy_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     post_organizations_organization_databases_database_deploy_requests_number_deploy_execute(
         builder,
@@ -17128,16 +16982,16 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_deployment_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/deployment",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -17281,7 +17135,7 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_deploy_requests_number_deployment_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = get_organizations_organization_databases_database_deploy_requests_number_deployment_builder(client, &args.organization, &args.database, &args.number)?;
     get_organizations_organization_databases_database_deploy_requests_number_deployment_execute(
         builder,
     )
@@ -17295,26 +17149,26 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_operations_builder(
     client: &SimpleHttpClient,
-    number: String,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    number: &String,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/operations",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -17468,7 +17322,7 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_deploy_requests_number_operations_builder(client, args.number.clone(), args.organization.clone(), args.database.clone(), args.page.clone(), args.per_page.clone())?;
+    let builder = get_organizations_organization_databases_database_deploy_requests_number_operations_builder(client, &args.number, &args.organization, &args.database, &args.page, &args.per_page)?;
     get_organizations_organization_databases_database_deploy_requests_number_operations_execute(
         builder,
     )
@@ -17482,16 +17336,14 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_revert_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/revert",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -17638,9 +17490,9 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     let builder =
         post_organizations_organization_databases_database_deploy_requests_number_revert_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     post_organizations_organization_databases_database_deploy_requests_number_revert_execute(
         builder,
@@ -17655,26 +17507,24 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_reviews_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    number: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/reviews",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -17831,11 +17681,11 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
     let builder =
         get_organizations_organization_databases_database_deploy_requests_number_reviews_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
         builder,
@@ -17850,16 +17700,14 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_reviews_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/reviews",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -18006,9 +17854,9 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     let builder =
         post_organizations_organization_databases_database_deploy_requests_number_reviews_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     post_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
         builder,
@@ -18023,16 +17871,16 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/skip-revert",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -18176,7 +18024,7 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder(client, &args.organization, &args.database, &args.number)?;
     post_organizations_organization_databases_database_deploy_requests_number_skip_revert_execute(
         builder,
     )
@@ -18190,16 +18038,16 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/storage-check",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -18340,7 +18188,7 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder(client, &args.organization, &args.database, &args.number)?;
     get_organizations_organization_databases_database_deploy_requests_number_storage_check_execute(
         builder,
     )
@@ -18354,16 +18202,14 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn get_organizations_organization_databases_database_deploy_requests_number_throttler_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/throttler",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -18510,9 +18356,9 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
     let builder =
         get_organizations_organization_databases_database_deploy_requests_number_throttler_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     get_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
         builder,
@@ -18527,16 +18373,14 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 
 pub fn patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/deploy-requests/{}/throttler",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -18680,7 +18524,7 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder(client, &args.organization, &args.database, &args.number)?;
     patch_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
         builder,
     )
@@ -18694,24 +18538,23 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
 
 pub fn get_organizations_organization_databases_database_maintenance_schedules_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/maintenance-schedules",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -18863,10 +18706,10 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules(
 > {
     let builder = get_organizations_organization_databases_database_maintenance_schedules_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_maintenance_schedules_execute(builder)
 }
@@ -18879,16 +18722,14 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules(
 
 pub fn get_organizations_organization_databases_database_maintenance_schedules_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
+    id: &String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/maintenance-schedules/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -19033,9 +18874,9 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
     let builder =
         get_organizations_organization_databases_database_maintenance_schedules_id_builder(
             client,
-            args.id.clone(),
-            args.organization.clone(),
-            args.database.clone(),
+            &args.id,
+            &args.organization,
+            &args.database,
         )?;
     get_organizations_organization_databases_database_maintenance_schedules_id_execute(builder)
 }
@@ -19048,26 +18889,26 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
 
 pub fn get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder(
     client: &SimpleHttpClient,
-    id: String,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    id: &String,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/maintenance-schedules/{}/windows",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization,
+        database,
+        id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -19224,11 +19065,11 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
     let builder =
         get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder(
             client,
-            args.id.clone(),
-            args.organization.clone(),
-            args.database.clone(),
-            args.page.clone(),
-            args.per_page.clone(),
+            &args.id,
+            &args.organization,
+            &args.database,
+            &args.page,
+            &args.per_page,
         )?;
     get_organizations_organization_databases_database_maintenance_schedules_id_windows_execute(
         builder,
@@ -19243,24 +19084,23 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
 
 pub fn get_organizations_organization_databases_database_read_only_regions_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/read-only-regions",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -19411,10 +19251,10 @@ pub fn get_organizations_organization_databases_database_read_only_regions(
 > {
     let builder = get_organizations_organization_databases_database_read_only_regions_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_read_only_regions_execute(builder)
 }
@@ -19427,24 +19267,23 @@ pub fn get_organizations_organization_databases_database_read_only_regions(
 
 pub fn get_organizations_organization_databases_database_regions_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/regions",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -19595,10 +19434,10 @@ pub fn get_organizations_organization_databases_database_regions(
 > {
     let builder = get_organizations_organization_databases_database_regions_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_regions_execute(builder)
 }
@@ -19611,28 +19450,27 @@ pub fn get_organizations_organization_databases_database_regions(
 
 pub fn get_organizations_organization_databases_database_schema_recommendations_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    state: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    state: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/schema-recommendations",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -19786,11 +19624,11 @@ pub fn get_organizations_organization_databases_database_schema_recommendations(
 > {
     let builder = get_organizations_organization_databases_database_schema_recommendations_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.state.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.state,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_schema_recommendations_execute(builder)
 }
@@ -19803,16 +19641,14 @@ pub fn get_organizations_organization_databases_database_schema_recommendations(
 
 pub fn get_organizations_organization_databases_database_schema_recommendations_number_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/schema-recommendations/{}",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -19959,9 +19795,9 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
     let builder =
         get_organizations_organization_databases_database_schema_recommendations_number_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     get_organizations_organization_databases_database_schema_recommendations_number_execute(builder)
 }
@@ -19974,16 +19810,16 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
 
 pub fn post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/schema-recommendations/{}/dismiss",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -20124,7 +19960,7 @@ pub fn post_organizations_organization_databases_database_schema_recommendations
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder(client, &args.organization, &args.database, &args.number)?;
     post_organizations_organization_databases_database_schema_recommendations_number_dismiss_execute(
         builder,
     )
@@ -20138,14 +19974,13 @@ pub fn post_organizations_organization_databases_database_schema_recommendations
 
 pub fn get_organizations_organization_databases_database_throttler_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/throttler",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -20286,8 +20121,8 @@ pub fn get_organizations_organization_databases_database_throttler(
 > {
     let builder = get_organizations_organization_databases_database_throttler_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     get_organizations_organization_databases_database_throttler_execute(builder)
 }
@@ -20300,14 +20135,13 @@ pub fn get_organizations_organization_databases_database_throttler(
 
 pub fn patch_organizations_organization_databases_database_throttler_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/throttler",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -20448,8 +20282,8 @@ pub fn patch_organizations_organization_databases_database_throttler(
 > {
     let builder = patch_organizations_organization_databases_database_throttler_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     patch_organizations_organization_databases_database_throttler_execute(builder)
 }
@@ -20462,24 +20296,23 @@ pub fn patch_organizations_organization_databases_database_throttler(
 
 pub fn get_organizations_organization_databases_database_webhooks_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -20630,10 +20463,10 @@ pub fn get_organizations_organization_databases_database_webhooks(
 > {
     let builder = get_organizations_organization_databases_database_webhooks_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_webhooks_execute(builder)
 }
@@ -20646,14 +20479,13 @@ pub fn get_organizations_organization_databases_database_webhooks(
 
 pub fn post_organizations_organization_databases_database_webhooks_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -20794,8 +20626,8 @@ pub fn post_organizations_organization_databases_database_webhooks(
 > {
     let builder = post_organizations_organization_databases_database_webhooks_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_webhooks_execute(builder)
 }
@@ -20808,16 +20640,14 @@ pub fn post_organizations_organization_databases_database_webhooks(
 
 pub fn get_organizations_organization_databases_database_webhooks_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -20960,9 +20790,9 @@ pub fn get_organizations_organization_databases_database_webhooks_id(
 > {
     let builder = get_organizations_organization_databases_database_webhooks_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     get_organizations_organization_databases_database_webhooks_id_execute(builder)
 }
@@ -20975,16 +20805,14 @@ pub fn get_organizations_organization_databases_database_webhooks_id(
 
 pub fn patch_organizations_organization_databases_database_webhooks_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -21127,9 +20955,9 @@ pub fn patch_organizations_organization_databases_database_webhooks_id(
 > {
     let builder = patch_organizations_organization_databases_database_webhooks_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     patch_organizations_organization_databases_database_webhooks_id_execute(builder)
 }
@@ -21142,16 +20970,14 @@ pub fn patch_organizations_organization_databases_database_webhooks_id(
 
 pub fn delete_organizations_organization_databases_database_webhooks_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks/{}",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -21294,9 +21120,9 @@ pub fn delete_organizations_organization_databases_database_webhooks_id(
 > {
     let builder = delete_organizations_organization_databases_database_webhooks_id_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     delete_organizations_organization_databases_database_webhooks_id_execute(builder)
 }
@@ -21309,16 +21135,14 @@ pub fn delete_organizations_organization_databases_database_webhooks_id(
 
 pub fn post_organizations_organization_databases_database_webhooks_id_test_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    id: String,
+    organization: &String,
+    database: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/webhooks/{}/test",
-        organization.as_str(),
-        database.as_str(),
-        id.as_str(),
+        organization, database, id,
     );
 
     // Build request
@@ -21461,9 +21285,9 @@ pub fn post_organizations_organization_databases_database_webhooks_id_test(
 > {
     let builder = post_organizations_organization_databases_database_webhooks_id_test_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.database,
+        &args.id,
     )?;
     post_organizations_organization_databases_database_webhooks_id_test_execute(builder)
 }
@@ -21476,28 +21300,27 @@ pub fn post_organizations_organization_databases_database_webhooks_id_test(
 
 pub fn get_organizations_organization_databases_database_workflows_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    between: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    database: &String,
+    between: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = between {
+    if let Some(val) = between.as_ref() {
         query_parts.push(format!("between={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -21650,11 +21473,11 @@ pub fn get_organizations_organization_databases_database_workflows(
 > {
     let builder = get_organizations_organization_databases_database_workflows_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.between.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.database,
+        &args.between,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_databases_database_workflows_execute(builder)
 }
@@ -21667,14 +21490,13 @@ pub fn get_organizations_organization_databases_database_workflows(
 
 pub fn post_organizations_organization_databases_database_workflows_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
+    organization: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows",
-        organization.as_str(),
-        database.as_str(),
+        organization, database,
     );
 
     // Build request
@@ -21815,8 +21637,8 @@ pub fn post_organizations_organization_databases_database_workflows(
 > {
     let builder = post_organizations_organization_databases_database_workflows_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
+        &args.organization,
+        &args.database,
     )?;
     post_organizations_organization_databases_database_workflows_execute(builder)
 }
@@ -21829,16 +21651,14 @@ pub fn post_organizations_organization_databases_database_workflows(
 
 pub fn get_organizations_organization_databases_database_workflows_number_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -21981,9 +21801,9 @@ pub fn get_organizations_organization_databases_database_workflows_number(
 > {
     let builder = get_organizations_organization_databases_database_workflows_number_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.number.clone(),
+        &args.organization,
+        &args.database,
+        &args.number,
     )?;
     get_organizations_organization_databases_database_workflows_number_execute(builder)
 }
@@ -21996,16 +21816,14 @@ pub fn get_organizations_organization_databases_database_workflows_number(
 
 pub fn delete_organizations_organization_databases_database_workflows_number_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22148,9 +21966,9 @@ pub fn delete_organizations_organization_databases_database_workflows_number(
 > {
     let builder = delete_organizations_organization_databases_database_workflows_number_builder(
         client,
-        args.organization.clone(),
-        args.database.clone(),
-        args.number.clone(),
+        &args.organization,
+        &args.database,
+        &args.number,
     )?;
     delete_organizations_organization_databases_database_workflows_number_execute(builder)
 }
@@ -22163,16 +21981,14 @@ pub fn delete_organizations_organization_databases_database_workflows_number(
 
 pub fn patch_organizations_organization_databases_database_workflows_number_complete_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/complete",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22318,9 +22134,9 @@ pub fn patch_organizations_organization_databases_database_workflows_number_comp
     let builder =
         patch_organizations_organization_databases_database_workflows_number_complete_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     patch_organizations_organization_databases_database_workflows_number_complete_execute(builder)
 }
@@ -22333,16 +22149,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_comp
 
 pub fn patch_organizations_organization_databases_database_workflows_number_cutover_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/cutover",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22487,9 +22301,9 @@ pub fn patch_organizations_organization_databases_database_workflows_number_cuto
     let builder =
         patch_organizations_organization_databases_database_workflows_number_cutover_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     patch_organizations_organization_databases_database_workflows_number_cutover_execute(builder)
 }
@@ -22502,16 +22316,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_cuto
 
 pub fn patch_organizations_organization_databases_database_workflows_number_retry_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/retry",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22656,9 +22468,9 @@ pub fn patch_organizations_organization_databases_database_workflows_number_retr
     let builder =
         patch_organizations_organization_databases_database_workflows_number_retry_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     patch_organizations_organization_databases_database_workflows_number_retry_execute(builder)
 }
@@ -22671,16 +22483,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_retr
 
 pub fn patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/reverse-cutover",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22824,7 +22634,7 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder(client, &args.organization, &args.database, &args.number)?;
     patch_organizations_organization_databases_database_workflows_number_reverse_cutover_execute(
         builder,
     )
@@ -22838,16 +22648,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
 
 pub fn patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/reverse-traffic",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -22991,7 +22799,7 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder(client, &args.organization, &args.database, &args.number)?;
     patch_organizations_organization_databases_database_workflows_number_reverse_traffic_execute(
         builder,
     )
@@ -23005,16 +22813,16 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
 
 pub fn patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/switch-primaries",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization,
+        database,
+        number,
     );
 
     // Build request
@@ -23158,7 +22966,7 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder(client, &args.organization, &args.database, &args.number)?;
     patch_organizations_organization_databases_database_workflows_number_switch_primaries_execute(
         builder,
     )
@@ -23172,16 +22980,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
 
 pub fn patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/switch-replicas",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -23325,7 +23131,7 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder(client, args.organization.clone(), args.database.clone(), args.number.clone())?;
+    let builder = patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder(client, &args.organization, &args.database, &args.number)?;
     patch_organizations_organization_databases_database_workflows_number_switch_replicas_execute(
         builder,
     )
@@ -23339,16 +23145,14 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
 
 pub fn patch_organizations_organization_databases_database_workflows_number_verify_data_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    database: String,
-    number: String,
+    organization: &String,
+    database: &String,
+    number: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/databases/{}/workflows/{}/verify-data",
-        organization.as_str(),
-        database.as_str(),
-        number.as_str(),
+        organization, database, number,
     );
 
     // Build request
@@ -23495,9 +23299,9 @@ pub fn patch_organizations_organization_databases_database_workflows_number_veri
     let builder =
         patch_organizations_organization_databases_database_workflows_number_verify_data_builder(
             client,
-            args.organization.clone(),
-            args.database.clone(),
-            args.number.clone(),
+            &args.organization,
+            &args.database,
+            &args.number,
         )?;
     patch_organizations_organization_databases_database_workflows_number_verify_data_execute(
         builder,
@@ -23512,22 +23316,22 @@ pub fn patch_organizations_organization_databases_database_workflows_number_veri
 
 pub fn get_organizations_organization_invoices_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/invoices",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -23676,9 +23480,9 @@ pub fn get_organizations_organization_invoices(
 > {
     let builder = get_organizations_organization_invoices_builder(
         client,
-        args.organization.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_invoices_execute(builder)
 }
@@ -23691,14 +23495,13 @@ pub fn get_organizations_organization_invoices(
 
 pub fn get_organizations_organization_invoices_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/invoices/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -23837,11 +23640,8 @@ pub fn get_organizations_organization_invoices_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_invoices_id_builder(
-        client,
-        args.organization.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        get_organizations_organization_invoices_id_builder(client, &args.organization, &args.id)?;
     get_organizations_organization_invoices_id_execute(builder)
 }
 
@@ -23853,24 +23653,23 @@ pub fn get_organizations_organization_invoices_id(
 
 pub fn get_organizations_organization_invoices_id_line_items_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    id: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/invoices/{}/line-items",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -24021,10 +23820,10 @@ pub fn get_organizations_organization_invoices_id_line_items(
 > {
     let builder = get_organizations_organization_invoices_id_line_items_builder(
         client,
-        args.organization.clone(),
-        args.id.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.id,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_invoices_id_line_items_execute(builder)
 }
@@ -24037,26 +23836,26 @@ pub fn get_organizations_organization_invoices_id_line_items(
 
 pub fn get_organizations_organization_members_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    q: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/members",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -24207,10 +24006,10 @@ pub fn get_organizations_organization_members(
 > {
     let builder = get_organizations_organization_members_builder(
         client,
-        args.organization.clone(),
-        args.q.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.q,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_members_execute(builder)
 }
@@ -24223,14 +24022,13 @@ pub fn get_organizations_organization_members(
 
 pub fn get_organizations_organization_members_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/members/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -24369,11 +24167,8 @@ pub fn get_organizations_organization_members_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_members_id_builder(
-        client,
-        args.organization.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        get_organizations_organization_members_id_builder(client, &args.organization, &args.id)?;
     get_organizations_organization_members_id_execute(builder)
 }
 
@@ -24385,14 +24180,13 @@ pub fn get_organizations_organization_members_id(
 
 pub fn patch_organizations_organization_members_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/members/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -24531,11 +24325,8 @@ pub fn patch_organizations_organization_members_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_organizations_organization_members_id_builder(
-        client,
-        args.organization.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        patch_organizations_organization_members_id_builder(client, &args.organization, &args.id)?;
     patch_organizations_organization_members_id_execute(builder)
 }
 
@@ -24547,24 +24338,23 @@ pub fn patch_organizations_organization_members_id(
 
 pub fn delete_organizations_organization_members_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
-    delete_passwords: Option<String>,
-    delete_service_tokens: Option<String>,
+    organization: &String,
+    id: &String,
+    delete_passwords: &Option<String>,
+    delete_service_tokens: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/members/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = delete_passwords {
+    if let Some(val) = delete_passwords.as_ref() {
         query_parts.push(format!("delete_passwords={}", val));
     }
-    if let Some(val) = delete_service_tokens {
+    if let Some(val) = delete_service_tokens.as_ref() {
         query_parts.push(format!("delete_service_tokens={}", val));
     }
 
@@ -24715,10 +24505,10 @@ pub fn delete_organizations_organization_members_id(
 > {
     let builder = delete_organizations_organization_members_id_builder(
         client,
-        args.organization.clone(),
-        args.id.clone(),
-        args.delete_passwords.clone(),
-        args.delete_service_tokens.clone(),
+        &args.organization,
+        &args.id,
+        &args.delete_passwords,
+        &args.delete_service_tokens,
     )?;
     delete_organizations_organization_members_id_execute(builder)
 }
@@ -24731,22 +24521,22 @@ pub fn delete_organizations_organization_members_id(
 
 pub fn get_organizations_organization_oauth_applications_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -24895,9 +24685,9 @@ pub fn get_organizations_organization_oauth_applications(
 > {
     let builder = get_organizations_organization_oauth_applications_builder(
         client,
-        args.organization.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_oauth_applications_execute(builder)
 }
@@ -24910,14 +24700,13 @@ pub fn get_organizations_organization_oauth_applications(
 
 pub fn get_organizations_organization_oauth_applications_application_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    application_id: String,
+    organization: &String,
+    application_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications/{}",
-        organization.as_str(),
-        application_id.as_str(),
+        organization, application_id,
     );
 
     // Build request
@@ -25058,8 +24847,8 @@ pub fn get_organizations_organization_oauth_applications_application_id(
 > {
     let builder = get_organizations_organization_oauth_applications_application_id_builder(
         client,
-        args.organization.clone(),
-        args.application_id.clone(),
+        &args.organization,
+        &args.application_id,
     )?;
     get_organizations_organization_oauth_applications_application_id_execute(builder)
 }
@@ -25072,24 +24861,23 @@ pub fn get_organizations_organization_oauth_applications_application_id(
 
 pub fn get_organizations_organization_oauth_applications_application_id_tokens_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    application_id: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    application_id: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications/{}/tokens",
-        organization.as_str(),
-        application_id.as_str(),
+        organization, application_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -25241,10 +25029,10 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens(
 > {
     let builder = get_organizations_organization_oauth_applications_application_id_tokens_builder(
         client,
-        args.organization.clone(),
-        args.application_id.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.application_id,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_oauth_applications_application_id_tokens_execute(builder)
 }
@@ -25257,16 +25045,14 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens(
 
 pub fn get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    application_id: String,
-    token_id: String,
+    organization: &String,
+    application_id: &String,
+    token_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications/{}/tokens/{}",
-        organization.as_str(),
-        application_id.as_str(),
-        token_id.as_str(),
+        organization, application_id, token_id,
     );
 
     // Build request
@@ -25413,9 +25199,9 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_t
     let builder =
         get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder(
             client,
-            args.organization.clone(),
-            args.application_id.clone(),
-            args.token_id.clone(),
+            &args.organization,
+            &args.application_id,
+            &args.token_id,
         )?;
     get_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
         builder,
@@ -25430,16 +25216,14 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_t
 
 pub fn delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    application_id: String,
-    token_id: String,
+    organization: &String,
+    application_id: &String,
+    token_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications/{}/tokens/{}",
-        organization.as_str(),
-        application_id.as_str(),
-        token_id.as_str(),
+        organization, application_id, token_id,
     );
 
     // Build request
@@ -25583,7 +25367,7 @@ pub fn delete_organizations_organization_oauth_applications_application_id_token
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder(client, args.organization.clone(), args.application_id.clone(), args.token_id.clone())?;
+    let builder = delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder(client, &args.organization, &args.application_id, &args.token_id)?;
     delete_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
         builder,
     )
@@ -25597,14 +25381,13 @@ pub fn delete_organizations_organization_oauth_applications_application_id_token
 
 pub fn post_organizations_organization_oauth_applications_id_token_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/oauth-applications/{}/token",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -25745,8 +25528,8 @@ pub fn post_organizations_organization_oauth_applications_id_token(
 > {
     let builder = post_organizations_organization_oauth_applications_id_token_builder(
         client,
-        args.organization.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.id,
     )?;
     post_organizations_organization_oauth_applications_id_token_execute(builder)
 }
@@ -25759,22 +25542,22 @@ pub fn post_organizations_organization_oauth_applications_id_token(
 
 pub fn get_organizations_organization_regions_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/regions",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -25923,9 +25706,9 @@ pub fn get_organizations_organization_regions(
 > {
     let builder = get_organizations_organization_regions_builder(
         client,
-        args.organization.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_regions_execute(builder)
 }
@@ -25938,22 +25721,22 @@ pub fn get_organizations_organization_regions(
 
 pub fn get_organizations_organization_service_tokens_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/service-tokens",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -26102,9 +25885,9 @@ pub fn get_organizations_organization_service_tokens(
 > {
     let builder = get_organizations_organization_service_tokens_builder(
         client,
-        args.organization.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_service_tokens_execute(builder)
 }
@@ -26117,12 +25900,12 @@ pub fn get_organizations_organization_service_tokens(
 
 pub fn post_organizations_organization_service_tokens_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/service-tokens",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
@@ -26260,7 +26043,7 @@ pub fn post_organizations_organization_service_tokens(
     ApiError,
 > {
     let builder =
-        post_organizations_organization_service_tokens_builder(client, args.organization.clone())?;
+        post_organizations_organization_service_tokens_builder(client, &args.organization)?;
     post_organizations_organization_service_tokens_execute(builder)
 }
 
@@ -26272,14 +26055,13 @@ pub fn post_organizations_organization_service_tokens(
 
 pub fn get_organizations_organization_service_tokens_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/service-tokens/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -26420,8 +26202,8 @@ pub fn get_organizations_organization_service_tokens_id(
 > {
     let builder = get_organizations_organization_service_tokens_id_builder(
         client,
-        args.organization.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.id,
     )?;
     get_organizations_organization_service_tokens_id_execute(builder)
 }
@@ -26434,14 +26216,13 @@ pub fn get_organizations_organization_service_tokens_id(
 
 pub fn delete_organizations_organization_service_tokens_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    id: String,
+    organization: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/service-tokens/{}",
-        organization.as_str(),
-        id.as_str(),
+        organization, id,
     );
 
     // Build request
@@ -26582,8 +26363,8 @@ pub fn delete_organizations_organization_service_tokens_id(
 > {
     let builder = delete_organizations_organization_service_tokens_id_builder(
         client,
-        args.organization.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.id,
     )?;
     delete_organizations_organization_service_tokens_id_execute(builder)
 }
@@ -26596,26 +26377,26 @@ pub fn delete_organizations_organization_service_tokens_id(
 
 pub fn get_organizations_organization_teams_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    q: Option<String>,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -26766,10 +26547,10 @@ pub fn get_organizations_organization_teams(
 > {
     let builder = get_organizations_organization_teams_builder(
         client,
-        args.organization.clone(),
-        args.q.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.q,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_teams_execute(builder)
 }
@@ -26782,12 +26563,12 @@ pub fn get_organizations_organization_teams(
 
 pub fn post_organizations_organization_teams_builder(
     client: &SimpleHttpClient,
-    organization: String,
+    organization: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams",
-        organization.as_str(),
+        organization,
     );
 
     // Build request
@@ -26924,7 +26705,7 @@ pub fn post_organizations_organization_teams(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_organizations_organization_teams_builder(client, args.organization.clone())?;
+    let builder = post_organizations_organization_teams_builder(client, &args.organization)?;
     post_organizations_organization_teams_execute(builder)
 }
 
@@ -26936,14 +26717,13 @@ pub fn post_organizations_organization_teams(
 
 pub fn get_organizations_organization_teams_team_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
+    organization: &String,
+    team: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}",
-        organization.as_str(),
-        team.as_str(),
+        organization, team,
     );
 
     // Build request
@@ -27082,11 +26862,8 @@ pub fn get_organizations_organization_teams_team(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_organizations_organization_teams_team_builder(
-        client,
-        args.organization.clone(),
-        args.team.clone(),
-    )?;
+    let builder =
+        get_organizations_organization_teams_team_builder(client, &args.organization, &args.team)?;
     get_organizations_organization_teams_team_execute(builder)
 }
 
@@ -27098,14 +26875,13 @@ pub fn get_organizations_organization_teams_team(
 
 pub fn patch_organizations_organization_teams_team_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
+    organization: &String,
+    team: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}",
-        organization.as_str(),
-        team.as_str(),
+        organization, team,
     );
 
     // Build request
@@ -27246,8 +27022,8 @@ pub fn patch_organizations_organization_teams_team(
 > {
     let builder = patch_organizations_organization_teams_team_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
+        &args.organization,
+        &args.team,
     )?;
     patch_organizations_organization_teams_team_execute(builder)
 }
@@ -27260,14 +27036,13 @@ pub fn patch_organizations_organization_teams_team(
 
 pub fn delete_organizations_organization_teams_team_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
+    organization: &String,
+    team: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}",
-        organization.as_str(),
-        team.as_str(),
+        organization, team,
     );
 
     // Build request
@@ -27408,8 +27183,8 @@ pub fn delete_organizations_organization_teams_team(
 > {
     let builder = delete_organizations_organization_teams_team_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
+        &args.organization,
+        &args.team,
     )?;
     delete_organizations_organization_teams_team_execute(builder)
 }
@@ -27422,24 +27197,23 @@ pub fn delete_organizations_organization_teams_team(
 
 pub fn get_organizations_organization_teams_team_members_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
-    page: Option<String>,
-    per_page: Option<String>,
+    organization: &String,
+    team: &String,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}/members",
-        organization.as_str(),
-        team.as_str(),
+        organization, team,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -27590,10 +27364,10 @@ pub fn get_organizations_organization_teams_team_members(
 > {
     let builder = get_organizations_organization_teams_team_members_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
-        args.page.clone(),
-        args.per_page.clone(),
+        &args.organization,
+        &args.team,
+        &args.page,
+        &args.per_page,
     )?;
     get_organizations_organization_teams_team_members_execute(builder)
 }
@@ -27606,14 +27380,13 @@ pub fn get_organizations_organization_teams_team_members(
 
 pub fn post_organizations_organization_teams_team_members_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
+    organization: &String,
+    team: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}/members",
-        organization.as_str(),
-        team.as_str(),
+        organization, team,
     );
 
     // Build request
@@ -27754,8 +27527,8 @@ pub fn post_organizations_organization_teams_team_members(
 > {
     let builder = post_organizations_organization_teams_team_members_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
+        &args.organization,
+        &args.team,
     )?;
     post_organizations_organization_teams_team_members_execute(builder)
 }
@@ -27768,16 +27541,14 @@ pub fn post_organizations_organization_teams_team_members(
 
 pub fn get_organizations_organization_teams_team_members_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
-    id: String,
+    organization: &String,
+    team: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}/members/{}",
-        organization.as_str(),
-        team.as_str(),
-        id.as_str(),
+        organization, team, id,
     );
 
     // Build request
@@ -27920,9 +27691,9 @@ pub fn get_organizations_organization_teams_team_members_id(
 > {
     let builder = get_organizations_organization_teams_team_members_id_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
-        args.id.clone(),
+        &args.organization,
+        &args.team,
+        &args.id,
     )?;
     get_organizations_organization_teams_team_members_id_execute(builder)
 }
@@ -27935,22 +27706,20 @@ pub fn get_organizations_organization_teams_team_members_id(
 
 pub fn delete_organizations_organization_teams_team_members_id_builder(
     client: &SimpleHttpClient,
-    organization: String,
-    team: String,
-    id: String,
-    delete_passwords: Option<String>,
+    organization: &String,
+    team: &String,
+    id: &String,
+    delete_passwords: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.planetscale.com/v1/organizations/{}/teams/{}/members/{}",
-        organization.as_str(),
-        team.as_str(),
-        id.as_str(),
+        organization, team, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = delete_passwords {
+    if let Some(val) = delete_passwords.as_ref() {
         query_parts.push(format!("delete_passwords={}", val));
     }
 
@@ -28101,10 +27870,10 @@ pub fn delete_organizations_organization_teams_team_members_id(
 > {
     let builder = delete_organizations_organization_teams_team_members_id_builder(
         client,
-        args.organization.clone(),
-        args.team.clone(),
-        args.id.clone(),
-        args.delete_passwords.clone(),
+        &args.organization,
+        &args.team,
+        &args.id,
+        &args.delete_passwords,
     )?;
     delete_organizations_organization_teams_team_members_id_execute(builder)
 }
@@ -28117,18 +27886,18 @@ pub fn delete_organizations_organization_teams_team_members_id(
 
 pub fn get_regions_builder(
     client: &SimpleHttpClient,
-    page: Option<String>,
-    per_page: Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.planetscale.com/v1/regions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = page {
+    if let Some(val) = page.as_ref() {
         query_parts.push(format!("page={}", val));
     }
-    if let Some(val) = per_page {
+    if let Some(val) = per_page.as_ref() {
         query_parts.push(format!("per_page={}", val));
     }
 
@@ -28273,7 +28042,7 @@ pub fn get_regions(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_regions_builder(client, args.page.clone(), args.per_page.clone())?;
+    let builder = get_regions_builder(client, &args.page, &args.per_page)?;
     get_regions_execute(builder)
 }
 

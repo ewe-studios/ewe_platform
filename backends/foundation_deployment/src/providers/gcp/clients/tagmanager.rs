@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn tagmanager_accounts_get_builder(
     client: &SimpleHttpClient,
-    path: String,
+    path: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts/{}",);
@@ -171,7 +171,7 @@ pub fn tagmanager_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_get_builder(client, args.path.clone())?;
+    let builder = tagmanager_accounts_get_builder(client, &args.path)?;
     tagmanager_accounts_get_execute(builder)
 }
 
@@ -183,18 +183,18 @@ pub fn tagmanager_accounts_get(
 
 pub fn tagmanager_accounts_list_builder(
     client: &SimpleHttpClient,
-    includeGoogleTags: Option<bool>,
-    pageToken: Option<String>,
+    includeGoogleTags: &Option<bool>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://tagmanager.googleapis.com/tagmanager/v2/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeGoogleTags {
+    if let Some(val) = includeGoogleTags.as_ref() {
         query_parts.push(format!("includeGoogleTags={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -346,11 +346,8 @@ pub fn tagmanager_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_list_builder(
-        client,
-        args.includeGoogleTags.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        tagmanager_accounts_list_builder(client, &args.includeGoogleTags, &args.pageToken)?;
     tagmanager_accounts_list_execute(builder)
 }
 
@@ -362,7 +359,7 @@ pub fn tagmanager_accounts_list(
 
 pub fn tagmanager_accounts_containers_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Container,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -510,8 +507,7 @@ pub fn tagmanager_accounts_containers_create(
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = tagmanager_accounts_containers_create_builder(client, &args.parent, &args.body)?;
     tagmanager_accounts_containers_create_execute(builder)
 }
 
@@ -523,8 +519,8 @@ pub fn tagmanager_accounts_containers_create(
 
 pub fn tagmanager_accounts_containers_lookup_builder(
     client: &SimpleHttpClient,
-    destinationId: Option<String>,
-    tagId: Option<String>,
+    destinationId: &Option<String>,
+    tagId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -532,10 +528,10 @@ pub fn tagmanager_accounts_containers_lookup_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinationId {
+    if let Some(val) = destinationId.as_ref() {
         query_parts.push(format!("destinationId={}", val));
     }
-    if let Some(val) = tagId {
+    if let Some(val) = tagId.as_ref() {
         query_parts.push(format!("tagId={}", val));
     }
 
@@ -683,11 +679,8 @@ pub fn tagmanager_accounts_containers_lookup(
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_lookup_builder(
-        client,
-        args.destinationId.clone(),
-        args.tagId.clone(),
-    )?;
+    let builder =
+        tagmanager_accounts_containers_lookup_builder(client, &args.destinationId, &args.tagId)?;
     tagmanager_accounts_containers_lookup_execute(builder)
 }
 
@@ -699,7 +692,7 @@ pub fn tagmanager_accounts_containers_lookup(
 
 pub fn tagmanager_accounts_user_permissions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &UserPermission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -851,10 +844,7 @@ pub fn tagmanager_accounts_user_permissions_create(
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        tagmanager_accounts_user_permissions_create_builder(client, &args.parent, &args.body)?;
     tagmanager_accounts_user_permissions_create_execute(builder)
 }

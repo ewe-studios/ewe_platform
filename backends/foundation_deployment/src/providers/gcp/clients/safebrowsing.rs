@@ -29,26 +29,23 @@ use serde::Serialize;
 
 pub fn safebrowsing_hash_list_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    sizeConstraints_maxDatabaseEntries: Option<i32>,
-    sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<String>,
+    name: &String,
+    sizeConstraints_maxDatabaseEntries: &Option<i32>,
+    sizeConstraints_maxUpdateEntries: &Option<i32>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://safebrowsing.googleapis.com/v5/hashList/{}",
-        name.as_str(),
-    );
+    let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashList/{}", name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sizeConstraints_maxDatabaseEntries {
+    if let Some(val) = sizeConstraints_maxDatabaseEntries.as_ref() {
         query_parts.push(format!("sizeConstraints.maxDatabaseEntries={}", val));
     }
-    if let Some(val) = sizeConstraints_maxUpdateEntries {
+    if let Some(val) = sizeConstraints_maxUpdateEntries.as_ref() {
         query_parts.push(format!("sizeConstraints.maxUpdateEntries={}", val));
     }
-    if let Some(val) = version {
+    if let Some(val) = version.as_ref() {
         query_parts.push(format!("version={}", val));
     }
 
@@ -210,10 +207,10 @@ pub fn safebrowsing_hash_list_get(
 > {
     let builder = safebrowsing_hash_list_get_builder(
         client,
-        args.name.clone(),
-        args.sizeConstraints_maxDatabaseEntries.clone(),
-        args.sizeConstraints_maxUpdateEntries.clone(),
-        args.version.clone(),
+        &args.name,
+        &args.sizeConstraints_maxDatabaseEntries,
+        &args.sizeConstraints_maxUpdateEntries,
+        &args.version,
     )?;
     safebrowsing_hash_list_get_execute(builder)
 }
@@ -226,26 +223,26 @@ pub fn safebrowsing_hash_list_get(
 
 pub fn safebrowsing_hash_lists_batch_get_builder(
     client: &SimpleHttpClient,
-    names: Option<String>,
-    sizeConstraints_maxDatabaseEntries: Option<i32>,
-    sizeConstraints_maxUpdateEntries: Option<i32>,
-    version: Option<String>,
+    names: &Option<String>,
+    sizeConstraints_maxDatabaseEntries: &Option<i32>,
+    sizeConstraints_maxUpdateEntries: &Option<i32>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
-    if let Some(val) = sizeConstraints_maxDatabaseEntries {
+    if let Some(val) = sizeConstraints_maxDatabaseEntries.as_ref() {
         query_parts.push(format!("sizeConstraints.maxDatabaseEntries={}", val));
     }
-    if let Some(val) = sizeConstraints_maxUpdateEntries {
+    if let Some(val) = sizeConstraints_maxUpdateEntries.as_ref() {
         query_parts.push(format!("sizeConstraints.maxUpdateEntries={}", val));
     }
-    if let Some(val) = version {
+    if let Some(val) = version.as_ref() {
         query_parts.push(format!("version={}", val));
     }
 
@@ -417,10 +414,10 @@ pub fn safebrowsing_hash_lists_batch_get(
 > {
     let builder = safebrowsing_hash_lists_batch_get_builder(
         client,
-        args.names.clone(),
-        args.sizeConstraints_maxDatabaseEntries.clone(),
-        args.sizeConstraints_maxUpdateEntries.clone(),
-        args.version.clone(),
+        &args.names,
+        &args.sizeConstraints_maxDatabaseEntries,
+        &args.sizeConstraints_maxUpdateEntries,
+        &args.version,
     )?;
     safebrowsing_hash_lists_batch_get_execute(builder)
 }
@@ -433,18 +430,18 @@ pub fn safebrowsing_hash_lists_batch_get(
 
 pub fn safebrowsing_hash_lists_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashLists",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -604,11 +601,7 @@ pub fn safebrowsing_hash_lists_list(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_hash_lists_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder = safebrowsing_hash_lists_list_builder(client, &args.pageSize, &args.pageToken)?;
     safebrowsing_hash_lists_list_execute(builder)
 }
 
@@ -620,14 +613,14 @@ pub fn safebrowsing_hash_lists_list(
 
 pub fn safebrowsing_hashes_search_builder(
     client: &SimpleHttpClient,
-    hashPrefixes: Option<String>,
+    hashPrefixes: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/hashes:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = hashPrefixes {
+    if let Some(val) = hashPrefixes.as_ref() {
         query_parts.push(format!("hashPrefixes={}", val));
     }
 
@@ -782,7 +775,7 @@ pub fn safebrowsing_hashes_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_hashes_search_builder(client, args.hashPrefixes.clone())?;
+    let builder = safebrowsing_hashes_search_builder(client, &args.hashPrefixes)?;
     safebrowsing_hashes_search_execute(builder)
 }
 
@@ -794,14 +787,14 @@ pub fn safebrowsing_hashes_search(
 
 pub fn safebrowsing_urls_search_builder(
     client: &SimpleHttpClient,
-    urls: Option<String>,
+    urls: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://safebrowsing.googleapis.com/v5/urls:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = urls {
+    if let Some(val) = urls.as_ref() {
         query_parts.push(format!("urls={}", val));
     }
 
@@ -956,6 +949,6 @@ pub fn safebrowsing_urls_search(
         + 'static,
     ApiError,
 > {
-    let builder = safebrowsing_urls_search_builder(client, args.urls.clone())?;
+    let builder = safebrowsing_urls_search_builder(client, &args.urls)?;
     safebrowsing_urls_search_execute(builder)
 }

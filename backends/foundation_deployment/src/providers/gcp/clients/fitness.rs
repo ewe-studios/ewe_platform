@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn fitness_users_data_sources_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &DataSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -179,8 +179,7 @@ pub fn fitness_users_data_sources_create(
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        fitness_users_data_sources_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = fitness_users_data_sources_create_builder(client, &args.userId, &args.body)?;
     fitness_users_data_sources_create_execute(builder)
 }
 
@@ -192,14 +191,13 @@ pub fn fitness_users_data_sources_create(
 
 pub fn fitness_users_data_sources_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    dataSourceId: String,
+    userId: &String,
+    dataSourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}",
-        userId.as_str(),
-        dataSourceId.as_str(),
+        userId, dataSourceId,
     );
 
     // Build request
@@ -341,11 +339,8 @@ pub fn fitness_users_data_sources_delete(
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fitness_users_data_sources_delete_builder(
-        client,
-        args.userId.clone(),
-        args.dataSourceId.clone(),
-    )?;
+    let builder =
+        fitness_users_data_sources_delete_builder(client, &args.userId, &args.dataSourceId)?;
     fitness_users_data_sources_delete_execute(builder)
 }
 
@@ -357,24 +352,23 @@ pub fn fitness_users_data_sources_delete(
 
 pub fn fitness_users_data_sources_data_point_changes_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    dataSourceId: String,
-    limit: Option<i32>,
-    pageToken: Option<String>,
+    userId: &String,
+    dataSourceId: &String,
+    limit: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/dataPointChanges",
-        userId.as_str(),
-        dataSourceId.as_str(),
+        userId, dataSourceId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -536,10 +530,10 @@ pub fn fitness_users_data_sources_data_point_changes_list(
 > {
     let builder = fitness_users_data_sources_data_point_changes_list_builder(
         client,
-        args.userId.clone(),
-        args.dataSourceId.clone(),
-        args.limit.clone(),
-        args.pageToken.clone(),
+        &args.userId,
+        &args.dataSourceId,
+        &args.limit,
+        &args.pageToken,
     )?;
     fitness_users_data_sources_data_point_changes_list_execute(builder)
 }
@@ -552,16 +546,14 @@ pub fn fitness_users_data_sources_data_point_changes_list(
 
 pub fn fitness_users_data_sources_datasets_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    dataSourceId: String,
-    datasetId: String,
+    userId: &String,
+    dataSourceId: &String,
+    datasetId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataSources/{}/datasets/{}",
-        userId.as_str(),
-        dataSourceId.as_str(),
-        datasetId.as_str(),
+        userId, dataSourceId, datasetId,
     );
 
     // Build request
@@ -704,9 +696,9 @@ pub fn fitness_users_data_sources_datasets_delete(
 > {
     let builder = fitness_users_data_sources_datasets_delete_builder(
         client,
-        args.userId.clone(),
-        args.dataSourceId.clone(),
-        args.datasetId.clone(),
+        &args.userId,
+        &args.dataSourceId,
+        &args.datasetId,
     )?;
     fitness_users_data_sources_datasets_delete_execute(builder)
 }
@@ -719,13 +711,13 @@ pub fn fitness_users_data_sources_datasets_delete(
 
 pub fn fitness_users_dataset_aggregate_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &AggregateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/dataset:aggregate",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -873,7 +865,7 @@ pub fn fitness_users_dataset_aggregate(
         + 'static,
     ApiError,
 > {
-    let builder = fitness_users_dataset_aggregate_builder(client, args.userId.clone(), &args.body)?;
+    let builder = fitness_users_dataset_aggregate_builder(client, &args.userId, &args.body)?;
     fitness_users_dataset_aggregate_execute(builder)
 }
 
@@ -885,14 +877,13 @@ pub fn fitness_users_dataset_aggregate(
 
 pub fn fitness_users_sessions_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sessionId: String,
+    userId: &String,
+    sessionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions/{}",
-        userId.as_str(),
-        sessionId.as_str(),
+        userId, sessionId,
     );
 
     // Build request
@@ -1031,8 +1022,7 @@ pub fn fitness_users_sessions_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        fitness_users_sessions_delete_builder(client, args.userId.clone(), args.sessionId.clone())?;
+    let builder = fitness_users_sessions_delete_builder(client, &args.userId, &args.sessionId)?;
     fitness_users_sessions_delete_execute(builder)
 }
 
@@ -1044,34 +1034,34 @@ pub fn fitness_users_sessions_delete(
 
 pub fn fitness_users_sessions_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    activityType: Option<i32>,
-    endTime: Option<String>,
-    includeDeleted: Option<bool>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    userId: &String,
+    activityType: &Option<i32>,
+    endTime: &Option<String>,
+    includeDeleted: &Option<bool>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://fitness.googleapis.com/fitness/v1/users/{}/sessions",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = activityType {
+    if let Some(val) = activityType.as_ref() {
         query_parts.push(format!("activityType={}", val));
     }
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = includeDeleted {
+    if let Some(val) = includeDeleted.as_ref() {
         query_parts.push(format!("includeDeleted={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -1233,12 +1223,12 @@ pub fn fitness_users_sessions_list(
 > {
     let builder = fitness_users_sessions_list_builder(
         client,
-        args.userId.clone(),
-        args.activityType.clone(),
-        args.endTime.clone(),
-        args.includeDeleted.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.userId,
+        &args.activityType,
+        &args.endTime,
+        &args.includeDeleted,
+        &args.pageToken,
+        &args.startTime,
     )?;
     fitness_users_sessions_list_execute(builder)
 }

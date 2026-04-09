@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn contentwarehouse_projects_fetch_acl_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GoogleCloudContentwarehouseV1FetchAclRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -185,8 +185,7 @@ pub fn contentwarehouse_projects_fetch_acl(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_fetch_acl_builder(client, args.resource.clone(), &args.body)?;
+    let builder = contentwarehouse_projects_fetch_acl_builder(client, &args.resource, &args.body)?;
     contentwarehouse_projects_fetch_acl_execute(builder)
 }
 
@@ -198,7 +197,7 @@ pub fn contentwarehouse_projects_fetch_acl(
 
 pub fn contentwarehouse_projects_set_acl_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GoogleCloudContentwarehouseV1SetAclRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -354,7 +353,6 @@ pub fn contentwarehouse_projects_set_acl(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_set_acl_builder(client, args.resource.clone(), &args.body)?;
+    let builder = contentwarehouse_projects_set_acl_builder(client, &args.resource, &args.body)?;
     contentwarehouse_projects_set_acl_execute(builder)
 }

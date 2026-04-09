@@ -29,22 +29,22 @@ use serde::Serialize;
 
 pub fn people_contact_groups_batch_get_builder(
     client: &SimpleHttpClient,
-    groupFields: Option<String>,
-    maxMembers: Option<i32>,
-    resourceNames: Option<String>,
+    groupFields: &Option<String>,
+    maxMembers: &Option<i32>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = groupFields {
+    if let Some(val) = groupFields.as_ref() {
         query_parts.push(format!("groupFields={}", val));
     }
-    if let Some(val) = maxMembers {
+    if let Some(val) = maxMembers.as_ref() {
         query_parts.push(format!("maxMembers={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
 
@@ -204,9 +204,9 @@ pub fn people_contact_groups_batch_get(
 > {
     let builder = people_contact_groups_batch_get_builder(
         client,
-        args.groupFields.clone(),
-        args.maxMembers.clone(),
-        args.resourceNames.clone(),
+        &args.groupFields,
+        &args.maxMembers,
+        &args.resourceNames,
     )?;
     people_contact_groups_batch_get_execute(builder)
 }
@@ -379,15 +379,15 @@ pub fn people_contact_groups_create(
 
 pub fn people_contact_groups_delete_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
-    deleteContacts: Option<bool>,
+    resourceName: &String,
+    deleteContacts: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/contactGroups/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deleteContacts {
+    if let Some(val) = deleteContacts.as_ref() {
         query_parts.push(format!("deleteContacts={}", val));
     }
 
@@ -535,11 +535,8 @@ pub fn people_contact_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_delete_builder(
-        client,
-        args.resourceName.clone(),
-        args.deleteContacts.clone(),
-    )?;
+    let builder =
+        people_contact_groups_delete_builder(client, &args.resourceName, &args.deleteContacts)?;
     people_contact_groups_delete_execute(builder)
 }
 
@@ -551,7 +548,7 @@ pub fn people_contact_groups_delete(
 
 pub fn people_contact_groups_members_modify_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
     body: &ModifyContactGroupMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -706,11 +703,8 @@ pub fn people_contact_groups_members_modify(
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_members_modify_builder(
-        client,
-        args.resourceName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        people_contact_groups_members_modify_builder(client, &args.resourceName, &args.body)?;
     people_contact_groups_members_modify_execute(builder)
 }
 
@@ -722,7 +716,7 @@ pub fn people_contact_groups_members_modify(
 
 pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
     body: &CopyOtherContactToMyContactsGroupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -873,7 +867,7 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 > {
     let builder = people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
         client,
-        args.resourceName.clone(),
+        &args.resourceName,
         &args.body,
     )?;
     people_other_contacts_copy_other_contact_to_my_contacts_group_execute(builder)
@@ -887,34 +881,34 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 
 pub fn people_other_contacts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readMask: Option<String>,
-    requestSyncToken: Option<bool>,
-    sources: Option<String>,
-    syncToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    requestSyncToken: &Option<bool>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
-    if let Some(val) = requestSyncToken {
+    if let Some(val) = requestSyncToken.as_ref() {
         query_parts.push(format!("requestSyncToken={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -1076,12 +1070,12 @@ pub fn people_other_contacts_list(
 > {
     let builder = people_other_contacts_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readMask.clone(),
-        args.requestSyncToken.clone(),
-        args.sources.clone(),
-        args.syncToken.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
+        &args.requestSyncToken,
+        &args.sources,
+        &args.syncToken,
     )?;
     people_other_contacts_list_execute(builder)
 }
@@ -1094,22 +1088,22 @@ pub fn people_other_contacts_list(
 
 pub fn people_other_contacts_search_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    query: Option<String>,
-    readMask: Option<String>,
+    pageSize: &Option<i32>,
+    query: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/otherContacts:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -1263,12 +1257,8 @@ pub fn people_other_contacts_search(
         + 'static,
     ApiError,
 > {
-    let builder = people_other_contacts_search_builder(
-        client,
-        args.pageSize.clone(),
-        args.query.clone(),
-        args.readMask.clone(),
-    )?;
+    let builder =
+        people_other_contacts_search_builder(client, &args.pageSize, &args.query, &args.readMask)?;
     people_other_contacts_search_execute(builder)
 }
 
@@ -1764,8 +1754,8 @@ pub fn people_people_batch_update_contacts(
 
 pub fn people_people_create_contact_builder(
     client: &SimpleHttpClient,
-    personFields: Option<String>,
-    sources: Option<String>,
+    personFields: &Option<String>,
+    sources: &Option<String>,
     body: &Person,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1773,10 +1763,10 @@ pub fn people_people_create_contact_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -1930,8 +1920,8 @@ pub fn people_people_create_contact(
 > {
     let builder = people_people_create_contact_builder(
         client,
-        args.personFields.clone(),
-        args.sources.clone(),
+        &args.personFields,
+        &args.sources,
         &args.body,
     )?;
     people_people_create_contact_execute(builder)
@@ -1945,7 +1935,7 @@ pub fn people_people_create_contact(
 
 pub fn people_people_delete_contact_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContact",);
@@ -2087,7 +2077,7 @@ pub fn people_people_delete_contact(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_delete_contact_builder(client, args.resourceName.clone())?;
+    let builder = people_people_delete_contact_builder(client, &args.resourceName)?;
     people_people_delete_contact_execute(builder)
 }
 
@@ -2099,19 +2089,19 @@ pub fn people_people_delete_contact(
 
 pub fn people_people_delete_contact_photo_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
-    personFields: Option<String>,
-    sources: Option<String>,
+    resourceName: &String,
+    personFields: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people/{}:deleteContactPhoto",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -2271,9 +2261,9 @@ pub fn people_people_delete_contact_photo(
 > {
     let builder = people_people_delete_contact_photo_builder(
         client,
-        args.resourceName.clone(),
-        args.personFields.clone(),
-        args.sources.clone(),
+        &args.resourceName,
+        &args.personFields,
+        &args.sources,
     )?;
     people_people_delete_contact_photo_execute(builder)
 }
@@ -2286,23 +2276,23 @@ pub fn people_people_delete_contact_photo(
 
 pub fn people_people_get_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
-    personFields: Option<String>,
-    requestMask_includeField: Option<String>,
-    sources: Option<String>,
+    resourceName: &String,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = requestMask_includeField {
+    if let Some(val) = requestMask_includeField.as_ref() {
         query_parts.push(format!("requestMask.includeField={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -2456,10 +2446,10 @@ pub fn people_people_get(
 > {
     let builder = people_people_get_builder(
         client,
-        args.resourceName.clone(),
-        args.personFields.clone(),
-        args.requestMask_includeField.clone(),
-        args.sources.clone(),
+        &args.resourceName,
+        &args.personFields,
+        &args.requestMask_includeField,
+        &args.sources,
     )?;
     people_people_get_execute(builder)
 }
@@ -2472,26 +2462,26 @@ pub fn people_people_get(
 
 pub fn people_people_get_batch_get_builder(
     client: &SimpleHttpClient,
-    personFields: Option<String>,
-    requestMask_includeField: Option<String>,
-    resourceNames: Option<String>,
-    sources: Option<String>,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    resourceNames: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = requestMask_includeField {
+    if let Some(val) = requestMask_includeField.as_ref() {
         query_parts.push(format!("requestMask.includeField={}", val));
     }
-    if let Some(val) = resourceNames {
+    if let Some(val) = resourceNames.as_ref() {
         query_parts.push(format!("resourceNames={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -2649,10 +2639,10 @@ pub fn people_people_get_batch_get(
 > {
     let builder = people_people_get_batch_get_builder(
         client,
-        args.personFields.clone(),
-        args.requestMask_includeField.clone(),
-        args.resourceNames.clone(),
-        args.sources.clone(),
+        &args.personFields,
+        &args.requestMask_includeField,
+        &args.resourceNames,
+        &args.sources,
     )?;
     people_people_get_batch_get_execute(builder)
 }
@@ -2665,38 +2655,38 @@ pub fn people_people_get_batch_get(
 
 pub fn people_people_list_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readMask: Option<String>,
-    requestSyncToken: Option<bool>,
-    sources: Option<String>,
-    syncToken: Option<String>,
+    mergeSources: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    requestSyncToken: &Option<bool>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:listDirectoryPeople",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = mergeSources {
+    if let Some(val) = mergeSources.as_ref() {
         query_parts.push(format!("mergeSources={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
-    if let Some(val) = requestSyncToken {
+    if let Some(val) = requestSyncToken.as_ref() {
         query_parts.push(format!("requestSyncToken={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -2864,13 +2854,13 @@ pub fn people_people_list_directory_people(
 > {
     let builder = people_people_list_directory_people_builder(
         client,
-        args.mergeSources.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readMask.clone(),
-        args.requestSyncToken.clone(),
-        args.sources.clone(),
-        args.syncToken.clone(),
+        &args.mergeSources,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
+        &args.requestSyncToken,
+        &args.sources,
+        &args.syncToken,
     )?;
     people_people_list_directory_people_execute(builder)
 }
@@ -2883,26 +2873,26 @@ pub fn people_people_list_directory_people(
 
 pub fn people_people_search_contacts_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    query: Option<String>,
-    readMask: Option<String>,
-    sources: Option<String>,
+    pageSize: &Option<i32>,
+    query: &Option<String>,
+    readMask: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchContacts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -3060,10 +3050,10 @@ pub fn people_people_search_contacts(
 > {
     let builder = people_people_search_contacts_builder(
         client,
-        args.pageSize.clone(),
-        args.query.clone(),
-        args.readMask.clone(),
-        args.sources.clone(),
+        &args.pageSize,
+        &args.query,
+        &args.readMask,
+        &args.sources,
     )?;
     people_people_search_contacts_execute(builder)
 }
@@ -3076,34 +3066,34 @@ pub fn people_people_search_contacts(
 
 pub fn people_people_search_directory_people_builder(
     client: &SimpleHttpClient,
-    mergeSources: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    readMask: Option<String>,
-    sources: Option<String>,
+    mergeSources: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people:searchDirectoryPeople",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = mergeSources {
+    if let Some(val) = mergeSources.as_ref() {
         query_parts.push(format!("mergeSources={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
 
@@ -3269,12 +3259,12 @@ pub fn people_people_search_directory_people(
 > {
     let builder = people_people_search_directory_people_builder(
         client,
-        args.mergeSources.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.readMask.clone(),
-        args.sources.clone(),
+        &args.mergeSources,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.readMask,
+        &args.sources,
     )?;
     people_people_search_directory_people_execute(builder)
 }
@@ -3287,10 +3277,10 @@ pub fn people_people_search_directory_people(
 
 pub fn people_people_update_contact_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
-    personFields: Option<String>,
-    sources: Option<String>,
-    updatePersonFields: Option<String>,
+    resourceName: &String,
+    personFields: &Option<String>,
+    sources: &Option<String>,
+    updatePersonFields: &Option<String>,
     body: &Person,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3298,13 +3288,13 @@ pub fn people_people_update_contact_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
-    if let Some(val) = updatePersonFields {
+    if let Some(val) = updatePersonFields.as_ref() {
         query_parts.push(format!("updatePersonFields={}", val));
     }
 
@@ -3462,10 +3452,10 @@ pub fn people_people_update_contact(
 > {
     let builder = people_people_update_contact_builder(
         client,
-        args.resourceName.clone(),
-        args.personFields.clone(),
-        args.sources.clone(),
-        args.updatePersonFields.clone(),
+        &args.resourceName,
+        &args.personFields,
+        &args.sources,
+        &args.updatePersonFields,
         &args.body,
     )?;
     people_people_update_contact_execute(builder)
@@ -3479,7 +3469,7 @@ pub fn people_people_update_contact(
 
 pub fn people_people_update_contact_photo_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
     body: &UpdateContactPhotoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3635,7 +3625,7 @@ pub fn people_people_update_contact_photo(
     ApiError,
 > {
     let builder =
-        people_people_update_contact_photo_builder(client, args.resourceName.clone(), &args.body)?;
+        people_people_update_contact_photo_builder(client, &args.resourceName, &args.body)?;
     people_people_update_contact_photo_execute(builder)
 }
 
@@ -3647,43 +3637,43 @@ pub fn people_people_update_contact_photo(
 
 pub fn people_people_connections_list_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    personFields: Option<String>,
-    requestMask_includeField: Option<String>,
-    requestSyncToken: Option<bool>,
-    sortOrder: Option<String>,
-    sources: Option<String>,
-    syncToken: Option<String>,
+    resourceName: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    requestSyncToken: &Option<bool>,
+    sortOrder: &Option<String>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://people.googleapis.com/v1/people/{}/connections",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = personFields {
+    if let Some(val) = personFields.as_ref() {
         query_parts.push(format!("personFields={}", val));
     }
-    if let Some(val) = requestMask_includeField {
+    if let Some(val) = requestMask_includeField.as_ref() {
         query_parts.push(format!("requestMask.includeField={}", val));
     }
-    if let Some(val) = requestSyncToken {
+    if let Some(val) = requestSyncToken.as_ref() {
         query_parts.push(format!("requestSyncToken={}", val));
     }
-    if let Some(val) = sortOrder {
+    if let Some(val) = sortOrder.as_ref() {
         query_parts.push(format!("sortOrder={}", val));
     }
-    if let Some(val) = sources {
+    if let Some(val) = sources.as_ref() {
         query_parts.push(format!("sources={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -3851,15 +3841,15 @@ pub fn people_people_connections_list(
 > {
     let builder = people_people_connections_list_builder(
         client,
-        args.resourceName.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.personFields.clone(),
-        args.requestMask_includeField.clone(),
-        args.requestSyncToken.clone(),
-        args.sortOrder.clone(),
-        args.sources.clone(),
-        args.syncToken.clone(),
+        &args.resourceName,
+        &args.pageSize,
+        &args.pageToken,
+        &args.personFields,
+        &args.requestMask_includeField,
+        &args.requestSyncToken,
+        &args.sortOrder,
+        &args.sources,
+        &args.syncToken,
     )?;
     people_people_connections_list_execute(builder)
 }

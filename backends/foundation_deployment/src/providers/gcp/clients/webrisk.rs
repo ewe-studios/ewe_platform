@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn webrisk_hashes_search_builder(
     client: &SimpleHttpClient,
-    hashPrefix: Option<String>,
-    threatTypes: Option<String>,
+    hashPrefix: &Option<String>,
+    threatTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/hashes:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = hashPrefix {
+    if let Some(val) = hashPrefix.as_ref() {
         query_parts.push(format!("hashPrefix={}", val));
     }
-    if let Some(val) = threatTypes {
+    if let Some(val) = threatTypes.as_ref() {
         query_parts.push(format!("threatTypes={}", val));
     }
 
@@ -196,8 +196,7 @@ pub fn webrisk_hashes_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        webrisk_hashes_search_builder(client, args.hashPrefix.clone(), args.threatTypes.clone())?;
+    let builder = webrisk_hashes_search_builder(client, &args.hashPrefix, &args.threatTypes)?;
     webrisk_hashes_search_execute(builder)
 }
 
@@ -209,27 +208,27 @@ pub fn webrisk_hashes_search(
 
 pub fn webrisk_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/projects/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -394,11 +393,11 @@ pub fn webrisk_projects_operations_list(
 > {
     let builder = webrisk_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     webrisk_projects_operations_list_execute(builder)
 }
@@ -411,7 +410,7 @@ pub fn webrisk_projects_operations_list(
 
 pub fn webrisk_projects_submissions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudWebriskV1Submission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -566,8 +565,7 @@ pub fn webrisk_projects_submissions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        webrisk_projects_submissions_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = webrisk_projects_submissions_create_builder(client, &args.parent, &args.body)?;
     webrisk_projects_submissions_create_execute(builder)
 }
 
@@ -579,30 +577,30 @@ pub fn webrisk_projects_submissions_create(
 
 pub fn webrisk_threat_lists_compute_diff_builder(
     client: &SimpleHttpClient,
-    constraints_maxDatabaseEntries: Option<i32>,
-    constraints_maxDiffEntries: Option<i32>,
-    constraints_supportedCompressions: Option<String>,
-    threatType: Option<String>,
-    versionToken: Option<String>,
+    constraints_maxDatabaseEntries: &Option<i32>,
+    constraints_maxDiffEntries: &Option<i32>,
+    constraints_supportedCompressions: &Option<String>,
+    threatType: &Option<String>,
+    versionToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/threatLists:computeDiff",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = constraints_maxDatabaseEntries {
+    if let Some(val) = constraints_maxDatabaseEntries.as_ref() {
         query_parts.push(format!("constraints.maxDatabaseEntries={}", val));
     }
-    if let Some(val) = constraints_maxDiffEntries {
+    if let Some(val) = constraints_maxDiffEntries.as_ref() {
         query_parts.push(format!("constraints.maxDiffEntries={}", val));
     }
-    if let Some(val) = constraints_supportedCompressions {
+    if let Some(val) = constraints_supportedCompressions.as_ref() {
         query_parts.push(format!("constraints.supportedCompressions={}", val));
     }
-    if let Some(val) = threatType {
+    if let Some(val) = threatType.as_ref() {
         query_parts.push(format!("threatType={}", val));
     }
-    if let Some(val) = versionToken {
+    if let Some(val) = versionToken.as_ref() {
         query_parts.push(format!("versionToken={}", val));
     }
 
@@ -770,11 +768,11 @@ pub fn webrisk_threat_lists_compute_diff(
 > {
     let builder = webrisk_threat_lists_compute_diff_builder(
         client,
-        args.constraints_maxDatabaseEntries.clone(),
-        args.constraints_maxDiffEntries.clone(),
-        args.constraints_supportedCompressions.clone(),
-        args.threatType.clone(),
-        args.versionToken.clone(),
+        &args.constraints_maxDatabaseEntries,
+        &args.constraints_maxDiffEntries,
+        &args.constraints_supportedCompressions,
+        &args.threatType,
+        &args.versionToken,
     )?;
     webrisk_threat_lists_compute_diff_execute(builder)
 }
@@ -787,18 +785,18 @@ pub fn webrisk_threat_lists_compute_diff(
 
 pub fn webrisk_uris_search_builder(
     client: &SimpleHttpClient,
-    threatTypes: Option<String>,
-    uri: Option<String>,
+    threatTypes: &Option<String>,
+    uri: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webrisk.googleapis.com/v1/uris:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = threatTypes {
+    if let Some(val) = threatTypes.as_ref() {
         query_parts.push(format!("threatTypes={}", val));
     }
-    if let Some(val) = uri {
+    if let Some(val) = uri.as_ref() {
         query_parts.push(format!("uri={}", val));
     }
 
@@ -954,6 +952,6 @@ pub fn webrisk_uris_search(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_uris_search_builder(client, args.threatTypes.clone(), args.uri.clone())?;
+    let builder = webrisk_uris_search_builder(client, &args.threatTypes, &args.uri)?;
     webrisk_uris_search_execute(builder)
 }

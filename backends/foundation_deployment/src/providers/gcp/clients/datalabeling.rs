@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn datalabeling_projects_annotation_spec_sets_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -188,7 +188,7 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
 > {
     let builder = datalabeling_projects_annotation_spec_sets_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     datalabeling_projects_annotation_spec_sets_create_execute(builder)
@@ -202,7 +202,7 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
 
 pub fn datalabeling_projects_datasets_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudDatalabelingV1beta1CreateDatasetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -357,8 +357,7 @@ pub fn datalabeling_projects_datasets_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_datasets_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = datalabeling_projects_datasets_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_create_execute(builder)
 }
 
@@ -370,7 +369,7 @@ pub fn datalabeling_projects_datasets_create(
 
 pub fn datalabeling_projects_evaluation_jobs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -527,11 +526,8 @@ pub fn datalabeling_projects_evaluation_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        datalabeling_projects_evaluation_jobs_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_evaluation_jobs_create_execute(builder)
 }
 
@@ -543,10 +539,10 @@ pub fn datalabeling_projects_evaluation_jobs_create(
 
 pub fn datalabeling_projects_evaluations_search_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -554,13 +550,13 @@ pub fn datalabeling_projects_evaluations_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -732,10 +728,10 @@ pub fn datalabeling_projects_evaluations_search(
 > {
     let builder = datalabeling_projects_evaluations_search_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     datalabeling_projects_evaluations_search_execute(builder)
 }
@@ -748,7 +744,7 @@ pub fn datalabeling_projects_evaluations_search(
 
 pub fn datalabeling_projects_instructions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudDatalabelingV1beta1CreateInstructionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -905,7 +901,7 @@ pub fn datalabeling_projects_instructions_create(
     ApiError,
 > {
     let builder =
-        datalabeling_projects_instructions_create_builder(client, args.parent.clone(), &args.body)?;
+        datalabeling_projects_instructions_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_instructions_create_execute(builder)
 }
 
@@ -917,11 +913,11 @@ pub fn datalabeling_projects_instructions_create(
 
 pub fn datalabeling_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -929,16 +925,16 @@ pub fn datalabeling_projects_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -1103,11 +1099,11 @@ pub fn datalabeling_projects_operations_list(
 > {
     let builder = datalabeling_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     datalabeling_projects_operations_list_execute(builder)
 }

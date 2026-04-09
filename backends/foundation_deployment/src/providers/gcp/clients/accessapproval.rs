@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn accessapproval_folders_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -173,7 +173,7 @@ pub fn accessapproval_folders_delete_access_approval_settings(
     ApiError,
 > {
     let builder =
-        accessapproval_folders_delete_access_approval_settings_builder(client, args.name.clone())?;
+        accessapproval_folders_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_folders_delete_access_approval_settings_execute(builder)
 }
 
@@ -185,7 +185,7 @@ pub fn accessapproval_folders_delete_access_approval_settings(
 
 pub fn accessapproval_folders_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -336,7 +336,7 @@ pub fn accessapproval_folders_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_folders_get_service_account_builder(client, args.name.clone())?;
+    let builder = accessapproval_folders_get_service_account_builder(client, &args.name)?;
     accessapproval_folders_get_service_account_execute(builder)
 }
 
@@ -348,10 +348,10 @@ pub fn accessapproval_folders_get_service_account(
 
 pub fn accessapproval_folders_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -359,13 +359,13 @@ pub fn accessapproval_folders_approval_requests_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -527,10 +527,10 @@ pub fn accessapproval_folders_approval_requests_list(
 > {
     let builder = accessapproval_folders_approval_requests_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     accessapproval_folders_approval_requests_list_execute(builder)
 }
@@ -543,7 +543,7 @@ pub fn accessapproval_folders_approval_requests_list(
 
 pub fn accessapproval_organizations_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -687,10 +687,8 @@ pub fn accessapproval_organizations_delete_access_approval_settings(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accessapproval_organizations_delete_access_approval_settings_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        accessapproval_organizations_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_organizations_delete_access_approval_settings_execute(builder)
 }
 
@@ -702,7 +700,7 @@ pub fn accessapproval_organizations_delete_access_approval_settings(
 
 pub fn accessapproval_organizations_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -853,8 +851,7 @@ pub fn accessapproval_organizations_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder =
-        accessapproval_organizations_get_service_account_builder(client, args.name.clone())?;
+    let builder = accessapproval_organizations_get_service_account_builder(client, &args.name)?;
     accessapproval_organizations_get_service_account_execute(builder)
 }
 
@@ -866,10 +863,10 @@ pub fn accessapproval_organizations_get_service_account(
 
 pub fn accessapproval_organizations_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -877,13 +874,13 @@ pub fn accessapproval_organizations_approval_requests_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1045,10 +1042,10 @@ pub fn accessapproval_organizations_approval_requests_list(
 > {
     let builder = accessapproval_organizations_approval_requests_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     accessapproval_organizations_approval_requests_list_execute(builder)
 }
@@ -1061,7 +1058,7 @@ pub fn accessapproval_organizations_approval_requests_list(
 
 pub fn accessapproval_projects_delete_access_approval_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1205,7 +1202,7 @@ pub fn accessapproval_projects_delete_access_approval_settings(
     ApiError,
 > {
     let builder =
-        accessapproval_projects_delete_access_approval_settings_builder(client, args.name.clone())?;
+        accessapproval_projects_delete_access_approval_settings_builder(client, &args.name)?;
     accessapproval_projects_delete_access_approval_settings_execute(builder)
 }
 
@@ -1217,7 +1214,7 @@ pub fn accessapproval_projects_delete_access_approval_settings(
 
 pub fn accessapproval_projects_get_service_account_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1368,7 +1365,7 @@ pub fn accessapproval_projects_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = accessapproval_projects_get_service_account_builder(client, args.name.clone())?;
+    let builder = accessapproval_projects_get_service_account_builder(client, &args.name)?;
     accessapproval_projects_get_service_account_execute(builder)
 }
 
@@ -1380,10 +1377,10 @@ pub fn accessapproval_projects_get_service_account(
 
 pub fn accessapproval_projects_approval_requests_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1391,13 +1388,13 @@ pub fn accessapproval_projects_approval_requests_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1559,10 +1556,10 @@ pub fn accessapproval_projects_approval_requests_list(
 > {
     let builder = accessapproval_projects_approval_requests_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     accessapproval_projects_approval_requests_list_execute(builder)
 }

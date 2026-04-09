@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn merchantapi_accounts_merchant_reviews_insert_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    dataSource: Option<String>,
+    parent: &String,
+    dataSource: &Option<String>,
     body: &MerchantReview,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -40,7 +40,7 @@ pub fn merchantapi_accounts_merchant_reviews_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dataSource {
+    if let Some(val) = dataSource.as_ref() {
         query_parts.push(format!("dataSource={}", val));
     }
 
@@ -198,8 +198,8 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 > {
     let builder = merchantapi_accounts_merchant_reviews_insert_builder(
         client,
-        args.parent.clone(),
-        args.dataSource.clone(),
+        &args.parent,
+        &args.dataSource,
         &args.body,
     )?;
     merchantapi_accounts_merchant_reviews_insert_execute(builder)
@@ -213,9 +213,9 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 
 pub fn merchantapi_accounts_merchant_reviews_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -223,10 +223,10 @@ pub fn merchantapi_accounts_merchant_reviews_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -386,9 +386,9 @@ pub fn merchantapi_accounts_merchant_reviews_list(
 > {
     let builder = merchantapi_accounts_merchant_reviews_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     merchantapi_accounts_merchant_reviews_list_execute(builder)
 }
@@ -401,8 +401,8 @@ pub fn merchantapi_accounts_merchant_reviews_list(
 
 pub fn merchantapi_accounts_product_reviews_insert_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    dataSource: Option<String>,
+    parent: &String,
+    dataSource: &Option<String>,
     body: &ProductReview,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -412,7 +412,7 @@ pub fn merchantapi_accounts_product_reviews_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dataSource {
+    if let Some(val) = dataSource.as_ref() {
         query_parts.push(format!("dataSource={}", val));
     }
 
@@ -570,8 +570,8 @@ pub fn merchantapi_accounts_product_reviews_insert(
 > {
     let builder = merchantapi_accounts_product_reviews_insert_builder(
         client,
-        args.parent.clone(),
-        args.dataSource.clone(),
+        &args.parent,
+        &args.dataSource,
         &args.body,
     )?;
     merchantapi_accounts_product_reviews_insert_execute(builder)
@@ -585,9 +585,9 @@ pub fn merchantapi_accounts_product_reviews_insert(
 
 pub fn merchantapi_accounts_product_reviews_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -595,10 +595,10 @@ pub fn merchantapi_accounts_product_reviews_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -758,9 +758,9 @@ pub fn merchantapi_accounts_product_reviews_list(
 > {
     let builder = merchantapi_accounts_product_reviews_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     merchantapi_accounts_product_reviews_list_execute(builder)
 }

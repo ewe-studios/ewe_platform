@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn clouderrorreporting_projects_delete_events_builder(
     client: &SimpleHttpClient,
-    projectName: String,
+    projectName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -176,8 +176,7 @@ pub fn clouderrorreporting_projects_delete_events(
         + 'static,
     ApiError,
 > {
-    let builder =
-        clouderrorreporting_projects_delete_events_builder(client, args.projectName.clone())?;
+    let builder = clouderrorreporting_projects_delete_events_builder(client, &args.projectName)?;
     clouderrorreporting_projects_delete_events_execute(builder)
 }
 
@@ -189,7 +188,7 @@ pub fn clouderrorreporting_projects_delete_events(
 
 pub fn clouderrorreporting_projects_events_report_builder(
     client: &SimpleHttpClient,
-    projectName: String,
+    projectName: &String,
     body: &ReportedErrorEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -341,11 +340,8 @@ pub fn clouderrorreporting_projects_events_report(
         + 'static,
     ApiError,
 > {
-    let builder = clouderrorreporting_projects_events_report_builder(
-        client,
-        args.projectName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        clouderrorreporting_projects_events_report_builder(client, &args.projectName, &args.body)?;
     clouderrorreporting_projects_events_report_execute(builder)
 }
 
@@ -357,18 +353,18 @@ pub fn clouderrorreporting_projects_events_report(
 
 pub fn clouderrorreporting_projects_group_stats_list_builder(
     client: &SimpleHttpClient,
-    projectName: String,
-    alignment: Option<String>,
-    alignmentTime: Option<String>,
-    groupId: Option<String>,
-    order: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    serviceFilter_resourceType: Option<String>,
-    serviceFilter_service: Option<String>,
-    serviceFilter_version: Option<String>,
-    timeRange_period: Option<String>,
-    timedCountDuration: Option<String>,
+    projectName: &String,
+    alignment: &Option<String>,
+    alignmentTime: &Option<String>,
+    groupId: &Option<String>,
+    order: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    serviceFilter_resourceType: &Option<String>,
+    serviceFilter_service: &Option<String>,
+    serviceFilter_version: &Option<String>,
+    timeRange_period: &Option<String>,
+    timedCountDuration: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -376,37 +372,37 @@ pub fn clouderrorreporting_projects_group_stats_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = alignment {
+    if let Some(val) = alignment.as_ref() {
         query_parts.push(format!("alignment={}", val));
     }
-    if let Some(val) = alignmentTime {
+    if let Some(val) = alignmentTime.as_ref() {
         query_parts.push(format!("alignmentTime={}", val));
     }
-    if let Some(val) = groupId {
+    if let Some(val) = groupId.as_ref() {
         query_parts.push(format!("groupId={}", val));
     }
-    if let Some(val) = order {
+    if let Some(val) = order.as_ref() {
         query_parts.push(format!("order={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = serviceFilter_resourceType {
+    if let Some(val) = serviceFilter_resourceType.as_ref() {
         query_parts.push(format!("serviceFilter.resourceType={}", val));
     }
-    if let Some(val) = serviceFilter_service {
+    if let Some(val) = serviceFilter_service.as_ref() {
         query_parts.push(format!("serviceFilter.service={}", val));
     }
-    if let Some(val) = serviceFilter_version {
+    if let Some(val) = serviceFilter_version.as_ref() {
         query_parts.push(format!("serviceFilter.version={}", val));
     }
-    if let Some(val) = timeRange_period {
+    if let Some(val) = timeRange_period.as_ref() {
         query_parts.push(format!("timeRange.period={}", val));
     }
-    if let Some(val) = timedCountDuration {
+    if let Some(val) = timedCountDuration.as_ref() {
         query_parts.push(format!("timedCountDuration={}", val));
     }
 
@@ -580,18 +576,18 @@ pub fn clouderrorreporting_projects_group_stats_list(
 > {
     let builder = clouderrorreporting_projects_group_stats_list_builder(
         client,
-        args.projectName.clone(),
-        args.alignment.clone(),
-        args.alignmentTime.clone(),
-        args.groupId.clone(),
-        args.order.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.serviceFilter_resourceType.clone(),
-        args.serviceFilter_service.clone(),
-        args.serviceFilter_version.clone(),
-        args.timeRange_period.clone(),
-        args.timedCountDuration.clone(),
+        &args.projectName,
+        &args.alignment,
+        &args.alignmentTime,
+        &args.groupId,
+        &args.order,
+        &args.pageSize,
+        &args.pageToken,
+        &args.serviceFilter_resourceType,
+        &args.serviceFilter_service,
+        &args.serviceFilter_version,
+        &args.timeRange_period,
+        &args.timedCountDuration,
     )?;
     clouderrorreporting_projects_group_stats_list_execute(builder)
 }

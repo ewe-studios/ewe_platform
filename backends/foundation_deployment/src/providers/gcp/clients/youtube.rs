@@ -29,30 +29,27 @@ use serde::Serialize;
 
 pub fn youtube_captions_download_builder(
     client: &SimpleHttpClient,
-    id: String,
-    onBehalfOf: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
-    tfmt: Option<String>,
-    tlang: Option<String>,
+    id: &String,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    tfmt: &Option<String>,
+    tlang: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://youtube.googleapis.com/youtube/v3/captions/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions/{}", id,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = onBehalfOf {
+    if let Some(val) = onBehalfOf.as_ref() {
         query_parts.push(format!("onBehalfOf={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
-    if let Some(val) = tfmt {
+    if let Some(val) = tfmt.as_ref() {
         query_parts.push(format!("tfmt={}", val));
     }
-    if let Some(val) = tlang {
+    if let Some(val) = tlang.as_ref() {
         query_parts.push(format!("tlang={}", val));
     }
 
@@ -205,11 +202,11 @@ pub fn youtube_captions_download(
 > {
     let builder = youtube_captions_download_builder(
         client,
-        args.id.clone(),
-        args.onBehalfOf.clone(),
-        args.onBehalfOfContentOwner.clone(),
-        args.tfmt.clone(),
-        args.tlang.clone(),
+        &args.id,
+        &args.onBehalfOf,
+        &args.onBehalfOfContentOwner,
+        &args.tfmt,
+        &args.tlang,
     )?;
     youtube_captions_download_execute(builder)
 }
@@ -222,9 +219,9 @@ pub fn youtube_captions_download(
 
 pub fn youtube_channel_banners_insert_builder(
     client: &SimpleHttpClient,
-    channelId: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
-    onBehalfOfContentOwnerChannel: Option<String>,
+    channelId: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
     body: &ChannelBannerResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -232,13 +229,13 @@ pub fn youtube_channel_banners_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = channelId {
+    if let Some(val) = channelId.as_ref() {
         query_parts.push(format!("channelId={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwnerChannel {
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
     }
 
@@ -398,9 +395,9 @@ pub fn youtube_channel_banners_insert(
 > {
     let builder = youtube_channel_banners_insert_builder(
         client,
-        args.channelId.clone(),
-        args.onBehalfOfContentOwner.clone(),
-        args.onBehalfOfContentOwnerChannel.clone(),
+        &args.channelId,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
         &args.body,
     )?;
     youtube_channel_banners_insert_execute(builder)
@@ -414,10 +411,10 @@ pub fn youtube_channel_banners_insert(
 
 pub fn youtube_live_broadcasts_insert_cuepoint_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
-    onBehalfOfContentOwnerChannel: Option<String>,
-    part: Option<String>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
     body: &Cuepoint,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -426,16 +423,16 @@ pub fn youtube_live_broadcasts_insert_cuepoint_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwnerChannel {
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
     }
-    if let Some(val) = part {
+    if let Some(val) = part.as_ref() {
         query_parts.push(format!("part={}", val));
     }
 
@@ -593,10 +590,10 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
 > {
     let builder = youtube_live_broadcasts_insert_cuepoint_builder(
         client,
-        args.id.clone(),
-        args.onBehalfOfContentOwner.clone(),
-        args.onBehalfOfContentOwnerChannel.clone(),
-        args.part.clone(),
+        &args.id,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
         &args.body,
     )?;
     youtube_live_broadcasts_insert_cuepoint_execute(builder)
@@ -610,8 +607,8 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
 
 pub fn youtube_live_chat_messages_transition_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
-    status: Option<String>,
+    id: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -619,10 +616,10 @@ pub fn youtube_live_chat_messages_transition_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -774,11 +771,7 @@ pub fn youtube_live_chat_messages_transition(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_messages_transition_builder(
-        client,
-        args.id.clone(),
-        args.status.clone(),
-    )?;
+    let builder = youtube_live_chat_messages_transition_builder(client, &args.id, &args.status)?;
     youtube_live_chat_messages_transition_execute(builder)
 }
 
@@ -790,18 +783,18 @@ pub fn youtube_live_chat_messages_transition(
 
 pub fn youtube_playlist_images_delete_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -946,11 +939,8 @@ pub fn youtube_playlist_images_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_playlist_images_delete_builder(
-        client,
-        args.id.clone(),
-        args.onBehalfOfContentOwner.clone(),
-    )?;
+    let builder =
+        youtube_playlist_images_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
     youtube_playlist_images_delete_execute(builder)
 }
 
@@ -962,14 +952,14 @@ pub fn youtube_playlist_images_delete(
 
 pub fn youtube_video_trainability_get_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videoTrainability",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
 
@@ -1119,7 +1109,7 @@ pub fn youtube_video_trainability_get(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_video_trainability_get_builder(client, args.id.clone())?;
+    let builder = youtube_video_trainability_get_builder(client, &args.id)?;
     youtube_video_trainability_get_execute(builder)
 }
 
@@ -1131,7 +1121,7 @@ pub fn youtube_video_trainability_get(
 
 pub fn youtube_videos_report_abuse_builder(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
     body: &VideoAbuseReport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1139,7 +1129,7 @@ pub fn youtube_videos_report_abuse_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -1286,11 +1276,8 @@ pub fn youtube_videos_report_abuse(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_report_abuse_builder(
-        client,
-        args.onBehalfOfContentOwner.clone(),
-        &args.body,
-    )?;
+    let builder =
+        youtube_videos_report_abuse_builder(client, &args.onBehalfOfContentOwner, &args.body)?;
     youtube_videos_report_abuse_execute(builder)
 }
 
@@ -1302,7 +1289,7 @@ pub fn youtube_videos_report_abuse(
 
 pub fn youtube_youtube_v3_update_comment_threads_builder(
     client: &SimpleHttpClient,
-    part: Option<String>,
+    part: &Option<String>,
     body: &CommentThread,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1310,7 +1297,7 @@ pub fn youtube_youtube_v3_update_comment_threads_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = part {
+    if let Some(val) = part.as_ref() {
         query_parts.push(format!("part={}", val));
     }
 
@@ -1465,7 +1452,7 @@ pub fn youtube_youtube_v3_update_comment_threads(
     ApiError,
 > {
     let builder =
-        youtube_youtube_v3_update_comment_threads_builder(client, args.part.clone(), &args.body)?;
+        youtube_youtube_v3_update_comment_threads_builder(client, &args.part, &args.body)?;
     youtube_youtube_v3_update_comment_threads_execute(builder)
 }
 
@@ -1477,12 +1464,12 @@ pub fn youtube_youtube_v3_update_comment_threads(
 
 pub fn youtube_youtube_v3_live_chat_messages_stream_builder(
     client: &SimpleHttpClient,
-    hl: Option<String>,
-    liveChatId: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    part: Option<String>,
-    profileImageSize: Option<i32>,
+    hl: &Option<String>,
+    liveChatId: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    profileImageSize: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1490,22 +1477,22 @@ pub fn youtube_youtube_v3_live_chat_messages_stream_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = hl {
+    if let Some(val) = hl.as_ref() {
         query_parts.push(format!("hl={}", val));
     }
-    if let Some(val) = liveChatId {
+    if let Some(val) = liveChatId.as_ref() {
         query_parts.push(format!("liveChatId={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = part {
+    if let Some(val) = part.as_ref() {
         query_parts.push(format!("part={}", val));
     }
-    if let Some(val) = profileImageSize {
+    if let Some(val) = profileImageSize.as_ref() {
         query_parts.push(format!("profileImageSize={}", val));
     }
 
@@ -1671,12 +1658,12 @@ pub fn youtube_youtube_v3_live_chat_messages_stream(
 > {
     let builder = youtube_youtube_v3_live_chat_messages_stream_builder(
         client,
-        args.hl.clone(),
-        args.liveChatId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.part.clone(),
-        args.profileImageSize.clone(),
+        &args.hl,
+        &args.liveChatId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.part,
+        &args.profileImageSize,
     )?;
     youtube_youtube_v3_live_chat_messages_stream_execute(builder)
 }

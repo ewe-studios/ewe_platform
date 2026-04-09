@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn realtimebidding_bidders_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}",);
@@ -171,7 +171,7 @@ pub fn realtimebidding_bidders_get(
     impl StreamIterator<D = Result<ApiResponse<Bidder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_get_builder(client, args.name.clone())?;
+    let builder = realtimebidding_bidders_get_builder(client, &args.name)?;
     realtimebidding_bidders_get_execute(builder)
 }
 
@@ -183,18 +183,18 @@ pub fn realtimebidding_bidders_get(
 
 pub fn realtimebidding_bidders_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -346,11 +346,7 @@ pub fn realtimebidding_bidders_list(
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder = realtimebidding_bidders_list_builder(client, &args.pageSize, &args.pageToken)?;
     realtimebidding_bidders_list_execute(builder)
 }
 
@@ -362,27 +358,27 @@ pub fn realtimebidding_bidders_list(
 
 pub fn realtimebidding_bidders_creatives_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    view: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}/creatives",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -542,11 +538,11 @@ pub fn realtimebidding_bidders_creatives_list(
 > {
     let builder = realtimebidding_bidders_creatives_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.view.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
     )?;
     realtimebidding_bidders_creatives_list_execute(builder)
 }
@@ -559,7 +555,7 @@ pub fn realtimebidding_bidders_creatives_list(
 
 pub fn realtimebidding_bidders_creatives_watch_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &WatchCreativesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -712,7 +708,7 @@ pub fn realtimebidding_bidders_creatives_watch(
     ApiError,
 > {
     let builder =
-        realtimebidding_bidders_creatives_watch_builder(client, args.parent.clone(), &args.body)?;
+        realtimebidding_bidders_creatives_watch_builder(client, &args.parent, &args.body)?;
     realtimebidding_bidders_creatives_watch_execute(builder)
 }
 
@@ -724,19 +720,19 @@ pub fn realtimebidding_bidders_creatives_watch(
 
 pub fn realtimebidding_bidders_endpoints_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/bidders/{}/endpoints",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -892,9 +888,9 @@ pub fn realtimebidding_bidders_endpoints_list(
 > {
     let builder = realtimebidding_bidders_endpoints_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     realtimebidding_bidders_endpoints_list_execute(builder)
 }
@@ -907,7 +903,7 @@ pub fn realtimebidding_bidders_endpoints_list(
 
 pub fn realtimebidding_bidders_pretargeting_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &PretargetingConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1061,7 +1057,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_create(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_create_execute(builder)
@@ -1075,7 +1071,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_create(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_approve_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchApprovePublisherConnectionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1234,7 +1230,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
 > {
     let builder = realtimebidding_bidders_publisher_connections_batch_approve_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     realtimebidding_bidders_publisher_connections_batch_approve_execute(builder)
@@ -1248,7 +1244,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_reject_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchRejectPublisherConnectionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1408,7 +1404,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject(
 > {
     let builder = realtimebidding_bidders_publisher_connections_batch_reject_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     realtimebidding_bidders_publisher_connections_batch_reject_execute(builder)
@@ -1422,11 +1418,11 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject(
 
 pub fn realtimebidding_bidders_publisher_connections_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1434,16 +1430,16 @@ pub fn realtimebidding_bidders_publisher_connections_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1607,11 +1603,11 @@ pub fn realtimebidding_bidders_publisher_connections_list(
 > {
     let builder = realtimebidding_bidders_publisher_connections_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     realtimebidding_bidders_publisher_connections_list_execute(builder)
 }
@@ -1624,7 +1620,7 @@ pub fn realtimebidding_bidders_publisher_connections_list(
 
 pub fn realtimebidding_buyers_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers/{}",);
@@ -1766,7 +1762,7 @@ pub fn realtimebidding_buyers_get(
     impl StreamIterator<D = Result<ApiResponse<Buyer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_builder(client, args.name.clone())?;
+    let builder = realtimebidding_buyers_get_builder(client, &args.name)?;
     realtimebidding_buyers_get_execute(builder)
 }
 
@@ -1778,7 +1774,7 @@ pub fn realtimebidding_buyers_get(
 
 pub fn realtimebidding_buyers_get_remarketing_tag_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1925,7 +1921,7 @@ pub fn realtimebidding_buyers_get_remarketing_tag(
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, args.name.clone())?;
+    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, &args.name)?;
     realtimebidding_buyers_get_remarketing_tag_execute(builder)
 }
 
@@ -1937,18 +1933,18 @@ pub fn realtimebidding_buyers_get_remarketing_tag(
 
 pub fn realtimebidding_buyers_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://realtimebidding.googleapis.com/v1/buyers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2100,8 +2096,7 @@ pub fn realtimebidding_buyers_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_buyers_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = realtimebidding_buyers_list_builder(client, &args.pageSize, &args.pageToken)?;
     realtimebidding_buyers_list_execute(builder)
 }
 
@@ -2113,7 +2108,7 @@ pub fn realtimebidding_buyers_list(
 
 pub fn realtimebidding_buyers_creatives_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2261,7 +2256,7 @@ pub fn realtimebidding_buyers_creatives_create(
     ApiError,
 > {
     let builder =
-        realtimebidding_buyers_creatives_create_builder(client, args.parent.clone(), &args.body)?;
+        realtimebidding_buyers_creatives_create_builder(client, &args.parent, &args.body)?;
     realtimebidding_buyers_creatives_create_execute(builder)
 }
 
@@ -2273,7 +2268,7 @@ pub fn realtimebidding_buyers_creatives_create(
 
 pub fn realtimebidding_buyers_user_lists_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &UserList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2421,6 +2416,6 @@ pub fn realtimebidding_buyers_user_lists_create(
     ApiError,
 > {
     let builder =
-        realtimebidding_buyers_user_lists_create_builder(client, args.parent.clone(), &args.body)?;
+        realtimebidding_buyers_user_lists_create_builder(client, &args.parent, &args.body)?;
     realtimebidding_buyers_user_lists_create_execute(builder)
 }

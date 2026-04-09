@@ -29,10 +29,10 @@ use serde::Serialize;
 
 pub fn androidmanagement_enterprises_create_builder(
     client: &SimpleHttpClient,
-    agreementAccepted: Option<bool>,
-    enterpriseToken: Option<String>,
-    projectId: Option<String>,
-    signupUrlName: Option<String>,
+    agreementAccepted: &Option<bool>,
+    enterpriseToken: &Option<String>,
+    projectId: &Option<String>,
+    signupUrlName: &Option<String>,
     body: &Enterprise,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -40,16 +40,16 @@ pub fn androidmanagement_enterprises_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = agreementAccepted {
+    if let Some(val) = agreementAccepted.as_ref() {
         query_parts.push(format!("agreementAccepted={}", val));
     }
-    if let Some(val) = enterpriseToken {
+    if let Some(val) = enterpriseToken.as_ref() {
         query_parts.push(format!("enterpriseToken={}", val));
     }
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
-    if let Some(val) = signupUrlName {
+    if let Some(val) = signupUrlName.as_ref() {
         query_parts.push(format!("signupUrlName={}", val));
     }
 
@@ -207,10 +207,10 @@ pub fn androidmanagement_enterprises_create(
 > {
     let builder = androidmanagement_enterprises_create_builder(
         client,
-        args.agreementAccepted.clone(),
-        args.enterpriseToken.clone(),
-        args.projectId.clone(),
-        args.signupUrlName.clone(),
+        &args.agreementAccepted,
+        &args.enterpriseToken,
+        &args.projectId,
+        &args.signupUrlName,
         &args.body,
     )?;
     androidmanagement_enterprises_create_execute(builder)
@@ -224,7 +224,7 @@ pub fn androidmanagement_enterprises_create(
 
 pub fn androidmanagement_enterprises_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/enterprises/{}",);
@@ -366,7 +366,7 @@ pub fn androidmanagement_enterprises_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_delete_builder(client, args.name.clone())?;
+    let builder = androidmanagement_enterprises_delete_builder(client, &args.name)?;
     androidmanagement_enterprises_delete_execute(builder)
 }
 
@@ -378,7 +378,7 @@ pub fn androidmanagement_enterprises_delete(
 
 pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GenerateEnterpriseUpgradeUrlRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -536,9 +536,7 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
     ApiError,
 > {
     let builder = androidmanagement_enterprises_generate_enterprise_upgrade_url_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     androidmanagement_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
@@ -551,9 +549,9 @@ pub fn androidmanagement_enterprises_generate_enterprise_upgrade_url(
 
 pub fn androidmanagement_enterprises_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -561,10 +559,10 @@ pub fn androidmanagement_enterprises_devices_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -720,9 +718,9 @@ pub fn androidmanagement_enterprises_devices_list(
 > {
     let builder = androidmanagement_enterprises_devices_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     androidmanagement_enterprises_devices_list_execute(builder)
 }
@@ -735,7 +733,7 @@ pub fn androidmanagement_enterprises_devices_list(
 
 pub fn androidmanagement_enterprises_enrollment_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &EnrollmentToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -889,7 +887,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create(
 > {
     let builder = androidmanagement_enterprises_enrollment_tokens_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androidmanagement_enterprises_enrollment_tokens_create_execute(builder)
@@ -903,7 +901,7 @@ pub fn androidmanagement_enterprises_enrollment_tokens_create(
 
 pub fn androidmanagement_enterprises_migration_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &MigrationToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1057,7 +1055,7 @@ pub fn androidmanagement_enterprises_migration_tokens_create(
 > {
     let builder = androidmanagement_enterprises_migration_tokens_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androidmanagement_enterprises_migration_tokens_create_execute(builder)
@@ -1071,9 +1069,9 @@ pub fn androidmanagement_enterprises_migration_tokens_create(
 
 pub fn androidmanagement_enterprises_policies_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1081,10 +1079,10 @@ pub fn androidmanagement_enterprises_policies_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1240,9 +1238,9 @@ pub fn androidmanagement_enterprises_policies_list(
 > {
     let builder = androidmanagement_enterprises_policies_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     androidmanagement_enterprises_policies_list_execute(builder)
 }
@@ -1255,7 +1253,7 @@ pub fn androidmanagement_enterprises_policies_list(
 
 pub fn androidmanagement_enterprises_web_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1403,11 +1401,8 @@ pub fn androidmanagement_enterprises_web_apps_create(
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_apps_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidmanagement_enterprises_web_apps_create_builder(client, &args.parent, &args.body)?;
     androidmanagement_enterprises_web_apps_create_execute(builder)
 }
 
@@ -1419,7 +1414,7 @@ pub fn androidmanagement_enterprises_web_apps_create(
 
 pub fn androidmanagement_enterprises_web_tokens_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &WebToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1567,11 +1562,8 @@ pub fn androidmanagement_enterprises_web_tokens_create(
     impl StreamIterator<D = Result<ApiResponse<WebToken>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_enterprises_web_tokens_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidmanagement_enterprises_web_tokens_create_builder(client, &args.parent, &args.body)?;
     androidmanagement_enterprises_web_tokens_create_execute(builder)
 }
 
@@ -1583,7 +1575,7 @@ pub fn androidmanagement_enterprises_web_tokens_create(
 
 pub fn androidmanagement_provisioning_info_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/provisioningInfo/{}",);
@@ -1729,7 +1721,7 @@ pub fn androidmanagement_provisioning_info_get(
         + 'static,
     ApiError,
 > {
-    let builder = androidmanagement_provisioning_info_get_builder(client, args.name.clone())?;
+    let builder = androidmanagement_provisioning_info_get_builder(client, &args.name)?;
     androidmanagement_provisioning_info_get_execute(builder)
 }
 
@@ -1741,26 +1733,26 @@ pub fn androidmanagement_provisioning_info_get(
 
 pub fn androidmanagement_signup_urls_create_builder(
     client: &SimpleHttpClient,
-    adminEmail: Option<String>,
-    allowedDomains: Option<String>,
-    callbackUrl: Option<String>,
-    projectId: Option<String>,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
+    callbackUrl: &Option<String>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://androidmanagement.googleapis.com/v1/signupUrls",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = adminEmail {
+    if let Some(val) = adminEmail.as_ref() {
         query_parts.push(format!("adminEmail={}", val));
     }
-    if let Some(val) = allowedDomains {
+    if let Some(val) = allowedDomains.as_ref() {
         query_parts.push(format!("allowedDomains={}", val));
     }
-    if let Some(val) = callbackUrl {
+    if let Some(val) = callbackUrl.as_ref() {
         query_parts.push(format!("callbackUrl={}", val));
     }
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
 
@@ -1914,10 +1906,10 @@ pub fn androidmanagement_signup_urls_create(
 > {
     let builder = androidmanagement_signup_urls_create_builder(
         client,
-        args.adminEmail.clone(),
-        args.allowedDomains.clone(),
-        args.callbackUrl.clone(),
-        args.projectId.clone(),
+        &args.adminEmail,
+        &args.allowedDomains,
+        &args.callbackUrl,
+        &args.projectId,
     )?;
     androidmanagement_signup_urls_create_execute(builder)
 }

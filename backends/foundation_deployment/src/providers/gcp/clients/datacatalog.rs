@@ -194,30 +194,30 @@ pub fn datacatalog_catalog_search(
 
 pub fn datacatalog_entries_lookup_builder(
     client: &SimpleHttpClient,
-    fullyQualifiedName: Option<String>,
-    linkedResource: Option<String>,
-    location: Option<String>,
-    project: Option<String>,
-    sqlResource: Option<String>,
+    fullyQualifiedName: &Option<String>,
+    linkedResource: &Option<String>,
+    location: &Option<String>,
+    project: &Option<String>,
+    sqlResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datacatalog.googleapis.com/v1/entries:lookup",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fullyQualifiedName {
+    if let Some(val) = fullyQualifiedName.as_ref() {
         query_parts.push(format!("fullyQualifiedName={}", val));
     }
-    if let Some(val) = linkedResource {
+    if let Some(val) = linkedResource.as_ref() {
         query_parts.push(format!("linkedResource={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = project {
+    if let Some(val) = project.as_ref() {
         query_parts.push(format!("project={}", val));
     }
-    if let Some(val) = sqlResource {
+    if let Some(val) = sqlResource.as_ref() {
         query_parts.push(format!("sqlResource={}", val));
     }
 
@@ -381,11 +381,11 @@ pub fn datacatalog_entries_lookup(
 > {
     let builder = datacatalog_entries_lookup_builder(
         client,
-        args.fullyQualifiedName.clone(),
-        args.linkedResource.clone(),
-        args.location.clone(),
-        args.project.clone(),
-        args.sqlResource.clone(),
+        &args.fullyQualifiedName,
+        &args.linkedResource,
+        &args.location,
+        &args.project,
+        &args.sqlResource,
     )?;
     datacatalog_entries_lookup_execute(builder)
 }

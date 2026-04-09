@@ -29,9 +29,9 @@ use serde::Serialize;
 
 pub fn bigquery_datasets_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    deleteContents: Option<bool>,
+    projectId: &String,
+    datasetId: &String,
+    deleteContents: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -39,7 +39,7 @@ pub fn bigquery_datasets_delete_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deleteContents {
+    if let Some(val) = deleteContents.as_ref() {
         query_parts.push(format!("deleteContents={}", val));
     }
 
@@ -188,9 +188,9 @@ pub fn bigquery_datasets_delete(
 > {
     let builder = bigquery_datasets_delete_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.deleteContents.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.deleteContents,
     )?;
     bigquery_datasets_delete_execute(builder)
 }
@@ -203,8 +203,8 @@ pub fn bigquery_datasets_delete(
 
 pub fn bigquery_datasets_insert_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    accessPolicyVersion: Option<i32>,
+    projectId: &String,
+    accessPolicyVersion: &Option<i32>,
     body: &Dataset,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -212,7 +212,7 @@ pub fn bigquery_datasets_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = accessPolicyVersion {
+    if let Some(val) = accessPolicyVersion.as_ref() {
         query_parts.push(format!("accessPolicyVersion={}", val));
     }
 
@@ -366,8 +366,8 @@ pub fn bigquery_datasets_insert(
 > {
     let builder = bigquery_datasets_insert_builder(
         client,
-        args.projectId.clone(),
-        args.accessPolicyVersion.clone(),
+        &args.projectId,
+        &args.accessPolicyVersion,
         &args.body,
     )?;
     bigquery_datasets_insert_execute(builder)
@@ -381,8 +381,8 @@ pub fn bigquery_datasets_insert(
 
 pub fn bigquery_datasets_undelete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
+    projectId: &String,
+    datasetId: &String,
     body: &UndeleteDatasetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -532,12 +532,8 @@ pub fn bigquery_datasets_undelete(
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_datasets_undelete_builder(
-        client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        bigquery_datasets_undelete_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_datasets_undelete_execute(builder)
 }
 
@@ -549,9 +545,9 @@ pub fn bigquery_datasets_undelete(
 
 pub fn bigquery_jobs_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    location: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -559,7 +555,7 @@ pub fn bigquery_jobs_cancel_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
 
@@ -713,12 +709,8 @@ pub fn bigquery_jobs_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_cancel_builder(
-        client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.location.clone(),
-    )?;
+    let builder =
+        bigquery_jobs_cancel_builder(client, &args.projectId, &args.jobId, &args.location)?;
     bigquery_jobs_cancel_execute(builder)
 }
 
@@ -730,9 +722,9 @@ pub fn bigquery_jobs_cancel(
 
 pub fn bigquery_jobs_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    location: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -740,7 +732,7 @@ pub fn bigquery_jobs_delete_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
 
@@ -887,12 +879,8 @@ pub fn bigquery_jobs_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_delete_builder(
-        client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.location.clone(),
-    )?;
+    let builder =
+        bigquery_jobs_delete_builder(client, &args.projectId, &args.jobId, &args.location)?;
     bigquery_jobs_delete_execute(builder)
 }
 
@@ -904,16 +892,16 @@ pub fn bigquery_jobs_delete(
 
 pub fn bigquery_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    location: Option<String>,
+    projectId: &String,
+    jobId: &String,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
 
@@ -1063,12 +1051,7 @@ pub fn bigquery_jobs_get(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_get_builder(
-        client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.location.clone(),
-    )?;
+    let builder = bigquery_jobs_get_builder(client, &args.projectId, &args.jobId, &args.location)?;
     bigquery_jobs_get_execute(builder)
 }
 
@@ -1080,15 +1063,15 @@ pub fn bigquery_jobs_get(
 
 pub fn bigquery_jobs_get_query_results_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    jobId: String,
-    formatOptions_timestampOutputFormat: Option<String>,
-    formatOptions_useInt64Timestamp: Option<bool>,
-    location: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    startIndex: Option<String>,
-    timeoutMs: Option<i32>,
+    projectId: &String,
+    jobId: &String,
+    formatOptions_timestampOutputFormat: &Option<String>,
+    formatOptions_useInt64Timestamp: &Option<bool>,
+    location: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    startIndex: &Option<String>,
+    timeoutMs: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1096,25 +1079,25 @@ pub fn bigquery_jobs_get_query_results_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = formatOptions_timestampOutputFormat {
+    if let Some(val) = formatOptions_timestampOutputFormat.as_ref() {
         query_parts.push(format!("formatOptions.timestampOutputFormat={}", val));
     }
-    if let Some(val) = formatOptions_useInt64Timestamp {
+    if let Some(val) = formatOptions_useInt64Timestamp.as_ref() {
         query_parts.push(format!("formatOptions.useInt64Timestamp={}", val));
     }
-    if let Some(val) = location {
+    if let Some(val) = location.as_ref() {
         query_parts.push(format!("location={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
-    if let Some(val) = timeoutMs {
+    if let Some(val) = timeoutMs.as_ref() {
         query_parts.push(format!("timeoutMs={}", val));
     }
 
@@ -1282,15 +1265,15 @@ pub fn bigquery_jobs_get_query_results(
 > {
     let builder = bigquery_jobs_get_query_results_builder(
         client,
-        args.projectId.clone(),
-        args.jobId.clone(),
-        args.formatOptions_timestampOutputFormat.clone(),
-        args.formatOptions_useInt64Timestamp.clone(),
-        args.location.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.startIndex.clone(),
-        args.timeoutMs.clone(),
+        &args.projectId,
+        &args.jobId,
+        &args.formatOptions_timestampOutputFormat,
+        &args.formatOptions_useInt64Timestamp,
+        &args.location,
+        &args.maxResults,
+        &args.pageToken,
+        &args.startIndex,
+        &args.timeoutMs,
     )?;
     bigquery_jobs_get_query_results_execute(builder)
 }
@@ -1303,7 +1286,7 @@ pub fn bigquery_jobs_get_query_results(
 
 pub fn bigquery_jobs_insert_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1450,7 +1433,7 @@ pub fn bigquery_jobs_insert(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_insert_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = bigquery_jobs_insert_builder(client, &args.projectId, &args.body)?;
     bigquery_jobs_insert_execute(builder)
 }
 
@@ -1462,7 +1445,7 @@ pub fn bigquery_jobs_insert(
 
 pub fn bigquery_jobs_query_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &QueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1613,7 +1596,7 @@ pub fn bigquery_jobs_query(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_query_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = bigquery_jobs_query_builder(client, &args.projectId, &args.body)?;
     bigquery_jobs_query_execute(builder)
 }
 
@@ -1625,9 +1608,9 @@ pub fn bigquery_jobs_query(
 
 pub fn bigquery_models_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    modelId: String,
+    projectId: &String,
+    datasetId: &String,
+    modelId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1771,12 +1754,8 @@ pub fn bigquery_models_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_models_delete_builder(
-        client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.modelId.clone(),
-    )?;
+    let builder =
+        bigquery_models_delete_builder(client, &args.projectId, &args.datasetId, &args.modelId)?;
     bigquery_models_delete_execute(builder)
 }
 
@@ -1788,10 +1767,10 @@ pub fn bigquery_models_delete(
 
 pub fn bigquery_models_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    datasetId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1799,10 +1778,10 @@ pub fn bigquery_models_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1960,10 +1939,10 @@ pub fn bigquery_models_list(
 > {
     let builder = bigquery_models_list_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     bigquery_models_list_execute(builder)
 }
@@ -1976,7 +1955,7 @@ pub fn bigquery_models_list(
 
 pub fn bigquery_projects_get_service_account_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2123,7 +2102,7 @@ pub fn bigquery_projects_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_projects_get_service_account_builder(client, args.projectId.clone())?;
+    let builder = bigquery_projects_get_service_account_builder(client, &args.projectId)?;
     bigquery_projects_get_service_account_execute(builder)
 }
 
@@ -2135,18 +2114,18 @@ pub fn bigquery_projects_get_service_account(
 
 pub fn bigquery_projects_list_builder(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2294,8 +2273,7 @@ pub fn bigquery_projects_list(
     impl StreamIterator<D = Result<ApiResponse<ProjectList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_projects_list_builder(client, args.maxResults.clone(), args.pageToken.clone())?;
+    let builder = bigquery_projects_list_builder(client, &args.maxResults, &args.pageToken)?;
     bigquery_projects_list_execute(builder)
 }
 
@@ -2307,9 +2285,9 @@ pub fn bigquery_projects_list(
 
 pub fn bigquery_routines_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    routineId: String,
+    projectId: &String,
+    datasetId: &String,
+    routineId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2455,9 +2433,9 @@ pub fn bigquery_routines_delete(
 > {
     let builder = bigquery_routines_delete_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.routineId.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.routineId,
     )?;
     bigquery_routines_delete_execute(builder)
 }
@@ -2470,8 +2448,8 @@ pub fn bigquery_routines_delete(
 
 pub fn bigquery_routines_insert_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
+    projectId: &String,
+    datasetId: &String,
     body: &Routine,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2621,12 +2599,8 @@ pub fn bigquery_routines_insert(
     impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_routines_insert_builder(
-        client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        bigquery_routines_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_routines_insert_execute(builder)
 }
 
@@ -2638,9 +2612,9 @@ pub fn bigquery_routines_insert(
 
 pub fn bigquery_row_access_policies_batch_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
     body: &BatchDeleteRowAccessPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2792,9 +2766,9 @@ pub fn bigquery_row_access_policies_batch_delete(
 > {
     let builder = bigquery_row_access_policies_batch_delete_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
         &args.body,
     )?;
     bigquery_row_access_policies_batch_delete_execute(builder)
@@ -2808,11 +2782,11 @@ pub fn bigquery_row_access_policies_batch_delete(
 
 pub fn bigquery_row_access_policies_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
-    policyId: String,
-    force: Option<bool>,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
+    policyId: &String,
+    force: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2821,7 +2795,7 @@ pub fn bigquery_row_access_policies_delete_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = force {
+    if let Some(val) = force.as_ref() {
         query_parts.push(format!("force={}", val));
     }
 
@@ -2974,11 +2948,11 @@ pub fn bigquery_row_access_policies_delete(
 > {
     let builder = bigquery_row_access_policies_delete_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
-        args.policyId.clone(),
-        args.force.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.policyId,
+        &args.force,
     )?;
     bigquery_row_access_policies_delete_execute(builder)
 }
@@ -2991,9 +2965,9 @@ pub fn bigquery_row_access_policies_delete(
 
 pub fn bigquery_row_access_policies_insert_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
     body: &RowAccessPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3152,9 +3126,9 @@ pub fn bigquery_row_access_policies_insert(
 > {
     let builder = bigquery_row_access_policies_insert_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
         &args.body,
     )?;
     bigquery_row_access_policies_insert_execute(builder)
@@ -3168,9 +3142,9 @@ pub fn bigquery_row_access_policies_insert(
 
 pub fn bigquery_tabledata_insert_all_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
     body: &TableDataInsertAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3333,9 +3307,9 @@ pub fn bigquery_tabledata_insert_all(
 > {
     let builder = bigquery_tabledata_insert_all_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
         &args.body,
     )?;
     bigquery_tabledata_insert_all_execute(builder)
@@ -3349,15 +3323,15 @@ pub fn bigquery_tabledata_insert_all(
 
 pub fn bigquery_tabledata_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
-    formatOptions_timestampOutputFormat: Option<String>,
-    formatOptions_useInt64Timestamp: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    selectedFields: Option<String>,
-    startIndex: Option<String>,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
+    formatOptions_timestampOutputFormat: &Option<String>,
+    formatOptions_useInt64Timestamp: &Option<bool>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    selectedFields: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3366,22 +3340,22 @@ pub fn bigquery_tabledata_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = formatOptions_timestampOutputFormat {
+    if let Some(val) = formatOptions_timestampOutputFormat.as_ref() {
         query_parts.push(format!("formatOptions.timestampOutputFormat={}", val));
     }
-    if let Some(val) = formatOptions_useInt64Timestamp {
+    if let Some(val) = formatOptions_useInt64Timestamp.as_ref() {
         query_parts.push(format!("formatOptions.useInt64Timestamp={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = selectedFields {
+    if let Some(val) = selectedFields.as_ref() {
         query_parts.push(format!("selectedFields={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
 
@@ -3549,15 +3523,15 @@ pub fn bigquery_tabledata_list(
 > {
     let builder = bigquery_tabledata_list_builder(
         client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
-        args.formatOptions_timestampOutputFormat.clone(),
-        args.formatOptions_useInt64Timestamp.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.selectedFields.clone(),
-        args.startIndex.clone(),
+        &args.projectId,
+        &args.datasetId,
+        &args.tableId,
+        &args.formatOptions_timestampOutputFormat,
+        &args.formatOptions_useInt64Timestamp,
+        &args.maxResults,
+        &args.pageToken,
+        &args.selectedFields,
+        &args.startIndex,
     )?;
     bigquery_tabledata_list_execute(builder)
 }
@@ -3570,9 +3544,9 @@ pub fn bigquery_tabledata_list(
 
 pub fn bigquery_tables_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
-    tableId: String,
+    projectId: &String,
+    datasetId: &String,
+    tableId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3716,12 +3690,8 @@ pub fn bigquery_tables_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_delete_builder(
-        client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        args.tableId.clone(),
-    )?;
+    let builder =
+        bigquery_tables_delete_builder(client, &args.projectId, &args.datasetId, &args.tableId)?;
     bigquery_tables_delete_execute(builder)
 }
 
@@ -3733,8 +3703,8 @@ pub fn bigquery_tables_delete(
 
 pub fn bigquery_tables_insert_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    datasetId: String,
+    projectId: &String,
+    datasetId: &String,
     body: &Table,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3884,11 +3854,7 @@ pub fn bigquery_tables_insert(
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_tables_insert_builder(
-        client,
-        args.projectId.clone(),
-        args.datasetId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        bigquery_tables_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
     bigquery_tables_insert_execute(builder)
 }

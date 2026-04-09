@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn containeranalysis_projects_notes_batch_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchCreateNotesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -181,11 +181,8 @@ pub fn containeranalysis_projects_notes_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_batch_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        containeranalysis_projects_notes_batch_create_builder(client, &args.parent, &args.body)?;
     containeranalysis_projects_notes_batch_create_execute(builder)
 }
 
@@ -197,8 +194,8 @@ pub fn containeranalysis_projects_notes_batch_create(
 
 pub fn containeranalysis_projects_notes_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    noteId: Option<String>,
+    parent: &String,
+    noteId: &Option<String>,
     body: &Note,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -206,7 +203,7 @@ pub fn containeranalysis_projects_notes_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = noteId {
+    if let Some(val) = noteId.as_ref() {
         query_parts.push(format!("noteId={}", val));
     }
 
@@ -360,8 +357,8 @@ pub fn containeranalysis_projects_notes_create(
 > {
     let builder = containeranalysis_projects_notes_create_builder(
         client,
-        args.parent.clone(),
-        args.noteId.clone(),
+        &args.parent,
+        &args.noteId,
         &args.body,
     )?;
     containeranalysis_projects_notes_create_execute(builder)
@@ -375,7 +372,7 @@ pub fn containeranalysis_projects_notes_create(
 
 pub fn containeranalysis_projects_occurrences_batch_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchCreateOccurrencesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -533,7 +530,7 @@ pub fn containeranalysis_projects_occurrences_batch_create(
 > {
     let builder = containeranalysis_projects_occurrences_batch_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     containeranalysis_projects_occurrences_batch_create_execute(builder)
@@ -547,7 +544,7 @@ pub fn containeranalysis_projects_occurrences_batch_create(
 
 pub fn containeranalysis_projects_occurrences_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Occurrence,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -695,11 +692,8 @@ pub fn containeranalysis_projects_occurrences_create(
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        containeranalysis_projects_occurrences_create_builder(client, &args.parent, &args.body)?;
     containeranalysis_projects_occurrences_create_execute(builder)
 }
 
@@ -711,9 +705,9 @@ pub fn containeranalysis_projects_occurrences_create(
 
 pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    parent: &String,
+    filter: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -722,10 +716,10 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -885,9 +879,9 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
 > {
     let builder = containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.parent,
+        &args.filter,
+        &args.returnPartialSuccess,
     )?;
     containeranalysis_projects_occurrences_get_vulnerability_summary_execute(builder)
 }

@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn meet_conference_records_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}",);
@@ -175,7 +175,7 @@ pub fn meet_conference_records_get(
         + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_get_builder(client, args.name.clone())?;
+    let builder = meet_conference_records_get_builder(client, &args.name)?;
     meet_conference_records_get_execute(builder)
 }
 
@@ -187,22 +187,22 @@ pub fn meet_conference_records_get(
 
 pub fn meet_conference_records_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -362,9 +362,9 @@ pub fn meet_conference_records_list(
 > {
     let builder = meet_conference_records_list_builder(
         client,
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     meet_conference_records_list_execute(builder)
 }
@@ -377,23 +377,23 @@ pub fn meet_conference_records_list(
 
 pub fn meet_conference_records_participants_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/participants",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -551,10 +551,10 @@ pub fn meet_conference_records_participants_list(
 > {
     let builder = meet_conference_records_participants_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     meet_conference_records_participants_list_execute(builder)
 }
@@ -567,19 +567,19 @@ pub fn meet_conference_records_participants_list(
 
 pub fn meet_conference_records_recordings_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/recordings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -735,9 +735,9 @@ pub fn meet_conference_records_recordings_list(
 > {
     let builder = meet_conference_records_recordings_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     meet_conference_records_recordings_list_execute(builder)
 }
@@ -750,19 +750,19 @@ pub fn meet_conference_records_recordings_list(
 
 pub fn meet_conference_records_smart_notes_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -918,9 +918,9 @@ pub fn meet_conference_records_smart_notes_list(
 > {
     let builder = meet_conference_records_smart_notes_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     meet_conference_records_smart_notes_list_execute(builder)
 }
@@ -933,19 +933,19 @@ pub fn meet_conference_records_smart_notes_list(
 
 pub fn meet_conference_records_transcripts_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1101,9 +1101,9 @@ pub fn meet_conference_records_transcripts_list(
 > {
     let builder = meet_conference_records_transcripts_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     meet_conference_records_transcripts_list_execute(builder)
 }
@@ -1272,7 +1272,7 @@ pub fn meet_spaces_create(
 
 pub fn meet_spaces_end_active_conference_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &EndActiveConferenceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1419,7 +1419,7 @@ pub fn meet_spaces_end_active_conference(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_end_active_conference_builder(client, args.name.clone(), &args.body)?;
+    let builder = meet_spaces_end_active_conference_builder(client, &args.name, &args.body)?;
     meet_spaces_end_active_conference_execute(builder)
 }
 
@@ -1431,7 +1431,7 @@ pub fn meet_spaces_end_active_conference(
 
 pub fn meet_spaces_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://meet.googleapis.com/v2/spaces/{}",);
@@ -1573,6 +1573,6 @@ pub fn meet_spaces_get(
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_get_builder(client, args.name.clone())?;
+    let builder = meet_spaces_get_builder(client, &args.name)?;
     meet_spaces_get_execute(builder)
 }

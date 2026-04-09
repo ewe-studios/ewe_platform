@@ -185,7 +185,7 @@ pub fn chat_custom_emojis_create(
 
 pub fn chat_custom_emojis_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/customEmojis/{}",);
@@ -327,7 +327,7 @@ pub fn chat_custom_emojis_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = chat_custom_emojis_delete_builder(client, args.name.clone())?;
+    let builder = chat_custom_emojis_delete_builder(client, &args.name)?;
     chat_custom_emojis_delete_execute(builder)
 }
 
@@ -339,7 +339,7 @@ pub fn chat_custom_emojis_delete(
 
 pub fn chat_media_download_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/media/{}",);
@@ -481,7 +481,7 @@ pub fn chat_media_download(
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = chat_media_download_builder(client, args.resourceName.clone())?;
+    let builder = chat_media_download_builder(client, &args.resourceName)?;
     chat_media_download_execute(builder)
 }
 
@@ -493,7 +493,7 @@ pub fn chat_media_download(
 
 pub fn chat_media_upload_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &UploadAttachmentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -644,7 +644,7 @@ pub fn chat_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = chat_media_upload_builder(client, args.parent.clone(), &args.body)?;
+    let builder = chat_media_upload_builder(client, &args.parent, &args.body)?;
     chat_media_upload_execute(builder)
 }
 
@@ -656,7 +656,7 @@ pub fn chat_media_upload(
 
 pub fn chat_spaces_complete_import_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CompleteImportSpaceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -811,7 +811,7 @@ pub fn chat_spaces_complete_import(
         + 'static,
     ApiError,
 > {
-    let builder = chat_spaces_complete_import_builder(client, args.name.clone(), &args.body)?;
+    let builder = chat_spaces_complete_import_builder(client, &args.name, &args.body)?;
     chat_spaces_complete_import_execute(builder)
 }
 
@@ -823,7 +823,7 @@ pub fn chat_spaces_complete_import(
 
 pub fn chat_spaces_create_builder(
     client: &SimpleHttpClient,
-    requestId: Option<String>,
+    requestId: &Option<String>,
     body: &Space,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -831,7 +831,7 @@ pub fn chat_spaces_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -981,7 +981,7 @@ pub fn chat_spaces_create(
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = chat_spaces_create_builder(client, args.requestId.clone(), &args.body)?;
+    let builder = chat_spaces_create_builder(client, &args.requestId, &args.body)?;
     chat_spaces_create_execute(builder)
 }
 
@@ -993,15 +993,15 @@ pub fn chat_spaces_create(
 
 pub fn chat_spaces_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    useAdminAccess: Option<bool>,
+    name: &String,
+    useAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
 
@@ -1149,8 +1149,7 @@ pub fn chat_spaces_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        chat_spaces_delete_builder(client, args.name.clone(), args.useAdminAccess.clone())?;
+    let builder = chat_spaces_delete_builder(client, &args.name, &args.useAdminAccess)?;
     chat_spaces_delete_execute(builder)
 }
 
@@ -1162,14 +1161,14 @@ pub fn chat_spaces_delete(
 
 pub fn chat_spaces_find_direct_message_builder(
     client: &SimpleHttpClient,
-    name: Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:findDirectMessage",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -1315,7 +1314,7 @@ pub fn chat_spaces_find_direct_message(
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = chat_spaces_find_direct_message_builder(client, args.name.clone())?;
+    let builder = chat_spaces_find_direct_message_builder(client, &args.name)?;
     chat_spaces_find_direct_message_execute(builder)
 }
 
@@ -1327,30 +1326,30 @@ pub fn chat_spaces_find_direct_message(
 
 pub fn chat_spaces_search_builder(
     client: &SimpleHttpClient,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    useAdminAccess: Option<bool>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    useAdminAccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
 
@@ -1510,11 +1509,11 @@ pub fn chat_spaces_search(
 > {
     let builder = chat_spaces_search_builder(
         client,
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.useAdminAccess.clone(),
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.useAdminAccess,
     )?;
     chat_spaces_search_execute(builder)
 }
@@ -1683,8 +1682,8 @@ pub fn chat_spaces_setup(
 
 pub fn chat_spaces_members_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    useAdminAccess: Option<bool>,
+    parent: &String,
+    useAdminAccess: &Option<bool>,
     body: &Membership,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1692,7 +1691,7 @@ pub fn chat_spaces_members_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
+    if let Some(val) = useAdminAccess.as_ref() {
         query_parts.push(format!("useAdminAccess={}", val));
     }
 
@@ -1844,12 +1843,8 @@ pub fn chat_spaces_members_create(
     impl StreamIterator<D = Result<ApiResponse<Membership>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = chat_spaces_members_create_builder(
-        client,
-        args.parent.clone(),
-        args.useAdminAccess.clone(),
-        &args.body,
-    )?;
+    let builder =
+        chat_spaces_members_create_builder(client, &args.parent, &args.useAdminAccess, &args.body)?;
     chat_spaces_members_create_execute(builder)
 }
 
@@ -1861,11 +1856,11 @@ pub fn chat_spaces_members_create(
 
 pub fn chat_spaces_messages_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    messageId: Option<String>,
-    messageReplyOption: Option<String>,
-    requestId: Option<String>,
-    threadKey: Option<String>,
+    parent: &String,
+    messageId: &Option<String>,
+    messageReplyOption: &Option<String>,
+    requestId: &Option<String>,
+    threadKey: &Option<String>,
     body: &Message,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1873,16 +1868,16 @@ pub fn chat_spaces_messages_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = messageId {
+    if let Some(val) = messageId.as_ref() {
         query_parts.push(format!("messageId={}", val));
     }
-    if let Some(val) = messageReplyOption {
+    if let Some(val) = messageReplyOption.as_ref() {
         query_parts.push(format!("messageReplyOption={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = threadKey {
+    if let Some(val) = threadKey.as_ref() {
         query_parts.push(format!("threadKey={}", val));
     }
 
@@ -2042,11 +2037,11 @@ pub fn chat_spaces_messages_create(
 > {
     let builder = chat_spaces_messages_create_builder(
         client,
-        args.parent.clone(),
-        args.messageId.clone(),
-        args.messageReplyOption.clone(),
-        args.requestId.clone(),
-        args.threadKey.clone(),
+        &args.parent,
+        &args.messageId,
+        &args.messageReplyOption,
+        &args.requestId,
+        &args.threadKey,
         &args.body,
     )?;
     chat_spaces_messages_create_execute(builder)
@@ -2060,23 +2055,23 @@ pub fn chat_spaces_messages_create(
 
 pub fn chat_spaces_space_events_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chat.googleapis.com/v1/spaces/{}/spaceEvents",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2234,10 +2229,10 @@ pub fn chat_spaces_space_events_list(
 > {
     let builder = chat_spaces_space_events_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chat_spaces_space_events_list_execute(builder)
 }
@@ -2250,7 +2245,7 @@ pub fn chat_spaces_space_events_list(
 
 pub fn chat_users_sections_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleChatV1Section,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2401,6 +2396,6 @@ pub fn chat_users_sections_create(
         + 'static,
     ApiError,
 > {
-    let builder = chat_users_sections_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = chat_users_sections_create_builder(client, &args.parent, &args.body)?;
     chat_users_sections_create_execute(builder)
 }

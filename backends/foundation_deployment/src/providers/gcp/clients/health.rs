@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn health_users_get_identity_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/identity",);
@@ -171,7 +171,7 @@ pub fn health_users_get_identity(
     impl StreamIterator<D = Result<ApiResponse<Identity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_identity_builder(client, args.name.clone())?;
+    let builder = health_users_get_identity_builder(client, &args.name)?;
     health_users_get_identity_execute(builder)
 }
 
@@ -183,7 +183,7 @@ pub fn health_users_get_identity(
 
 pub fn health_users_get_profile_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/profile",);
@@ -325,7 +325,7 @@ pub fn health_users_get_profile(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_profile_builder(client, args.name.clone())?;
+    let builder = health_users_get_profile_builder(client, &args.name)?;
     health_users_get_profile_execute(builder)
 }
 
@@ -337,7 +337,7 @@ pub fn health_users_get_profile(
 
 pub fn health_users_get_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://health.googleapis.com/v4/users/{}/settings",);
@@ -479,6 +479,6 @@ pub fn health_users_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_settings_builder(client, args.name.clone())?;
+    let builder = health_users_get_settings_builder(client, &args.name)?;
     health_users_get_settings_execute(builder)
 }

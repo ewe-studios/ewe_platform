@@ -29,14 +29,14 @@ use serde::Serialize;
 
 pub fn apikeys_keys_lookup_key_builder(
     client: &SimpleHttpClient,
-    keyString: Option<String>,
+    keyString: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apikeys.googleapis.com/v2/keys:lookupKey",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = keyString {
+    if let Some(val) = keyString.as_ref() {
         query_parts.push(format!("keyString={}", val));
     }
 
@@ -186,7 +186,7 @@ pub fn apikeys_keys_lookup_key(
         + 'static,
     ApiError,
 > {
-    let builder = apikeys_keys_lookup_key_builder(client, args.keyString.clone())?;
+    let builder = apikeys_keys_lookup_key_builder(client, &args.keyString)?;
     apikeys_keys_lookup_key_execute(builder)
 }
 
@@ -198,7 +198,7 @@ pub fn apikeys_keys_lookup_key(
 
 pub fn apikeys_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apikeys.googleapis.com/v2/operations/{}",);
@@ -340,6 +340,6 @@ pub fn apikeys_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_operations_get_builder(client, args.name.clone())?;
+    let builder = apikeys_operations_get_builder(client, &args.name)?;
     apikeys_operations_get_execute(builder)
 }

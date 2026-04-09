@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn sql__backups__create_backup_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Backup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,7 +176,7 @@ pub fn sql__backups__create_backup(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__create_backup_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sql__backups__create_backup_builder(client, &args.parent, &args.body)?;
     sql__backups__create_backup_execute(builder)
 }
 
@@ -188,16 +188,14 @@ pub fn sql__backups__create_backup(
 
 pub fn sql_backup_runs_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    id: String,
+    project: &String,
+    instance: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns/{}",
-        project.as_str(),
-        instance.as_str(),
-        id.as_str(),
+        project, instance, id,
     );
 
     // Build request
@@ -341,12 +339,7 @@ pub fn sql_backup_runs_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_delete_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.id.clone(),
-    )?;
+    let builder = sql_backup_runs_delete_builder(client, &args.project, &args.instance, &args.id)?;
     sql_backup_runs_delete_execute(builder)
 }
 
@@ -358,15 +351,14 @@ pub fn sql_backup_runs_delete(
 
 pub fn sql_backup_runs_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &BackupRun,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -512,12 +504,8 @@ pub fn sql_backup_runs_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_backup_runs_insert_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_backup_runs_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_backup_runs_insert_execute(builder)
 }
 
@@ -529,15 +517,14 @@ pub fn sql_backup_runs_insert(
 
 pub fn sql_connect_generate_ephemeral_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &GenerateEphemeralCertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}:generateEphemeralCert",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -691,12 +678,8 @@ pub fn sql_connect_generate_ephemeral(
         + 'static,
     ApiError,
 > {
-    let builder = sql_connect_generate_ephemeral_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_connect_generate_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
     sql_connect_generate_ephemeral_execute(builder)
 }
 
@@ -708,20 +691,19 @@ pub fn sql_connect_generate_ephemeral(
 
 pub fn sql_connect_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    readTime: Option<String>,
+    project: &String,
+    instance: &String,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/connectSettings",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readTime {
+    if let Some(val) = readTime.as_ref() {
         query_parts.push(format!("readTime={}", val));
     }
 
@@ -875,12 +857,7 @@ pub fn sql_connect_get(
         + 'static,
     ApiError,
 > {
-    let builder = sql_connect_get_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.readTime.clone(),
-    )?;
+    let builder = sql_connect_get_builder(client, &args.project, &args.instance, &args.readTime)?;
     sql_connect_get_execute(builder)
 }
 
@@ -892,16 +869,14 @@ pub fn sql_connect_get(
 
 pub fn sql_databases_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    database: String,
+    project: &String,
+    instance: &String,
+    database: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
-        project.as_str(),
-        instance.as_str(),
-        database.as_str(),
+        project, instance, database,
     );
 
     // Build request
@@ -1045,12 +1020,8 @@ pub fn sql_databases_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_delete_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.database.clone(),
-    )?;
+    let builder =
+        sql_databases_delete_builder(client, &args.project, &args.instance, &args.database)?;
     sql_databases_delete_execute(builder)
 }
 
@@ -1062,15 +1033,14 @@ pub fn sql_databases_delete(
 
 pub fn sql_databases_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &Database,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -1216,12 +1186,7 @@ pub fn sql_databases_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_insert_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_databases_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_databases_insert_execute(builder)
 }
 
@@ -1233,18 +1198,18 @@ pub fn sql_databases_insert(
 
 pub fn sql_flags_list_builder(
     client: &SimpleHttpClient,
-    databaseVersion: Option<String>,
-    flagScope: Option<String>,
+    databaseVersion: &Option<String>,
+    flagScope: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sqladmin.googleapis.com/v1/flags",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = databaseVersion {
+    if let Some(val) = databaseVersion.as_ref() {
         query_parts.push(format!("databaseVersion={}", val));
     }
-    if let Some(val) = flagScope {
+    if let Some(val) = flagScope.as_ref() {
         query_parts.push(format!("flagScope={}", val));
     }
 
@@ -1396,8 +1361,7 @@ pub fn sql_flags_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sql_flags_list_builder(client, args.databaseVersion.clone(), args.flagScope.clone())?;
+    let builder = sql_flags_list_builder(client, &args.databaseVersion, &args.flagScope)?;
     sql_flags_list_execute(builder)
 }
 
@@ -1409,14 +1373,13 @@ pub fn sql_flags_list(
 
 pub fn sql_instances__list_entra_id_certificates_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listEntraIdCertificates",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -1566,11 +1529,8 @@ pub fn sql_instances__list_entra_id_certificates(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances__list_entra_id_certificates_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-    )?;
+    let builder =
+        sql_instances__list_entra_id_certificates_builder(client, &args.project, &args.instance)?;
     sql_instances__list_entra_id_certificates_execute(builder)
 }
 
@@ -1582,14 +1542,13 @@ pub fn sql_instances__list_entra_id_certificates(
 
 pub fn sql_instances__list_server_certificates_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listServerCertificates",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -1740,11 +1699,8 @@ pub fn sql_instances__list_server_certificates(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances__list_server_certificates_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-    )?;
+    let builder =
+        sql_instances__list_server_certificates_builder(client, &args.project, &args.instance)?;
     sql_instances__list_server_certificates_execute(builder)
 }
 
@@ -1756,15 +1712,14 @@ pub fn sql_instances__list_server_certificates(
 
 pub fn sql_instances__rotate_entra_id_certificate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesRotateEntraIdCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateEntraIdCertificate",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -1912,8 +1867,8 @@ pub fn sql_instances__rotate_entra_id_certificate(
 > {
     let builder = sql_instances__rotate_entra_id_certificate_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_instances__rotate_entra_id_certificate_execute(builder)
@@ -1927,15 +1882,14 @@ pub fn sql_instances__rotate_entra_id_certificate(
 
 pub fn sql_instances__rotate_server_certificate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesRotateServerCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateServerCertificate",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2083,8 +2037,8 @@ pub fn sql_instances__rotate_server_certificate(
 > {
     let builder = sql_instances__rotate_server_certificate_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_instances__rotate_server_certificate_execute(builder)
@@ -2098,15 +2052,14 @@ pub fn sql_instances__rotate_server_certificate(
 
 pub fn sql_instances_acquire_ssrs_lease_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesAcquireSsrsLeaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/acquireSsrsLease",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2262,8 +2215,8 @@ pub fn sql_instances_acquire_ssrs_lease(
 > {
     let builder = sql_instances_acquire_ssrs_lease_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_instances_acquire_ssrs_lease_execute(builder)
@@ -2277,14 +2230,13 @@ pub fn sql_instances_acquire_ssrs_lease(
 
 pub fn sql_instances_add_entra_id_certificate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addEntraIdCertificate",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2426,11 +2378,8 @@ pub fn sql_instances_add_entra_id_certificate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_add_entra_id_certificate_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-    )?;
+    let builder =
+        sql_instances_add_entra_id_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances_add_entra_id_certificate_execute(builder)
 }
 
@@ -2442,14 +2391,13 @@ pub fn sql_instances_add_entra_id_certificate(
 
 pub fn sql_instances_add_server_ca_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addServerCa",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2591,8 +2539,7 @@ pub fn sql_instances_add_server_ca(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_add_server_ca_builder(client, args.project.clone(), args.instance.clone())?;
+    let builder = sql_instances_add_server_ca_builder(client, &args.project, &args.instance)?;
     sql_instances_add_server_ca_execute(builder)
 }
 
@@ -2604,14 +2551,13 @@ pub fn sql_instances_add_server_ca(
 
 pub fn sql_instances_add_server_certificate_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/addServerCertificate",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2753,11 +2699,8 @@ pub fn sql_instances_add_server_certificate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_add_server_certificate_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-    )?;
+    let builder =
+        sql_instances_add_server_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances_add_server_certificate_execute(builder)
 }
 
@@ -2769,15 +2712,14 @@ pub fn sql_instances_add_server_certificate(
 
 pub fn sql_instances_clone_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesCloneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/clone",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -2923,12 +2865,7 @@ pub fn sql_instances_clone(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_clone_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_instances_clone_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_clone_execute(builder)
 }
 
@@ -2940,32 +2877,31 @@ pub fn sql_instances_clone(
 
 pub fn sql_instances_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    enableFinalBackup: Option<bool>,
-    finalBackupDescription: Option<String>,
-    finalBackupExpiryTime: Option<String>,
-    finalBackupTtlDays: Option<String>,
+    project: &String,
+    instance: &String,
+    enableFinalBackup: &Option<bool>,
+    finalBackupDescription: &Option<String>,
+    finalBackupExpiryTime: &Option<String>,
+    finalBackupTtlDays: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enableFinalBackup {
+    if let Some(val) = enableFinalBackup.as_ref() {
         query_parts.push(format!("enableFinalBackup={}", val));
     }
-    if let Some(val) = finalBackupDescription {
+    if let Some(val) = finalBackupDescription.as_ref() {
         query_parts.push(format!("finalBackupDescription={}", val));
     }
-    if let Some(val) = finalBackupExpiryTime {
+    if let Some(val) = finalBackupExpiryTime.as_ref() {
         query_parts.push(format!("finalBackupExpiryTime={}", val));
     }
-    if let Some(val) = finalBackupTtlDays {
+    if let Some(val) = finalBackupTtlDays.as_ref() {
         query_parts.push(format!("finalBackupTtlDays={}", val));
     }
 
@@ -3123,12 +3059,12 @@ pub fn sql_instances_delete(
 > {
     let builder = sql_instances_delete_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.enableFinalBackup.clone(),
-        args.finalBackupDescription.clone(),
-        args.finalBackupExpiryTime.clone(),
-        args.finalBackupTtlDays.clone(),
+        &args.project,
+        &args.instance,
+        &args.enableFinalBackup,
+        &args.finalBackupDescription,
+        &args.finalBackupExpiryTime,
+        &args.finalBackupTtlDays,
     )?;
     sql_instances_delete_execute(builder)
 }
@@ -3141,15 +3077,14 @@ pub fn sql_instances_delete(
 
 pub fn sql_instances_demote_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesDemoteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/demote",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -3295,12 +3230,7 @@ pub fn sql_instances_demote(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_demote_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_instances_demote_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_demote_execute(builder)
 }
 
@@ -3312,15 +3242,14 @@ pub fn sql_instances_demote(
 
 pub fn sql_instances_demote_master_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesDemoteMasterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/demoteMaster",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -3466,12 +3395,8 @@ pub fn sql_instances_demote_master(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_demote_master_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_demote_master_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_demote_master_execute(builder)
 }
 
@@ -3483,15 +3408,14 @@ pub fn sql_instances_demote_master(
 
 pub fn sql_instances_execute_sql_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &ExecuteSqlPayload,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/executeSql",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -3645,12 +3569,8 @@ pub fn sql_instances_execute_sql(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_execute_sql_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_execute_sql_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_execute_sql_execute(builder)
 }
 
@@ -3662,15 +3582,14 @@ pub fn sql_instances_execute_sql(
 
 pub fn sql_instances_export_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesExportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/export",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -3816,12 +3735,7 @@ pub fn sql_instances_export(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_export_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_instances_export_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_export_execute(builder)
 }
 
@@ -3833,15 +3747,14 @@ pub fn sql_instances_export(
 
 pub fn sql_instances_failover_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesFailoverRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/failover",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -3987,12 +3900,8 @@ pub fn sql_instances_failover(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_failover_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_failover_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_failover_execute(builder)
 }
 
@@ -4004,15 +3913,14 @@ pub fn sql_instances_failover(
 
 pub fn sql_instances_import_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesImportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/import",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -4158,12 +4066,7 @@ pub fn sql_instances_import(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_import_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_instances_import_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_import_execute(builder)
 }
 
@@ -4175,13 +4078,13 @@ pub fn sql_instances_import(
 
 pub fn sql_instances_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &DatabaseInstance,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances",
-        project.as_str(),
+        project,
     );
 
     // Build request
@@ -4325,7 +4228,7 @@ pub fn sql_instances_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_insert_builder(client, args.project.clone(), &args.body)?;
+    let builder = sql_instances_insert_builder(client, &args.project, &args.body)?;
     sql_instances_insert_execute(builder)
 }
 
@@ -4337,14 +4240,13 @@ pub fn sql_instances_insert(
 
 pub fn sql_instances_list_server_cas_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/listServerCas",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -4494,8 +4396,7 @@ pub fn sql_instances_list_server_cas(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_list_server_cas_builder(client, args.project.clone(), args.instance.clone())?;
+    let builder = sql_instances_list_server_cas_builder(client, &args.project, &args.instance)?;
     sql_instances_list_server_cas_execute(builder)
 }
 
@@ -4507,7 +4408,7 @@ pub fn sql_instances_list_server_cas(
 
 pub fn sql_instances_point_in_time_restore_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &PointInTimeRestoreContext,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4655,8 +4556,7 @@ pub fn sql_instances_point_in_time_restore(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_point_in_time_restore_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sql_instances_point_in_time_restore_builder(client, &args.parent, &args.body)?;
     sql_instances_point_in_time_restore_execute(builder)
 }
 
@@ -4668,15 +4568,14 @@ pub fn sql_instances_point_in_time_restore(
 
 pub fn sql_instances_pre_check_major_version_upgrade_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesPreCheckMajorVersionUpgradeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/preCheckMajorVersionUpgrade",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -4824,8 +4723,8 @@ pub fn sql_instances_pre_check_major_version_upgrade(
 > {
     let builder = sql_instances_pre_check_major_version_upgrade_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_instances_pre_check_major_version_upgrade_execute(builder)
@@ -4839,20 +4738,19 @@ pub fn sql_instances_pre_check_major_version_upgrade(
 
 pub fn sql_instances_promote_replica_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    failover: Option<bool>,
+    project: &String,
+    instance: &String,
+    failover: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/promoteReplica",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = failover {
+    if let Some(val) = failover.as_ref() {
         query_parts.push(format!("failover={}", val));
     }
 
@@ -5004,9 +4902,9 @@ pub fn sql_instances_promote_replica(
 > {
     let builder = sql_instances_promote_replica_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.failover.clone(),
+        &args.project,
+        &args.instance,
+        &args.failover,
     )?;
     sql_instances_promote_replica_execute(builder)
 }
@@ -5019,15 +4917,14 @@ pub fn sql_instances_promote_replica(
 
 pub fn sql_instances_reencrypt_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesReencryptRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/reencrypt",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -5173,12 +5070,8 @@ pub fn sql_instances_reencrypt(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_reencrypt_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_reencrypt_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_reencrypt_execute(builder)
 }
 
@@ -5190,14 +5083,13 @@ pub fn sql_instances_reencrypt(
 
 pub fn sql_instances_release_ssrs_lease_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/releaseSsrsLease",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -5347,11 +5239,7 @@ pub fn sql_instances_release_ssrs_lease(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_release_ssrs_lease_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-    )?;
+    let builder = sql_instances_release_ssrs_lease_builder(client, &args.project, &args.instance)?;
     sql_instances_release_ssrs_lease_execute(builder)
 }
 
@@ -5363,20 +5251,19 @@ pub fn sql_instances_release_ssrs_lease(
 
 pub fn sql_instances_reset_ssl_config_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    mode: Option<String>,
+    project: &String,
+    instance: &String,
+    mode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/resetSslConfig",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = mode {
+    if let Some(val) = mode.as_ref() {
         query_parts.push(format!("mode={}", val));
     }
 
@@ -5526,12 +5413,8 @@ pub fn sql_instances_reset_ssl_config(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_reset_ssl_config_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.mode.clone(),
-    )?;
+    let builder =
+        sql_instances_reset_ssl_config_builder(client, &args.project, &args.instance, &args.mode)?;
     sql_instances_reset_ssl_config_execute(builder)
 }
 
@@ -5543,14 +5426,13 @@ pub fn sql_instances_reset_ssl_config(
 
 pub fn sql_instances_restart_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/restart",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -5692,8 +5574,7 @@ pub fn sql_instances_restart(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_restart_builder(client, args.project.clone(), args.instance.clone())?;
+    let builder = sql_instances_restart_builder(client, &args.project, &args.instance)?;
     sql_instances_restart_execute(builder)
 }
 
@@ -5705,15 +5586,14 @@ pub fn sql_instances_restart(
 
 pub fn sql_instances_restore_backup_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesRestoreBackupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/restoreBackup",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -5859,12 +5739,8 @@ pub fn sql_instances_restore_backup(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_restore_backup_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_restore_backup_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_restore_backup_execute(builder)
 }
 
@@ -5876,15 +5752,14 @@ pub fn sql_instances_restore_backup(
 
 pub fn sql_instances_rotate_server_ca_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesRotateServerCaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rotateServerCa",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -6030,12 +5905,8 @@ pub fn sql_instances_rotate_server_ca(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_rotate_server_ca_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_rotate_server_ca_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_rotate_server_ca_execute(builder)
 }
 
@@ -6047,14 +5918,13 @@ pub fn sql_instances_rotate_server_ca(
 
 pub fn sql_instances_start_replica_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/startReplica",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -6196,8 +6066,7 @@ pub fn sql_instances_start_replica(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_start_replica_builder(client, args.project.clone(), args.instance.clone())?;
+    let builder = sql_instances_start_replica_builder(client, &args.project, &args.instance)?;
     sql_instances_start_replica_execute(builder)
 }
 
@@ -6209,14 +6078,13 @@ pub fn sql_instances_start_replica(
 
 pub fn sql_instances_stop_replica_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/stopReplica",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -6358,8 +6226,7 @@ pub fn sql_instances_stop_replica(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_stop_replica_builder(client, args.project.clone(), args.instance.clone())?;
+    let builder = sql_instances_stop_replica_builder(client, &args.project, &args.instance)?;
     sql_instances_stop_replica_execute(builder)
 }
 
@@ -6371,20 +6238,19 @@ pub fn sql_instances_stop_replica(
 
 pub fn sql_instances_switchover_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    dbTimeout: Option<String>,
+    project: &String,
+    instance: &String,
+    dbTimeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/switchover",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dbTimeout {
+    if let Some(val) = dbTimeout.as_ref() {
         query_parts.push(format!("dbTimeout={}", val));
     }
 
@@ -6534,12 +6400,8 @@ pub fn sql_instances_switchover(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_switchover_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.dbTimeout.clone(),
-    )?;
+    let builder =
+        sql_instances_switchover_builder(client, &args.project, &args.instance, &args.dbTimeout)?;
     sql_instances_switchover_execute(builder)
 }
 
@@ -6551,15 +6413,14 @@ pub fn sql_instances_switchover(
 
 pub fn sql_instances_truncate_log_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &InstancesTruncateLogRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/truncateLog",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -6705,12 +6566,8 @@ pub fn sql_instances_truncate_log(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_truncate_log_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_instances_truncate_log_builder(client, &args.project, &args.instance, &args.body)?;
     sql_instances_truncate_log_execute(builder)
 }
 
@@ -6722,14 +6579,13 @@ pub fn sql_instances_truncate_log(
 
 pub fn sql_operations_cancel_builder(
     client: &SimpleHttpClient,
-    project: String,
-    operation: String,
+    project: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations/{}/cancel",
-        project.as_str(),
-        operation.as_str(),
+        project, operation,
     );
 
     // Build request
@@ -6871,8 +6727,7 @@ pub fn sql_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_operations_cancel_builder(client, args.project.clone(), args.operation.clone())?;
+    let builder = sql_operations_cancel_builder(client, &args.project, &args.operation)?;
     sql_operations_cancel_execute(builder)
 }
 
@@ -6884,14 +6739,13 @@ pub fn sql_operations_cancel(
 
 pub fn sql_operations_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    operation: String,
+    project: &String,
+    operation: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations/{}",
-        project.as_str(),
-        operation.as_str(),
+        project, operation,
     );
 
     // Build request
@@ -7033,7 +6887,7 @@ pub fn sql_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_operations_get_builder(client, args.project.clone(), args.operation.clone())?;
+    let builder = sql_operations_get_builder(client, &args.project, &args.operation)?;
     sql_operations_get_execute(builder)
 }
 
@@ -7045,26 +6899,26 @@ pub fn sql_operations_get(
 
 pub fn sql_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    project: &String,
+    instance: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/operations",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = instance {
+    if let Some(val) = instance.as_ref() {
         query_parts.push(format!("instance={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -7222,10 +7076,10 @@ pub fn sql_operations_list(
 > {
     let builder = sql_operations_list_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.instance,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     sql_operations_list_execute(builder)
 }
@@ -7238,14 +7092,13 @@ pub fn sql_operations_list(
 
 pub fn sql_projects_instances_get_disk_shrink_config_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/getDiskShrinkConfig",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -7398,8 +7251,8 @@ pub fn sql_projects_instances_get_disk_shrink_config(
 > {
     let builder = sql_projects_instances_get_disk_shrink_config_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
     )?;
     sql_projects_instances_get_disk_shrink_config_execute(builder)
 }
@@ -7412,20 +7265,19 @@ pub fn sql_projects_instances_get_disk_shrink_config(
 
 pub fn sql_projects_instances_get_latest_recovery_time_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    sourceInstanceDeletionTime: Option<String>,
+    project: &String,
+    instance: &String,
+    sourceInstanceDeletionTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/getLatestRecoveryTime",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sourceInstanceDeletionTime {
+    if let Some(val) = sourceInstanceDeletionTime.as_ref() {
         query_parts.push(format!("sourceInstanceDeletionTime={}", val));
     }
 
@@ -7585,9 +7437,9 @@ pub fn sql_projects_instances_get_latest_recovery_time(
 > {
     let builder = sql_projects_instances_get_latest_recovery_time_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.sourceInstanceDeletionTime.clone(),
+        &args.project,
+        &args.instance,
+        &args.sourceInstanceDeletionTime,
     )?;
     sql_projects_instances_get_latest_recovery_time_execute(builder)
 }
@@ -7600,15 +7452,14 @@ pub fn sql_projects_instances_get_latest_recovery_time(
 
 pub fn sql_projects_instances_perform_disk_shrink_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &PerformDiskShrinkContext,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/performDiskShrink",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -7756,8 +7607,8 @@ pub fn sql_projects_instances_perform_disk_shrink(
 > {
     let builder = sql_projects_instances_perform_disk_shrink_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_projects_instances_perform_disk_shrink_execute(builder)
@@ -7771,15 +7622,14 @@ pub fn sql_projects_instances_perform_disk_shrink(
 
 pub fn sql_projects_instances_reschedule_maintenance_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SqlInstancesRescheduleMaintenanceRequestBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/rescheduleMaintenance",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -7927,8 +7777,8 @@ pub fn sql_projects_instances_reschedule_maintenance(
 > {
     let builder = sql_projects_instances_reschedule_maintenance_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_projects_instances_reschedule_maintenance_execute(builder)
@@ -7942,15 +7792,14 @@ pub fn sql_projects_instances_reschedule_maintenance(
 
 pub fn sql_projects_instances_reset_replica_size_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SqlInstancesResetReplicaSizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/resetReplicaSize",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -8098,8 +7947,8 @@ pub fn sql_projects_instances_reset_replica_size(
 > {
     let builder = sql_projects_instances_reset_replica_size_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_projects_instances_reset_replica_size_execute(builder)
@@ -8113,15 +7962,14 @@ pub fn sql_projects_instances_reset_replica_size(
 
 pub fn sql_projects_instances_start_external_sync_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SqlInstancesStartExternalSyncRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/startExternalSync",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -8269,8 +8117,8 @@ pub fn sql_projects_instances_start_external_sync(
 > {
     let builder = sql_projects_instances_start_external_sync_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_projects_instances_start_external_sync_execute(builder)
@@ -8284,15 +8132,14 @@ pub fn sql_projects_instances_start_external_sync(
 
 pub fn sql_projects_instances_verify_external_sync_settings_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SqlInstancesVerifyExternalSyncSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/verifyExternalSyncSettings",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -8449,8 +8296,8 @@ pub fn sql_projects_instances_verify_external_sync_settings(
 > {
     let builder = sql_projects_instances_verify_external_sync_settings_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
+        &args.project,
+        &args.instance,
         &args.body,
     )?;
     sql_projects_instances_verify_external_sync_settings_execute(builder)
@@ -8464,15 +8311,14 @@ pub fn sql_projects_instances_verify_external_sync_settings(
 
 pub fn sql_ssl_certs_create_ephemeral_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SslCertsCreateEphemeralRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/createEphemeral",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -8618,12 +8464,8 @@ pub fn sql_ssl_certs_create_ephemeral(
     impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_create_ephemeral_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder =
+        sql_ssl_certs_create_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
     sql_ssl_certs_create_ephemeral_execute(builder)
 }
 
@@ -8635,16 +8477,14 @@ pub fn sql_ssl_certs_create_ephemeral(
 
 pub fn sql_ssl_certs_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    sha1Fingerprint: String,
+    project: &String,
+    instance: &String,
+    sha1Fingerprint: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts/{}",
-        project.as_str(),
-        instance.as_str(),
-        sha1Fingerprint.as_str(),
+        project, instance, sha1Fingerprint,
     );
 
     // Build request
@@ -8788,12 +8628,8 @@ pub fn sql_ssl_certs_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_delete_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.sha1Fingerprint.clone(),
-    )?;
+    let builder =
+        sql_ssl_certs_delete_builder(client, &args.project, &args.instance, &args.sha1Fingerprint)?;
     sql_ssl_certs_delete_execute(builder)
 }
 
@@ -8805,15 +8641,14 @@ pub fn sql_ssl_certs_delete(
 
 pub fn sql_ssl_certs_insert_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
+    project: &String,
+    instance: &String,
     body: &SslCertsInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
@@ -8963,12 +8798,7 @@ pub fn sql_ssl_certs_insert(
         + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_insert_builder(
-        client,
-        args.project.clone(),
-        args.instance.clone(),
-        &args.body,
-    )?;
+    let builder = sql_ssl_certs_insert_builder(client, &args.project, &args.instance, &args.body)?;
     sql_ssl_certs_insert_execute(builder)
 }
 
@@ -8980,12 +8810,12 @@ pub fn sql_ssl_certs_insert(
 
 pub fn sql_tiers_list_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/tiers",
-        project.as_str(),
+        project,
     );
 
     // Build request
@@ -9129,7 +8959,7 @@ pub fn sql_tiers_list(
         + 'static,
     ApiError,
 > {
-    let builder = sql_tiers_list_builder(client, args.project.clone())?;
+    let builder = sql_tiers_list_builder(client, &args.project)?;
     sql_tiers_list_execute(builder)
 }
 
@@ -9141,24 +8971,23 @@ pub fn sql_tiers_list(
 
 pub fn sql_users_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    host: Option<String>,
-    name: Option<String>,
+    project: &String,
+    instance: &String,
+    host: &Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
-        project.as_str(),
-        instance.as_str(),
+        project, instance,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = host {
+    if let Some(val) = host.as_ref() {
         query_parts.push(format!("host={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -9312,10 +9141,10 @@ pub fn sql_users_delete(
 > {
     let builder = sql_users_delete_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.host.clone(),
-        args.name.clone(),
+        &args.project,
+        &args.instance,
+        &args.host,
+        &args.name,
     )?;
     sql_users_delete_execute(builder)
 }
@@ -9328,22 +9157,20 @@ pub fn sql_users_delete(
 
 pub fn sql_users_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    instance: String,
-    name: String,
-    host: Option<String>,
+    project: &String,
+    instance: &String,
+    name: &String,
+    host: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users/{}",
-        project.as_str(),
-        instance.as_str(),
-        name.as_str(),
+        project, instance, name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = host {
+    if let Some(val) = host.as_ref() {
         query_parts.push(format!("host={}", val));
     }
 
@@ -9497,10 +9324,10 @@ pub fn sql_users_get(
 > {
     let builder = sql_users_get_builder(
         client,
-        args.project.clone(),
-        args.instance.clone(),
-        args.name.clone(),
-        args.host.clone(),
+        &args.project,
+        &args.instance,
+        &args.name,
+        &args.host,
     )?;
     sql_users_get_execute(builder)
 }

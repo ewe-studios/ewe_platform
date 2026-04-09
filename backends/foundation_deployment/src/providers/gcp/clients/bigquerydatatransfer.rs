@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn bigquerydatatransfer_projects_enroll_data_sources_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &EnrollDataSourcesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -177,11 +177,8 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_enroll_data_sources_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        bigquerydatatransfer_projects_enroll_data_sources_builder(client, &args.name, &args.body)?;
     bigquerydatatransfer_projects_enroll_data_sources_execute(builder)
 }
 
@@ -193,9 +190,9 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources(
 
 pub fn bigquerydatatransfer_projects_data_sources_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -203,10 +200,10 @@ pub fn bigquerydatatransfer_projects_data_sources_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -362,9 +359,9 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
 > {
     let builder = bigquerydatatransfer_projects_data_sources_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     bigquerydatatransfer_projects_data_sources_list_execute(builder)
 }
@@ -377,11 +374,11 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
 
 pub fn bigquerydatatransfer_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -389,16 +386,16 @@ pub fn bigquerydatatransfer_projects_locations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -558,11 +555,11 @@ pub fn bigquerydatatransfer_projects_locations_list(
 > {
     let builder = bigquerydatatransfer_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     bigquerydatatransfer_projects_locations_list_execute(builder)
 }
@@ -575,10 +572,10 @@ pub fn bigquerydatatransfer_projects_locations_list(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    authorizationCode: Option<String>,
-    serviceAccountName: Option<String>,
-    versionInfo: Option<String>,
+    parent: &String,
+    authorizationCode: &Option<String>,
+    serviceAccountName: &Option<String>,
+    versionInfo: &Option<String>,
     body: &TransferConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -587,13 +584,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = authorizationCode {
+    if let Some(val) = authorizationCode.as_ref() {
         query_parts.push(format!("authorizationCode={}", val));
     }
-    if let Some(val) = serviceAccountName {
+    if let Some(val) = serviceAccountName.as_ref() {
         query_parts.push(format!("serviceAccountName={}", val));
     }
-    if let Some(val) = versionInfo {
+    if let Some(val) = versionInfo.as_ref() {
         query_parts.push(format!("versionInfo={}", val));
     }
 
@@ -755,10 +752,10 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create(
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.authorizationCode.clone(),
-        args.serviceAccountName.clone(),
-        args.versionInfo.clone(),
+        &args.parent,
+        &args.authorizationCode,
+        &args.serviceAccountName,
+        &args.versionInfo,
         &args.body,
     )?;
     bigquerydatatransfer_projects_transfer_configs_create_execute(builder)

@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn adexchangebuyer2_accounts_clients_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &Client,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -179,11 +179,8 @@ pub fn adexchangebuyer2_accounts_clients_create(
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_clients_create_builder(
-        client,
-        args.accountId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        adexchangebuyer2_accounts_clients_create_builder(client, &args.accountId, &args.body)?;
     adexchangebuyer2_accounts_clients_create_execute(builder)
 }
 
@@ -195,14 +192,13 @@ pub fn adexchangebuyer2_accounts_clients_create(
 
 pub fn adexchangebuyer2_accounts_clients_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    clientAccountId: String,
+    accountId: &String,
+    clientAccountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}",
-        accountId.as_str(),
-        clientAccountId.as_str(),
+        accountId, clientAccountId,
     );
 
     // Build request
@@ -346,8 +342,8 @@ pub fn adexchangebuyer2_accounts_clients_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_get_builder(
         client,
-        args.accountId.clone(),
-        args.clientAccountId.clone(),
+        &args.accountId,
+        &args.clientAccountId,
     )?;
     adexchangebuyer2_accounts_clients_get_execute(builder)
 }
@@ -360,15 +356,14 @@ pub fn adexchangebuyer2_accounts_clients_get(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    clientAccountId: String,
+    accountId: &String,
+    clientAccountId: &String,
     body: &ClientUserInvitation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations",
-        accountId.as_str(),
-        clientAccountId.as_str(),
+        accountId, clientAccountId,
     );
 
     // Build request
@@ -520,8 +515,8 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_create_builder(
         client,
-        args.accountId.clone(),
-        args.clientAccountId.clone(),
+        &args.accountId,
+        &args.clientAccountId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_clients_invitations_create_execute(builder)
@@ -535,16 +530,14 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    clientAccountId: String,
-    invitationId: String,
+    accountId: &String,
+    clientAccountId: &String,
+    invitationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations/{}",
-        accountId.as_str(),
-        clientAccountId.as_str(),
-        invitationId.as_str(),
+        accountId, clientAccountId, invitationId,
     );
 
     // Build request
@@ -694,9 +687,9 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_get_builder(
         client,
-        args.accountId.clone(),
-        args.clientAccountId.clone(),
-        args.invitationId.clone(),
+        &args.accountId,
+        &args.clientAccountId,
+        &args.invitationId,
     )?;
     adexchangebuyer2_accounts_clients_invitations_get_execute(builder)
 }
@@ -709,16 +702,14 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get(
 
 pub fn adexchangebuyer2_accounts_clients_users_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    clientAccountId: String,
-    userId: String,
+    accountId: &String,
+    clientAccountId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users/{}",
-        accountId.as_str(),
-        clientAccountId.as_str(),
-        userId.as_str(),
+        accountId, clientAccountId, userId,
     );
 
     // Build request
@@ -864,9 +855,9 @@ pub fn adexchangebuyer2_accounts_clients_users_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_users_get_builder(
         client,
-        args.accountId.clone(),
-        args.clientAccountId.clone(),
-        args.userId.clone(),
+        &args.accountId,
+        &args.clientAccountId,
+        &args.userId,
     )?;
     adexchangebuyer2_accounts_clients_users_get_execute(builder)
 }
@@ -879,24 +870,23 @@ pub fn adexchangebuyer2_accounts_clients_users_get(
 
 pub fn adexchangebuyer2_accounts_clients_users_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    clientAccountId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    accountId: &String,
+    clientAccountId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users",
-        accountId.as_str(),
-        clientAccountId.as_str(),
+        accountId, clientAccountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1054,10 +1044,10 @@ pub fn adexchangebuyer2_accounts_clients_users_list(
 > {
     let builder = adexchangebuyer2_accounts_clients_users_list_builder(
         client,
-        args.accountId.clone(),
-        args.clientAccountId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.accountId,
+        &args.clientAccountId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adexchangebuyer2_accounts_clients_users_list_execute(builder)
 }
@@ -1070,19 +1060,19 @@ pub fn adexchangebuyer2_accounts_clients_users_list(
 
 pub fn adexchangebuyer2_accounts_creatives_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    duplicateIdMode: Option<String>,
+    accountId: &String,
+    duplicateIdMode: &Option<String>,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = duplicateIdMode {
+    if let Some(val) = duplicateIdMode.as_ref() {
         query_parts.push(format!("duplicateIdMode={}", val));
     }
 
@@ -1236,8 +1226,8 @@ pub fn adexchangebuyer2_accounts_creatives_create(
 > {
     let builder = adexchangebuyer2_accounts_creatives_create_builder(
         client,
-        args.accountId.clone(),
-        args.duplicateIdMode.clone(),
+        &args.accountId,
+        &args.duplicateIdMode,
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_create_execute(builder)
@@ -1251,14 +1241,13 @@ pub fn adexchangebuyer2_accounts_creatives_create(
 
 pub fn adexchangebuyer2_accounts_creatives_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
+    accountId: &String,
+    creativeId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId, creativeId,
     );
 
     // Build request
@@ -1400,11 +1389,8 @@ pub fn adexchangebuyer2_accounts_creatives_get(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_creatives_get_builder(
-        client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
-    )?;
+    let builder =
+        adexchangebuyer2_accounts_creatives_get_builder(client, &args.accountId, &args.creativeId)?;
     adexchangebuyer2_accounts_creatives_get_execute(builder)
 }
 
@@ -1416,15 +1402,14 @@ pub fn adexchangebuyer2_accounts_creatives_get(
 
 pub fn adexchangebuyer2_accounts_creatives_stop_watching_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
+    accountId: &String,
+    creativeId: &String,
     body: &StopWatchingCreativeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:stopWatching",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId, creativeId,
     );
 
     // Build request
@@ -1572,8 +1557,8 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching(
 > {
     let builder = adexchangebuyer2_accounts_creatives_stop_watching_builder(
         client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
+        &args.accountId,
+        &args.creativeId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_stop_watching_execute(builder)
@@ -1587,15 +1572,14 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching(
 
 pub fn adexchangebuyer2_accounts_creatives_watch_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
+    accountId: &String,
+    creativeId: &String,
     body: &WatchCreativeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:watch",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId, creativeId,
     );
 
     // Build request
@@ -1743,8 +1727,8 @@ pub fn adexchangebuyer2_accounts_creatives_watch(
 > {
     let builder = adexchangebuyer2_accounts_creatives_watch_builder(
         client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
+        &args.accountId,
+        &args.creativeId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_watch_execute(builder)
@@ -1758,15 +1742,15 @@ pub fn adexchangebuyer2_accounts_creatives_watch(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
+    accountId: &String,
+    creativeId: &String,
     body: &AddDealAssociationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:add",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId,
+        creativeId,
     );
 
     // Build request
@@ -1914,8 +1898,8 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
         client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
+        &args.accountId,
+        &args.creativeId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_add_execute(builder)
@@ -1929,28 +1913,27 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    accountId: &String,
+    creativeId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId, creativeId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -2114,11 +2097,11 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
         client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.accountId,
+        &args.creativeId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_list_execute(builder)
 }
@@ -2131,15 +2114,15 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    creativeId: String,
+    accountId: &String,
+    creativeId: &String,
     body: &RemoveDealAssociationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:remove",
-        accountId.as_str(),
-        creativeId.as_str(),
+        accountId,
+        creativeId,
     );
 
     // Build request
@@ -2287,8 +2270,8 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
         client,
-        args.accountId.clone(),
-        args.creativeId.clone(),
+        &args.accountId,
+        &args.creativeId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_remove_execute(builder)
@@ -2302,30 +2285,30 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    filter: Option<String>,
-    filterSyntax: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    accountId: &String,
+    filter: &Option<String>,
+    filterSyntax: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = filterSyntax {
+    if let Some(val) = filterSyntax.as_ref() {
         query_parts.push(format!("filterSyntax={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2485,11 +2468,11 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_list_builder(
         client,
-        args.accountId.clone(),
-        args.filter.clone(),
-        args.filterSyntax.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.accountId,
+        &args.filter,
+        &args.filterSyntax,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_list_execute(builder)
 }
@@ -2502,15 +2485,14 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_pause_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &PauseProposalDealsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:pause",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -2658,8 +2640,8 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_pause_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_pause_execute(builder)
@@ -2673,15 +2655,14 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_resume_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &ResumeProposalDealsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:resume",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -2829,8 +2810,8 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_resume_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_resume_execute(builder)
@@ -2844,14 +2825,13 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
 
 pub fn adexchangebuyer2_accounts_products_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    productId: String,
+    accountId: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products/{}",
-        accountId.as_str(),
-        productId.as_str(),
+        accountId, productId,
     );
 
     // Build request
@@ -2993,11 +2973,8 @@ pub fn adexchangebuyer2_accounts_products_get(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_products_get_builder(
-        client,
-        args.accountId.clone(),
-        args.productId.clone(),
-    )?;
+    let builder =
+        adexchangebuyer2_accounts_products_get_builder(client, &args.accountId, &args.productId)?;
     adexchangebuyer2_accounts_products_get_execute(builder)
 }
 
@@ -3009,26 +2986,26 @@ pub fn adexchangebuyer2_accounts_products_get(
 
 pub fn adexchangebuyer2_accounts_products_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    accountId: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3186,10 +3163,10 @@ pub fn adexchangebuyer2_accounts_products_list(
 > {
     let builder = adexchangebuyer2_accounts_products_list_builder(
         client,
-        args.accountId.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.accountId,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adexchangebuyer2_accounts_products_list_execute(builder)
 }
@@ -3202,15 +3179,14 @@ pub fn adexchangebuyer2_accounts_products_list(
 
 pub fn adexchangebuyer2_accounts_proposals_accept_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &AcceptProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:accept",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -3358,8 +3334,8 @@ pub fn adexchangebuyer2_accounts_proposals_accept(
 > {
     let builder = adexchangebuyer2_accounts_proposals_accept_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_accept_execute(builder)
@@ -3373,15 +3349,14 @@ pub fn adexchangebuyer2_accounts_proposals_accept(
 
 pub fn adexchangebuyer2_accounts_proposals_add_note_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &AddNoteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:addNote",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -3529,8 +3504,8 @@ pub fn adexchangebuyer2_accounts_proposals_add_note(
 > {
     let builder = adexchangebuyer2_accounts_proposals_add_note_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_add_note_execute(builder)
@@ -3544,15 +3519,14 @@ pub fn adexchangebuyer2_accounts_proposals_add_note(
 
 pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &CancelNegotiationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:cancelNegotiation",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -3700,8 +3674,8 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
 > {
     let builder = adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_cancel_negotiation_execute(builder)
@@ -3715,15 +3689,14 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
 
 pub fn adexchangebuyer2_accounts_proposals_complete_setup_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &CompleteSetupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:completeSetup",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -3871,8 +3844,8 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup(
 > {
     let builder = adexchangebuyer2_accounts_proposals_complete_setup_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_complete_setup_execute(builder)
@@ -3886,13 +3859,13 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup(
 
 pub fn adexchangebuyer2_accounts_proposals_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &Proposal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -4036,11 +4009,8 @@ pub fn adexchangebuyer2_accounts_proposals_create(
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_proposals_create_builder(
-        client,
-        args.accountId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        adexchangebuyer2_accounts_proposals_create_builder(client, &args.accountId, &args.body)?;
     adexchangebuyer2_accounts_proposals_create_execute(builder)
 }
 
@@ -4052,14 +4022,13 @@ pub fn adexchangebuyer2_accounts_proposals_create(
 
 pub fn adexchangebuyer2_accounts_proposals_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -4201,11 +4170,8 @@ pub fn adexchangebuyer2_accounts_proposals_get(
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adexchangebuyer2_accounts_proposals_get_builder(
-        client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
-    )?;
+    let builder =
+        adexchangebuyer2_accounts_proposals_get_builder(client, &args.accountId, &args.proposalId)?;
     adexchangebuyer2_accounts_proposals_get_execute(builder)
 }
 
@@ -4217,15 +4183,14 @@ pub fn adexchangebuyer2_accounts_proposals_get(
 
 pub fn adexchangebuyer2_accounts_proposals_pause_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &PauseProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:pause",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -4373,8 +4338,8 @@ pub fn adexchangebuyer2_accounts_proposals_pause(
 > {
     let builder = adexchangebuyer2_accounts_proposals_pause_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_pause_execute(builder)
@@ -4388,15 +4353,14 @@ pub fn adexchangebuyer2_accounts_proposals_pause(
 
 pub fn adexchangebuyer2_accounts_proposals_resume_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    proposalId: String,
+    accountId: &String,
+    proposalId: &String,
     body: &ResumeProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:resume",
-        accountId.as_str(),
-        proposalId.as_str(),
+        accountId, proposalId,
     );
 
     // Build request
@@ -4544,8 +4508,8 @@ pub fn adexchangebuyer2_accounts_proposals_resume(
 > {
     let builder = adexchangebuyer2_accounts_proposals_resume_builder(
         client,
-        args.accountId.clone(),
-        args.proposalId.clone(),
+        &args.accountId,
+        &args.proposalId,
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_resume_execute(builder)
@@ -4559,14 +4523,13 @@ pub fn adexchangebuyer2_accounts_proposals_resume(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    publisherProfileId: String,
+    accountId: &String,
+    publisherProfileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles/{}",
-        accountId.as_str(),
-        publisherProfileId.as_str(),
+        accountId, publisherProfileId,
     );
 
     // Build request
@@ -4714,8 +4677,8 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_get_builder(
         client,
-        args.accountId.clone(),
-        args.publisherProfileId.clone(),
+        &args.accountId,
+        &args.publisherProfileId,
     )?;
     adexchangebuyer2_accounts_publisher_profiles_get_execute(builder)
 }
@@ -4728,22 +4691,22 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    accountId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4903,9 +4866,9 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_list_builder(
         client,
-        args.accountId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.accountId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adexchangebuyer2_accounts_publisher_profiles_list_execute(builder)
 }
@@ -4918,8 +4881,8 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
 
 pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
     client: &SimpleHttpClient,
-    ownerName: String,
-    isTransient: Option<bool>,
+    ownerName: &String,
+    isTransient: &Option<bool>,
     body: &FilterSet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4928,7 +4891,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = isTransient {
+    if let Some(val) = isTransient.as_ref() {
         query_parts.push(format!("isTransient={}", val));
     }
 
@@ -5082,8 +5045,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_create(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_create_builder(
         client,
-        args.ownerName.clone(),
-        args.isTransient.clone(),
+        &args.ownerName,
+        &args.isTransient,
         &args.body,
     )?;
     adexchangebuyer2_bidders_filter_sets_create_execute(builder)
@@ -5097,8 +5060,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_create(
 
 pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
     client: &SimpleHttpClient,
-    ownerName: String,
-    isTransient: Option<bool>,
+    ownerName: &String,
+    isTransient: &Option<bool>,
     body: &FilterSet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5107,7 +5070,7 @@ pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = isTransient {
+    if let Some(val) = isTransient.as_ref() {
         query_parts.push(format!("isTransient={}", val));
     }
 
@@ -5261,8 +5224,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_create(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_create_builder(
         client,
-        args.ownerName.clone(),
-        args.isTransient.clone(),
+        &args.ownerName,
+        &args.isTransient,
         &args.body,
     )?;
     adexchangebuyer2_buyers_filter_sets_create_execute(builder)

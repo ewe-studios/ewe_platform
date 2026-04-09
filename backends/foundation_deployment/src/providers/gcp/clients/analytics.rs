@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn analytics_management_account_summaries_list_builder(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    max_results: &Option<i32>,
+    start_index: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -38,10 +38,10 @@ pub fn analytics_management_account_summaries_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
+    if let Some(val) = max_results.as_ref() {
         query_parts.push(format!("max-results={}", val));
     }
-    if let Some(val) = start_index {
+    if let Some(val) = start_index.as_ref() {
         query_parts.push(format!("start-index={}", val));
     }
 
@@ -195,8 +195,8 @@ pub fn analytics_management_account_summaries_list(
 > {
     let builder = analytics_management_account_summaries_list_builder(
         client,
-        args.max_results.clone(),
-        args.start_index.clone(),
+        &args.max_results,
+        &args.start_index,
     )?;
     analytics_management_account_summaries_list_execute(builder)
 }
@@ -209,14 +209,13 @@ pub fn analytics_management_account_summaries_list(
 
 pub fn analytics_management_account_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    linkId: String,
+    accountId: &String,
+    linkId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks/{}",
-        accountId.as_str(),
-        linkId.as_str(),
+        accountId, linkId,
     );
 
     // Build request
@@ -357,8 +356,8 @@ pub fn analytics_management_account_user_links_delete(
 > {
     let builder = analytics_management_account_user_links_delete_builder(
         client,
-        args.accountId.clone(),
-        args.linkId.clone(),
+        &args.accountId,
+        &args.linkId,
     )?;
     analytics_management_account_user_links_delete_execute(builder)
 }
@@ -371,13 +370,13 @@ pub fn analytics_management_account_user_links_delete(
 
 pub fn analytics_management_account_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/entityUserLinks",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -527,7 +526,7 @@ pub fn analytics_management_account_user_links_insert(
 > {
     let builder = analytics_management_account_user_links_insert_builder(
         client,
-        args.accountId.clone(),
+        &args.accountId,
         &args.body,
     )?;
     analytics_management_account_user_links_insert_execute(builder)
@@ -541,18 +540,18 @@ pub fn analytics_management_account_user_links_insert(
 
 pub fn analytics_management_accounts_list_builder(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    max_results: &Option<i32>,
+    start_index: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/analytics/v3/management/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
+    if let Some(val) = max_results.as_ref() {
         query_parts.push(format!("max-results={}", val));
     }
-    if let Some(val) = start_index {
+    if let Some(val) = start_index.as_ref() {
         query_parts.push(format!("start-index={}", val));
     }
 
@@ -700,11 +699,8 @@ pub fn analytics_management_accounts_list(
     impl StreamIterator<D = Result<ApiResponse<Accounts>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_accounts_list_builder(
-        client,
-        args.max_results.clone(),
-        args.start_index.clone(),
-    )?;
+    let builder =
+        analytics_management_accounts_list_builder(client, &args.max_results, &args.start_index)?;
     analytics_management_accounts_list_execute(builder)
 }
 
@@ -877,24 +873,24 @@ pub fn analytics_management_client_id_hash_client_id(
 
 pub fn analytics_management_custom_data_sources_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    accountId: &String,
+    webPropertyId: &String,
+    max_results: &Option<i32>,
+    start_index: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
+    if let Some(val) = max_results.as_ref() {
         query_parts.push(format!("max-results={}", val));
     }
-    if let Some(val) = start_index {
+    if let Some(val) = start_index.as_ref() {
         query_parts.push(format!("start-index={}", val));
     }
 
@@ -1052,10 +1048,10 @@ pub fn analytics_management_custom_data_sources_list(
 > {
     let builder = analytics_management_custom_data_sources_list_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.max_results.clone(),
-        args.start_index.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.max_results,
+        &args.start_index,
     )?;
     analytics_management_custom_data_sources_list_execute(builder)
 }
@@ -1068,16 +1064,16 @@ pub fn analytics_management_custom_data_sources_list(
 
 pub fn analytics_management_custom_dimensions_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    customDimensionId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    customDimensionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        customDimensionId.as_str(),
+        accountId,
+        webPropertyId,
+        customDimensionId,
     );
 
     // Build request
@@ -1227,9 +1223,9 @@ pub fn analytics_management_custom_dimensions_get(
 > {
     let builder = analytics_management_custom_dimensions_get_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.customDimensionId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDimensionId,
     )?;
     analytics_management_custom_dimensions_get_execute(builder)
 }
@@ -1242,15 +1238,15 @@ pub fn analytics_management_custom_dimensions_get(
 
 pub fn analytics_management_custom_dimensions_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &CustomDimension,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDimensions",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
@@ -1402,8 +1398,8 @@ pub fn analytics_management_custom_dimensions_insert(
 > {
     let builder = analytics_management_custom_dimensions_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_custom_dimensions_insert_execute(builder)
@@ -1417,16 +1413,16 @@ pub fn analytics_management_custom_dimensions_insert(
 
 pub fn analytics_management_custom_metrics_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    customMetricId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    customMetricId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        customMetricId.as_str(),
+        accountId,
+        webPropertyId,
+        customMetricId,
     );
 
     // Build request
@@ -1576,9 +1572,9 @@ pub fn analytics_management_custom_metrics_get(
 > {
     let builder = analytics_management_custom_metrics_get_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.customMetricId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customMetricId,
     )?;
     analytics_management_custom_metrics_get_execute(builder)
 }
@@ -1591,15 +1587,15 @@ pub fn analytics_management_custom_metrics_get(
 
 pub fn analytics_management_custom_metrics_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &CustomMetric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customMetrics",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
@@ -1751,8 +1747,8 @@ pub fn analytics_management_custom_metrics_insert(
 > {
     let builder = analytics_management_custom_metrics_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_custom_metrics_insert_execute(builder)
@@ -1766,18 +1762,18 @@ pub fn analytics_management_custom_metrics_insert(
 
 pub fn analytics_management_experiments_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
-    experimentId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
+    experimentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
-        experimentId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
+        experimentId,
     );
 
     // Build request
@@ -1922,10 +1918,10 @@ pub fn analytics_management_experiments_delete(
 > {
     let builder = analytics_management_experiments_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
-        args.experimentId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.experimentId,
     )?;
     analytics_management_experiments_delete_execute(builder)
 }
@@ -1938,17 +1934,17 @@ pub fn analytics_management_experiments_delete(
 
 pub fn analytics_management_experiments_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
     body: &Experiment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/experiments",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -2098,9 +2094,9 @@ pub fn analytics_management_experiments_insert(
 > {
     let builder = analytics_management_experiments_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
         &args.body,
     )?;
     analytics_management_experiments_insert_execute(builder)
@@ -2114,14 +2110,13 @@ pub fn analytics_management_experiments_insert(
 
 pub fn analytics_management_filters_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    filterId: String,
+    accountId: &String,
+    filterId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters/{}",
-        accountId.as_str(),
-        filterId.as_str(),
+        accountId, filterId,
     );
 
     // Build request
@@ -2263,11 +2258,8 @@ pub fn analytics_management_filters_delete(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_filters_delete_builder(
-        client,
-        args.accountId.clone(),
-        args.filterId.clone(),
-    )?;
+    let builder =
+        analytics_management_filters_delete_builder(client, &args.accountId, &args.filterId)?;
     analytics_management_filters_delete_execute(builder)
 }
 
@@ -2279,13 +2271,13 @@ pub fn analytics_management_filters_delete(
 
 pub fn analytics_management_filters_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &Filter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/filters",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -2429,8 +2421,7 @@ pub fn analytics_management_filters_insert(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analytics_management_filters_insert_builder(client, args.accountId.clone(), &args.body)?;
+    let builder = analytics_management_filters_insert_builder(client, &args.accountId, &args.body)?;
     analytics_management_filters_insert_execute(builder)
 }
 
@@ -2442,18 +2433,18 @@ pub fn analytics_management_filters_insert(
 
 pub fn analytics_management_goals_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
-    goalId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
+    goalId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
-        goalId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
+        goalId,
     );
 
     // Build request
@@ -2601,10 +2592,10 @@ pub fn analytics_management_goals_get(
 > {
     let builder = analytics_management_goals_get_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
-        args.goalId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.goalId,
     )?;
     analytics_management_goals_get_execute(builder)
 }
@@ -2617,17 +2608,17 @@ pub fn analytics_management_goals_get(
 
 pub fn analytics_management_goals_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
     body: &Goal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/goals",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -2777,9 +2768,9 @@ pub fn analytics_management_goals_insert(
 > {
     let builder = analytics_management_goals_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
         &args.body,
     )?;
     analytics_management_goals_insert_execute(builder)
@@ -2793,18 +2784,18 @@ pub fn analytics_management_goals_insert(
 
 pub fn analytics_management_profile_filter_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
-    linkId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
+    linkId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
-        linkId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
+        linkId,
     );
 
     // Build request
@@ -2949,10 +2940,10 @@ pub fn analytics_management_profile_filter_links_delete(
 > {
     let builder = analytics_management_profile_filter_links_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
-        args.linkId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
     )?;
     analytics_management_profile_filter_links_delete_execute(builder)
 }
@@ -2965,17 +2956,17 @@ pub fn analytics_management_profile_filter_links_delete(
 
 pub fn analytics_management_profile_filter_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
     body: &ProfileFilterLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/profileFilterLinks",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -3129,9 +3120,9 @@ pub fn analytics_management_profile_filter_links_insert(
 > {
     let builder = analytics_management_profile_filter_links_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
         &args.body,
     )?;
     analytics_management_profile_filter_links_insert_execute(builder)
@@ -3145,18 +3136,18 @@ pub fn analytics_management_profile_filter_links_insert(
 
 pub fn analytics_management_profile_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
-    linkId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
+    linkId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
-        linkId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
+        linkId,
     );
 
     // Build request
@@ -3301,10 +3292,10 @@ pub fn analytics_management_profile_user_links_delete(
 > {
     let builder = analytics_management_profile_user_links_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
-        args.linkId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.linkId,
     )?;
     analytics_management_profile_user_links_delete_execute(builder)
 }
@@ -3317,17 +3308,17 @@ pub fn analytics_management_profile_user_links_delete(
 
 pub fn analytics_management_profile_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/entityUserLinks",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -3481,9 +3472,9 @@ pub fn analytics_management_profile_user_links_insert(
 > {
     let builder = analytics_management_profile_user_links_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
         &args.body,
     )?;
     analytics_management_profile_user_links_insert_execute(builder)
@@ -3497,16 +3488,16 @@ pub fn analytics_management_profile_user_links_insert(
 
 pub fn analytics_management_profiles_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -3649,9 +3640,9 @@ pub fn analytics_management_profiles_delete(
 > {
     let builder = analytics_management_profiles_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
     )?;
     analytics_management_profiles_delete_execute(builder)
 }
@@ -3664,15 +3655,14 @@ pub fn analytics_management_profiles_delete(
 
 pub fn analytics_management_profiles_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &Profile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId, webPropertyId,
     );
 
     // Build request
@@ -3820,8 +3810,8 @@ pub fn analytics_management_profiles_insert(
 > {
     let builder = analytics_management_profiles_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_profiles_insert_execute(builder)
@@ -3835,16 +3825,16 @@ pub fn analytics_management_profiles_insert(
 
 pub fn analytics_management_remarketing_audience_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    remarketingAudienceId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    remarketingAudienceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        remarketingAudienceId.as_str(),
+        accountId,
+        webPropertyId,
+        remarketingAudienceId,
     );
 
     // Build request
@@ -3987,9 +3977,9 @@ pub fn analytics_management_remarketing_audience_delete(
 > {
     let builder = analytics_management_remarketing_audience_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.remarketingAudienceId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.remarketingAudienceId,
     )?;
     analytics_management_remarketing_audience_delete_execute(builder)
 }
@@ -4002,15 +3992,15 @@ pub fn analytics_management_remarketing_audience_delete(
 
 pub fn analytics_management_remarketing_audience_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &RemarketingAudience,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/remarketingAudiences",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
@@ -4162,8 +4152,8 @@ pub fn analytics_management_remarketing_audience_insert(
 > {
     let builder = analytics_management_remarketing_audience_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_remarketing_audience_insert_execute(builder)
@@ -4177,18 +4167,18 @@ pub fn analytics_management_remarketing_audience_insert(
 
 pub fn analytics_management_segments_list_builder(
     client: &SimpleHttpClient,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    max_results: &Option<i32>,
+    start_index: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/analytics/v3/management/segments",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
+    if let Some(val) = max_results.as_ref() {
         query_parts.push(format!("max-results={}", val));
     }
-    if let Some(val) = start_index {
+    if let Some(val) = start_index.as_ref() {
         query_parts.push(format!("start-index={}", val));
     }
 
@@ -4336,11 +4326,8 @@ pub fn analytics_management_segments_list(
     impl StreamIterator<D = Result<ApiResponse<Segments>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_segments_list_builder(
-        client,
-        args.max_results.clone(),
-        args.start_index.clone(),
-    )?;
+    let builder =
+        analytics_management_segments_list_builder(client, &args.max_results, &args.start_index)?;
     analytics_management_segments_list_execute(builder)
 }
 
@@ -4352,18 +4339,18 @@ pub fn analytics_management_segments_list(
 
 pub fn analytics_management_unsampled_reports_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
-    unsampledReportId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
+    unsampledReportId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
-        unsampledReportId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
+        unsampledReportId,
     );
 
     // Build request
@@ -4508,10 +4495,10 @@ pub fn analytics_management_unsampled_reports_delete(
 > {
     let builder = analytics_management_unsampled_reports_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
-        args.unsampledReportId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
+        &args.unsampledReportId,
     )?;
     analytics_management_unsampled_reports_delete_execute(builder)
 }
@@ -4524,17 +4511,17 @@ pub fn analytics_management_unsampled_reports_delete(
 
 pub fn analytics_management_unsampled_reports_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    profileId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    profileId: &String,
     body: &UnsampledReport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/profiles/{}/unsampledReports",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        profileId.as_str(),
+        accountId,
+        webPropertyId,
+        profileId,
     );
 
     // Build request
@@ -4688,9 +4675,9 @@ pub fn analytics_management_unsampled_reports_insert(
 > {
     let builder = analytics_management_unsampled_reports_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.profileId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.profileId,
         &args.body,
     )?;
     analytics_management_unsampled_reports_insert_execute(builder)
@@ -4704,17 +4691,17 @@ pub fn analytics_management_unsampled_reports_insert(
 
 pub fn analytics_management_uploads_delete_upload_data_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    customDataSourceId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    customDataSourceId: &String,
     body: &AnalyticsDataimportDeleteUploadDataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/deleteUploadData",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        customDataSourceId.as_str(),
+        accountId,
+        webPropertyId,
+        customDataSourceId,
     );
 
     // Build request
@@ -4861,9 +4848,9 @@ pub fn analytics_management_uploads_delete_upload_data(
 > {
     let builder = analytics_management_uploads_delete_upload_data_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.customDataSourceId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
         &args.body,
     )?;
     analytics_management_uploads_delete_upload_data_execute(builder)
@@ -4877,18 +4864,18 @@ pub fn analytics_management_uploads_delete_upload_data(
 
 pub fn analytics_management_uploads_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    customDataSourceId: String,
-    uploadId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    customDataSourceId: &String,
+    uploadId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/uploads/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        customDataSourceId.as_str(),
-        uploadId.as_str(),
+        accountId,
+        webPropertyId,
+        customDataSourceId,
+        uploadId,
     );
 
     // Build request
@@ -5036,10 +5023,10 @@ pub fn analytics_management_uploads_get(
 > {
     let builder = analytics_management_uploads_get_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.customDataSourceId.clone(),
-        args.uploadId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
+        &args.uploadId,
     )?;
     analytics_management_uploads_get_execute(builder)
 }
@@ -5052,26 +5039,26 @@ pub fn analytics_management_uploads_get(
 
 pub fn analytics_management_uploads_list_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    customDataSourceId: String,
-    max_results: Option<i32>,
-    start_index: Option<i32>,
+    accountId: &String,
+    webPropertyId: &String,
+    customDataSourceId: &String,
+    max_results: &Option<i32>,
+    start_index: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/customDataSources/{}/uploads",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        customDataSourceId.as_str(),
+        accountId,
+        webPropertyId,
+        customDataSourceId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = max_results {
+    if let Some(val) = max_results.as_ref() {
         query_parts.push(format!("max-results={}", val));
     }
-    if let Some(val) = start_index {
+    if let Some(val) = start_index.as_ref() {
         query_parts.push(format!("start-index={}", val));
     }
 
@@ -5227,11 +5214,11 @@ pub fn analytics_management_uploads_list(
 > {
     let builder = analytics_management_uploads_list_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.customDataSourceId.clone(),
-        args.max_results.clone(),
-        args.start_index.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.customDataSourceId,
+        &args.max_results,
+        &args.start_index,
     )?;
     analytics_management_uploads_list_execute(builder)
 }
@@ -5244,16 +5231,16 @@ pub fn analytics_management_uploads_list(
 
 pub fn analytics_management_web_property_ad_words_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    webPropertyAdWordsLinkId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    webPropertyAdWordsLinkId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        webPropertyAdWordsLinkId.as_str(),
+        accountId,
+        webPropertyId,
+        webPropertyAdWordsLinkId,
     );
 
     // Build request
@@ -5396,9 +5383,9 @@ pub fn analytics_management_web_property_ad_words_links_delete(
 > {
     let builder = analytics_management_web_property_ad_words_links_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.webPropertyAdWordsLinkId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.webPropertyAdWordsLinkId,
     )?;
     analytics_management_web_property_ad_words_links_delete_execute(builder)
 }
@@ -5411,15 +5398,15 @@ pub fn analytics_management_web_property_ad_words_links_delete(
 
 pub fn analytics_management_web_property_ad_words_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &EntityAdWordsLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityAdWordsLinks",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
@@ -5571,8 +5558,8 @@ pub fn analytics_management_web_property_ad_words_links_insert(
 > {
     let builder = analytics_management_web_property_ad_words_links_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_web_property_ad_words_links_insert_execute(builder)
@@ -5586,14 +5573,13 @@ pub fn analytics_management_web_property_ad_words_links_insert(
 
 pub fn analytics_management_webproperties_get_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId, webPropertyId,
     );
 
     // Build request
@@ -5737,8 +5723,8 @@ pub fn analytics_management_webproperties_get(
 > {
     let builder = analytics_management_webproperties_get_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
     )?;
     analytics_management_webproperties_get_execute(builder)
 }
@@ -5751,13 +5737,13 @@ pub fn analytics_management_webproperties_get(
 
 pub fn analytics_management_webproperties_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &Webproperty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -5901,11 +5887,8 @@ pub fn analytics_management_webproperties_insert(
     impl StreamIterator<D = Result<ApiResponse<Webproperty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_management_webproperties_insert_builder(
-        client,
-        args.accountId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analytics_management_webproperties_insert_builder(client, &args.accountId, &args.body)?;
     analytics_management_webproperties_insert_execute(builder)
 }
 
@@ -5917,16 +5900,16 @@ pub fn analytics_management_webproperties_insert(
 
 pub fn analytics_management_webproperty_user_links_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
-    linkId: String,
+    accountId: &String,
+    webPropertyId: &String,
+    linkId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks/{}",
-        accountId.as_str(),
-        webPropertyId.as_str(),
-        linkId.as_str(),
+        accountId,
+        webPropertyId,
+        linkId,
     );
 
     // Build request
@@ -6069,9 +6052,9 @@ pub fn analytics_management_webproperty_user_links_delete(
 > {
     let builder = analytics_management_webproperty_user_links_delete_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
-        args.linkId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
+        &args.linkId,
     )?;
     analytics_management_webproperty_user_links_delete_execute(builder)
 }
@@ -6084,15 +6067,15 @@ pub fn analytics_management_webproperty_user_links_delete(
 
 pub fn analytics_management_webproperty_user_links_insert_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    webPropertyId: String,
+    accountId: &String,
+    webPropertyId: &String,
     body: &EntityUserLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/management/accounts/{}/webproperties/{}/entityUserLinks",
-        accountId.as_str(),
-        webPropertyId.as_str(),
+        accountId,
+        webPropertyId,
     );
 
     // Build request
@@ -6244,8 +6227,8 @@ pub fn analytics_management_webproperty_user_links_insert(
 > {
     let builder = analytics_management_webproperty_user_links_insert_builder(
         client,
-        args.accountId.clone(),
-        args.webPropertyId.clone(),
+        &args.accountId,
+        &args.webPropertyId,
         &args.body,
     )?;
     analytics_management_webproperty_user_links_insert_execute(builder)
@@ -6259,12 +6242,12 @@ pub fn analytics_management_webproperty_user_links_insert(
 
 pub fn analytics_metadata_columns_list_builder(
     client: &SimpleHttpClient,
-    reportType: String,
+    reportType: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/analytics/v3/metadata/{}/columns",
-        reportType.as_str(),
+        reportType,
     );
 
     // Build request
@@ -6404,7 +6387,7 @@ pub fn analytics_metadata_columns_list(
     impl StreamIterator<D = Result<ApiResponse<Columns>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analytics_metadata_columns_list_builder(client, args.reportType.clone())?;
+    let builder = analytics_metadata_columns_list_builder(client, &args.reportType)?;
     analytics_metadata_columns_list_execute(builder)
 }
 

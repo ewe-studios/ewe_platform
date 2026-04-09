@@ -29,14 +29,13 @@ use serde::Serialize;
 
 pub fn appsmarket_customer_license_get_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
-    customerId: String,
+    applicationId: &String,
+    customerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/customerLicense/{}/{}",
-        applicationId.as_str(),
-        customerId.as_str(),
+        applicationId, customerId,
     );
 
     // Build request
@@ -182,11 +181,8 @@ pub fn appsmarket_customer_license_get(
         + 'static,
     ApiError,
 > {
-    let builder = appsmarket_customer_license_get_builder(
-        client,
-        args.applicationId.clone(),
-        args.customerId.clone(),
-    )?;
+    let builder =
+        appsmarket_customer_license_get_builder(client, &args.applicationId, &args.customerId)?;
     appsmarket_customer_license_get_execute(builder)
 }
 
@@ -198,14 +194,13 @@ pub fn appsmarket_customer_license_get(
 
 pub fn appsmarket_user_license_get_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
-    userId: String,
+    applicationId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/userLicense/{}/{}",
-        applicationId.as_str(),
-        userId.as_str(),
+        applicationId, userId,
     );
 
     // Build request
@@ -347,10 +342,6 @@ pub fn appsmarket_user_license_get(
     impl StreamIterator<D = Result<ApiResponse<UserLicense>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appsmarket_user_license_get_builder(
-        client,
-        args.applicationId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder = appsmarket_user_license_get_builder(client, &args.applicationId, &args.userId)?;
     appsmarket_user_license_get_execute(builder)
 }

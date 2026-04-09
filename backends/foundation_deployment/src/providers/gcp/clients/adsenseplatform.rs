@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn adsenseplatform_platforms_accounts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Account,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -177,7 +177,7 @@ pub fn adsenseplatform_platforms_accounts_create(
     ApiError,
 > {
     let builder =
-        adsenseplatform_platforms_accounts_create_builder(client, args.parent.clone(), &args.body)?;
+        adsenseplatform_platforms_accounts_create_builder(client, &args.parent, &args.body)?;
     adsenseplatform_platforms_accounts_create_execute(builder)
 }
 
@@ -189,8 +189,8 @@ pub fn adsenseplatform_platforms_accounts_create(
 
 pub fn adsenseplatform_platforms_accounts_lookup_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    creationRequestId: Option<String>,
+    parent: &String,
+    creationRequestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -198,7 +198,7 @@ pub fn adsenseplatform_platforms_accounts_lookup_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = creationRequestId {
+    if let Some(val) = creationRequestId.as_ref() {
         query_parts.push(format!("creationRequestId={}", val));
     }
 
@@ -352,8 +352,8 @@ pub fn adsenseplatform_platforms_accounts_lookup(
 > {
     let builder = adsenseplatform_platforms_accounts_lookup_builder(
         client,
-        args.parent.clone(),
-        args.creationRequestId.clone(),
+        &args.parent,
+        &args.creationRequestId,
     )?;
     adsenseplatform_platforms_accounts_lookup_execute(builder)
 }

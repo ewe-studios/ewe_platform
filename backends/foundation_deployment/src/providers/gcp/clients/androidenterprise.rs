@@ -29,16 +29,16 @@ use serde::Serialize;
 
 pub fn androidenterprise_devices_force_report_upload_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/forceReportUpload",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
     );
 
     // Build request
@@ -181,9 +181,9 @@ pub fn androidenterprise_devices_force_report_upload(
 > {
     let builder = androidenterprise_devices_force_report_upload_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_devices_force_report_upload_execute(builder)
 }
@@ -196,16 +196,16 @@ pub fn androidenterprise_devices_force_report_upload(
 
 pub fn androidenterprise_devices_get_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
     );
 
     // Build request
@@ -351,9 +351,9 @@ pub fn androidenterprise_devices_get(
 > {
     let builder = androidenterprise_devices_get_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_devices_get_execute(builder)
 }
@@ -366,16 +366,16 @@ pub fn androidenterprise_devices_get(
 
 pub fn androidenterprise_devices_get_state_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/state",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
     );
 
     // Build request
@@ -521,9 +521,9 @@ pub fn androidenterprise_devices_get_state(
 > {
     let builder = androidenterprise_devices_get_state_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_devices_get_state_execute(builder)
 }
@@ -536,14 +536,14 @@ pub fn androidenterprise_devices_get_state(
 
 pub fn androidenterprise_devices_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -689,11 +689,7 @@ pub fn androidenterprise_devices_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_devices_list_builder(
-        client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder = androidenterprise_devices_list_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_devices_list_execute(builder)
 }
 
@@ -705,13 +701,13 @@ pub fn androidenterprise_devices_list(
 
 pub fn androidenterprise_enrollment_tokens_create_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &EnrollmentToken,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/enrollmentTokens",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -859,11 +855,8 @@ pub fn androidenterprise_enrollment_tokens_create(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enrollment_tokens_create_builder(
-        client,
-        args.enterpriseId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidenterprise_enrollment_tokens_create_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_enrollment_tokens_create_execute(builder)
 }
 
@@ -875,7 +868,7 @@ pub fn androidenterprise_enrollment_tokens_create(
 
 pub fn androidenterprise_enterprises_acknowledge_notification_set_builder(
     client: &SimpleHttpClient,
-    notificationSetId: Option<String>,
+    notificationSetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -884,7 +877,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = notificationSetId {
+    if let Some(val) = notificationSetId.as_ref() {
         query_parts.push(format!("notificationSetId={}", val));
     }
 
@@ -1029,7 +1022,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set(
 > {
     let builder = androidenterprise_enterprises_acknowledge_notification_set_builder(
         client,
-        args.notificationSetId.clone(),
+        &args.notificationSetId,
     )?;
     androidenterprise_enterprises_acknowledge_notification_set_execute(builder)
 }
@@ -1042,8 +1035,8 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set(
 
 pub fn androidenterprise_enterprises_complete_signup_builder(
     client: &SimpleHttpClient,
-    completionToken: Option<String>,
-    enterpriseToken: Option<String>,
+    completionToken: &Option<String>,
+    enterpriseToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1052,10 +1045,10 @@ pub fn androidenterprise_enterprises_complete_signup_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = completionToken {
+    if let Some(val) = completionToken.as_ref() {
         query_parts.push(format!("completionToken={}", val));
     }
-    if let Some(val) = enterpriseToken {
+    if let Some(val) = enterpriseToken.as_ref() {
         query_parts.push(format!("enterpriseToken={}", val));
     }
 
@@ -1205,8 +1198,8 @@ pub fn androidenterprise_enterprises_complete_signup(
 > {
     let builder = androidenterprise_enterprises_complete_signup_builder(
         client,
-        args.completionToken.clone(),
-        args.enterpriseToken.clone(),
+        &args.completionToken,
+        &args.enterpriseToken,
     )?;
     androidenterprise_enterprises_complete_signup_execute(builder)
 }
@@ -1219,13 +1212,13 @@ pub fn androidenterprise_enterprises_complete_signup(
 
 pub fn androidenterprise_enterprises_create_web_token_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &AdministratorWebTokenSpec,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/createWebToken",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -1375,7 +1368,7 @@ pub fn androidenterprise_enterprises_create_web_token(
 > {
     let builder = androidenterprise_enterprises_create_web_token_builder(
         client,
-        args.enterpriseId.clone(),
+        &args.enterpriseId,
         &args.body,
     )?;
     androidenterprise_enterprises_create_web_token_execute(builder)
@@ -1389,22 +1382,22 @@ pub fn androidenterprise_enterprises_create_web_token(
 
 pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    adminEmail: Option<String>,
-    allowedDomains: Option<String>,
+    enterpriseId: &String,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/generateEnterpriseUpgradeUrl",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = adminEmail {
+    if let Some(val) = adminEmail.as_ref() {
         query_parts.push(format!("adminEmail={}", val));
     }
-    if let Some(val) = allowedDomains {
+    if let Some(val) = allowedDomains.as_ref() {
         query_parts.push(format!("allowedDomains={}", val));
     }
 
@@ -1564,9 +1557,9 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
 > {
     let builder = androidenterprise_enterprises_generate_enterprise_upgrade_url_builder(
         client,
-        args.enterpriseId.clone(),
-        args.adminEmail.clone(),
-        args.allowedDomains.clone(),
+        &args.enterpriseId,
+        &args.adminEmail,
+        &args.allowedDomains,
     )?;
     androidenterprise_enterprises_generate_enterprise_upgrade_url_execute(builder)
 }
@@ -1579,9 +1572,9 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
 
 pub fn androidenterprise_enterprises_generate_signup_url_builder(
     client: &SimpleHttpClient,
-    adminEmail: Option<String>,
-    allowedDomains: Option<String>,
-    callbackUrl: Option<String>,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
+    callbackUrl: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1590,13 +1583,13 @@ pub fn androidenterprise_enterprises_generate_signup_url_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = adminEmail {
+    if let Some(val) = adminEmail.as_ref() {
         query_parts.push(format!("adminEmail={}", val));
     }
-    if let Some(val) = allowedDomains {
+    if let Some(val) = allowedDomains.as_ref() {
         query_parts.push(format!("allowedDomains={}", val));
     }
-    if let Some(val) = callbackUrl {
+    if let Some(val) = callbackUrl.as_ref() {
         query_parts.push(format!("callbackUrl={}", val));
     }
 
@@ -1748,9 +1741,9 @@ pub fn androidenterprise_enterprises_generate_signup_url(
 > {
     let builder = androidenterprise_enterprises_generate_signup_url_builder(
         client,
-        args.adminEmail.clone(),
-        args.allowedDomains.clone(),
-        args.callbackUrl.clone(),
+        &args.adminEmail,
+        &args.allowedDomains,
+        &args.callbackUrl,
     )?;
     androidenterprise_enterprises_generate_signup_url_execute(builder)
 }
@@ -1763,12 +1756,12 @@ pub fn androidenterprise_enterprises_generate_signup_url(
 
 pub fn androidenterprise_enterprises_get_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -1908,7 +1901,7 @@ pub fn androidenterprise_enterprises_get(
     impl StreamIterator<D = Result<ApiResponse<Enterprise>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_get_builder(client, args.enterpriseId.clone())?;
+    let builder = androidenterprise_enterprises_get_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_get_execute(builder)
 }
 
@@ -1920,18 +1913,18 @@ pub fn androidenterprise_enterprises_get(
 
 pub fn androidenterprise_enterprises_get_service_account_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    keyType: Option<String>,
+    enterpriseId: &String,
+    keyType: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/serviceAccount",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = keyType {
+    if let Some(val) = keyType.as_ref() {
         query_parts.push(format!("keyType={}", val));
     }
 
@@ -2085,8 +2078,8 @@ pub fn androidenterprise_enterprises_get_service_account(
 > {
     let builder = androidenterprise_enterprises_get_service_account_builder(
         client,
-        args.enterpriseId.clone(),
-        args.keyType.clone(),
+        &args.enterpriseId,
+        &args.keyType,
     )?;
     androidenterprise_enterprises_get_service_account_execute(builder)
 }
@@ -2099,12 +2092,12 @@ pub fn androidenterprise_enterprises_get_service_account(
 
 pub fn androidenterprise_enterprises_get_store_layout_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -2245,7 +2238,7 @@ pub fn androidenterprise_enterprises_get_store_layout(
     ApiError,
 > {
     let builder =
-        androidenterprise_enterprises_get_store_layout_builder(client, args.enterpriseId.clone())?;
+        androidenterprise_enterprises_get_store_layout_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_get_store_layout_execute(builder)
 }
 
@@ -2257,7 +2250,7 @@ pub fn androidenterprise_enterprises_get_store_layout(
 
 pub fn androidenterprise_enterprises_pull_notification_set_builder(
     client: &SimpleHttpClient,
-    requestMode: Option<String>,
+    requestMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2266,7 +2259,7 @@ pub fn androidenterprise_enterprises_pull_notification_set_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestMode {
+    if let Some(val) = requestMode.as_ref() {
         query_parts.push(format!("requestMode={}", val));
     }
 
@@ -2416,10 +2409,8 @@ pub fn androidenterprise_enterprises_pull_notification_set(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_pull_notification_set_builder(
-        client,
-        args.requestMode.clone(),
-    )?;
+    let builder =
+        androidenterprise_enterprises_pull_notification_set_builder(client, &args.requestMode)?;
     androidenterprise_enterprises_pull_notification_set_execute(builder)
 }
 
@@ -2431,12 +2422,12 @@ pub fn androidenterprise_enterprises_pull_notification_set(
 
 pub fn androidenterprise_enterprises_send_test_push_notification_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/sendTestPushNotification",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -2587,7 +2578,7 @@ pub fn androidenterprise_enterprises_send_test_push_notification(
 > {
     let builder = androidenterprise_enterprises_send_test_push_notification_builder(
         client,
-        args.enterpriseId.clone(),
+        &args.enterpriseId,
     )?;
     androidenterprise_enterprises_send_test_push_notification_execute(builder)
 }
@@ -2600,13 +2591,13 @@ pub fn androidenterprise_enterprises_send_test_push_notification(
 
 pub fn androidenterprise_enterprises_set_account_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &EnterpriseAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/account",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -2754,11 +2745,8 @@ pub fn androidenterprise_enterprises_set_account(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_enterprises_set_account_builder(
-        client,
-        args.enterpriseId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidenterprise_enterprises_set_account_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_enterprises_set_account_execute(builder)
 }
 
@@ -2770,12 +2758,12 @@ pub fn androidenterprise_enterprises_set_account(
 
 pub fn androidenterprise_enterprises_unenroll_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/unenroll",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -2912,8 +2900,7 @@ pub fn androidenterprise_enterprises_unenroll(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_enterprises_unenroll_builder(client, args.enterpriseId.clone())?;
+    let builder = androidenterprise_enterprises_unenroll_builder(client, &args.enterpriseId)?;
     androidenterprise_enterprises_unenroll_execute(builder)
 }
 
@@ -2925,16 +2912,16 @@ pub fn androidenterprise_enterprises_unenroll(
 
 pub fn androidenterprise_entitlements_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    entitlementId: String,
+    enterpriseId: &String,
+    userId: &String,
+    entitlementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/entitlements/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        entitlementId.as_str(),
+        enterpriseId,
+        userId,
+        entitlementId,
     );
 
     // Build request
@@ -3077,9 +3064,9 @@ pub fn androidenterprise_entitlements_delete(
 > {
     let builder = androidenterprise_entitlements_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.entitlementId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.entitlementId,
     )?;
     androidenterprise_entitlements_delete_execute(builder)
 }
@@ -3092,14 +3079,14 @@ pub fn androidenterprise_entitlements_delete(
 
 pub fn androidenterprise_entitlements_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/entitlements",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -3245,11 +3232,8 @@ pub fn androidenterprise_entitlements_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_entitlements_list_builder(
-        client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder =
+        androidenterprise_entitlements_list_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_entitlements_list_execute(builder)
 }
 
@@ -3261,14 +3245,14 @@ pub fn androidenterprise_entitlements_list(
 
 pub fn androidenterprise_grouplicenses_get_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    groupLicenseId: String,
+    enterpriseId: &String,
+    groupLicenseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/groupLicenses/{}",
-        enterpriseId.as_str(),
-        groupLicenseId.as_str(),
+        enterpriseId,
+        groupLicenseId,
     );
 
     // Build request
@@ -3416,8 +3400,8 @@ pub fn androidenterprise_grouplicenses_get(
 > {
     let builder = androidenterprise_grouplicenses_get_builder(
         client,
-        args.enterpriseId.clone(),
-        args.groupLicenseId.clone(),
+        &args.enterpriseId,
+        &args.groupLicenseId,
     )?;
     androidenterprise_grouplicenses_get_execute(builder)
 }
@@ -3430,12 +3414,12 @@ pub fn androidenterprise_grouplicenses_get(
 
 pub fn androidenterprise_grouplicenses_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/groupLicenses",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -3579,7 +3563,7 @@ pub fn androidenterprise_grouplicenses_list(
         + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_grouplicenses_list_builder(client, args.enterpriseId.clone())?;
+    let builder = androidenterprise_grouplicenses_list_builder(client, &args.enterpriseId)?;
     androidenterprise_grouplicenses_list_execute(builder)
 }
 
@@ -3591,14 +3575,14 @@ pub fn androidenterprise_grouplicenses_list(
 
 pub fn androidenterprise_grouplicenseusers_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    groupLicenseId: String,
+    enterpriseId: &String,
+    groupLicenseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/groupLicenses/{}/users",
-        enterpriseId.as_str(),
-        groupLicenseId.as_str(),
+        enterpriseId,
+        groupLicenseId,
     );
 
     // Build request
@@ -3750,8 +3734,8 @@ pub fn androidenterprise_grouplicenseusers_list(
 > {
     let builder = androidenterprise_grouplicenseusers_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.groupLicenseId.clone(),
+        &args.enterpriseId,
+        &args.groupLicenseId,
     )?;
     androidenterprise_grouplicenseusers_list_execute(builder)
 }
@@ -3764,18 +3748,18 @@ pub fn androidenterprise_grouplicenseusers_list(
 
 pub fn androidenterprise_installs_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
-    installId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    installId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/installs/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
-        installId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
+        installId,
     );
 
     // Build request
@@ -3920,10 +3904,10 @@ pub fn androidenterprise_installs_delete(
 > {
     let builder = androidenterprise_installs_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
-        args.installId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.installId,
     )?;
     androidenterprise_installs_delete_execute(builder)
 }
@@ -3936,16 +3920,16 @@ pub fn androidenterprise_installs_delete(
 
 pub fn androidenterprise_installs_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/installs",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
     );
 
     // Build request
@@ -4095,9 +4079,9 @@ pub fn androidenterprise_installs_list(
 > {
     let builder = androidenterprise_installs_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_installs_list_execute(builder)
 }
@@ -4110,18 +4094,18 @@ pub fn androidenterprise_installs_list(
 
 pub fn androidenterprise_managedconfigurationsfordevice_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
-    managedConfigurationForDeviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
+    managedConfigurationForDeviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/managedConfigurationsForDevice/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
-        managedConfigurationForDeviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
+        managedConfigurationForDeviceId,
     );
 
     // Build request
@@ -4266,10 +4250,10 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete(
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
-        args.managedConfigurationForDeviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
+        &args.managedConfigurationForDeviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_delete_execute(builder)
 }
@@ -4282,16 +4266,16 @@ pub fn androidenterprise_managedconfigurationsfordevice_delete(
 
 pub fn androidenterprise_managedconfigurationsfordevice_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    deviceId: String,
+    enterpriseId: &String,
+    userId: &String,
+    deviceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/devices/{}/managedConfigurationsForDevice",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        deviceId.as_str(),
+        enterpriseId,
+        userId,
+        deviceId,
     );
 
     // Build request
@@ -4446,9 +4430,9 @@ pub fn androidenterprise_managedconfigurationsfordevice_list(
 > {
     let builder = androidenterprise_managedconfigurationsfordevice_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.deviceId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.deviceId,
     )?;
     androidenterprise_managedconfigurationsfordevice_list_execute(builder)
 }
@@ -4461,16 +4445,16 @@ pub fn androidenterprise_managedconfigurationsfordevice_list(
 
 pub fn androidenterprise_managedconfigurationsforuser_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
-    managedConfigurationForUserId: String,
+    enterpriseId: &String,
+    userId: &String,
+    managedConfigurationForUserId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/managedConfigurationsForUser/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
-        managedConfigurationForUserId.as_str(),
+        enterpriseId,
+        userId,
+        managedConfigurationForUserId,
     );
 
     // Build request
@@ -4613,9 +4597,9 @@ pub fn androidenterprise_managedconfigurationsforuser_delete(
 > {
     let builder = androidenterprise_managedconfigurationsforuser_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-        args.managedConfigurationForUserId.clone(),
+        &args.enterpriseId,
+        &args.userId,
+        &args.managedConfigurationForUserId,
     )?;
     androidenterprise_managedconfigurationsforuser_delete_execute(builder)
 }
@@ -4628,14 +4612,14 @@ pub fn androidenterprise_managedconfigurationsforuser_delete(
 
 pub fn androidenterprise_managedconfigurationsforuser_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/managedConfigurationsForUser",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -4787,8 +4771,8 @@ pub fn androidenterprise_managedconfigurationsforuser_list(
 > {
     let builder = androidenterprise_managedconfigurationsforuser_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
+        &args.enterpriseId,
+        &args.userId,
     )?;
     androidenterprise_managedconfigurationsforuser_list_execute(builder)
 }
@@ -4801,14 +4785,14 @@ pub fn androidenterprise_managedconfigurationsforuser_list(
 
 pub fn androidenterprise_managedconfigurationssettings_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
+    enterpriseId: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/managedConfigurationsSettings",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
@@ -4960,8 +4944,8 @@ pub fn androidenterprise_managedconfigurationssettings_list(
 > {
     let builder = androidenterprise_managedconfigurationssettings_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
+        &args.enterpriseId,
+        &args.productId,
     )?;
     androidenterprise_managedconfigurationssettings_list_execute(builder)
 }
@@ -4974,18 +4958,18 @@ pub fn androidenterprise_managedconfigurationssettings_list(
 
 pub fn androidenterprise_permissions_get_builder(
     client: &SimpleHttpClient,
-    permissionId: String,
-    language: Option<String>,
+    permissionId: &String,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/permissions/{}",
-        permissionId.as_str(),
+        permissionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -5133,11 +5117,8 @@ pub fn androidenterprise_permissions_get(
     impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_permissions_get_builder(
-        client,
-        args.permissionId.clone(),
-        args.language.clone(),
-    )?;
+    let builder =
+        androidenterprise_permissions_get_builder(client, &args.permissionId, &args.language)?;
     androidenterprise_permissions_get_execute(builder)
 }
 
@@ -5149,15 +5130,15 @@ pub fn androidenterprise_permissions_get(
 
 pub fn androidenterprise_products_approve_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
+    enterpriseId: &String,
+    productId: &String,
     body: &ProductsApproveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/approve",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
@@ -5302,8 +5283,8 @@ pub fn androidenterprise_products_approve(
 > {
     let builder = androidenterprise_products_approve_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
+        &args.enterpriseId,
+        &args.productId,
         &args.body,
     )?;
     androidenterprise_products_approve_execute(builder)
@@ -5317,20 +5298,20 @@ pub fn androidenterprise_products_approve(
 
 pub fn androidenterprise_products_generate_approval_url_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
-    languageCode: Option<String>,
+    enterpriseId: &String,
+    productId: &String,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/generateApprovalUrl",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -5490,9 +5471,9 @@ pub fn androidenterprise_products_generate_approval_url(
 > {
     let builder = androidenterprise_products_generate_approval_url_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
-        args.languageCode.clone(),
+        &args.enterpriseId,
+        &args.productId,
+        &args.languageCode,
     )?;
     androidenterprise_products_generate_approval_url_execute(builder)
 }
@@ -5505,20 +5486,19 @@ pub fn androidenterprise_products_generate_approval_url(
 
 pub fn androidenterprise_products_get_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
-    language: Option<String>,
+    enterpriseId: &String,
+    productId: &String,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId, productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -5670,9 +5650,9 @@ pub fn androidenterprise_products_get(
 > {
     let builder = androidenterprise_products_get_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
-        args.language.clone(),
+        &args.enterpriseId,
+        &args.productId,
+        &args.language,
     )?;
     androidenterprise_products_get_execute(builder)
 }
@@ -5685,20 +5665,20 @@ pub fn androidenterprise_products_get(
 
 pub fn androidenterprise_products_get_app_restrictions_schema_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
-    language: Option<String>,
+    enterpriseId: &String,
+    productId: &String,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/appRestrictionsSchema",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -5854,9 +5834,9 @@ pub fn androidenterprise_products_get_app_restrictions_schema(
 > {
     let builder = androidenterprise_products_get_app_restrictions_schema_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
-        args.language.clone(),
+        &args.enterpriseId,
+        &args.productId,
+        &args.language,
     )?;
     androidenterprise_products_get_app_restrictions_schema_execute(builder)
 }
@@ -5869,14 +5849,14 @@ pub fn androidenterprise_products_get_app_restrictions_schema(
 
 pub fn androidenterprise_products_get_permissions_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
+    enterpriseId: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/permissions",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
@@ -6024,8 +6004,8 @@ pub fn androidenterprise_products_get_permissions(
 > {
     let builder = androidenterprise_products_get_permissions_builder(
         client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
+        &args.enterpriseId,
+        &args.productId,
     )?;
     androidenterprise_products_get_permissions_execute(builder)
 }
@@ -6038,34 +6018,34 @@ pub fn androidenterprise_products_get_permissions(
 
 pub fn androidenterprise_products_list_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    approved: Option<bool>,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    query: Option<String>,
-    token: Option<String>,
+    enterpriseId: &String,
+    approved: &Option<bool>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    query: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = approved {
+    if let Some(val) = approved.as_ref() {
         query_parts.push(format!("approved={}", val));
     }
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = token {
+    if let Some(val) = token.as_ref() {
         query_parts.push(format!("token={}", val));
     }
 
@@ -6227,12 +6207,12 @@ pub fn androidenterprise_products_list(
 > {
     let builder = androidenterprise_products_list_builder(
         client,
-        args.enterpriseId.clone(),
-        args.approved.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.query.clone(),
-        args.token.clone(),
+        &args.enterpriseId,
+        &args.approved,
+        &args.language,
+        &args.maxResults,
+        &args.query,
+        &args.token,
     )?;
     androidenterprise_products_list_execute(builder)
 }
@@ -6245,14 +6225,14 @@ pub fn androidenterprise_products_list(
 
 pub fn androidenterprise_products_unapprove_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    productId: String,
+    enterpriseId: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/products/{}/unapprove",
-        enterpriseId.as_str(),
-        productId.as_str(),
+        enterpriseId,
+        productId,
     );
 
     // Build request
@@ -6391,11 +6371,8 @@ pub fn androidenterprise_products_unapprove(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_products_unapprove_builder(
-        client,
-        args.enterpriseId.clone(),
-        args.productId.clone(),
-    )?;
+    let builder =
+        androidenterprise_products_unapprove_builder(client, &args.enterpriseId, &args.productId)?;
     androidenterprise_products_unapprove_execute(builder)
 }
 
@@ -6407,14 +6384,14 @@ pub fn androidenterprise_products_unapprove(
 
 pub fn androidenterprise_serviceaccountkeys_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    keyId: String,
+    enterpriseId: &String,
+    keyId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/serviceAccountKeys/{}",
-        enterpriseId.as_str(),
-        keyId.as_str(),
+        enterpriseId,
+        keyId,
     );
 
     // Build request
@@ -6555,8 +6532,8 @@ pub fn androidenterprise_serviceaccountkeys_delete(
 > {
     let builder = androidenterprise_serviceaccountkeys_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.keyId.clone(),
+        &args.enterpriseId,
+        &args.keyId,
     )?;
     androidenterprise_serviceaccountkeys_delete_execute(builder)
 }
@@ -6569,13 +6546,13 @@ pub fn androidenterprise_serviceaccountkeys_delete(
 
 pub fn androidenterprise_serviceaccountkeys_insert_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &ServiceAccountKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/serviceAccountKeys",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -6725,7 +6702,7 @@ pub fn androidenterprise_serviceaccountkeys_insert(
 > {
     let builder = androidenterprise_serviceaccountkeys_insert_builder(
         client,
-        args.enterpriseId.clone(),
+        &args.enterpriseId,
         &args.body,
     )?;
     androidenterprise_serviceaccountkeys_insert_execute(builder)
@@ -6739,16 +6716,16 @@ pub fn androidenterprise_serviceaccountkeys_insert(
 
 pub fn androidenterprise_storelayoutclusters_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    pageId: String,
-    clusterId: String,
+    enterpriseId: &String,
+    pageId: &String,
+    clusterId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}/clusters/{}",
-        enterpriseId.as_str(),
-        pageId.as_str(),
-        clusterId.as_str(),
+        enterpriseId,
+        pageId,
+        clusterId,
     );
 
     // Build request
@@ -6891,9 +6868,9 @@ pub fn androidenterprise_storelayoutclusters_delete(
 > {
     let builder = androidenterprise_storelayoutclusters_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.pageId.clone(),
-        args.clusterId.clone(),
+        &args.enterpriseId,
+        &args.pageId,
+        &args.clusterId,
     )?;
     androidenterprise_storelayoutclusters_delete_execute(builder)
 }
@@ -6906,15 +6883,15 @@ pub fn androidenterprise_storelayoutclusters_delete(
 
 pub fn androidenterprise_storelayoutclusters_insert_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    pageId: String,
+    enterpriseId: &String,
+    pageId: &String,
     body: &StoreCluster,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}/clusters",
-        enterpriseId.as_str(),
-        pageId.as_str(),
+        enterpriseId,
+        pageId,
     );
 
     // Build request
@@ -7066,8 +7043,8 @@ pub fn androidenterprise_storelayoutclusters_insert(
 > {
     let builder = androidenterprise_storelayoutclusters_insert_builder(
         client,
-        args.enterpriseId.clone(),
-        args.pageId.clone(),
+        &args.enterpriseId,
+        &args.pageId,
         &args.body,
     )?;
     androidenterprise_storelayoutclusters_insert_execute(builder)
@@ -7081,14 +7058,14 @@ pub fn androidenterprise_storelayoutclusters_insert(
 
 pub fn androidenterprise_storelayoutpages_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    pageId: String,
+    enterpriseId: &String,
+    pageId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages/{}",
-        enterpriseId.as_str(),
-        pageId.as_str(),
+        enterpriseId,
+        pageId,
     );
 
     // Build request
@@ -7229,8 +7206,8 @@ pub fn androidenterprise_storelayoutpages_delete(
 > {
     let builder = androidenterprise_storelayoutpages_delete_builder(
         client,
-        args.enterpriseId.clone(),
-        args.pageId.clone(),
+        &args.enterpriseId,
+        &args.pageId,
     )?;
     androidenterprise_storelayoutpages_delete_execute(builder)
 }
@@ -7243,13 +7220,13 @@ pub fn androidenterprise_storelayoutpages_delete(
 
 pub fn androidenterprise_storelayoutpages_insert_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &StorePage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/storeLayout/pages",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -7393,11 +7370,8 @@ pub fn androidenterprise_storelayoutpages_insert(
     impl StreamIterator<D = Result<ApiResponse<StorePage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_storelayoutpages_insert_builder(
-        client,
-        args.enterpriseId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        androidenterprise_storelayoutpages_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_storelayoutpages_insert_execute(builder)
 }
 
@@ -7409,14 +7383,13 @@ pub fn androidenterprise_storelayoutpages_insert(
 
 pub fn androidenterprise_users_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId, userId,
     );
 
     // Build request
@@ -7555,11 +7528,7 @@ pub fn androidenterprise_users_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_users_delete_builder(
-        client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder = androidenterprise_users_delete_builder(client, &args.enterpriseId, &args.userId)?;
     androidenterprise_users_delete_execute(builder)
 }
 
@@ -7571,14 +7540,14 @@ pub fn androidenterprise_users_delete(
 
 pub fn androidenterprise_users_generate_authentication_token_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/authenticationToken",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -7726,8 +7695,8 @@ pub fn androidenterprise_users_generate_authentication_token(
 > {
     let builder = androidenterprise_users_generate_authentication_token_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
+        &args.enterpriseId,
+        &args.userId,
     )?;
     androidenterprise_users_generate_authentication_token_execute(builder)
 }
@@ -7740,14 +7709,14 @@ pub fn androidenterprise_users_generate_authentication_token(
 
 pub fn androidenterprise_users_get_available_product_set_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/availableProductSet",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -7891,8 +7860,8 @@ pub fn androidenterprise_users_get_available_product_set(
 > {
     let builder = androidenterprise_users_get_available_product_set_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
+        &args.enterpriseId,
+        &args.userId,
     )?;
     androidenterprise_users_get_available_product_set_execute(builder)
 }
@@ -7905,13 +7874,13 @@ pub fn androidenterprise_users_get_available_product_set(
 
 pub fn androidenterprise_users_insert_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -8055,8 +8024,7 @@ pub fn androidenterprise_users_insert(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_users_insert_builder(client, args.enterpriseId.clone(), &args.body)?;
+    let builder = androidenterprise_users_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_users_insert_execute(builder)
 }
 
@@ -8068,14 +8036,14 @@ pub fn androidenterprise_users_insert(
 
 pub fn androidenterprise_users_revoke_device_access_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    userId: String,
+    enterpriseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/users/{}/deviceAccess",
-        enterpriseId.as_str(),
-        userId.as_str(),
+        enterpriseId,
+        userId,
     );
 
     // Build request
@@ -8216,8 +8184,8 @@ pub fn androidenterprise_users_revoke_device_access(
 > {
     let builder = androidenterprise_users_revoke_device_access_builder(
         client,
-        args.enterpriseId.clone(),
-        args.userId.clone(),
+        &args.enterpriseId,
+        &args.userId,
     )?;
     androidenterprise_users_revoke_device_access_execute(builder)
 }
@@ -8230,14 +8198,13 @@ pub fn androidenterprise_users_revoke_device_access(
 
 pub fn androidenterprise_webapps_delete_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
-    webAppId: String,
+    enterpriseId: &String,
+    webAppId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/webApps/{}",
-        enterpriseId.as_str(),
-        webAppId.as_str(),
+        enterpriseId, webAppId,
     );
 
     // Build request
@@ -8376,11 +8343,8 @@ pub fn androidenterprise_webapps_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidenterprise_webapps_delete_builder(
-        client,
-        args.enterpriseId.clone(),
-        args.webAppId.clone(),
-    )?;
+    let builder =
+        androidenterprise_webapps_delete_builder(client, &args.enterpriseId, &args.webAppId)?;
     androidenterprise_webapps_delete_execute(builder)
 }
 
@@ -8392,13 +8356,13 @@ pub fn androidenterprise_webapps_delete(
 
 pub fn androidenterprise_webapps_insert_builder(
     client: &SimpleHttpClient,
-    enterpriseId: String,
+    enterpriseId: &String,
     body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androidenterprise.googleapis.com/androidenterprise/v1/enterprises/{}/webApps",
-        enterpriseId.as_str(),
+        enterpriseId,
     );
 
     // Build request
@@ -8542,7 +8506,6 @@ pub fn androidenterprise_webapps_insert(
     impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidenterprise_webapps_insert_builder(client, args.enterpriseId.clone(), &args.body)?;
+    let builder = androidenterprise_webapps_insert_builder(client, &args.enterpriseId, &args.body)?;
     androidenterprise_webapps_insert_execute(builder)
 }

@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn managedidentities_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -41,16 +41,16 @@ pub fn managedidentities_projects_locations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -210,11 +210,11 @@ pub fn managedidentities_projects_locations_list(
 > {
     let builder = managedidentities_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     managedidentities_projects_locations_list_execute(builder)
 }
@@ -227,8 +227,8 @@ pub fn managedidentities_projects_locations_list(
 
 pub fn managedidentities_projects_locations_global_domains_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    domainName: Option<String>,
+    parent: &String,
+    domainName: &Option<String>,
     body: &Domain,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -238,7 +238,7 @@ pub fn managedidentities_projects_locations_global_domains_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = domainName {
+    if let Some(val) = domainName.as_ref() {
         query_parts.push(format!("domainName={}", val));
     }
 
@@ -392,8 +392,8 @@ pub fn managedidentities_projects_locations_global_domains_create(
 > {
     let builder = managedidentities_projects_locations_global_domains_create_builder(
         client,
-        args.parent.clone(),
-        args.domainName.clone(),
+        &args.parent,
+        &args.domainName,
         &args.body,
     )?;
     managedidentities_projects_locations_global_domains_create_execute(builder)
@@ -407,11 +407,11 @@ pub fn managedidentities_projects_locations_global_domains_create(
 
 pub fn managedidentities_projects_locations_global_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -420,16 +420,16 @@ pub fn managedidentities_projects_locations_global_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -589,11 +589,11 @@ pub fn managedidentities_projects_locations_global_operations_list(
 > {
     let builder = managedidentities_projects_locations_global_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     managedidentities_projects_locations_global_operations_list_execute(builder)
 }
@@ -606,8 +606,8 @@ pub fn managedidentities_projects_locations_global_operations_list(
 
 pub fn managedidentities_projects_locations_global_peerings_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    peeringId: Option<String>,
+    parent: &String,
+    peeringId: &Option<String>,
     body: &Peering,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -617,7 +617,7 @@ pub fn managedidentities_projects_locations_global_peerings_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = peeringId {
+    if let Some(val) = peeringId.as_ref() {
         query_parts.push(format!("peeringId={}", val));
     }
 
@@ -771,8 +771,8 @@ pub fn managedidentities_projects_locations_global_peerings_create(
 > {
     let builder = managedidentities_projects_locations_global_peerings_create_builder(
         client,
-        args.parent.clone(),
-        args.peeringId.clone(),
+        &args.parent,
+        &args.peeringId,
         &args.body,
     )?;
     managedidentities_projects_locations_global_peerings_create_execute(builder)

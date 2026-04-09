@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn firestore_projects_databases_clone_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleFirestoreAdminV1CloneDatabaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -184,8 +184,7 @@ pub fn firestore_projects_databases_clone(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_clone_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firestore_projects_databases_clone_builder(client, &args.parent, &args.body)?;
     firestore_projects_databases_clone_execute(builder)
 }
 
@@ -197,8 +196,8 @@ pub fn firestore_projects_databases_clone(
 
 pub fn firestore_projects_databases_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    databaseId: Option<String>,
+    parent: &String,
+    databaseId: &Option<String>,
     body: &GoogleFirestoreAdminV1Database,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -206,7 +205,7 @@ pub fn firestore_projects_databases_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = databaseId {
+    if let Some(val) = databaseId.as_ref() {
         query_parts.push(format!("databaseId={}", val));
     }
 
@@ -368,8 +367,8 @@ pub fn firestore_projects_databases_create(
 > {
     let builder = firestore_projects_databases_create_builder(
         client,
-        args.parent.clone(),
-        args.databaseId.clone(),
+        &args.parent,
+        &args.databaseId,
         &args.body,
     )?;
     firestore_projects_databases_create_execute(builder)
@@ -383,7 +382,7 @@ pub fn firestore_projects_databases_create(
 
 pub fn firestore_projects_databases_restore_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleFirestoreAdminV1RestoreDatabaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -539,8 +538,7 @@ pub fn firestore_projects_databases_restore(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_restore_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firestore_projects_databases_restore_builder(client, &args.parent, &args.body)?;
     firestore_projects_databases_restore_execute(builder)
 }
 
@@ -552,27 +550,27 @@ pub fn firestore_projects_databases_restore(
 
 pub fn firestore_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firestore.googleapis.com/v1/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -732,11 +730,11 @@ pub fn firestore_projects_locations_list(
 > {
     let builder = firestore_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     firestore_projects_locations_list_execute(builder)
 }

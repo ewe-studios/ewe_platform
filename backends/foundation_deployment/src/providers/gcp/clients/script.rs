@@ -29,54 +29,54 @@ use serde::Serialize;
 
 pub fn script_processes_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    userProcessFilter_deploymentId: Option<String>,
-    userProcessFilter_endTime: Option<String>,
-    userProcessFilter_functionName: Option<String>,
-    userProcessFilter_projectName: Option<String>,
-    userProcessFilter_scriptId: Option<String>,
-    userProcessFilter_startTime: Option<String>,
-    userProcessFilter_statuses: Option<String>,
-    userProcessFilter_types: Option<String>,
-    userProcessFilter_userAccessLevels: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    userProcessFilter_deploymentId: &Option<String>,
+    userProcessFilter_endTime: &Option<String>,
+    userProcessFilter_functionName: &Option<String>,
+    userProcessFilter_projectName: &Option<String>,
+    userProcessFilter_scriptId: &Option<String>,
+    userProcessFilter_startTime: &Option<String>,
+    userProcessFilter_statuses: &Option<String>,
+    userProcessFilter_types: &Option<String>,
+    userProcessFilter_userAccessLevels: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/processes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = userProcessFilter_deploymentId {
+    if let Some(val) = userProcessFilter_deploymentId.as_ref() {
         query_parts.push(format!("userProcessFilter.deploymentId={}", val));
     }
-    if let Some(val) = userProcessFilter_endTime {
+    if let Some(val) = userProcessFilter_endTime.as_ref() {
         query_parts.push(format!("userProcessFilter.endTime={}", val));
     }
-    if let Some(val) = userProcessFilter_functionName {
+    if let Some(val) = userProcessFilter_functionName.as_ref() {
         query_parts.push(format!("userProcessFilter.functionName={}", val));
     }
-    if let Some(val) = userProcessFilter_projectName {
+    if let Some(val) = userProcessFilter_projectName.as_ref() {
         query_parts.push(format!("userProcessFilter.projectName={}", val));
     }
-    if let Some(val) = userProcessFilter_scriptId {
+    if let Some(val) = userProcessFilter_scriptId.as_ref() {
         query_parts.push(format!("userProcessFilter.scriptId={}", val));
     }
-    if let Some(val) = userProcessFilter_startTime {
+    if let Some(val) = userProcessFilter_startTime.as_ref() {
         query_parts.push(format!("userProcessFilter.startTime={}", val));
     }
-    if let Some(val) = userProcessFilter_statuses {
+    if let Some(val) = userProcessFilter_statuses.as_ref() {
         query_parts.push(format!("userProcessFilter.statuses={}", val));
     }
-    if let Some(val) = userProcessFilter_types {
+    if let Some(val) = userProcessFilter_types.as_ref() {
         query_parts.push(format!("userProcessFilter.types={}", val));
     }
-    if let Some(val) = userProcessFilter_userAccessLevels {
+    if let Some(val) = userProcessFilter_userAccessLevels.as_ref() {
         query_parts.push(format!("userProcessFilter.userAccessLevels={}", val));
     }
 
@@ -248,17 +248,17 @@ pub fn script_processes_list(
 > {
     let builder = script_processes_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.userProcessFilter_deploymentId.clone(),
-        args.userProcessFilter_endTime.clone(),
-        args.userProcessFilter_functionName.clone(),
-        args.userProcessFilter_projectName.clone(),
-        args.userProcessFilter_scriptId.clone(),
-        args.userProcessFilter_startTime.clone(),
-        args.userProcessFilter_statuses.clone(),
-        args.userProcessFilter_types.clone(),
-        args.userProcessFilter_userAccessLevels.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.userProcessFilter_deploymentId,
+        &args.userProcessFilter_endTime,
+        &args.userProcessFilter_functionName,
+        &args.userProcessFilter_projectName,
+        &args.userProcessFilter_scriptId,
+        &args.userProcessFilter_startTime,
+        &args.userProcessFilter_statuses,
+        &args.userProcessFilter_types,
+        &args.userProcessFilter_userAccessLevels,
     )?;
     script_processes_list_execute(builder)
 }
@@ -271,50 +271,50 @@ pub fn script_processes_list(
 
 pub fn script_processes_list_script_processes_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    scriptId: Option<String>,
-    scriptProcessFilter_deploymentId: Option<String>,
-    scriptProcessFilter_endTime: Option<String>,
-    scriptProcessFilter_functionName: Option<String>,
-    scriptProcessFilter_startTime: Option<String>,
-    scriptProcessFilter_statuses: Option<String>,
-    scriptProcessFilter_types: Option<String>,
-    scriptProcessFilter_userAccessLevels: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    scriptId: &Option<String>,
+    scriptProcessFilter_deploymentId: &Option<String>,
+    scriptProcessFilter_endTime: &Option<String>,
+    scriptProcessFilter_functionName: &Option<String>,
+    scriptProcessFilter_startTime: &Option<String>,
+    scriptProcessFilter_statuses: &Option<String>,
+    scriptProcessFilter_types: &Option<String>,
+    scriptProcessFilter_userAccessLevels: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://script.googleapis.com/v1/processes:listScriptProcesses",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = scriptId {
+    if let Some(val) = scriptId.as_ref() {
         query_parts.push(format!("scriptId={}", val));
     }
-    if let Some(val) = scriptProcessFilter_deploymentId {
+    if let Some(val) = scriptProcessFilter_deploymentId.as_ref() {
         query_parts.push(format!("scriptProcessFilter.deploymentId={}", val));
     }
-    if let Some(val) = scriptProcessFilter_endTime {
+    if let Some(val) = scriptProcessFilter_endTime.as_ref() {
         query_parts.push(format!("scriptProcessFilter.endTime={}", val));
     }
-    if let Some(val) = scriptProcessFilter_functionName {
+    if let Some(val) = scriptProcessFilter_functionName.as_ref() {
         query_parts.push(format!("scriptProcessFilter.functionName={}", val));
     }
-    if let Some(val) = scriptProcessFilter_startTime {
+    if let Some(val) = scriptProcessFilter_startTime.as_ref() {
         query_parts.push(format!("scriptProcessFilter.startTime={}", val));
     }
-    if let Some(val) = scriptProcessFilter_statuses {
+    if let Some(val) = scriptProcessFilter_statuses.as_ref() {
         query_parts.push(format!("scriptProcessFilter.statuses={}", val));
     }
-    if let Some(val) = scriptProcessFilter_types {
+    if let Some(val) = scriptProcessFilter_types.as_ref() {
         query_parts.push(format!("scriptProcessFilter.types={}", val));
     }
-    if let Some(val) = scriptProcessFilter_userAccessLevels {
+    if let Some(val) = scriptProcessFilter_userAccessLevels.as_ref() {
         query_parts.push(format!("scriptProcessFilter.userAccessLevels={}", val));
     }
 
@@ -488,16 +488,16 @@ pub fn script_processes_list_script_processes(
 > {
     let builder = script_processes_list_script_processes_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.scriptId.clone(),
-        args.scriptProcessFilter_deploymentId.clone(),
-        args.scriptProcessFilter_endTime.clone(),
-        args.scriptProcessFilter_functionName.clone(),
-        args.scriptProcessFilter_startTime.clone(),
-        args.scriptProcessFilter_statuses.clone(),
-        args.scriptProcessFilter_types.clone(),
-        args.scriptProcessFilter_userAccessLevels.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.scriptId,
+        &args.scriptProcessFilter_deploymentId,
+        &args.scriptProcessFilter_endTime,
+        &args.scriptProcessFilter_functionName,
+        &args.scriptProcessFilter_startTime,
+        &args.scriptProcessFilter_statuses,
+        &args.scriptProcessFilter_types,
+        &args.scriptProcessFilter_userAccessLevels,
     )?;
     script_processes_list_script_processes_execute(builder)
 }
@@ -666,13 +666,10 @@ pub fn script_projects_create(
 
 pub fn script_projects_get_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
+    scriptId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://script.googleapis.com/v1/projects/{}",
-        scriptId.as_str(),
-    );
+    let endpoint_url = format!("https://script.googleapis.com/v1/projects/{}", scriptId,);
 
     // Build request
     let builder = client
@@ -811,7 +808,7 @@ pub fn script_projects_get(
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_builder(client, args.scriptId.clone())?;
+    let builder = script_projects_get_builder(client, &args.scriptId)?;
     script_projects_get_execute(builder)
 }
 
@@ -823,18 +820,18 @@ pub fn script_projects_get(
 
 pub fn script_projects_get_content_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
-    versionNumber: Option<i32>,
+    scriptId: &String,
+    versionNumber: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/content",
-        scriptId.as_str(),
+        scriptId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = versionNumber {
+    if let Some(val) = versionNumber.as_ref() {
         query_parts.push(format!("versionNumber={}", val));
     }
 
@@ -982,11 +979,7 @@ pub fn script_projects_get_content(
     impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_content_builder(
-        client,
-        args.scriptId.clone(),
-        args.versionNumber.clone(),
-    )?;
+    let builder = script_projects_get_content_builder(client, &args.scriptId, &args.versionNumber)?;
     script_projects_get_content_execute(builder)
 }
 
@@ -998,22 +991,22 @@ pub fn script_projects_get_content(
 
 pub fn script_projects_get_metrics_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
-    metricsFilter_deploymentId: Option<String>,
-    metricsGranularity: Option<String>,
+    scriptId: &String,
+    metricsFilter_deploymentId: &Option<String>,
+    metricsGranularity: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/metrics",
-        scriptId.as_str(),
+        scriptId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = metricsFilter_deploymentId {
+    if let Some(val) = metricsFilter_deploymentId.as_ref() {
         query_parts.push(format!("metricsFilter.deploymentId={}", val));
     }
-    if let Some(val) = metricsGranularity {
+    if let Some(val) = metricsGranularity.as_ref() {
         query_parts.push(format!("metricsGranularity={}", val));
     }
 
@@ -1165,9 +1158,9 @@ pub fn script_projects_get_metrics(
 > {
     let builder = script_projects_get_metrics_builder(
         client,
-        args.scriptId.clone(),
-        args.metricsFilter_deploymentId.clone(),
-        args.metricsGranularity.clone(),
+        &args.scriptId,
+        &args.metricsFilter_deploymentId,
+        &args.metricsGranularity,
     )?;
     script_projects_get_metrics_execute(builder)
 }
@@ -1180,13 +1173,13 @@ pub fn script_projects_get_metrics(
 
 pub fn script_projects_deployments_create_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
+    scriptId: &String,
     body: &DeploymentConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments",
-        scriptId.as_str(),
+        scriptId,
     );
 
     // Build request
@@ -1330,8 +1323,7 @@ pub fn script_projects_deployments_create(
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        script_projects_deployments_create_builder(client, args.scriptId.clone(), &args.body)?;
+    let builder = script_projects_deployments_create_builder(client, &args.scriptId, &args.body)?;
     script_projects_deployments_create_execute(builder)
 }
 
@@ -1343,14 +1335,13 @@ pub fn script_projects_deployments_create(
 
 pub fn script_projects_deployments_delete_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
-    deploymentId: String,
+    scriptId: &String,
+    deploymentId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments/{}",
-        scriptId.as_str(),
-        deploymentId.as_str(),
+        scriptId, deploymentId,
     );
 
     // Build request
@@ -1492,11 +1483,8 @@ pub fn script_projects_deployments_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_delete_builder(
-        client,
-        args.scriptId.clone(),
-        args.deploymentId.clone(),
-    )?;
+    let builder =
+        script_projects_deployments_delete_builder(client, &args.scriptId, &args.deploymentId)?;
     script_projects_deployments_delete_execute(builder)
 }
 
@@ -1508,13 +1496,13 @@ pub fn script_projects_deployments_delete(
 
 pub fn script_projects_versions_create_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
+    scriptId: &String,
     body: &Version,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions",
-        scriptId.as_str(),
+        scriptId,
     );
 
     // Build request
@@ -1658,8 +1646,7 @@ pub fn script_projects_versions_create(
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        script_projects_versions_create_builder(client, args.scriptId.clone(), &args.body)?;
+    let builder = script_projects_versions_create_builder(client, &args.scriptId, &args.body)?;
     script_projects_versions_create_execute(builder)
 }
 
@@ -1671,14 +1658,13 @@ pub fn script_projects_versions_create(
 
 pub fn script_projects_versions_get_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
-    versionNumber: String,
+    scriptId: &String,
+    versionNumber: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions/{}",
-        scriptId.as_str(),
-        versionNumber.as_str(),
+        scriptId, versionNumber,
     );
 
     // Build request
@@ -1799,7 +1785,7 @@ pub struct ScriptProjectsVersionsGetArgs {
     /// Path parameter: scriptId
     pub scriptId: String,
     /// Path parameter: versionNumber
-    pub versionNumber: String,
+    pub versionNumber: i32,
 }
 
 /// GET v1/projects/{scriptId}/versions/{versionNumber}
@@ -1820,11 +1806,8 @@ pub fn script_projects_versions_get(
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_versions_get_builder(
-        client,
-        args.scriptId.clone(),
-        args.versionNumber.clone(),
-    )?;
+    let builder =
+        script_projects_versions_get_builder(client, &args.scriptId, &args.versionNumber)?;
     script_projects_versions_get_execute(builder)
 }
 
@@ -1836,14 +1819,11 @@ pub fn script_projects_versions_get(
 
 pub fn script_scripts_run_builder(
     client: &SimpleHttpClient,
-    scriptId: String,
+    scriptId: &String,
     body: &ExecutionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://script.googleapis.com/v1/scripts/{}:run",
-        scriptId.as_str(),
-    );
+    let endpoint_url = format!("https://script.googleapis.com/v1/scripts/{}:run", scriptId,);
 
     // Build request
     let builder = client
@@ -1986,6 +1966,6 @@ pub fn script_scripts_run(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_scripts_run_builder(client, args.scriptId.clone(), &args.body)?;
+    let builder = script_scripts_run_builder(client, &args.scriptId, &args.body)?;
     script_scripts_run_execute(builder)
 }

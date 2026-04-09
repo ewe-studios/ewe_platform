@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn pubsub_projects_schemas_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    schemaId: Option<String>,
+    parent: &String,
+    schemaId: &Option<String>,
     body: &Schema,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -38,7 +38,7 @@ pub fn pubsub_projects_schemas_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = schemaId {
+    if let Some(val) = schemaId.as_ref() {
         query_parts.push(format!("schemaId={}", val));
     }
 
@@ -190,12 +190,8 @@ pub fn pubsub_projects_schemas_create(
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_create_builder(
-        client,
-        args.parent.clone(),
-        args.schemaId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        pubsub_projects_schemas_create_builder(client, &args.parent, &args.schemaId, &args.body)?;
     pubsub_projects_schemas_create_execute(builder)
 }
 
@@ -207,7 +203,7 @@ pub fn pubsub_projects_schemas_create(
 
 pub fn pubsub_projects_schemas_validate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateSchemaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -358,8 +354,7 @@ pub fn pubsub_projects_schemas_validate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_schemas_validate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = pubsub_projects_schemas_validate_builder(client, &args.parent, &args.body)?;
     pubsub_projects_schemas_validate_execute(builder)
 }
 
@@ -371,7 +366,7 @@ pub fn pubsub_projects_schemas_validate(
 
 pub fn pubsub_projects_schemas_validate_message_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -524,7 +519,7 @@ pub fn pubsub_projects_schemas_validate_message(
     ApiError,
 > {
     let builder =
-        pubsub_projects_schemas_validate_message_builder(client, args.parent.clone(), &args.body)?;
+        pubsub_projects_schemas_validate_message_builder(client, &args.parent, &args.body)?;
     pubsub_projects_schemas_validate_message_execute(builder)
 }
 
@@ -536,19 +531,19 @@ pub fn pubsub_projects_schemas_validate_message(
 
 pub fn pubsub_projects_snapshots_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    project: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://pubsub.googleapis.com/v1/projects/{}/snapshots",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -704,9 +699,9 @@ pub fn pubsub_projects_snapshots_list(
 > {
     let builder = pubsub_projects_snapshots_list_builder(
         client,
-        args.project.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     pubsub_projects_snapshots_list_execute(builder)
 }
@@ -719,19 +714,19 @@ pub fn pubsub_projects_snapshots_list(
 
 pub fn pubsub_projects_subscriptions_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    project: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://pubsub.googleapis.com/v1/projects/{}/subscriptions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -887,9 +882,9 @@ pub fn pubsub_projects_subscriptions_list(
 > {
     let builder = pubsub_projects_subscriptions_list_builder(
         client,
-        args.project.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     pubsub_projects_subscriptions_list_execute(builder)
 }
@@ -902,19 +897,19 @@ pub fn pubsub_projects_subscriptions_list(
 
 pub fn pubsub_projects_topics_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    project: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://pubsub.googleapis.com/v1/projects/{}/topics",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1070,9 +1065,9 @@ pub fn pubsub_projects_topics_list(
 > {
     let builder = pubsub_projects_topics_list_builder(
         client,
-        args.project.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     pubsub_projects_topics_list_execute(builder)
 }

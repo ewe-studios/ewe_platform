@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn gmail_users_get_profile_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/profile",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -174,7 +174,7 @@ pub fn gmail_users_get_profile(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_get_profile_builder(client, args.userId.clone())?;
+    let builder = gmail_users_get_profile_builder(client, &args.userId)?;
     gmail_users_get_profile_execute(builder)
 }
 
@@ -186,12 +186,12 @@ pub fn gmail_users_get_profile(
 
 pub fn gmail_users_stop_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/stop",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -328,7 +328,7 @@ pub fn gmail_users_stop(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_stop_builder(client, args.userId.clone())?;
+    let builder = gmail_users_stop_builder(client, &args.userId)?;
     gmail_users_stop_execute(builder)
 }
 
@@ -340,13 +340,13 @@ pub fn gmail_users_stop(
 
 pub fn gmail_users_watch_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &WatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/watch",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -494,7 +494,7 @@ pub fn gmail_users_watch(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_watch_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_watch_builder(client, &args.userId, &args.body)?;
     gmail_users_watch_execute(builder)
 }
 
@@ -506,13 +506,13 @@ pub fn gmail_users_watch(
 
 pub fn gmail_users_drafts_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Draft,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -656,7 +656,7 @@ pub fn gmail_users_drafts_create(
     impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_drafts_create_builder(client, &args.userId, &args.body)?;
     gmail_users_drafts_create_execute(builder)
 }
 
@@ -668,14 +668,13 @@ pub fn gmail_users_drafts_create(
 
 pub fn gmail_users_drafts_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/{}",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -814,7 +813,7 @@ pub fn gmail_users_drafts_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_delete_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_drafts_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_drafts_delete_execute(builder)
 }
 
@@ -826,13 +825,13 @@ pub fn gmail_users_drafts_delete(
 
 pub fn gmail_users_drafts_send_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Draft,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/drafts/send",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -976,7 +975,7 @@ pub fn gmail_users_drafts_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_send_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_drafts_send_builder(client, &args.userId, &args.body)?;
     gmail_users_drafts_send_execute(builder)
 }
 
@@ -988,34 +987,34 @@ pub fn gmail_users_drafts_send(
 
 pub fn gmail_users_history_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    historyTypes: Option<String>,
-    labelId: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    startHistoryId: Option<String>,
+    userId: &String,
+    historyTypes: &Option<String>,
+    labelId: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    startHistoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/history",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = historyTypes {
+    if let Some(val) = historyTypes.as_ref() {
         query_parts.push(format!("historyTypes={}", val));
     }
-    if let Some(val) = labelId {
+    if let Some(val) = labelId.as_ref() {
         query_parts.push(format!("labelId={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startHistoryId {
+    if let Some(val) = startHistoryId.as_ref() {
         query_parts.push(format!("startHistoryId={}", val));
     }
 
@@ -1177,12 +1176,12 @@ pub fn gmail_users_history_list(
 > {
     let builder = gmail_users_history_list_builder(
         client,
-        args.userId.clone(),
-        args.historyTypes.clone(),
-        args.labelId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.startHistoryId.clone(),
+        &args.userId,
+        &args.historyTypes,
+        &args.labelId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.startHistoryId,
     )?;
     gmail_users_history_list_execute(builder)
 }
@@ -1195,13 +1194,13 @@ pub fn gmail_users_history_list(
 
 pub fn gmail_users_labels_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Label,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -1345,7 +1344,7 @@ pub fn gmail_users_labels_create(
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_labels_create_builder(client, &args.userId, &args.body)?;
     gmail_users_labels_create_execute(builder)
 }
 
@@ -1357,14 +1356,13 @@ pub fn gmail_users_labels_create(
 
 pub fn gmail_users_labels_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/labels/{}",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -1503,7 +1501,7 @@ pub fn gmail_users_labels_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_delete_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_labels_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_labels_delete_execute(builder)
 }
 
@@ -1515,13 +1513,13 @@ pub fn gmail_users_labels_delete(
 
 pub fn gmail_users_messages_batch_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &BatchDeleteMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/batchDelete",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -1662,8 +1660,7 @@ pub fn gmail_users_messages_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_messages_batch_delete_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_messages_batch_delete_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_batch_delete_execute(builder)
 }
 
@@ -1675,13 +1672,13 @@ pub fn gmail_users_messages_batch_delete(
 
 pub fn gmail_users_messages_batch_modify_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &BatchModifyMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/batchModify",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -1822,8 +1819,7 @@ pub fn gmail_users_messages_batch_modify(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_messages_batch_modify_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_messages_batch_modify_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_batch_modify_execute(builder)
 }
 
@@ -1835,14 +1831,13 @@ pub fn gmail_users_messages_batch_modify(
 
 pub fn gmail_users_messages_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -1981,8 +1976,7 @@ pub fn gmail_users_messages_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_messages_delete_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_messages_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_delete_execute(builder)
 }
 
@@ -1994,31 +1988,31 @@ pub fn gmail_users_messages_delete(
 
 pub fn gmail_users_messages_import_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    deleted: Option<bool>,
-    internalDateSource: Option<String>,
-    neverMarkSpam: Option<bool>,
-    processForCalendar: Option<bool>,
+    userId: &String,
+    deleted: &Option<bool>,
+    internalDateSource: &Option<String>,
+    neverMarkSpam: &Option<bool>,
+    processForCalendar: &Option<bool>,
     body: &Message,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/import",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deleted {
+    if let Some(val) = deleted.as_ref() {
         query_parts.push(format!("deleted={}", val));
     }
-    if let Some(val) = internalDateSource {
+    if let Some(val) = internalDateSource.as_ref() {
         query_parts.push(format!("internalDateSource={}", val));
     }
-    if let Some(val) = neverMarkSpam {
+    if let Some(val) = neverMarkSpam.as_ref() {
         query_parts.push(format!("neverMarkSpam={}", val));
     }
-    if let Some(val) = processForCalendar {
+    if let Some(val) = processForCalendar.as_ref() {
         query_parts.push(format!("processForCalendar={}", val));
     }
 
@@ -2178,11 +2172,11 @@ pub fn gmail_users_messages_import(
 > {
     let builder = gmail_users_messages_import_builder(
         client,
-        args.userId.clone(),
-        args.deleted.clone(),
-        args.internalDateSource.clone(),
-        args.neverMarkSpam.clone(),
-        args.processForCalendar.clone(),
+        &args.userId,
+        &args.deleted,
+        &args.internalDateSource,
+        &args.neverMarkSpam,
+        &args.processForCalendar,
         &args.body,
     )?;
     gmail_users_messages_import_execute(builder)
@@ -2196,23 +2190,23 @@ pub fn gmail_users_messages_import(
 
 pub fn gmail_users_messages_insert_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    deleted: Option<bool>,
-    internalDateSource: Option<String>,
+    userId: &String,
+    deleted: &Option<bool>,
+    internalDateSource: &Option<String>,
     body: &Message,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = deleted {
+    if let Some(val) = deleted.as_ref() {
         query_parts.push(format!("deleted={}", val));
     }
-    if let Some(val) = internalDateSource {
+    if let Some(val) = internalDateSource.as_ref() {
         query_parts.push(format!("internalDateSource={}", val));
     }
 
@@ -2368,9 +2362,9 @@ pub fn gmail_users_messages_insert(
 > {
     let builder = gmail_users_messages_insert_builder(
         client,
-        args.userId.clone(),
-        args.deleted.clone(),
-        args.internalDateSource.clone(),
+        &args.userId,
+        &args.deleted,
+        &args.internalDateSource,
         &args.body,
     )?;
     gmail_users_messages_insert_execute(builder)
@@ -2384,15 +2378,14 @@ pub fn gmail_users_messages_insert(
 
 pub fn gmail_users_messages_modify_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
     body: &ModifyMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/modify",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -2538,12 +2531,7 @@ pub fn gmail_users_messages_modify(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_modify_builder(
-        client,
-        args.userId.clone(),
-        args.id.clone(),
-        &args.body,
-    )?;
+    let builder = gmail_users_messages_modify_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_messages_modify_execute(builder)
 }
 
@@ -2555,13 +2543,13 @@ pub fn gmail_users_messages_modify(
 
 pub fn gmail_users_messages_send_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Message,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/send",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -2705,7 +2693,7 @@ pub fn gmail_users_messages_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_send_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_messages_send_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_send_execute(builder)
 }
 
@@ -2717,14 +2705,13 @@ pub fn gmail_users_messages_send(
 
 pub fn gmail_users_messages_trash_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/trash",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -2866,7 +2853,7 @@ pub fn gmail_users_messages_trash(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_trash_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_messages_trash_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_trash_execute(builder)
 }
 
@@ -2878,14 +2865,13 @@ pub fn gmail_users_messages_trash(
 
 pub fn gmail_users_messages_untrash_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/untrash",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -3027,8 +3013,7 @@ pub fn gmail_users_messages_untrash(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_messages_untrash_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_messages_untrash_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_untrash_execute(builder)
 }
 
@@ -3040,16 +3025,14 @@ pub fn gmail_users_messages_untrash(
 
 pub fn gmail_users_messages_attachments_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    messageId: String,
-    id: String,
+    userId: &String,
+    messageId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/messages/{}/attachments/{}",
-        userId.as_str(),
-        messageId.as_str(),
-        id.as_str(),
+        userId, messageId, id,
     );
 
     // Build request
@@ -3199,9 +3182,9 @@ pub fn gmail_users_messages_attachments_get(
 > {
     let builder = gmail_users_messages_attachments_get_builder(
         client,
-        args.userId.clone(),
-        args.messageId.clone(),
-        args.id.clone(),
+        &args.userId,
+        &args.messageId,
+        &args.id,
     )?;
     gmail_users_messages_attachments_get_execute(builder)
 }
@@ -3214,12 +3197,12 @@ pub fn gmail_users_messages_attachments_get(
 
 pub fn gmail_users_settings_get_auto_forwarding_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/autoForwarding",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -3363,7 +3346,7 @@ pub fn gmail_users_settings_get_auto_forwarding(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_auto_forwarding_builder(client, args.userId.clone())?;
+    let builder = gmail_users_settings_get_auto_forwarding_builder(client, &args.userId)?;
     gmail_users_settings_get_auto_forwarding_execute(builder)
 }
 
@@ -3375,12 +3358,12 @@ pub fn gmail_users_settings_get_auto_forwarding(
 
 pub fn gmail_users_settings_get_imap_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/imap",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -3524,7 +3507,7 @@ pub fn gmail_users_settings_get_imap(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_imap_builder(client, args.userId.clone())?;
+    let builder = gmail_users_settings_get_imap_builder(client, &args.userId)?;
     gmail_users_settings_get_imap_execute(builder)
 }
 
@@ -3536,12 +3519,12 @@ pub fn gmail_users_settings_get_imap(
 
 pub fn gmail_users_settings_get_language_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/language",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -3685,7 +3668,7 @@ pub fn gmail_users_settings_get_language(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_language_builder(client, args.userId.clone())?;
+    let builder = gmail_users_settings_get_language_builder(client, &args.userId)?;
     gmail_users_settings_get_language_execute(builder)
 }
 
@@ -3697,12 +3680,12 @@ pub fn gmail_users_settings_get_language(
 
 pub fn gmail_users_settings_get_pop_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/pop",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -3842,7 +3825,7 @@ pub fn gmail_users_settings_get_pop(
     impl StreamIterator<D = Result<ApiResponse<PopSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_pop_builder(client, args.userId.clone())?;
+    let builder = gmail_users_settings_get_pop_builder(client, &args.userId)?;
     gmail_users_settings_get_pop_execute(builder)
 }
 
@@ -3854,12 +3837,12 @@ pub fn gmail_users_settings_get_pop(
 
 pub fn gmail_users_settings_get_vacation_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/vacation",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -4003,7 +3986,7 @@ pub fn gmail_users_settings_get_vacation(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_vacation_builder(client, args.userId.clone())?;
+    let builder = gmail_users_settings_get_vacation_builder(client, &args.userId)?;
     gmail_users_settings_get_vacation_execute(builder)
 }
 
@@ -4015,13 +3998,13 @@ pub fn gmail_users_settings_get_vacation(
 
 pub fn gmail_users_settings_cse_identities_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &CseIdentity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -4165,11 +4148,8 @@ pub fn gmail_users_settings_cse_identities_create(
     impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_identities_create_builder(
-        client,
-        args.userId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        gmail_users_settings_cse_identities_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_cse_identities_create_execute(builder)
 }
 
@@ -4181,14 +4161,13 @@ pub fn gmail_users_settings_cse_identities_create(
 
 pub fn gmail_users_settings_cse_identities_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    cseEmailAddress: String,
+    userId: &String,
+    cseEmailAddress: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
-        userId.as_str(),
-        cseEmailAddress.as_str(),
+        userId, cseEmailAddress,
     );
 
     // Build request
@@ -4329,8 +4308,8 @@ pub fn gmail_users_settings_cse_identities_delete(
 > {
     let builder = gmail_users_settings_cse_identities_delete_builder(
         client,
-        args.userId.clone(),
-        args.cseEmailAddress.clone(),
+        &args.userId,
+        &args.cseEmailAddress,
     )?;
     gmail_users_settings_cse_identities_delete_execute(builder)
 }
@@ -4343,15 +4322,14 @@ pub fn gmail_users_settings_cse_identities_delete(
 
 pub fn gmail_users_settings_cse_identities_patch_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    emailAddress: String,
+    userId: &String,
+    emailAddress: &String,
     body: &CseIdentity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/identities/{}",
-        userId.as_str(),
-        emailAddress.as_str(),
+        userId, emailAddress,
     );
 
     // Build request
@@ -4499,8 +4477,8 @@ pub fn gmail_users_settings_cse_identities_patch(
 > {
     let builder = gmail_users_settings_cse_identities_patch_builder(
         client,
-        args.userId.clone(),
-        args.emailAddress.clone(),
+        &args.userId,
+        &args.emailAddress,
         &args.body,
     )?;
     gmail_users_settings_cse_identities_patch_execute(builder)
@@ -4514,13 +4492,13 @@ pub fn gmail_users_settings_cse_identities_patch(
 
 pub fn gmail_users_settings_cse_keypairs_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &CseKeyPair,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -4665,7 +4643,7 @@ pub fn gmail_users_settings_cse_keypairs_create(
     ApiError,
 > {
     let builder =
-        gmail_users_settings_cse_keypairs_create_builder(client, args.userId.clone(), &args.body)?;
+        gmail_users_settings_cse_keypairs_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_cse_keypairs_create_execute(builder)
 }
 
@@ -4677,15 +4655,14 @@ pub fn gmail_users_settings_cse_keypairs_create(
 
 pub fn gmail_users_settings_cse_keypairs_disable_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    keyPairId: String,
+    userId: &String,
+    keyPairId: &String,
     body: &DisableCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:disable",
-        userId.as_str(),
-        keyPairId.as_str(),
+        userId, keyPairId,
     );
 
     // Build request
@@ -4833,8 +4810,8 @@ pub fn gmail_users_settings_cse_keypairs_disable(
 > {
     let builder = gmail_users_settings_cse_keypairs_disable_builder(
         client,
-        args.userId.clone(),
-        args.keyPairId.clone(),
+        &args.userId,
+        &args.keyPairId,
         &args.body,
     )?;
     gmail_users_settings_cse_keypairs_disable_execute(builder)
@@ -4848,15 +4825,14 @@ pub fn gmail_users_settings_cse_keypairs_disable(
 
 pub fn gmail_users_settings_cse_keypairs_enable_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    keyPairId: String,
+    userId: &String,
+    keyPairId: &String,
     body: &EnableCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:enable",
-        userId.as_str(),
-        keyPairId.as_str(),
+        userId, keyPairId,
     );
 
     // Build request
@@ -5004,8 +4980,8 @@ pub fn gmail_users_settings_cse_keypairs_enable(
 > {
     let builder = gmail_users_settings_cse_keypairs_enable_builder(
         client,
-        args.userId.clone(),
-        args.keyPairId.clone(),
+        &args.userId,
+        &args.keyPairId,
         &args.body,
     )?;
     gmail_users_settings_cse_keypairs_enable_execute(builder)
@@ -5019,14 +4995,13 @@ pub fn gmail_users_settings_cse_keypairs_enable(
 
 pub fn gmail_users_settings_cse_keypairs_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    keyPairId: String,
+    userId: &String,
+    keyPairId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}",
-        userId.as_str(),
-        keyPairId.as_str(),
+        userId, keyPairId,
     );
 
     // Build request
@@ -5168,11 +5143,8 @@ pub fn gmail_users_settings_cse_keypairs_get(
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_keypairs_get_builder(
-        client,
-        args.userId.clone(),
-        args.keyPairId.clone(),
-    )?;
+    let builder =
+        gmail_users_settings_cse_keypairs_get_builder(client, &args.userId, &args.keyPairId)?;
     gmail_users_settings_cse_keypairs_get_execute(builder)
 }
 
@@ -5184,15 +5156,14 @@ pub fn gmail_users_settings_cse_keypairs_get(
 
 pub fn gmail_users_settings_cse_keypairs_obliterate_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    keyPairId: String,
+    userId: &String,
+    keyPairId: &String,
     body: &ObliterateCseKeyPairRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/cse/keypairs/{}:obliterate",
-        userId.as_str(),
-        keyPairId.as_str(),
+        userId, keyPairId,
     );
 
     // Build request
@@ -5337,8 +5308,8 @@ pub fn gmail_users_settings_cse_keypairs_obliterate(
 > {
     let builder = gmail_users_settings_cse_keypairs_obliterate_builder(
         client,
-        args.userId.clone(),
-        args.keyPairId.clone(),
+        &args.userId,
+        &args.keyPairId,
         &args.body,
     )?;
     gmail_users_settings_cse_keypairs_obliterate_execute(builder)
@@ -5352,13 +5323,13 @@ pub fn gmail_users_settings_cse_keypairs_obliterate(
 
 pub fn gmail_users_settings_delegates_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Delegate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -5502,8 +5473,7 @@ pub fn gmail_users_settings_delegates_create(
     impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_delegates_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_settings_delegates_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_delegates_create_execute(builder)
 }
 
@@ -5515,14 +5485,13 @@ pub fn gmail_users_settings_delegates_create(
 
 pub fn gmail_users_settings_delegates_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    delegateEmail: String,
+    userId: &String,
+    delegateEmail: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/delegates/{}",
-        userId.as_str(),
-        delegateEmail.as_str(),
+        userId, delegateEmail,
     );
 
     // Build request
@@ -5661,11 +5630,8 @@ pub fn gmail_users_settings_delegates_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_delete_builder(
-        client,
-        args.userId.clone(),
-        args.delegateEmail.clone(),
-    )?;
+    let builder =
+        gmail_users_settings_delegates_delete_builder(client, &args.userId, &args.delegateEmail)?;
     gmail_users_settings_delegates_delete_execute(builder)
 }
 
@@ -5677,13 +5643,13 @@ pub fn gmail_users_settings_delegates_delete(
 
 pub fn gmail_users_settings_filters_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &Filter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -5827,8 +5793,7 @@ pub fn gmail_users_settings_filters_create(
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_filters_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_settings_filters_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_filters_create_execute(builder)
 }
 
@@ -5840,14 +5805,13 @@ pub fn gmail_users_settings_filters_create(
 
 pub fn gmail_users_settings_filters_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/filters/{}",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -5986,8 +5950,7 @@ pub fn gmail_users_settings_filters_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_filters_delete_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_settings_filters_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_settings_filters_delete_execute(builder)
 }
 
@@ -5999,13 +5962,13 @@ pub fn gmail_users_settings_filters_delete(
 
 pub fn gmail_users_settings_forwarding_addresses_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &ForwardingAddress,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -6153,11 +6116,8 @@ pub fn gmail_users_settings_forwarding_addresses_create(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_forwarding_addresses_create_builder(
-        client,
-        args.userId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        gmail_users_settings_forwarding_addresses_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_forwarding_addresses_create_execute(builder)
 }
 
@@ -6169,14 +6129,13 @@ pub fn gmail_users_settings_forwarding_addresses_create(
 
 pub fn gmail_users_settings_forwarding_addresses_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    forwardingEmail: String,
+    userId: &String,
+    forwardingEmail: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/forwardingAddresses/{}",
-        userId.as_str(),
-        forwardingEmail.as_str(),
+        userId, forwardingEmail,
     );
 
     // Build request
@@ -6317,8 +6276,8 @@ pub fn gmail_users_settings_forwarding_addresses_delete(
 > {
     let builder = gmail_users_settings_forwarding_addresses_delete_builder(
         client,
-        args.userId.clone(),
-        args.forwardingEmail.clone(),
+        &args.userId,
+        &args.forwardingEmail,
     )?;
     gmail_users_settings_forwarding_addresses_delete_execute(builder)
 }
@@ -6331,13 +6290,13 @@ pub fn gmail_users_settings_forwarding_addresses_delete(
 
 pub fn gmail_users_settings_send_as_create_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
     body: &SendAs,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -6481,8 +6440,7 @@ pub fn gmail_users_settings_send_as_create(
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_send_as_create_builder(client, args.userId.clone(), &args.body)?;
+    let builder = gmail_users_settings_send_as_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_send_as_create_execute(builder)
 }
 
@@ -6494,14 +6452,13 @@ pub fn gmail_users_settings_send_as_create(
 
 pub fn gmail_users_settings_send_as_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sendAsEmail: String,
+    userId: &String,
+    sendAsEmail: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}",
-        userId.as_str(),
-        sendAsEmail.as_str(),
+        userId, sendAsEmail,
     );
 
     // Build request
@@ -6640,11 +6597,8 @@ pub fn gmail_users_settings_send_as_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_delete_builder(
-        client,
-        args.userId.clone(),
-        args.sendAsEmail.clone(),
-    )?;
+    let builder =
+        gmail_users_settings_send_as_delete_builder(client, &args.userId, &args.sendAsEmail)?;
     gmail_users_settings_send_as_delete_execute(builder)
 }
 
@@ -6656,14 +6610,13 @@ pub fn gmail_users_settings_send_as_delete(
 
 pub fn gmail_users_settings_send_as_verify_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sendAsEmail: String,
+    userId: &String,
+    sendAsEmail: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/verify",
-        userId.as_str(),
-        sendAsEmail.as_str(),
+        userId, sendAsEmail,
     );
 
     // Build request
@@ -6802,11 +6755,8 @@ pub fn gmail_users_settings_send_as_verify(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_verify_builder(
-        client,
-        args.userId.clone(),
-        args.sendAsEmail.clone(),
-    )?;
+    let builder =
+        gmail_users_settings_send_as_verify_builder(client, &args.userId, &args.sendAsEmail)?;
     gmail_users_settings_send_as_verify_execute(builder)
 }
 
@@ -6818,16 +6768,14 @@ pub fn gmail_users_settings_send_as_verify(
 
 pub fn gmail_users_settings_send_as_smime_info_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sendAsEmail: String,
-    id: String,
+    userId: &String,
+    sendAsEmail: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}",
-        userId.as_str(),
-        sendAsEmail.as_str(),
-        id.as_str(),
+        userId, sendAsEmail, id,
     );
 
     // Build request
@@ -6970,9 +6918,9 @@ pub fn gmail_users_settings_send_as_smime_info_delete(
 > {
     let builder = gmail_users_settings_send_as_smime_info_delete_builder(
         client,
-        args.userId.clone(),
-        args.sendAsEmail.clone(),
-        args.id.clone(),
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
     )?;
     gmail_users_settings_send_as_smime_info_delete_execute(builder)
 }
@@ -6985,15 +6933,14 @@ pub fn gmail_users_settings_send_as_smime_info_delete(
 
 pub fn gmail_users_settings_send_as_smime_info_insert_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sendAsEmail: String,
+    userId: &String,
+    sendAsEmail: &String,
     body: &SmimeInfo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo",
-        userId.as_str(),
-        sendAsEmail.as_str(),
+        userId, sendAsEmail,
     );
 
     // Build request
@@ -7141,8 +7088,8 @@ pub fn gmail_users_settings_send_as_smime_info_insert(
 > {
     let builder = gmail_users_settings_send_as_smime_info_insert_builder(
         client,
-        args.userId.clone(),
-        args.sendAsEmail.clone(),
+        &args.userId,
+        &args.sendAsEmail,
         &args.body,
     )?;
     gmail_users_settings_send_as_smime_info_insert_execute(builder)
@@ -7156,16 +7103,14 @@ pub fn gmail_users_settings_send_as_smime_info_insert(
 
 pub fn gmail_users_settings_send_as_smime_info_set_default_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    sendAsEmail: String,
-    id: String,
+    userId: &String,
+    sendAsEmail: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/settings/sendAs/{}/smimeInfo/{}/setDefault",
-        userId.as_str(),
-        sendAsEmail.as_str(),
-        id.as_str(),
+        userId, sendAsEmail, id,
     );
 
     // Build request
@@ -7308,9 +7253,9 @@ pub fn gmail_users_settings_send_as_smime_info_set_default(
 > {
     let builder = gmail_users_settings_send_as_smime_info_set_default_builder(
         client,
-        args.userId.clone(),
-        args.sendAsEmail.clone(),
-        args.id.clone(),
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
     )?;
     gmail_users_settings_send_as_smime_info_set_default_execute(builder)
 }
@@ -7323,14 +7268,13 @@ pub fn gmail_users_settings_send_as_smime_info_set_default(
 
 pub fn gmail_users_threads_delete_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -7469,7 +7413,7 @@ pub fn gmail_users_threads_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_delete_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_threads_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_delete_execute(builder)
 }
 
@@ -7481,34 +7425,34 @@ pub fn gmail_users_threads_delete(
 
 pub fn gmail_users_threads_list_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    includeSpamTrash: Option<bool>,
-    labelIds: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    q: Option<String>,
+    userId: &String,
+    includeSpamTrash: &Option<bool>,
+    labelIds: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeSpamTrash {
+    if let Some(val) = includeSpamTrash.as_ref() {
         query_parts.push(format!("includeSpamTrash={}", val));
     }
-    if let Some(val) = labelIds {
+    if let Some(val) = labelIds.as_ref() {
         query_parts.push(format!("labelIds={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
 
@@ -7670,12 +7614,12 @@ pub fn gmail_users_threads_list(
 > {
     let builder = gmail_users_threads_list_builder(
         client,
-        args.userId.clone(),
-        args.includeSpamTrash.clone(),
-        args.labelIds.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.q.clone(),
+        &args.userId,
+        &args.includeSpamTrash,
+        &args.labelIds,
+        &args.maxResults,
+        &args.pageToken,
+        &args.q,
     )?;
     gmail_users_threads_list_execute(builder)
 }
@@ -7688,15 +7632,14 @@ pub fn gmail_users_threads_list(
 
 pub fn gmail_users_threads_modify_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
     body: &ModifyThreadRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/modify",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -7842,12 +7785,7 @@ pub fn gmail_users_threads_modify(
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_modify_builder(
-        client,
-        args.userId.clone(),
-        args.id.clone(),
-        &args.body,
-    )?;
+    let builder = gmail_users_threads_modify_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_threads_modify_execute(builder)
 }
 
@@ -7859,14 +7797,13 @@ pub fn gmail_users_threads_modify(
 
 pub fn gmail_users_threads_trash_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/trash",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -8008,7 +7945,7 @@ pub fn gmail_users_threads_trash(
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_trash_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_threads_trash_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_trash_execute(builder)
 }
 
@@ -8020,14 +7957,13 @@ pub fn gmail_users_threads_trash(
 
 pub fn gmail_users_threads_untrash_builder(
     client: &SimpleHttpClient,
-    userId: String,
-    id: String,
+    userId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gmail.googleapis.com/gmail/v1/users/{}/threads/{}/untrash",
-        userId.as_str(),
-        id.as_str(),
+        userId, id,
     );
 
     // Build request
@@ -8169,7 +8105,6 @@ pub fn gmail_users_threads_untrash(
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_threads_untrash_builder(client, args.userId.clone(), args.id.clone())?;
+    let builder = gmail_users_threads_untrash_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_untrash_execute(builder)
 }

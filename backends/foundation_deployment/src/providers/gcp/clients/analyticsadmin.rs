@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn analyticsadmin_account_summaries_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accountSummaries",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -206,11 +206,8 @@ pub fn analyticsadmin_account_summaries_list(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_account_summaries_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        analyticsadmin_account_summaries_list_builder(client, &args.pageSize, &args.pageToken)?;
     analyticsadmin_account_summaries_list_execute(builder)
 }
 
@@ -222,7 +219,7 @@ pub fn analyticsadmin_account_summaries_list(
 
 pub fn analyticsadmin_accounts_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accounts/{}",);
@@ -368,7 +365,7 @@ pub fn analyticsadmin_accounts_delete(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_delete_builder(client, args.name.clone())?;
+    let builder = analyticsadmin_accounts_delete_builder(client, &args.name)?;
     analyticsadmin_accounts_delete_execute(builder)
 }
 
@@ -380,7 +377,7 @@ pub fn analyticsadmin_accounts_delete(
 
 pub fn analyticsadmin_accounts_get_data_sharing_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -532,8 +529,7 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_accounts_get_data_sharing_settings_builder(client, args.name.clone())?;
+    let builder = analyticsadmin_accounts_get_data_sharing_settings_builder(client, &args.name)?;
     analyticsadmin_accounts_get_data_sharing_settings_execute(builder)
 }
 
@@ -545,22 +541,22 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
 
 pub fn analyticsadmin_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
 
@@ -721,9 +717,9 @@ pub fn analyticsadmin_accounts_list(
 > {
     let builder = analyticsadmin_accounts_list_builder(
         client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
+        &args.pageSize,
+        &args.pageToken,
+        &args.showDeleted,
     )?;
     analyticsadmin_accounts_list_execute(builder)
 }
@@ -911,7 +907,7 @@ pub fn analyticsadmin_accounts_provision_account_ticket(
 
 pub fn analyticsadmin_accounts_run_access_report_builder(
     client: &SimpleHttpClient,
-    entity: String,
+    entity: &String,
     body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1072,7 +1068,7 @@ pub fn analyticsadmin_accounts_run_access_report(
     ApiError,
 > {
     let builder =
-        analyticsadmin_accounts_run_access_report_builder(client, args.entity.clone(), &args.body)?;
+        analyticsadmin_accounts_run_access_report_builder(client, &args.entity, &args.body)?;
     analyticsadmin_accounts_run_access_report_execute(builder)
 }
 
@@ -1084,7 +1080,7 @@ pub fn analyticsadmin_accounts_run_access_report(
 
 pub fn analyticsadmin_accounts_search_change_history_events_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
     body: &GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1253,7 +1249,7 @@ pub fn analyticsadmin_accounts_search_change_history_events(
 > {
     let builder = analyticsadmin_accounts_search_change_history_events_builder(
         client,
-        args.account.clone(),
+        &args.account,
         &args.body,
     )?;
     analyticsadmin_accounts_search_change_history_events_execute(builder)
@@ -1267,7 +1263,7 @@ pub fn analyticsadmin_accounts_search_change_history_events(
 
 pub fn analyticsadmin_properties_acknowledge_user_data_collection_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1436,7 +1432,7 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection(
 > {
     let builder = analyticsadmin_properties_acknowledge_user_data_collection_builder(
         client,
-        args.property.clone(),
+        &args.property,
         &args.body,
     )?;
     analyticsadmin_properties_acknowledge_user_data_collection_execute(builder)
@@ -1614,7 +1610,7 @@ pub fn analyticsadmin_properties_create(
 
 pub fn analyticsadmin_properties_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}",);
@@ -1764,7 +1760,7 @@ pub fn analyticsadmin_properties_delete(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_delete_builder(client, args.name.clone())?;
+    let builder = analyticsadmin_properties_delete_builder(client, &args.name)?;
     analyticsadmin_properties_delete_execute(builder)
 }
 
@@ -1776,7 +1772,7 @@ pub fn analyticsadmin_properties_delete(
 
 pub fn analyticsadmin_properties_get_data_retention_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1930,7 +1926,7 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
     ApiError,
 > {
     let builder =
-        analyticsadmin_properties_get_data_retention_settings_builder(client, args.name.clone())?;
+        analyticsadmin_properties_get_data_retention_settings_builder(client, &args.name)?;
     analyticsadmin_properties_get_data_retention_settings_execute(builder)
 }
 
@@ -1942,7 +1938,7 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
 
 pub fn analyticsadmin_properties_run_access_report_builder(
     client: &SimpleHttpClient,
-    entity: String,
+    entity: &String,
     body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2102,11 +2098,8 @@ pub fn analyticsadmin_properties_run_access_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_run_access_report_builder(
-        client,
-        args.entity.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_run_access_report_builder(client, &args.entity, &args.body)?;
     analyticsadmin_properties_run_access_report_execute(builder)
 }
 
@@ -2118,7 +2111,7 @@ pub fn analyticsadmin_properties_run_access_report(
 
 pub fn analyticsadmin_properties_conversion_events_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaConversionEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2276,7 +2269,7 @@ pub fn analyticsadmin_properties_conversion_events_create(
 > {
     let builder = analyticsadmin_properties_conversion_events_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     analyticsadmin_properties_conversion_events_create_execute(builder)
@@ -2290,7 +2283,7 @@ pub fn analyticsadmin_properties_conversion_events_create(
 
 pub fn analyticsadmin_properties_custom_dimensions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaCustomDimension,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2448,7 +2441,7 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
 > {
     let builder = analyticsadmin_properties_custom_dimensions_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     analyticsadmin_properties_custom_dimensions_create_execute(builder)
@@ -2462,7 +2455,7 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
 
 pub fn analyticsadmin_properties_custom_metrics_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaCustomMetric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2618,11 +2611,8 @@ pub fn analyticsadmin_properties_custom_metrics_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_metrics_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_custom_metrics_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_custom_metrics_create_execute(builder)
 }
 
@@ -2634,7 +2624,7 @@ pub fn analyticsadmin_properties_custom_metrics_create(
 
 pub fn analyticsadmin_properties_data_streams_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaDataStream,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2790,11 +2780,8 @@ pub fn analyticsadmin_properties_data_streams_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_data_streams_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_data_streams_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_data_streams_create_execute(builder)
 }
 
@@ -2806,7 +2793,7 @@ pub fn analyticsadmin_properties_data_streams_create(
 
 pub fn analyticsadmin_properties_firebase_links_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaFirebaseLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2962,11 +2949,8 @@ pub fn analyticsadmin_properties_firebase_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_firebase_links_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_firebase_links_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_firebase_links_create_execute(builder)
 }
 
@@ -2978,7 +2962,7 @@ pub fn analyticsadmin_properties_firebase_links_create(
 
 pub fn analyticsadmin_properties_google_ads_links_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaGoogleAdsLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3137,7 +3121,7 @@ pub fn analyticsadmin_properties_google_ads_links_create(
 > {
     let builder = analyticsadmin_properties_google_ads_links_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     analyticsadmin_properties_google_ads_links_create_execute(builder)
@@ -3151,7 +3135,7 @@ pub fn analyticsadmin_properties_google_ads_links_create(
 
 pub fn analyticsadmin_properties_key_events_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleAnalyticsAdminV1betaKeyEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3307,10 +3291,7 @@ pub fn analyticsadmin_properties_key_events_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_key_events_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_key_events_create_builder(client, &args.parent, &args.body)?;
     analyticsadmin_properties_key_events_create_execute(builder)
 }

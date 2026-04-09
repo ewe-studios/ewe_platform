@@ -29,14 +29,13 @@ use serde::Serialize;
 
 pub fn discovery_apis_get_rest_builder(
     client: &SimpleHttpClient,
-    api: String,
-    version: String,
+    api: &String,
+    version: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/discovery/v1/apis/{}/{}/rest",
-        api.as_str(),
-        version.as_str(),
+        api, version,
     );
 
     // Build request
@@ -182,7 +181,7 @@ pub fn discovery_apis_get_rest(
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_get_rest_builder(client, args.api.clone(), args.version.clone())?;
+    let builder = discovery_apis_get_rest_builder(client, &args.api, &args.version)?;
     discovery_apis_get_rest_execute(builder)
 }
 
@@ -194,18 +193,18 @@ pub fn discovery_apis_get_rest(
 
 pub fn discovery_apis_list_builder(
     client: &SimpleHttpClient,
-    name: Option<String>,
-    preferred: Option<bool>,
+    name: &Option<String>,
+    preferred: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/discovery/v1/apis",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = preferred {
+    if let Some(val) = preferred.as_ref() {
         query_parts.push(format!("preferred={}", val));
     }
 
@@ -357,6 +356,6 @@ pub fn discovery_apis_list(
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_list_builder(client, args.name.clone(), args.preferred.clone())?;
+    let builder = discovery_apis_list_builder(client, &args.name, &args.preferred)?;
     discovery_apis_list_execute(builder)
 }

@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn firebase_available_projects_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/availableProjects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -196,11 +196,8 @@ pub fn firebase_available_projects_list(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_available_projects_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        firebase_available_projects_list_builder(client, &args.pageSize, &args.pageToken)?;
     firebase_available_projects_list_execute(builder)
 }
 
@@ -212,7 +209,7 @@ pub fn firebase_available_projects_list(
 
 pub fn firebase_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/operations/{}",);
@@ -354,7 +351,7 @@ pub fn firebase_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_operations_get_builder(client, args.name.clone())?;
+    let builder = firebase_operations_get_builder(client, &args.name)?;
     firebase_operations_get_execute(builder)
 }
 
@@ -366,7 +363,7 @@ pub fn firebase_operations_get(
 
 pub fn firebase_projects_add_firebase_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &AddFirebaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -513,7 +510,7 @@ pub fn firebase_projects_add_firebase(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_add_firebase_builder(client, args.project.clone(), &args.body)?;
+    let builder = firebase_projects_add_firebase_builder(client, &args.project, &args.body)?;
     firebase_projects_add_firebase_execute(builder)
 }
 
@@ -525,7 +522,7 @@ pub fn firebase_projects_add_firebase(
 
 pub fn firebase_projects_add_google_analytics_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AddGoogleAnalyticsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -673,8 +670,7 @@ pub fn firebase_projects_add_google_analytics(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_add_google_analytics_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firebase_projects_add_google_analytics_builder(client, &args.parent, &args.body)?;
     firebase_projects_add_google_analytics_execute(builder)
 }
 
@@ -686,7 +682,7 @@ pub fn firebase_projects_add_google_analytics(
 
 pub fn firebase_projects_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}",);
@@ -832,7 +828,7 @@ pub fn firebase_projects_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_builder(client, args.name.clone())?;
+    let builder = firebase_projects_get_builder(client, &args.name)?;
     firebase_projects_get_execute(builder)
 }
 
@@ -844,7 +840,7 @@ pub fn firebase_projects_get(
 
 pub fn firebase_projects_get_admin_sdk_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -991,7 +987,7 @@ pub fn firebase_projects_get_admin_sdk_config(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_admin_sdk_config_builder(client, args.name.clone())?;
+    let builder = firebase_projects_get_admin_sdk_config_builder(client, &args.name)?;
     firebase_projects_get_admin_sdk_config_execute(builder)
 }
 
@@ -1003,7 +999,7 @@ pub fn firebase_projects_get_admin_sdk_config(
 
 pub fn firebase_projects_get_analytics_details_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1150,7 +1146,7 @@ pub fn firebase_projects_get_analytics_details(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_analytics_details_builder(client, args.name.clone())?;
+    let builder = firebase_projects_get_analytics_details_builder(client, &args.name)?;
     firebase_projects_get_analytics_details_execute(builder)
 }
 
@@ -1162,22 +1158,22 @@ pub fn firebase_projects_get_analytics_details(
 
 pub fn firebase_projects_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
 
@@ -1335,12 +1331,8 @@ pub fn firebase_projects_list(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
-    )?;
+    let builder =
+        firebase_projects_list_builder(client, &args.pageSize, &args.pageToken, &args.showDeleted)?;
     firebase_projects_list_execute(builder)
 }
 
@@ -1352,7 +1344,7 @@ pub fn firebase_projects_list(
 
 pub fn firebase_projects_remove_analytics_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &RemoveAnalyticsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1500,8 +1492,7 @@ pub fn firebase_projects_remove_analytics(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_remove_analytics_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firebase_projects_remove_analytics_builder(client, &args.parent, &args.body)?;
     firebase_projects_remove_analytics_execute(builder)
 }
 
@@ -1513,27 +1504,27 @@ pub fn firebase_projects_remove_analytics(
 
 pub fn firebase_projects_search_apps_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}:searchApps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
 
@@ -1697,11 +1688,11 @@ pub fn firebase_projects_search_apps(
 > {
     let builder = firebase_projects_search_apps_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.showDeleted,
     )?;
     firebase_projects_search_apps_execute(builder)
 }
@@ -1714,7 +1705,7 @@ pub fn firebase_projects_search_apps(
 
 pub fn firebase_projects_android_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AndroidApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1861,8 +1852,7 @@ pub fn firebase_projects_android_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_android_apps_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firebase_projects_android_apps_create_builder(client, &args.parent, &args.body)?;
     firebase_projects_android_apps_create_execute(builder)
 }
 
@@ -1874,9 +1864,9 @@ pub fn firebase_projects_android_apps_create(
 
 pub fn firebase_projects_available_locations_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1884,10 +1874,10 @@ pub fn firebase_projects_available_locations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2047,9 +2037,9 @@ pub fn firebase_projects_available_locations_list(
 > {
     let builder = firebase_projects_available_locations_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     firebase_projects_available_locations_list_execute(builder)
 }
@@ -2062,7 +2052,7 @@ pub fn firebase_projects_available_locations_list(
 
 pub fn firebase_projects_default_location_finalize_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &FinalizeDefaultLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2210,11 +2200,8 @@ pub fn firebase_projects_default_location_finalize(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_default_location_finalize_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        firebase_projects_default_location_finalize_builder(client, &args.parent, &args.body)?;
     firebase_projects_default_location_finalize_execute(builder)
 }
 
@@ -2226,7 +2213,7 @@ pub fn firebase_projects_default_location_finalize(
 
 pub fn firebase_projects_ios_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &IosApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2373,8 +2360,7 @@ pub fn firebase_projects_ios_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_ios_apps_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firebase_projects_ios_apps_create_builder(client, &args.parent, &args.body)?;
     firebase_projects_ios_apps_create_execute(builder)
 }
 
@@ -2386,7 +2372,7 @@ pub fn firebase_projects_ios_apps_create(
 
 pub fn firebase_projects_web_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2533,7 +2519,6 @@ pub fn firebase_projects_web_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_web_apps_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = firebase_projects_web_apps_create_builder(client, &args.parent, &args.body)?;
     firebase_projects_web_apps_create_execute(builder)
 }

@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudbilling_billing_accounts_create_builder(
     client: &SimpleHttpClient,
-    parent: Option<String>,
+    parent: &Option<String>,
     body: &BillingAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -37,7 +37,7 @@ pub fn cloudbilling_billing_accounts_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -191,8 +191,7 @@ pub fn cloudbilling_billing_accounts_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = cloudbilling_billing_accounts_create_builder(client, &args.parent, &args.body)?;
     cloudbilling_billing_accounts_create_execute(builder)
 }
 
@@ -204,7 +203,7 @@ pub fn cloudbilling_billing_accounts_create(
 
 pub fn cloudbilling_billing_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/billingAccounts/{}",);
@@ -350,7 +349,7 @@ pub fn cloudbilling_billing_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_get_builder(client, args.name.clone())?;
+    let builder = cloudbilling_billing_accounts_get_builder(client, &args.name)?;
     cloudbilling_billing_accounts_get_execute(builder)
 }
 
@@ -362,8 +361,8 @@ pub fn cloudbilling_billing_accounts_get(
 
 pub fn cloudbilling_billing_accounts_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
-    options_requestedPolicyVersion: Option<i32>,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -371,7 +370,7 @@ pub fn cloudbilling_billing_accounts_get_iam_policy_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = options_requestedPolicyVersion {
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
         query_parts.push(format!("options.requestedPolicyVersion={}", val));
     }
 
@@ -521,8 +520,8 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
 > {
     let builder = cloudbilling_billing_accounts_get_iam_policy_builder(
         client,
-        args.resource.clone(),
-        args.options_requestedPolicyVersion.clone(),
+        &args.resource,
+        &args.options_requestedPolicyVersion,
     )?;
     cloudbilling_billing_accounts_get_iam_policy_execute(builder)
 }
@@ -535,7 +534,7 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
 
 pub fn cloudbilling_billing_accounts_move_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &MoveBillingAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -686,8 +685,7 @@ pub fn cloudbilling_billing_accounts_move(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_billing_accounts_move_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudbilling_billing_accounts_move_builder(client, &args.name, &args.body)?;
     cloudbilling_billing_accounts_move_execute(builder)
 }
 
@@ -699,7 +697,7 @@ pub fn cloudbilling_billing_accounts_move(
 
 pub fn cloudbilling_billing_accounts_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -847,11 +845,8 @@ pub fn cloudbilling_billing_accounts_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_billing_accounts_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudbilling_billing_accounts_set_iam_policy_builder(client, &args.resource, &args.body)?;
     cloudbilling_billing_accounts_set_iam_policy_execute(builder)
 }
 
@@ -863,7 +858,7 @@ pub fn cloudbilling_billing_accounts_set_iam_policy(
 
 pub fn cloudbilling_billing_accounts_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1021,7 +1016,7 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
 > {
     let builder = cloudbilling_billing_accounts_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     cloudbilling_billing_accounts_test_iam_permissions_execute(builder)
@@ -1035,9 +1030,9 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
 
 pub fn cloudbilling_billing_accounts_projects_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1045,10 +1040,10 @@ pub fn cloudbilling_billing_accounts_projects_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1208,9 +1203,9 @@ pub fn cloudbilling_billing_accounts_projects_list(
 > {
     let builder = cloudbilling_billing_accounts_projects_list_builder(
         client,
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudbilling_billing_accounts_projects_list_execute(builder)
 }
@@ -1223,7 +1218,7 @@ pub fn cloudbilling_billing_accounts_projects_list(
 
 pub fn cloudbilling_billing_accounts_sub_accounts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BillingAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1377,7 +1372,7 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
 > {
     let builder = cloudbilling_billing_accounts_sub_accounts_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     cloudbilling_billing_accounts_sub_accounts_create_execute(builder)
@@ -1391,7 +1386,7 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
 
 pub fn cloudbilling_organizations_billing_accounts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BillingAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1545,7 +1540,7 @@ pub fn cloudbilling_organizations_billing_accounts_create(
 > {
     let builder = cloudbilling_organizations_billing_accounts_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     cloudbilling_organizations_billing_accounts_create_execute(builder)
@@ -1559,8 +1554,8 @@ pub fn cloudbilling_organizations_billing_accounts_create(
 
 pub fn cloudbilling_organizations_billing_accounts_move_builder(
     client: &SimpleHttpClient,
-    destinationParent: String,
-    name: String,
+    destinationParent: &String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1711,8 +1706,8 @@ pub fn cloudbilling_organizations_billing_accounts_move(
 > {
     let builder = cloudbilling_organizations_billing_accounts_move_builder(
         client,
-        args.destinationParent.clone(),
-        args.name.clone(),
+        &args.destinationParent,
+        &args.name,
     )?;
     cloudbilling_organizations_billing_accounts_move_execute(builder)
 }
@@ -1725,7 +1720,7 @@ pub fn cloudbilling_organizations_billing_accounts_move(
 
 pub fn cloudbilling_projects_get_billing_info_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/projects/{}/billingInfo",);
@@ -1871,7 +1866,7 @@ pub fn cloudbilling_projects_get_billing_info(
         + 'static,
     ApiError,
 > {
-    let builder = cloudbilling_projects_get_billing_info_builder(client, args.name.clone())?;
+    let builder = cloudbilling_projects_get_billing_info_builder(client, &args.name)?;
     cloudbilling_projects_get_billing_info_execute(builder)
 }
 
@@ -1883,18 +1878,18 @@ pub fn cloudbilling_projects_get_billing_info(
 
 pub fn cloudbilling_services_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/services",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2046,8 +2041,7 @@ pub fn cloudbilling_services_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudbilling_services_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = cloudbilling_services_list_builder(client, &args.pageSize, &args.pageToken)?;
     cloudbilling_services_list_execute(builder)
 }
 
@@ -2059,31 +2053,31 @@ pub fn cloudbilling_services_list(
 
 pub fn cloudbilling_services_skus_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    currencyCode: Option<String>,
-    endTime: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    startTime: Option<String>,
+    parent: &String,
+    currencyCode: &Option<String>,
+    endTime: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudbilling.googleapis.com/v1/services/{}/skus",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = currencyCode {
+    if let Some(val) = currencyCode.as_ref() {
         query_parts.push(format!("currencyCode={}", val));
     }
-    if let Some(val) = endTime {
+    if let Some(val) = endTime.as_ref() {
         query_parts.push(format!("endTime={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = startTime {
+    if let Some(val) = startTime.as_ref() {
         query_parts.push(format!("startTime={}", val));
     }
 
@@ -2245,12 +2239,12 @@ pub fn cloudbilling_services_skus_list(
 > {
     let builder = cloudbilling_services_skus_list_builder(
         client,
-        args.parent.clone(),
-        args.currencyCode.clone(),
-        args.endTime.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.startTime.clone(),
+        &args.parent,
+        &args.currencyCode,
+        &args.endTime,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startTime,
     )?;
     cloudbilling_services_skus_list_execute(builder)
 }

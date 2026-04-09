@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn analyticsdata_properties_batch_run_pivot_reports_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &BatchRunPivotReportsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -187,7 +187,7 @@ pub fn analyticsdata_properties_batch_run_pivot_reports(
 > {
     let builder = analyticsdata_properties_batch_run_pivot_reports_builder(
         client,
-        args.property.clone(),
+        &args.property,
         &args.body,
     )?;
     analyticsdata_properties_batch_run_pivot_reports_execute(builder)
@@ -201,7 +201,7 @@ pub fn analyticsdata_properties_batch_run_pivot_reports(
 
 pub fn analyticsdata_properties_batch_run_reports_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &BatchRunReportsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -353,11 +353,8 @@ pub fn analyticsdata_properties_batch_run_reports(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_batch_run_reports_builder(
-        client,
-        args.property.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsdata_properties_batch_run_reports_builder(client, &args.property, &args.body)?;
     analyticsdata_properties_batch_run_reports_execute(builder)
 }
 
@@ -369,7 +366,7 @@ pub fn analyticsdata_properties_batch_run_reports(
 
 pub fn analyticsdata_properties_check_compatibility_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &CheckCompatibilityRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -525,11 +522,8 @@ pub fn analyticsdata_properties_check_compatibility(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_check_compatibility_builder(
-        client,
-        args.property.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsdata_properties_check_compatibility_builder(client, &args.property, &args.body)?;
     analyticsdata_properties_check_compatibility_execute(builder)
 }
 
@@ -541,7 +535,7 @@ pub fn analyticsdata_properties_check_compatibility(
 
 pub fn analyticsdata_properties_get_metadata_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -684,7 +678,7 @@ pub fn analyticsdata_properties_get_metadata(
     impl StreamIterator<D = Result<ApiResponse<Metadata>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_get_metadata_builder(client, args.name.clone())?;
+    let builder = analyticsdata_properties_get_metadata_builder(client, &args.name)?;
     analyticsdata_properties_get_metadata_execute(builder)
 }
 
@@ -696,7 +690,7 @@ pub fn analyticsdata_properties_get_metadata(
 
 pub fn analyticsdata_properties_run_pivot_report_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &RunPivotReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -848,11 +842,8 @@ pub fn analyticsdata_properties_run_pivot_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_run_pivot_report_builder(
-        client,
-        args.property.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsdata_properties_run_pivot_report_builder(client, &args.property, &args.body)?;
     analyticsdata_properties_run_pivot_report_execute(builder)
 }
 
@@ -864,7 +855,7 @@ pub fn analyticsdata_properties_run_pivot_report(
 
 pub fn analyticsdata_properties_run_realtime_report_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &RunRealtimeReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1016,11 +1007,8 @@ pub fn analyticsdata_properties_run_realtime_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_run_realtime_report_builder(
-        client,
-        args.property.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsdata_properties_run_realtime_report_builder(client, &args.property, &args.body)?;
     analyticsdata_properties_run_realtime_report_execute(builder)
 }
 
@@ -1032,7 +1020,7 @@ pub fn analyticsdata_properties_run_realtime_report(
 
 pub fn analyticsdata_properties_run_report_builder(
     client: &SimpleHttpClient,
-    property: String,
+    property: &String,
     body: &RunReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1184,8 +1172,7 @@ pub fn analyticsdata_properties_run_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_run_report_builder(client, args.property.clone(), &args.body)?;
+    let builder = analyticsdata_properties_run_report_builder(client, &args.property, &args.body)?;
     analyticsdata_properties_run_report_execute(builder)
 }
 
@@ -1197,7 +1184,7 @@ pub fn analyticsdata_properties_run_report(
 
 pub fn analyticsdata_properties_audience_exports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AudienceExport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1345,10 +1332,7 @@ pub fn analyticsdata_properties_audience_exports_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_audience_exports_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        analyticsdata_properties_audience_exports_create_builder(client, &args.parent, &args.body)?;
     analyticsdata_properties_audience_exports_create_execute(builder)
 }

@@ -29,21 +29,20 @@ use serde::Serialize;
 
 pub fn dns_changes_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<String>,
     body: &Change,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes",
-        project.as_str(),
-        managedZone.as_str(),
+        project, managedZone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -199,9 +198,9 @@ pub fn dns_changes_create(
 > {
     let builder = dns_changes_create_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
         &args.body,
     )?;
     dns_changes_create_execute(builder)
@@ -215,22 +214,20 @@ pub fn dns_changes_create(
 
 pub fn dns_changes_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    changeId: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    changeId: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes/{}",
-        project.as_str(),
-        managedZone.as_str(),
-        changeId.as_str(),
+        project, managedZone, changeId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -384,10 +381,10 @@ pub fn dns_changes_get(
 > {
     let builder = dns_changes_get_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.changeId.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.changeId,
+        &args.clientOperationId,
     )?;
     dns_changes_get_execute(builder)
 }
@@ -400,26 +397,24 @@ pub fn dns_changes_get(
 
 pub fn dns_dns_keys_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    dnsKeyId: String,
-    clientOperationId: Option<String>,
-    digestType: Option<String>,
+    project: &String,
+    managedZone: &String,
+    dnsKeyId: &String,
+    clientOperationId: &Option<String>,
+    digestType: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/dnsKeys/{}",
-        project.as_str(),
-        managedZone.as_str(),
-        dnsKeyId.as_str(),
+        project, managedZone, dnsKeyId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
-    if let Some(val) = digestType {
+    if let Some(val) = digestType.as_ref() {
         query_parts.push(format!("digestType={}", val));
     }
 
@@ -575,11 +570,11 @@ pub fn dns_dns_keys_get(
 > {
     let builder = dns_dns_keys_get_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.dnsKeyId.clone(),
-        args.clientOperationId.clone(),
-        args.digestType.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.dnsKeyId,
+        &args.clientOperationId,
+        &args.digestType,
     )?;
     dns_dns_keys_get_execute(builder)
 }
@@ -592,28 +587,27 @@ pub fn dns_dns_keys_get(
 
 pub fn dns_dns_keys_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    digestType: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    project: &String,
+    managedZone: &String,
+    digestType: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/dnsKeys",
-        project.as_str(),
-        managedZone.as_str(),
+        project, managedZone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = digestType {
+    if let Some(val) = digestType.as_ref() {
         query_parts.push(format!("digestType={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -773,11 +767,11 @@ pub fn dns_dns_keys_list(
 > {
     let builder = dns_dns_keys_list_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.digestType.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.digestType,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     dns_dns_keys_list_execute(builder)
 }
@@ -790,22 +784,20 @@ pub fn dns_dns_keys_list(
 
 pub fn dns_managed_zone_operations_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    operation: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    operation: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/operations/{}",
-        project.as_str(),
-        managedZone.as_str(),
-        operation.as_str(),
+        project, managedZone, operation,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -959,10 +951,10 @@ pub fn dns_managed_zone_operations_get(
 > {
     let builder = dns_managed_zone_operations_get_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.operation.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.operation,
+        &args.clientOperationId,
     )?;
     dns_managed_zone_operations_get_execute(builder)
 }
@@ -975,28 +967,27 @@ pub fn dns_managed_zone_operations_get(
 
 pub fn dns_managed_zone_operations_list_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    sortBy: Option<String>,
+    project: &String,
+    managedZone: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    sortBy: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/operations",
-        project.as_str(),
-        managedZone.as_str(),
+        project, managedZone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = sortBy {
+    if let Some(val) = sortBy.as_ref() {
         query_parts.push(format!("sortBy={}", val));
     }
 
@@ -1160,11 +1151,11 @@ pub fn dns_managed_zone_operations_list(
 > {
     let builder = dns_managed_zone_operations_list_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.sortBy.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.maxResults,
+        &args.pageToken,
+        &args.sortBy,
     )?;
     dns_managed_zone_operations_list_execute(builder)
 }
@@ -1177,19 +1168,19 @@ pub fn dns_managed_zone_operations_list(
 
 pub fn dns_managed_zones_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    clientOperationId: &Option<String>,
     body: &ManagedZone,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -1343,8 +1334,8 @@ pub fn dns_managed_zones_create(
 > {
     let builder = dns_managed_zones_create_builder(
         client,
-        args.project.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.clientOperationId,
         &args.body,
     )?;
     dns_managed_zones_create_execute(builder)
@@ -1358,20 +1349,19 @@ pub fn dns_managed_zones_create(
 
 pub fn dns_managed_zones_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
-        project.as_str(),
-        managedZone.as_str(),
+        project, managedZone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -1520,9 +1510,9 @@ pub fn dns_managed_zones_delete(
 > {
     let builder = dns_managed_zones_delete_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
     )?;
     dns_managed_zones_delete_execute(builder)
 }
@@ -1535,19 +1525,19 @@ pub fn dns_managed_zones_delete(
 
 pub fn dns_policies_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    clientOperationId: &Option<String>,
     body: &Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -1699,12 +1689,8 @@ pub fn dns_policies_create(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_policies_create_builder(
-        client,
-        args.project.clone(),
-        args.clientOperationId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dns_policies_create_builder(client, &args.project, &args.clientOperationId, &args.body)?;
     dns_policies_create_execute(builder)
 }
 
@@ -1716,20 +1702,19 @@ pub fn dns_policies_create(
 
 pub fn dns_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    policy: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    policy: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
-        project.as_str(),
-        policy.as_str(),
+        project, policy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -1876,12 +1861,8 @@ pub fn dns_policies_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_policies_delete_builder(
-        client,
-        args.project.clone(),
-        args.policy.clone(),
-        args.clientOperationId.clone(),
-    )?;
+    let builder =
+        dns_policies_delete_builder(client, &args.project, &args.policy, &args.clientOperationId)?;
     dns_policies_delete_execute(builder)
 }
 
@@ -1893,18 +1874,15 @@ pub fn dns_policies_delete(
 
 pub fn dns_projects_get_builder(
     client: &SimpleHttpClient,
-    project: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://dns.googleapis.com/dns/v1/projects/{}",
-        project.as_str(),
-    );
+    let endpoint_url = format!("https://dns.googleapis.com/dns/v1/projects/{}", project,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2052,8 +2030,7 @@ pub fn dns_projects_get(
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_projects_get_builder(client, args.project.clone(), args.clientOperationId.clone())?;
+    let builder = dns_projects_get_builder(client, &args.project, &args.clientOperationId)?;
     dns_projects_get_execute(builder)
 }
 
@@ -2065,21 +2042,20 @@ pub fn dns_projects_get(
 
 pub fn dns_resource_record_sets_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<String>,
     body: &ResourceRecordSet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets",
-        project.as_str(),
-        managedZone.as_str(),
+        project, managedZone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2239,9 +2215,9 @@ pub fn dns_resource_record_sets_create(
 > {
     let builder = dns_resource_record_sets_create_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
         &args.body,
     )?;
     dns_resource_record_sets_create_execute(builder)
@@ -2255,24 +2231,21 @@ pub fn dns_resource_record_sets_create(
 
 pub fn dns_resource_record_sets_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    managedZone: String,
-    name: String,
-    type_rs: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    managedZone: &String,
+    name: &String,
+    type_rs: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
-        project.as_str(),
-        managedZone.as_str(),
-        name.as_str(),
-        type_rs.as_str(),
+        project, managedZone, name, type_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2436,11 +2409,11 @@ pub fn dns_resource_record_sets_delete(
 > {
     let builder = dns_resource_record_sets_delete_builder(
         client,
-        args.project.clone(),
-        args.managedZone.clone(),
-        args.name.clone(),
-        args.type_rs.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        &args.clientOperationId,
     )?;
     dns_resource_record_sets_delete_execute(builder)
 }
@@ -2453,19 +2426,19 @@ pub fn dns_resource_record_sets_delete(
 
 pub fn dns_response_policies_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    clientOperationId: &Option<String>,
     body: &ResponsePolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies",
-        project.as_str(),
+        project,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2623,8 +2596,8 @@ pub fn dns_response_policies_create(
 > {
     let builder = dns_response_policies_create_builder(
         client,
-        args.project.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.clientOperationId,
         &args.body,
     )?;
     dns_response_policies_create_execute(builder)
@@ -2638,20 +2611,19 @@ pub fn dns_response_policies_create(
 
 pub fn dns_response_policies_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    responsePolicy: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    responsePolicy: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
-        project.as_str(),
-        responsePolicy.as_str(),
+        project, responsePolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2800,9 +2772,9 @@ pub fn dns_response_policies_delete(
 > {
     let builder = dns_response_policies_delete_builder(
         client,
-        args.project.clone(),
-        args.responsePolicy.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.responsePolicy,
+        &args.clientOperationId,
     )?;
     dns_response_policies_delete_execute(builder)
 }
@@ -2815,21 +2787,20 @@ pub fn dns_response_policies_delete(
 
 pub fn dns_response_policy_rules_create_builder(
     client: &SimpleHttpClient,
-    project: String,
-    responsePolicy: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    responsePolicy: &String,
+    clientOperationId: &Option<String>,
     body: &ResponsePolicyRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules",
-        project.as_str(),
-        responsePolicy.as_str(),
+        project, responsePolicy,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -2989,9 +2960,9 @@ pub fn dns_response_policy_rules_create(
 > {
     let builder = dns_response_policy_rules_create_builder(
         client,
-        args.project.clone(),
-        args.responsePolicy.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.responsePolicy,
+        &args.clientOperationId,
         &args.body,
     )?;
     dns_response_policy_rules_create_execute(builder)
@@ -3005,22 +2976,20 @@ pub fn dns_response_policy_rules_create(
 
 pub fn dns_response_policy_rules_delete_builder(
     client: &SimpleHttpClient,
-    project: String,
-    responsePolicy: String,
-    responsePolicyRule: String,
-    clientOperationId: Option<String>,
+    project: &String,
+    responsePolicy: &String,
+    responsePolicyRule: &String,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
-        project.as_str(),
-        responsePolicy.as_str(),
-        responsePolicyRule.as_str(),
+        project, responsePolicy, responsePolicyRule,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clientOperationId {
+    if let Some(val) = clientOperationId.as_ref() {
         query_parts.push(format!("clientOperationId={}", val));
     }
 
@@ -3171,10 +3140,10 @@ pub fn dns_response_policy_rules_delete(
 > {
     let builder = dns_response_policy_rules_delete_builder(
         client,
-        args.project.clone(),
-        args.responsePolicy.clone(),
-        args.responsePolicyRule.clone(),
-        args.clientOperationId.clone(),
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        &args.clientOperationId,
     )?;
     dns_response_policy_rules_delete_execute(builder)
 }

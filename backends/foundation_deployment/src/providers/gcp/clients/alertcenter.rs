@@ -353,18 +353,18 @@ pub fn alertcenter_alerts_batch_undelete(
 
 pub fn alertcenter_alerts_delete_builder(
     client: &SimpleHttpClient,
-    alertId: String,
-    customerId: Option<String>,
+    alertId: &String,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}",
-        alertId.as_str(),
+        alertId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
 
@@ -512,8 +512,7 @@ pub fn alertcenter_alerts_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        alertcenter_alerts_delete_builder(client, args.alertId.clone(), args.customerId.clone())?;
+    let builder = alertcenter_alerts_delete_builder(client, &args.alertId, &args.customerId)?;
     alertcenter_alerts_delete_execute(builder)
 }
 
@@ -525,18 +524,18 @@ pub fn alertcenter_alerts_delete(
 
 pub fn alertcenter_alerts_get_metadata_builder(
     client: &SimpleHttpClient,
-    alertId: String,
-    customerId: Option<String>,
+    alertId: &String,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}/metadata",
-        alertId.as_str(),
+        alertId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
 
@@ -688,11 +687,7 @@ pub fn alertcenter_alerts_get_metadata(
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_get_metadata_builder(
-        client,
-        args.alertId.clone(),
-        args.customerId.clone(),
-    )?;
+    let builder = alertcenter_alerts_get_metadata_builder(client, &args.alertId, &args.customerId)?;
     alertcenter_alerts_get_metadata_execute(builder)
 }
 
@@ -704,30 +699,30 @@ pub fn alertcenter_alerts_get_metadata(
 
 pub fn alertcenter_alerts_list_builder(
     client: &SimpleHttpClient,
-    customerId: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customerId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -887,11 +882,11 @@ pub fn alertcenter_alerts_list(
 > {
     let builder = alertcenter_alerts_list_builder(
         client,
-        args.customerId.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customerId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     alertcenter_alerts_list_execute(builder)
 }
@@ -904,13 +899,13 @@ pub fn alertcenter_alerts_list(
 
 pub fn alertcenter_alerts_undelete_builder(
     client: &SimpleHttpClient,
-    alertId: String,
+    alertId: &String,
     body: &UndeleteAlertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}:undelete",
-        alertId.as_str(),
+        alertId,
     );
 
     // Build request
@@ -1054,7 +1049,7 @@ pub fn alertcenter_alerts_undelete(
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_undelete_builder(client, args.alertId.clone(), &args.body)?;
+    let builder = alertcenter_alerts_undelete_builder(client, &args.alertId, &args.body)?;
     alertcenter_alerts_undelete_execute(builder)
 }
 
@@ -1066,19 +1061,19 @@ pub fn alertcenter_alerts_undelete(
 
 pub fn alertcenter_alerts_feedback_create_builder(
     client: &SimpleHttpClient,
-    alertId: String,
-    customerId: Option<String>,
+    alertId: &String,
+    customerId: &Option<String>,
     body: &AlertFeedback,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://alertcenter.googleapis.com/v1beta1/alerts/{}/feedback",
-        alertId.as_str(),
+        alertId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
 
@@ -1236,8 +1231,8 @@ pub fn alertcenter_alerts_feedback_create(
 > {
     let builder = alertcenter_alerts_feedback_create_builder(
         client,
-        args.alertId.clone(),
-        args.customerId.clone(),
+        &args.alertId,
+        &args.customerId,
         &args.body,
     )?;
     alertcenter_alerts_feedback_create_execute(builder)
@@ -1251,14 +1246,14 @@ pub fn alertcenter_alerts_feedback_create(
 
 pub fn alertcenter_get_settings_builder(
     client: &SimpleHttpClient,
-    customerId: Option<String>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://alertcenter.googleapis.com/v1beta1/settings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = customerId {
+    if let Some(val) = customerId.as_ref() {
         query_parts.push(format!("customerId={}", val));
     }
 
@@ -1404,6 +1399,6 @@ pub fn alertcenter_get_settings(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_get_settings_builder(client, args.customerId.clone())?;
+    let builder = alertcenter_get_settings_builder(client, &args.customerId)?;
     alertcenter_get_settings_execute(builder)
 }

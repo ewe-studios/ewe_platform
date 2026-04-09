@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn webmasters_searchanalytics_query_builder(
     client: &SimpleHttpClient,
-    siteUrl: String,
+    siteUrl: &String,
     body: &SearchAnalyticsQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/searchAnalytics/query",
-        siteUrl.as_str(),
+        siteUrl,
     );
 
     // Build request
@@ -187,8 +187,7 @@ pub fn webmasters_searchanalytics_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        webmasters_searchanalytics_query_builder(client, args.siteUrl.clone(), &args.body)?;
+    let builder = webmasters_searchanalytics_query_builder(client, &args.siteUrl, &args.body)?;
     webmasters_searchanalytics_query_execute(builder)
 }
 
@@ -200,14 +199,13 @@ pub fn webmasters_searchanalytics_query(
 
 pub fn webmasters_sitemaps_delete_builder(
     client: &SimpleHttpClient,
-    siteUrl: String,
-    feedpath: String,
+    siteUrl: &String,
+    feedpath: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps/{}",
-        siteUrl.as_str(),
-        feedpath.as_str(),
+        siteUrl, feedpath,
     );
 
     // Build request
@@ -346,8 +344,7 @@ pub fn webmasters_sitemaps_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        webmasters_sitemaps_delete_builder(client, args.siteUrl.clone(), args.feedpath.clone())?;
+    let builder = webmasters_sitemaps_delete_builder(client, &args.siteUrl, &args.feedpath)?;
     webmasters_sitemaps_delete_execute(builder)
 }
 
@@ -359,18 +356,18 @@ pub fn webmasters_sitemaps_delete(
 
 pub fn webmasters_sitemaps_list_builder(
     client: &SimpleHttpClient,
-    siteUrl: String,
-    sitemapIndex: Option<String>,
+    siteUrl: &String,
+    sitemapIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}/sitemaps",
-        siteUrl.as_str(),
+        siteUrl,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sitemapIndex {
+    if let Some(val) = sitemapIndex.as_ref() {
         query_parts.push(format!("sitemapIndex={}", val));
     }
 
@@ -522,8 +519,7 @@ pub fn webmasters_sitemaps_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        webmasters_sitemaps_list_builder(client, args.siteUrl.clone(), args.sitemapIndex.clone())?;
+    let builder = webmasters_sitemaps_list_builder(client, &args.siteUrl, &args.sitemapIndex)?;
     webmasters_sitemaps_list_execute(builder)
 }
 
@@ -535,12 +531,12 @@ pub fn webmasters_sitemaps_list(
 
 pub fn webmasters_sites_add_builder(
     client: &SimpleHttpClient,
-    siteUrl: String,
+    siteUrl: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://searchconsole.googleapis.com/webmasters/v3/sites/{}",
-        siteUrl.as_str(),
+        siteUrl,
     );
 
     // Build request
@@ -677,7 +673,7 @@ pub fn webmasters_sites_add(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sites_add_builder(client, args.siteUrl.clone())?;
+    let builder = webmasters_sites_add_builder(client, &args.siteUrl)?;
     webmasters_sites_add_execute(builder)
 }
 

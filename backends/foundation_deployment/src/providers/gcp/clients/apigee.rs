@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn apigee_organizations_create_builder(
     client: &SimpleHttpClient,
-    parent: Option<String>,
+    parent: &Option<String>,
     body: &GoogleCloudApigeeV1Organization,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -37,7 +37,7 @@ pub fn apigee_organizations_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -195,7 +195,7 @@ pub fn apigee_organizations_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = apigee_organizations_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_create_execute(builder)
 }
 
@@ -207,15 +207,15 @@ pub fn apigee_organizations_create(
 
 pub fn apigee_organizations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    retention: Option<String>,
+    name: &String,
+    retention: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = retention {
+    if let Some(val) = retention.as_ref() {
         query_parts.push(format!("retention={}", val));
     }
 
@@ -371,8 +371,7 @@ pub fn apigee_organizations_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_delete_builder(client, args.name.clone(), args.retention.clone())?;
+    let builder = apigee_organizations_delete_builder(client, &args.name, &args.retention)?;
     apigee_organizations_delete_execute(builder)
 }
 
@@ -384,7 +383,7 @@ pub fn apigee_organizations_delete(
 
 pub fn apigee_organizations_get_control_plane_access_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -535,7 +534,7 @@ pub fn apigee_organizations_get_control_plane_access(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_control_plane_access_builder(client, args.name.clone())?;
+    let builder = apigee_organizations_get_control_plane_access_builder(client, &args.name)?;
     apigee_organizations_get_control_plane_access_execute(builder)
 }
 
@@ -547,8 +546,8 @@ pub fn apigee_organizations_get_control_plane_access(
 
 pub fn apigee_organizations_get_deployed_ingress_config_builder(
     client: &SimpleHttpClient,
-    name: String,
-    view: Option<String>,
+    name: &String,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -556,7 +555,7 @@ pub fn apigee_organizations_get_deployed_ingress_config_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -712,11 +711,8 @@ pub fn apigee_organizations_get_deployed_ingress_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_deployed_ingress_config_builder(
-        client,
-        args.name.clone(),
-        args.view.clone(),
-    )?;
+    let builder =
+        apigee_organizations_get_deployed_ingress_config_builder(client, &args.name, &args.view)?;
     apigee_organizations_get_deployed_ingress_config_execute(builder)
 }
 
@@ -728,7 +724,7 @@ pub fn apigee_organizations_get_deployed_ingress_config(
 
 pub fn apigee_organizations_get_project_mapping_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -880,7 +876,7 @@ pub fn apigee_organizations_get_project_mapping(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_project_mapping_builder(client, args.name.clone())?;
+    let builder = apigee_organizations_get_project_mapping_builder(client, &args.name)?;
     apigee_organizations_get_project_mapping_execute(builder)
 }
 
@@ -892,7 +888,7 @@ pub fn apigee_organizations_get_project_mapping(
 
 pub fn apigee_organizations_get_runtime_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}/runtimeConfig",);
@@ -1042,7 +1038,7 @@ pub fn apigee_organizations_get_runtime_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_runtime_config_builder(client, args.name.clone())?;
+    let builder = apigee_organizations_get_runtime_config_builder(client, &args.name)?;
     apigee_organizations_get_runtime_config_execute(builder)
 }
 
@@ -1054,7 +1050,7 @@ pub fn apigee_organizations_get_runtime_config(
 
 pub fn apigee_organizations_get_security_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1205,7 +1201,7 @@ pub fn apigee_organizations_get_security_settings(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_security_settings_builder(client, args.name.clone())?;
+    let builder = apigee_organizations_get_security_settings_builder(client, &args.name)?;
     apigee_organizations_get_security_settings_execute(builder)
 }
 
@@ -1217,7 +1213,7 @@ pub fn apigee_organizations_get_security_settings(
 
 pub fn apigee_organizations_get_sync_authorization_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudApigeeV1GetSyncAuthorizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1374,7 +1370,7 @@ pub fn apigee_organizations_get_sync_authorization(
     ApiError,
 > {
     let builder =
-        apigee_organizations_get_sync_authorization_builder(client, args.name.clone(), &args.body)?;
+        apigee_organizations_get_sync_authorization_builder(client, &args.name, &args.body)?;
     apigee_organizations_get_sync_authorization_execute(builder)
 }
 
@@ -1386,7 +1382,7 @@ pub fn apigee_organizations_get_sync_authorization(
 
 pub fn apigee_organizations_set_addons_builder(
     client: &SimpleHttpClient,
-    org: String,
+    org: &String,
     body: &GoogleCloudApigeeV1SetAddonsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1541,7 +1537,7 @@ pub fn apigee_organizations_set_addons(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_set_addons_builder(client, args.org.clone(), &args.body)?;
+    let builder = apigee_organizations_set_addons_builder(client, &args.org, &args.body)?;
     apigee_organizations_set_addons_execute(builder)
 }
 
@@ -1553,7 +1549,7 @@ pub fn apigee_organizations_set_addons(
 
 pub fn apigee_organizations_set_sync_authorization_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudApigeeV1SyncAuthorization,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1710,7 +1706,7 @@ pub fn apigee_organizations_set_sync_authorization(
     ApiError,
 > {
     let builder =
-        apigee_organizations_set_sync_authorization_builder(client, args.name.clone(), &args.body)?;
+        apigee_organizations_set_sync_authorization_builder(client, &args.name, &args.body)?;
     apigee_organizations_set_sync_authorization_execute(builder)
 }
 
@@ -1722,7 +1718,7 @@ pub fn apigee_organizations_set_sync_authorization(
 
 pub fn apigee_organizations_analytics_datastores_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1Datastore,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1878,11 +1874,8 @@ pub fn apigee_organizations_analytics_datastores_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        apigee_organizations_analytics_datastores_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_analytics_datastores_create_execute(builder)
 }
 
@@ -1894,7 +1887,7 @@ pub fn apigee_organizations_analytics_datastores_create(
 
 pub fn apigee_organizations_analytics_datastores_test_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1Datastore,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2050,11 +2043,8 @@ pub fn apigee_organizations_analytics_datastores_test(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_test_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        apigee_organizations_analytics_datastores_test_builder(client, &args.parent, &args.body)?;
     apigee_organizations_analytics_datastores_test_execute(builder)
 }
 
@@ -2066,8 +2056,8 @@ pub fn apigee_organizations_analytics_datastores_test(
 
 pub fn apigee_organizations_apim_service_extensions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    apimServiceExtensionId: Option<String>,
+    parent: &String,
+    apimServiceExtensionId: &Option<String>,
     body: &GoogleCloudApigeeV1ApimServiceExtension,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2076,7 +2066,7 @@ pub fn apigee_organizations_apim_service_extensions_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = apimServiceExtensionId {
+    if let Some(val) = apimServiceExtensionId.as_ref() {
         query_parts.push(format!("apimServiceExtensionId={}", val));
     }
 
@@ -2238,8 +2228,8 @@ pub fn apigee_organizations_apim_service_extensions_create(
 > {
     let builder = apigee_organizations_apim_service_extensions_create_builder(
         client,
-        args.parent.clone(),
-        args.apimServiceExtensionId.clone(),
+        &args.parent,
+        &args.apimServiceExtensionId,
         &args.body,
     )?;
     apigee_organizations_apim_service_extensions_create_execute(builder)
@@ -2253,7 +2243,7 @@ pub fn apigee_organizations_apim_service_extensions_create(
 
 pub fn apigee_organizations_apiproducts_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1ApiProduct,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2409,7 +2399,7 @@ pub fn apigee_organizations_apiproducts_create(
     ApiError,
 > {
     let builder =
-        apigee_organizations_apiproducts_create_builder(client, args.parent.clone(), &args.body)?;
+        apigee_organizations_apiproducts_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_apiproducts_create_execute(builder)
 }
 
@@ -2421,11 +2411,11 @@ pub fn apigee_organizations_apiproducts_create(
 
 pub fn apigee_organizations_apis_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    action: Option<String>,
-    name: Option<String>,
-    space: Option<String>,
-    validate: Option<bool>,
+    parent: &String,
+    action: &Option<String>,
+    name: &Option<String>,
+    space: &Option<String>,
+    validate: &Option<bool>,
     body: &GoogleApiHttpBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2433,16 +2423,16 @@ pub fn apigee_organizations_apis_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = action {
+    if let Some(val) = action.as_ref() {
         query_parts.push(format!("action={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = space {
+    if let Some(val) = space.as_ref() {
         query_parts.push(format!("space={}", val));
     }
-    if let Some(val) = validate {
+    if let Some(val) = validate.as_ref() {
         query_parts.push(format!("validate={}", val));
     }
 
@@ -2610,11 +2600,11 @@ pub fn apigee_organizations_apis_create(
 > {
     let builder = apigee_organizations_apis_create_builder(
         client,
-        args.parent.clone(),
-        args.action.clone(),
-        args.name.clone(),
-        args.space.clone(),
-        args.validate.clone(),
+        &args.parent,
+        &args.action,
+        &args.name,
+        &args.space,
+        &args.validate,
         &args.body,
     )?;
     apigee_organizations_apis_create_execute(builder)
@@ -2628,7 +2618,7 @@ pub fn apigee_organizations_apis_create(
 
 pub fn apigee_organizations_appgroups_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1AppGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2783,8 +2773,7 @@ pub fn apigee_organizations_appgroups_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_appgroups_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = apigee_organizations_appgroups_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_appgroups_create_execute(builder)
 }
 
@@ -2796,59 +2785,59 @@ pub fn apigee_organizations_appgroups_create(
 
 pub fn apigee_organizations_apps_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    apiProduct: Option<String>,
-    apptype: Option<String>,
-    expand: Option<bool>,
-    filter: Option<String>,
-    ids: Option<String>,
-    includeCred: Option<bool>,
-    keyStatus: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    rows: Option<String>,
-    startKey: Option<String>,
-    status: Option<String>,
+    parent: &String,
+    apiProduct: &Option<String>,
+    apptype: &Option<String>,
+    expand: &Option<bool>,
+    filter: &Option<String>,
+    ids: &Option<String>,
+    includeCred: &Option<bool>,
+    keyStatus: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    rows: &Option<String>,
+    startKey: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = apiProduct {
+    if let Some(val) = apiProduct.as_ref() {
         query_parts.push(format!("apiProduct={}", val));
     }
-    if let Some(val) = apptype {
+    if let Some(val) = apptype.as_ref() {
         query_parts.push(format!("apptype={}", val));
     }
-    if let Some(val) = expand {
+    if let Some(val) = expand.as_ref() {
         query_parts.push(format!("expand={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = includeCred {
+    if let Some(val) = includeCred.as_ref() {
         query_parts.push(format!("includeCred={}", val));
     }
-    if let Some(val) = keyStatus {
+    if let Some(val) = keyStatus.as_ref() {
         query_parts.push(format!("keyStatus={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = rows {
+    if let Some(val) = rows.as_ref() {
         query_parts.push(format!("rows={}", val));
     }
-    if let Some(val) = startKey {
+    if let Some(val) = startKey.as_ref() {
         query_parts.push(format!("startKey={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
 
@@ -3028,19 +3017,19 @@ pub fn apigee_organizations_apps_list(
 > {
     let builder = apigee_organizations_apps_list_builder(
         client,
-        args.parent.clone(),
-        args.apiProduct.clone(),
-        args.apptype.clone(),
-        args.expand.clone(),
-        args.filter.clone(),
-        args.ids.clone(),
-        args.includeCred.clone(),
-        args.keyStatus.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.rows.clone(),
-        args.startKey.clone(),
-        args.status.clone(),
+        &args.parent,
+        &args.apiProduct,
+        &args.apptype,
+        &args.expand,
+        &args.filter,
+        &args.ids,
+        &args.includeCred,
+        &args.keyStatus,
+        &args.pageSize,
+        &args.pageToken,
+        &args.rows,
+        &args.startKey,
+        &args.status,
     )?;
     apigee_organizations_apps_list_execute(builder)
 }
@@ -3053,8 +3042,8 @@ pub fn apigee_organizations_apps_list(
 
 pub fn apigee_organizations_datacollectors_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    dataCollectorId: Option<String>,
+    parent: &String,
+    dataCollectorId: &Option<String>,
     body: &GoogleCloudApigeeV1DataCollector,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3062,7 +3051,7 @@ pub fn apigee_organizations_datacollectors_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dataCollectorId {
+    if let Some(val) = dataCollectorId.as_ref() {
         query_parts.push(format!("dataCollectorId={}", val));
     }
 
@@ -3224,8 +3213,8 @@ pub fn apigee_organizations_datacollectors_create(
 > {
     let builder = apigee_organizations_datacollectors_create_builder(
         client,
-        args.parent.clone(),
-        args.dataCollectorId.clone(),
+        &args.parent,
+        &args.dataCollectorId,
         &args.body,
     )?;
     apigee_organizations_datacollectors_create_execute(builder)
@@ -3239,15 +3228,15 @@ pub fn apigee_organizations_datacollectors_create(
 
 pub fn apigee_organizations_deployments_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    sharedFlows: Option<bool>,
+    parent: &String,
+    sharedFlows: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}/deployments",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sharedFlows {
+    if let Some(val) = sharedFlows.as_ref() {
         query_parts.push(format!("sharedFlows={}", val));
     }
 
@@ -3404,11 +3393,8 @@ pub fn apigee_organizations_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_deployments_list_builder(
-        client,
-        args.parent.clone(),
-        args.sharedFlows.clone(),
-    )?;
+    let builder =
+        apigee_organizations_deployments_list_builder(client, &args.parent, &args.sharedFlows)?;
     apigee_organizations_deployments_list_execute(builder)
 }
 
@@ -3420,7 +3406,7 @@ pub fn apigee_organizations_deployments_list(
 
 pub fn apigee_organizations_developers_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1Developer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3575,8 +3561,7 @@ pub fn apigee_organizations_developers_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_developers_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = apigee_organizations_developers_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_developers_create_execute(builder)
 }
 
@@ -3588,8 +3573,8 @@ pub fn apigee_organizations_developers_create(
 
 pub fn apigee_organizations_dns_zones_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    dnsZoneId: Option<String>,
+    parent: &String,
+    dnsZoneId: &Option<String>,
     body: &GoogleCloudApigeeV1DnsZone,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3597,7 +3582,7 @@ pub fn apigee_organizations_dns_zones_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dnsZoneId {
+    if let Some(val) = dnsZoneId.as_ref() {
         query_parts.push(format!("dnsZoneId={}", val));
     }
 
@@ -3759,8 +3744,8 @@ pub fn apigee_organizations_dns_zones_create(
 > {
     let builder = apigee_organizations_dns_zones_create_builder(
         client,
-        args.parent.clone(),
-        args.dnsZoneId.clone(),
+        &args.parent,
+        &args.dnsZoneId,
         &args.body,
     )?;
     apigee_organizations_dns_zones_create_execute(builder)
@@ -3774,8 +3759,8 @@ pub fn apigee_organizations_dns_zones_create(
 
 pub fn apigee_organizations_endpoint_attachments_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    endpointAttachmentId: Option<String>,
+    parent: &String,
+    endpointAttachmentId: &Option<String>,
     body: &GoogleCloudApigeeV1EndpointAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3784,7 +3769,7 @@ pub fn apigee_organizations_endpoint_attachments_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endpointAttachmentId {
+    if let Some(val) = endpointAttachmentId.as_ref() {
         query_parts.push(format!("endpointAttachmentId={}", val));
     }
 
@@ -3946,8 +3931,8 @@ pub fn apigee_organizations_endpoint_attachments_create(
 > {
     let builder = apigee_organizations_endpoint_attachments_create_builder(
         client,
-        args.parent.clone(),
-        args.endpointAttachmentId.clone(),
+        &args.parent,
+        &args.endpointAttachmentId,
         &args.body,
     )?;
     apigee_organizations_endpoint_attachments_create_execute(builder)
@@ -3961,8 +3946,8 @@ pub fn apigee_organizations_endpoint_attachments_create(
 
 pub fn apigee_organizations_envgroups_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    name: Option<String>,
+    parent: &String,
+    name: &Option<String>,
     body: &GoogleCloudApigeeV1EnvironmentGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3970,7 +3955,7 @@ pub fn apigee_organizations_envgroups_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -4132,8 +4117,8 @@ pub fn apigee_organizations_envgroups_create(
 > {
     let builder = apigee_organizations_envgroups_create_builder(
         client,
-        args.parent.clone(),
-        args.name.clone(),
+        &args.parent,
+        &args.name,
         &args.body,
     )?;
     apigee_organizations_envgroups_create_execute(builder)
@@ -4147,8 +4132,8 @@ pub fn apigee_organizations_envgroups_create(
 
 pub fn apigee_organizations_environments_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    name: Option<String>,
+    parent: &String,
+    name: &Option<String>,
     body: &GoogleCloudApigeeV1Environment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4156,7 +4141,7 @@ pub fn apigee_organizations_environments_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -4318,8 +4303,8 @@ pub fn apigee_organizations_environments_create(
 > {
     let builder = apigee_organizations_environments_create_builder(
         client,
-        args.parent.clone(),
-        args.name.clone(),
+        &args.parent,
+        &args.name,
         &args.body,
     )?;
     apigee_organizations_environments_create_execute(builder)
@@ -4333,7 +4318,7 @@ pub fn apigee_organizations_environments_create(
 
 pub fn apigee_organizations_host_queries_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1Query,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4489,7 +4474,7 @@ pub fn apigee_organizations_host_queries_create(
     ApiError,
 > {
     let builder =
-        apigee_organizations_host_queries_create_builder(client, args.parent.clone(), &args.body)?;
+        apigee_organizations_host_queries_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_host_queries_create_execute(builder)
 }
 
@@ -4501,7 +4486,7 @@ pub fn apigee_organizations_host_queries_create(
 
 pub fn apigee_organizations_host_security_reports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1SecurityReportQuery,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4659,7 +4644,7 @@ pub fn apigee_organizations_host_security_reports_create(
 > {
     let builder = apigee_organizations_host_security_reports_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     apigee_organizations_host_security_reports_create_execute(builder)
@@ -4673,7 +4658,7 @@ pub fn apigee_organizations_host_security_reports_create(
 
 pub fn apigee_organizations_instances_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1Instance,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4828,8 +4813,7 @@ pub fn apigee_organizations_instances_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_instances_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = apigee_organizations_instances_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_instances_create_execute(builder)
 }
 
@@ -4841,7 +4825,7 @@ pub fn apigee_organizations_instances_create(
 
 pub fn apigee_organizations_keyvaluemaps_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1KeyValueMap,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4997,7 +4981,7 @@ pub fn apigee_organizations_keyvaluemaps_create(
     ApiError,
 > {
     let builder =
-        apigee_organizations_keyvaluemaps_create_builder(client, args.parent.clone(), &args.body)?;
+        apigee_organizations_keyvaluemaps_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_keyvaluemaps_create_execute(builder)
 }
 
@@ -5009,27 +4993,27 @@ pub fn apigee_organizations_keyvaluemaps_create(
 
 pub fn apigee_organizations_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://apigee.googleapis.com/v1/organizations/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5194,11 +5178,11 @@ pub fn apigee_organizations_operations_list(
 > {
     let builder = apigee_organizations_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     apigee_organizations_operations_list_execute(builder)
 }
@@ -5211,7 +5195,7 @@ pub fn apigee_organizations_operations_list(
 
 pub fn apigee_organizations_reports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudApigeeV1CustomReport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5366,8 +5350,7 @@ pub fn apigee_organizations_reports_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_reports_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = apigee_organizations_reports_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_reports_create_execute(builder)
 }
 
@@ -5379,7 +5362,7 @@ pub fn apigee_organizations_reports_create(
 
 pub fn apigee_organizations_security_assessment_results_batch_compute_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5547,9 +5530,7 @@ pub fn apigee_organizations_security_assessment_results_batch_compute(
     ApiError,
 > {
     let builder = apigee_organizations_security_assessment_results_batch_compute_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_security_assessment_results_batch_compute_execute(builder)
 }
@@ -5562,8 +5543,8 @@ pub fn apigee_organizations_security_assessment_results_batch_compute(
 
 pub fn apigee_organizations_security_feedback_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    securityFeedbackId: Option<String>,
+    parent: &String,
+    securityFeedbackId: &Option<String>,
     body: &GoogleCloudApigeeV1SecurityFeedback,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5572,7 +5553,7 @@ pub fn apigee_organizations_security_feedback_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = securityFeedbackId {
+    if let Some(val) = securityFeedbackId.as_ref() {
         query_parts.push(format!("securityFeedbackId={}", val));
     }
 
@@ -5734,8 +5715,8 @@ pub fn apigee_organizations_security_feedback_create(
 > {
     let builder = apigee_organizations_security_feedback_create_builder(
         client,
-        args.parent.clone(),
-        args.securityFeedbackId.clone(),
+        &args.parent,
+        &args.securityFeedbackId,
         &args.body,
     )?;
     apigee_organizations_security_feedback_create_execute(builder)
@@ -5749,8 +5730,8 @@ pub fn apigee_organizations_security_feedback_create(
 
 pub fn apigee_organizations_security_monitoring_conditions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    securityMonitoringConditionId: Option<String>,
+    parent: &String,
+    securityMonitoringConditionId: &Option<String>,
     body: &GoogleCloudApigeeV1SecurityMonitoringCondition,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5759,7 +5740,7 @@ pub fn apigee_organizations_security_monitoring_conditions_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = securityMonitoringConditionId {
+    if let Some(val) = securityMonitoringConditionId.as_ref() {
         query_parts.push(format!("securityMonitoringConditionId={}", val));
     }
 
@@ -5922,8 +5903,8 @@ pub fn apigee_organizations_security_monitoring_conditions_create(
 > {
     let builder = apigee_organizations_security_monitoring_conditions_create_builder(
         client,
-        args.parent.clone(),
-        args.securityMonitoringConditionId.clone(),
+        &args.parent,
+        &args.securityMonitoringConditionId,
         &args.body,
     )?;
     apigee_organizations_security_monitoring_conditions_create_execute(builder)
@@ -5937,8 +5918,8 @@ pub fn apigee_organizations_security_monitoring_conditions_create(
 
 pub fn apigee_organizations_security_profiles_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    securityProfileId: Option<String>,
+    parent: &String,
+    securityProfileId: &Option<String>,
     body: &GoogleCloudApigeeV1SecurityProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5947,7 +5928,7 @@ pub fn apigee_organizations_security_profiles_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = securityProfileId {
+    if let Some(val) = securityProfileId.as_ref() {
         query_parts.push(format!("securityProfileId={}", val));
     }
 
@@ -6109,8 +6090,8 @@ pub fn apigee_organizations_security_profiles_create(
 > {
     let builder = apigee_organizations_security_profiles_create_builder(
         client,
-        args.parent.clone(),
-        args.securityProfileId.clone(),
+        &args.parent,
+        &args.securityProfileId,
         &args.body,
     )?;
     apigee_organizations_security_profiles_create_execute(builder)
@@ -6124,8 +6105,8 @@ pub fn apigee_organizations_security_profiles_create(
 
 pub fn apigee_organizations_security_profiles_v2_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    securityProfileV2Id: Option<String>,
+    parent: &String,
+    securityProfileV2Id: &Option<String>,
     body: &GoogleCloudApigeeV1SecurityProfileV2,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6134,7 +6115,7 @@ pub fn apigee_organizations_security_profiles_v2_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = securityProfileV2Id {
+    if let Some(val) = securityProfileV2Id.as_ref() {
         query_parts.push(format!("securityProfileV2Id={}", val));
     }
 
@@ -6296,8 +6277,8 @@ pub fn apigee_organizations_security_profiles_v2_create(
 > {
     let builder = apigee_organizations_security_profiles_v2_create_builder(
         client,
-        args.parent.clone(),
-        args.securityProfileV2Id.clone(),
+        &args.parent,
+        &args.securityProfileV2Id,
         &args.body,
     )?;
     apigee_organizations_security_profiles_v2_create_execute(builder)
@@ -6311,10 +6292,10 @@ pub fn apigee_organizations_security_profiles_v2_create(
 
 pub fn apigee_organizations_sharedflows_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    action: Option<String>,
-    name: Option<String>,
-    space: Option<String>,
+    parent: &String,
+    action: &Option<String>,
+    name: &Option<String>,
+    space: &Option<String>,
     body: &GoogleApiHttpBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6322,13 +6303,13 @@ pub fn apigee_organizations_sharedflows_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = action {
+    if let Some(val) = action.as_ref() {
         query_parts.push(format!("action={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = space {
+    if let Some(val) = space.as_ref() {
         query_parts.push(format!("space={}", val));
     }
 
@@ -6494,10 +6475,10 @@ pub fn apigee_organizations_sharedflows_create(
 > {
     let builder = apigee_organizations_sharedflows_create_builder(
         client,
-        args.parent.clone(),
-        args.action.clone(),
-        args.name.clone(),
-        args.space.clone(),
+        &args.parent,
+        &args.action,
+        &args.name,
+        &args.space,
         &args.body,
     )?;
     apigee_organizations_sharedflows_create_execute(builder)
@@ -6511,8 +6492,8 @@ pub fn apigee_organizations_sharedflows_create(
 
 pub fn apigee_organizations_spaces_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    spaceId: Option<String>,
+    parent: &String,
+    spaceId: &Option<String>,
     body: &GoogleCloudApigeeV1Space,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6520,7 +6501,7 @@ pub fn apigee_organizations_spaces_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = spaceId {
+    if let Some(val) = spaceId.as_ref() {
         query_parts.push(format!("spaceId={}", val));
     }
 
@@ -6678,8 +6659,8 @@ pub fn apigee_organizations_spaces_create(
 > {
     let builder = apigee_organizations_spaces_create_builder(
         client,
-        args.parent.clone(),
-        args.spaceId.clone(),
+        &args.parent,
+        &args.spaceId,
         &args.body,
     )?;
     apigee_organizations_spaces_create_execute(builder)
@@ -6693,7 +6674,7 @@ pub fn apigee_organizations_spaces_create(
 
 pub fn apigee_projects_provision_organization_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &GoogleCloudApigeeV1ProvisionOrganizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6850,6 +6831,6 @@ pub fn apigee_projects_provision_organization(
     ApiError,
 > {
     let builder =
-        apigee_projects_provision_organization_builder(client, args.project.clone(), &args.body)?;
+        apigee_projects_provision_organization_builder(client, &args.project, &args.body)?;
     apigee_projects_provision_organization_execute(builder)
 }

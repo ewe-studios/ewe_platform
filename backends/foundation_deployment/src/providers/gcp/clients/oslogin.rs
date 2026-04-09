@@ -29,19 +29,19 @@ use serde::Serialize;
 
 pub fn oslogin_users_get_login_profile_builder(
     client: &SimpleHttpClient,
-    name: String,
-    projectId: Option<String>,
-    systemId: Option<String>,
+    name: &String,
+    projectId: &Option<String>,
+    systemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://oslogin.googleapis.com/v1/users/{}/loginProfile",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
-    if let Some(val) = systemId {
+    if let Some(val) = systemId.as_ref() {
         query_parts.push(format!("systemId={}", val));
     }
 
@@ -197,9 +197,9 @@ pub fn oslogin_users_get_login_profile(
 > {
     let builder = oslogin_users_get_login_profile_builder(
         client,
-        args.name.clone(),
-        args.projectId.clone(),
-        args.systemId.clone(),
+        &args.name,
+        &args.projectId,
+        &args.systemId,
     )?;
     oslogin_users_get_login_profile_execute(builder)
 }
@@ -212,9 +212,9 @@ pub fn oslogin_users_get_login_profile(
 
 pub fn oslogin_users_import_ssh_public_key_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    projectId: Option<String>,
-    regions: Option<String>,
+    parent: &String,
+    projectId: &Option<String>,
+    regions: &Option<String>,
     body: &SshPublicKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -222,10 +222,10 @@ pub fn oslogin_users_import_ssh_public_key_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
-    if let Some(val) = regions {
+    if let Some(val) = regions.as_ref() {
         query_parts.push(format!("regions={}", val));
     }
 
@@ -389,9 +389,9 @@ pub fn oslogin_users_import_ssh_public_key(
 > {
     let builder = oslogin_users_import_ssh_public_key_builder(
         client,
-        args.parent.clone(),
-        args.projectId.clone(),
-        args.regions.clone(),
+        &args.parent,
+        &args.projectId,
+        &args.regions,
         &args.body,
     )?;
     oslogin_users_import_ssh_public_key_execute(builder)
@@ -405,7 +405,7 @@ pub fn oslogin_users_import_ssh_public_key(
 
 pub fn oslogin_users_ssh_public_keys_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SshPublicKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -556,7 +556,6 @@ pub fn oslogin_users_ssh_public_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        oslogin_users_ssh_public_keys_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = oslogin_users_ssh_public_keys_create_builder(client, &args.parent, &args.body)?;
     oslogin_users_ssh_public_keys_create_execute(builder)
 }

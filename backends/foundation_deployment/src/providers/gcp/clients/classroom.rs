@@ -185,13 +185,10 @@ pub fn classroom_courses_create(
 
 pub fn classroom_courses_delete_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://classroom.googleapis.com/v1/courses/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://classroom.googleapis.com/v1/courses/{}", id,);
 
     // Build request
     let builder = client
@@ -330,7 +327,7 @@ pub fn classroom_courses_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_delete_builder(client, args.id.clone())?;
+    let builder = classroom_courses_delete_builder(client, &args.id)?;
     classroom_courses_delete_execute(builder)
 }
 
@@ -342,12 +339,12 @@ pub fn classroom_courses_delete(
 
 pub fn classroom_courses_get_grading_period_settings_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/gradingPeriodSettings",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -491,8 +488,7 @@ pub fn classroom_courses_get_grading_period_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_get_grading_period_settings_builder(client, args.courseId.clone())?;
+    let builder = classroom_courses_get_grading_period_settings_builder(client, &args.courseId)?;
     classroom_courses_get_grading_period_settings_execute(builder)
 }
 
@@ -504,13 +500,13 @@ pub fn classroom_courses_get_grading_period_settings(
 
 pub fn classroom_courses_aliases_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &CourseAlias,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -654,8 +650,7 @@ pub fn classroom_courses_aliases_create(
     impl StreamIterator<D = Result<ApiResponse<CourseAlias>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_aliases_create_builder(client, args.courseId.clone(), &args.body)?;
+    let builder = classroom_courses_aliases_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_aliases_create_execute(builder)
 }
 
@@ -667,14 +662,13 @@ pub fn classroom_courses_aliases_create(
 
 pub fn classroom_courses_aliases_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    alias: String,
+    courseId: &String,
+    alias: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/aliases/{}",
-        courseId.as_str(),
-        alias.as_str(),
+        courseId, alias,
     );
 
     // Build request
@@ -816,11 +810,7 @@ pub fn classroom_courses_aliases_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_aliases_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.alias.clone(),
-    )?;
+    let builder = classroom_courses_aliases_delete_builder(client, &args.courseId, &args.alias)?;
     classroom_courses_aliases_delete_execute(builder)
 }
 
@@ -832,13 +822,13 @@ pub fn classroom_courses_aliases_delete(
 
 pub fn classroom_courses_announcements_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &Announcement,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -987,7 +977,7 @@ pub fn classroom_courses_announcements_create(
     ApiError,
 > {
     let builder =
-        classroom_courses_announcements_create_builder(client, args.courseId.clone(), &args.body)?;
+        classroom_courses_announcements_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_announcements_create_execute(builder)
 }
 
@@ -999,14 +989,13 @@ pub fn classroom_courses_announcements_create(
 
 pub fn classroom_courses_announcements_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -1148,11 +1137,7 @@ pub fn classroom_courses_announcements_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_announcements_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = classroom_courses_announcements_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_announcements_delete_execute(builder)
 }
 
@@ -1164,28 +1149,27 @@ pub fn classroom_courses_announcements_delete(
 
 pub fn classroom_courses_announcements_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    attachmentId: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnContext",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = attachmentId {
+    if let Some(val) = attachmentId.as_ref() {
         query_parts.push(format!("attachmentId={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -1345,11 +1329,11 @@ pub fn classroom_courses_announcements_get_add_on_context(
 > {
     let builder = classroom_courses_announcements_get_add_on_context_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_announcements_get_add_on_context_execute(builder)
 }
@@ -1362,15 +1346,14 @@ pub fn classroom_courses_announcements_get_add_on_context(
 
 pub fn classroom_courses_announcements_modify_assignees_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
     body: &ModifyAnnouncementAssigneesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}:modifyAssignees",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -1522,8 +1505,8 @@ pub fn classroom_courses_announcements_modify_assignees(
 > {
     let builder = classroom_courses_announcements_modify_assignees_builder(
         client,
-        args.courseId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_announcements_modify_assignees_execute(builder)
@@ -1537,25 +1520,24 @@ pub fn classroom_courses_announcements_modify_assignees(
 
 pub fn classroom_courses_announcements_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -1717,10 +1699,10 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_create_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.postId,
         &args.body,
     )?;
     classroom_courses_announcements_add_on_attachments_create_execute(builder)
@@ -1734,22 +1716,20 @@ pub fn classroom_courses_announcements_add_on_attachments_create(
 
 pub fn classroom_courses_announcements_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    attachmentId: String,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    attachmentId: &String,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/announcements/{}/addOnAttachments/{}",
-        courseId.as_str(),
-        itemId.as_str(),
-        attachmentId.as_str(),
+        courseId, itemId, attachmentId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -1903,10 +1883,10 @@ pub fn classroom_courses_announcements_add_on_attachments_delete(
 > {
     let builder = classroom_courses_announcements_add_on_attachments_delete_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_announcements_add_on_attachments_delete_execute(builder)
 }
@@ -1919,13 +1899,13 @@ pub fn classroom_courses_announcements_add_on_attachments_delete(
 
 pub fn classroom_courses_course_work_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &CourseWork,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -2069,8 +2049,7 @@ pub fn classroom_courses_course_work_create(
     impl StreamIterator<D = Result<ApiResponse<CourseWork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_course_work_create_builder(client, args.courseId.clone(), &args.body)?;
+    let builder = classroom_courses_course_work_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_course_work_create_execute(builder)
 }
 
@@ -2082,14 +2061,13 @@ pub fn classroom_courses_course_work_create(
 
 pub fn classroom_courses_course_work_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -2231,11 +2209,7 @@ pub fn classroom_courses_course_work_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = classroom_courses_course_work_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_delete_execute(builder)
 }
 
@@ -2247,28 +2221,27 @@ pub fn classroom_courses_course_work_delete(
 
 pub fn classroom_courses_course_work_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    attachmentId: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnContext",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = attachmentId {
+    if let Some(val) = attachmentId.as_ref() {
         query_parts.push(format!("attachmentId={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -2428,11 +2401,11 @@ pub fn classroom_courses_course_work_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_get_add_on_context_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_course_work_get_add_on_context_execute(builder)
 }
@@ -2445,15 +2418,14 @@ pub fn classroom_courses_course_work_get_add_on_context(
 
 pub fn classroom_courses_course_work_modify_assignees_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
     body: &ModifyCourseWorkAssigneesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}:modifyAssignees",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -2601,8 +2573,8 @@ pub fn classroom_courses_course_work_modify_assignees(
 > {
     let builder = classroom_courses_course_work_modify_assignees_builder(
         client,
-        args.courseId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_course_work_modify_assignees_execute(builder)
@@ -2616,25 +2588,24 @@ pub fn classroom_courses_course_work_modify_assignees(
 
 pub fn classroom_courses_course_work_update_rubric_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: Option<String>,
-    updateMask: Option<String>,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &Option<String>,
+    updateMask: &Option<String>,
     body: &Rubric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubric",
-        courseId.as_str(),
-        courseWorkId.as_str(),
+        courseId, courseWorkId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -2792,10 +2763,10 @@ pub fn classroom_courses_course_work_update_rubric(
 > {
     let builder = classroom_courses_course_work_update_rubric_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
-        args.updateMask.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
+        &args.updateMask,
         &args.body,
     )?;
     classroom_courses_course_work_update_rubric_execute(builder)
@@ -2809,25 +2780,24 @@ pub fn classroom_courses_course_work_update_rubric(
 
 pub fn classroom_courses_course_work_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -2989,10 +2959,10 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_create_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.postId,
         &args.body,
     )?;
     classroom_courses_course_work_add_on_attachments_create_execute(builder)
@@ -3006,22 +2976,20 @@ pub fn classroom_courses_course_work_add_on_attachments_create(
 
 pub fn classroom_courses_course_work_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    attachmentId: String,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    attachmentId: &String,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}",
-        courseId.as_str(),
-        itemId.as_str(),
-        attachmentId.as_str(),
+        courseId, itemId, attachmentId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -3175,10 +3143,10 @@ pub fn classroom_courses_course_work_add_on_attachments_delete(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_delete_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_course_work_add_on_attachments_delete_execute(builder)
 }
@@ -3191,24 +3159,24 @@ pub fn classroom_courses_course_work_add_on_attachments_delete(
 
 pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    attachmentId: String,
-    submissionId: String,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    attachmentId: &String,
+    submissionId: &String,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId.as_str(),
-        itemId.as_str(),
-        attachmentId.as_str(),
-        submissionId.as_str(),
+        courseId,
+        itemId,
+        attachmentId,
+        submissionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -3373,11 +3341,11 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_add_on_attachments_student_submissions_get_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.attachmentId.clone(),
-        args.submissionId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        &args.submissionId,
+        &args.postId,
     )?;
     classroom_courses_course_work_add_on_attachments_student_submissions_get_execute(builder)
 }
@@ -3390,15 +3358,14 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get(
 
 pub fn classroom_courses_course_work_rubrics_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
+    courseId: &String,
+    courseWorkId: &String,
     body: &Rubric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics",
-        courseId.as_str(),
-        courseWorkId.as_str(),
+        courseId, courseWorkId,
     );
 
     // Build request
@@ -3546,8 +3513,8 @@ pub fn classroom_courses_course_work_rubrics_create(
 > {
     let builder = classroom_courses_course_work_rubrics_create_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
+        &args.courseId,
+        &args.courseWorkId,
         &args.body,
     )?;
     classroom_courses_course_work_rubrics_create_execute(builder)
@@ -3561,16 +3528,14 @@ pub fn classroom_courses_course_work_rubrics_create(
 
 pub fn classroom_courses_course_work_rubrics_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/rubrics/{}",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId, courseWorkId, id,
     );
 
     // Build request
@@ -3716,9 +3681,9 @@ pub fn classroom_courses_course_work_rubrics_delete(
 > {
     let builder = classroom_courses_course_work_rubrics_delete_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
     )?;
     classroom_courses_course_work_rubrics_delete_execute(builder)
 }
@@ -3731,16 +3696,14 @@ pub fn classroom_courses_course_work_rubrics_delete(
 
 pub fn classroom_courses_course_work_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId, courseWorkId, id,
     );
 
     // Build request
@@ -3890,9 +3853,9 @@ pub fn classroom_courses_course_work_student_submissions_get(
 > {
     let builder = classroom_courses_course_work_student_submissions_get_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
     )?;
     classroom_courses_course_work_student_submissions_get_execute(builder)
 }
@@ -3905,36 +3868,35 @@ pub fn classroom_courses_course_work_student_submissions_get(
 
 pub fn classroom_courses_course_work_student_submissions_list_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    late: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    states: Option<String>,
-    userId: Option<String>,
+    courseId: &String,
+    courseWorkId: &String,
+    late: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    states: &Option<String>,
+    userId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions",
-        courseId.as_str(),
-        courseWorkId.as_str(),
+        courseId, courseWorkId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = late {
+    if let Some(val) = late.as_ref() {
         query_parts.push(format!("late={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = states {
+    if let Some(val) = states.as_ref() {
         query_parts.push(format!("states={}", val));
     }
-    if let Some(val) = userId {
+    if let Some(val) = userId.as_ref() {
         query_parts.push(format!("userId={}", val));
     }
 
@@ -4102,13 +4064,13 @@ pub fn classroom_courses_course_work_student_submissions_list(
 > {
     let builder = classroom_courses_course_work_student_submissions_list_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.late.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.states.clone(),
-        args.userId.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.late,
+        &args.pageSize,
+        &args.pageToken,
+        &args.states,
+        &args.userId,
     )?;
     classroom_courses_course_work_student_submissions_list_execute(builder)
 }
@@ -4121,17 +4083,17 @@ pub fn classroom_courses_course_work_student_submissions_list(
 
 pub fn classroom_courses_course_work_student_submissions_modify_attachments_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
     body: &ModifyAttachmentsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:modifyAttachments",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId,
+        courseWorkId,
+        id,
     );
 
     // Build request
@@ -4285,9 +4247,9 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments(
 > {
     let builder = classroom_courses_course_work_student_submissions_modify_attachments_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_modify_attachments_execute(builder)
@@ -4301,17 +4263,17 @@ pub fn classroom_courses_course_work_student_submissions_modify_attachments(
 
 pub fn classroom_courses_course_work_student_submissions_reclaim_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
     body: &ReclaimStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:reclaim",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId,
+        courseWorkId,
+        id,
     );
 
     // Build request
@@ -4461,9 +4423,9 @@ pub fn classroom_courses_course_work_student_submissions_reclaim(
 > {
     let builder = classroom_courses_course_work_student_submissions_reclaim_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_reclaim_execute(builder)
@@ -4477,17 +4439,15 @@ pub fn classroom_courses_course_work_student_submissions_reclaim(
 
 pub fn classroom_courses_course_work_student_submissions_return_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
     body: &ReturnStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:return",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId, courseWorkId, id,
     );
 
     // Build request
@@ -4637,9 +4597,9 @@ pub fn classroom_courses_course_work_student_submissions_return(
 > {
     let builder = classroom_courses_course_work_student_submissions_return_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_return_execute(builder)
@@ -4653,17 +4613,15 @@ pub fn classroom_courses_course_work_student_submissions_return(
 
 pub fn classroom_courses_course_work_student_submissions_turn_in_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    courseWorkId: String,
-    id: String,
+    courseId: &String,
+    courseWorkId: &String,
+    id: &String,
     body: &TurnInStudentSubmissionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWork/{}/studentSubmissions/{}:turnIn",
-        courseId.as_str(),
-        courseWorkId.as_str(),
-        id.as_str(),
+        courseId, courseWorkId, id,
     );
 
     // Build request
@@ -4813,9 +4771,9 @@ pub fn classroom_courses_course_work_student_submissions_turn_in(
 > {
     let builder = classroom_courses_course_work_student_submissions_turn_in_builder(
         client,
-        args.courseId.clone(),
-        args.courseWorkId.clone(),
-        args.id.clone(),
+        &args.courseId,
+        &args.courseWorkId,
+        &args.id,
         &args.body,
     )?;
     classroom_courses_course_work_student_submissions_turn_in_execute(builder)
@@ -4829,13 +4787,13 @@ pub fn classroom_courses_course_work_student_submissions_turn_in(
 
 pub fn classroom_courses_course_work_materials_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &CourseWorkMaterial,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -4983,11 +4941,8 @@ pub fn classroom_courses_course_work_materials_create(
         + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_materials_create_builder(
-        client,
-        args.courseId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        classroom_courses_course_work_materials_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_course_work_materials_create_execute(builder)
 }
 
@@ -4999,14 +4954,13 @@ pub fn classroom_courses_course_work_materials_create(
 
 pub fn classroom_courses_course_work_materials_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -5148,11 +5102,8 @@ pub fn classroom_courses_course_work_materials_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_course_work_materials_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        classroom_courses_course_work_materials_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_course_work_materials_delete_execute(builder)
 }
 
@@ -5164,28 +5115,27 @@ pub fn classroom_courses_course_work_materials_delete(
 
 pub fn classroom_courses_course_work_materials_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    attachmentId: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnContext",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = attachmentId {
+    if let Some(val) = attachmentId.as_ref() {
         query_parts.push(format!("attachmentId={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -5345,11 +5295,11 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 > {
     let builder = classroom_courses_course_work_materials_get_add_on_context_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_course_work_materials_get_add_on_context_execute(builder)
 }
@@ -5362,25 +5312,24 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    addOnToken: Option<String>,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments",
-        courseId.as_str(),
-        itemId.as_str(),
+        courseId, itemId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -5542,10 +5491,10 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_create_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.addOnToken.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.addOnToken,
+        &args.postId,
         &args.body,
     )?;
     classroom_courses_course_work_materials_add_on_attachments_create_execute(builder)
@@ -5559,22 +5508,20 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create(
 
 pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    itemId: String,
-    attachmentId: String,
-    postId: Option<String>,
+    courseId: &String,
+    itemId: &String,
+    attachmentId: &String,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/courseWorkMaterials/{}/addOnAttachments/{}",
-        courseId.as_str(),
-        itemId.as_str(),
-        attachmentId.as_str(),
+        courseId, itemId, attachmentId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = postId {
+    if let Some(val) = postId.as_ref() {
         query_parts.push(format!("postId={}", val));
     }
 
@@ -5728,10 +5675,10 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete(
 > {
     let builder = classroom_courses_course_work_materials_add_on_attachments_delete_builder(
         client,
-        args.courseId.clone(),
-        args.itemId.clone(),
-        args.attachmentId.clone(),
-        args.postId.clone(),
+        &args.courseId,
+        &args.itemId,
+        &args.attachmentId,
+        &args.postId,
     )?;
     classroom_courses_course_work_materials_add_on_attachments_delete_execute(builder)
 }
@@ -5744,28 +5691,27 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete(
 
 pub fn classroom_courses_posts_get_add_on_context_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    postId: String,
-    addOnToken: Option<String>,
-    attachmentId: Option<String>,
-    itemId: Option<String>,
+    courseId: &String,
+    postId: &String,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnContext",
-        courseId.as_str(),
-        postId.as_str(),
+        courseId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = attachmentId {
+    if let Some(val) = attachmentId.as_ref() {
         query_parts.push(format!("attachmentId={}", val));
     }
-    if let Some(val) = itemId {
+    if let Some(val) = itemId.as_ref() {
         query_parts.push(format!("itemId={}", val));
     }
 
@@ -5925,11 +5871,11 @@ pub fn classroom_courses_posts_get_add_on_context(
 > {
     let builder = classroom_courses_posts_get_add_on_context_builder(
         client,
-        args.courseId.clone(),
-        args.postId.clone(),
-        args.addOnToken.clone(),
-        args.attachmentId.clone(),
-        args.itemId.clone(),
+        &args.courseId,
+        &args.postId,
+        &args.addOnToken,
+        &args.attachmentId,
+        &args.itemId,
     )?;
     classroom_courses_posts_get_add_on_context_execute(builder)
 }
@@ -5942,25 +5888,24 @@ pub fn classroom_courses_posts_get_add_on_context(
 
 pub fn classroom_courses_posts_add_on_attachments_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    postId: String,
-    addOnToken: Option<String>,
-    itemId: Option<String>,
+    courseId: &String,
+    postId: &String,
+    addOnToken: &Option<String>,
+    itemId: &Option<String>,
     body: &AddOnAttachment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments",
-        courseId.as_str(),
-        postId.as_str(),
+        courseId, postId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = addOnToken {
+    if let Some(val) = addOnToken.as_ref() {
         query_parts.push(format!("addOnToken={}", val));
     }
-    if let Some(val) = itemId {
+    if let Some(val) = itemId.as_ref() {
         query_parts.push(format!("itemId={}", val));
     }
 
@@ -6122,10 +6067,10 @@ pub fn classroom_courses_posts_add_on_attachments_create(
 > {
     let builder = classroom_courses_posts_add_on_attachments_create_builder(
         client,
-        args.courseId.clone(),
-        args.postId.clone(),
-        args.addOnToken.clone(),
-        args.itemId.clone(),
+        &args.courseId,
+        &args.postId,
+        &args.addOnToken,
+        &args.itemId,
         &args.body,
     )?;
     classroom_courses_posts_add_on_attachments_create_execute(builder)
@@ -6139,22 +6084,20 @@ pub fn classroom_courses_posts_add_on_attachments_create(
 
 pub fn classroom_courses_posts_add_on_attachments_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    postId: String,
-    attachmentId: String,
-    itemId: Option<String>,
+    courseId: &String,
+    postId: &String,
+    attachmentId: &String,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}",
-        courseId.as_str(),
-        postId.as_str(),
-        attachmentId.as_str(),
+        courseId, postId, attachmentId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
+    if let Some(val) = itemId.as_ref() {
         query_parts.push(format!("itemId={}", val));
     }
 
@@ -6308,10 +6251,10 @@ pub fn classroom_courses_posts_add_on_attachments_delete(
 > {
     let builder = classroom_courses_posts_add_on_attachments_delete_builder(
         client,
-        args.courseId.clone(),
-        args.postId.clone(),
-        args.attachmentId.clone(),
-        args.itemId.clone(),
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        &args.itemId,
     )?;
     classroom_courses_posts_add_on_attachments_delete_execute(builder)
 }
@@ -6324,24 +6267,24 @@ pub fn classroom_courses_posts_add_on_attachments_delete(
 
 pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    postId: String,
-    attachmentId: String,
-    submissionId: String,
-    itemId: Option<String>,
+    courseId: &String,
+    postId: &String,
+    attachmentId: &String,
+    submissionId: &String,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/posts/{}/addOnAttachments/{}/studentSubmissions/{}",
-        courseId.as_str(),
-        postId.as_str(),
-        attachmentId.as_str(),
-        submissionId.as_str(),
+        courseId,
+        postId,
+        attachmentId,
+        submissionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = itemId {
+    if let Some(val) = itemId.as_ref() {
         query_parts.push(format!("itemId={}", val));
     }
 
@@ -6505,11 +6448,11 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
 > {
     let builder = classroom_courses_posts_add_on_attachments_student_submissions_get_builder(
         client,
-        args.courseId.clone(),
-        args.postId.clone(),
-        args.attachmentId.clone(),
-        args.submissionId.clone(),
-        args.itemId.clone(),
+        &args.courseId,
+        &args.postId,
+        &args.attachmentId,
+        &args.submissionId,
+        &args.itemId,
     )?;
     classroom_courses_posts_add_on_attachments_student_submissions_get_execute(builder)
 }
@@ -6522,13 +6465,13 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get(
 
 pub fn classroom_courses_student_groups_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &StudentGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -6677,7 +6620,7 @@ pub fn classroom_courses_student_groups_create(
     ApiError,
 > {
     let builder =
-        classroom_courses_student_groups_create_builder(client, args.courseId.clone(), &args.body)?;
+        classroom_courses_student_groups_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_student_groups_create_execute(builder)
 }
 
@@ -6689,14 +6632,13 @@ pub fn classroom_courses_student_groups_create(
 
 pub fn classroom_courses_student_groups_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -6838,11 +6780,8 @@ pub fn classroom_courses_student_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_student_groups_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        classroom_courses_student_groups_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_student_groups_delete_execute(builder)
 }
 
@@ -6854,15 +6793,14 @@ pub fn classroom_courses_student_groups_delete(
 
 pub fn classroom_courses_student_groups_student_group_members_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    studentGroupId: String,
+    courseId: &String,
+    studentGroupId: &String,
     body: &StudentGroupMember,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers",
-        courseId.as_str(),
-        studentGroupId.as_str(),
+        courseId, studentGroupId,
     );
 
     // Build request
@@ -7014,8 +6952,8 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 > {
     let builder = classroom_courses_student_groups_student_group_members_create_builder(
         client,
-        args.courseId.clone(),
-        args.studentGroupId.clone(),
+        &args.courseId,
+        &args.studentGroupId,
         &args.body,
     )?;
     classroom_courses_student_groups_student_group_members_create_execute(builder)
@@ -7029,16 +6967,14 @@ pub fn classroom_courses_student_groups_student_group_members_create(
 
 pub fn classroom_courses_student_groups_student_group_members_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    studentGroupId: String,
-    userId: String,
+    courseId: &String,
+    studentGroupId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/studentGroups/{}/studentGroupMembers/{}",
-        courseId.as_str(),
-        studentGroupId.as_str(),
-        userId.as_str(),
+        courseId, studentGroupId, userId,
     );
 
     // Build request
@@ -7184,9 +7120,9 @@ pub fn classroom_courses_student_groups_student_group_members_delete(
 > {
     let builder = classroom_courses_student_groups_student_group_members_delete_builder(
         client,
-        args.courseId.clone(),
-        args.studentGroupId.clone(),
-        args.userId.clone(),
+        &args.courseId,
+        &args.studentGroupId,
+        &args.userId,
     )?;
     classroom_courses_student_groups_student_group_members_delete_execute(builder)
 }
@@ -7199,19 +7135,19 @@ pub fn classroom_courses_student_groups_student_group_members_delete(
 
 pub fn classroom_courses_students_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    enrollmentCode: Option<String>,
+    courseId: &String,
+    enrollmentCode: &Option<String>,
     body: &Student,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enrollmentCode {
+    if let Some(val) = enrollmentCode.as_ref() {
         query_parts.push(format!("enrollmentCode={}", val));
     }
 
@@ -7365,8 +7301,8 @@ pub fn classroom_courses_students_create(
 > {
     let builder = classroom_courses_students_create_builder(
         client,
-        args.courseId.clone(),
-        args.enrollmentCode.clone(),
+        &args.courseId,
+        &args.enrollmentCode,
         &args.body,
     )?;
     classroom_courses_students_create_execute(builder)
@@ -7380,14 +7316,13 @@ pub fn classroom_courses_students_create(
 
 pub fn classroom_courses_students_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    userId: String,
+    courseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/students/{}",
-        courseId.as_str(),
-        userId.as_str(),
+        courseId, userId,
     );
 
     // Build request
@@ -7529,11 +7464,7 @@ pub fn classroom_courses_students_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_students_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder = classroom_courses_students_delete_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_students_delete_execute(builder)
 }
 
@@ -7545,13 +7476,13 @@ pub fn classroom_courses_students_delete(
 
 pub fn classroom_courses_teachers_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &Teacher,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -7695,8 +7626,7 @@ pub fn classroom_courses_teachers_create(
     impl StreamIterator<D = Result<ApiResponse<Teacher>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_teachers_create_builder(client, args.courseId.clone(), &args.body)?;
+    let builder = classroom_courses_teachers_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_teachers_create_execute(builder)
 }
 
@@ -7708,14 +7638,13 @@ pub fn classroom_courses_teachers_create(
 
 pub fn classroom_courses_teachers_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    userId: String,
+    courseId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/teachers/{}",
-        courseId.as_str(),
-        userId.as_str(),
+        courseId, userId,
     );
 
     // Build request
@@ -7857,11 +7786,7 @@ pub fn classroom_courses_teachers_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_courses_teachers_delete_builder(
-        client,
-        args.courseId.clone(),
-        args.userId.clone(),
-    )?;
+    let builder = classroom_courses_teachers_delete_builder(client, &args.courseId, &args.userId)?;
     classroom_courses_teachers_delete_execute(builder)
 }
 
@@ -7873,13 +7798,13 @@ pub fn classroom_courses_teachers_delete(
 
 pub fn classroom_courses_topics_create_builder(
     client: &SimpleHttpClient,
-    courseId: String,
+    courseId: &String,
     body: &Topic,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics",
-        courseId.as_str(),
+        courseId,
     );
 
     // Build request
@@ -8023,8 +7948,7 @@ pub fn classroom_courses_topics_create(
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_topics_create_builder(client, args.courseId.clone(), &args.body)?;
+    let builder = classroom_courses_topics_create_builder(client, &args.courseId, &args.body)?;
     classroom_courses_topics_create_execute(builder)
 }
 
@@ -8036,14 +7960,13 @@ pub fn classroom_courses_topics_create(
 
 pub fn classroom_courses_topics_delete_builder(
     client: &SimpleHttpClient,
-    courseId: String,
-    id: String,
+    courseId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/courses/{}/topics/{}",
-        courseId.as_str(),
-        id.as_str(),
+        courseId, id,
     );
 
     // Build request
@@ -8185,8 +8108,7 @@ pub fn classroom_courses_topics_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        classroom_courses_topics_delete_builder(client, args.courseId.clone(), args.id.clone())?;
+    let builder = classroom_courses_topics_delete_builder(client, &args.courseId, &args.id)?;
     classroom_courses_topics_delete_execute(builder)
 }
 
@@ -8198,12 +8120,12 @@ pub fn classroom_courses_topics_delete(
 
 pub fn classroom_invitations_accept_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/invitations/{}:accept",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -8343,7 +8265,7 @@ pub fn classroom_invitations_accept(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_accept_builder(client, args.id.clone())?;
+    let builder = classroom_invitations_accept_builder(client, &args.id)?;
     classroom_invitations_accept_execute(builder)
 }
 
@@ -8511,13 +8433,10 @@ pub fn classroom_invitations_create(
 
 pub fn classroom_invitations_delete_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://classroom.googleapis.com/v1/invitations/{}",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://classroom.googleapis.com/v1/invitations/{}", id,);
 
     // Build request
     let builder = client
@@ -8656,7 +8575,7 @@ pub fn classroom_invitations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_invitations_delete_builder(client, args.id.clone())?;
+    let builder = classroom_invitations_delete_builder(client, &args.id)?;
     classroom_invitations_delete_execute(builder)
 }
 
@@ -8828,12 +8747,12 @@ pub fn classroom_registrations_create(
 
 pub fn classroom_registrations_delete_builder(
     client: &SimpleHttpClient,
-    registrationId: String,
+    registrationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/registrations/{}",
-        registrationId.as_str(),
+        registrationId,
     );
 
     // Build request
@@ -8973,7 +8892,7 @@ pub fn classroom_registrations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_registrations_delete_builder(client, args.registrationId.clone())?;
+    let builder = classroom_registrations_delete_builder(client, &args.registrationId)?;
     classroom_registrations_delete_execute(builder)
 }
 
@@ -8985,12 +8904,12 @@ pub fn classroom_registrations_delete(
 
 pub fn classroom_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    userId: String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}",
-        userId.as_str(),
+        userId,
     );
 
     // Build request
@@ -9130,7 +9049,7 @@ pub fn classroom_user_profiles_get(
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = classroom_user_profiles_get_builder(client, args.userId.clone())?;
+    let builder = classroom_user_profiles_get_builder(client, &args.userId)?;
     classroom_user_profiles_get_execute(builder)
 }
 
@@ -9142,13 +9061,13 @@ pub fn classroom_user_profiles_get(
 
 pub fn classroom_user_profiles_guardian_invitations_create_builder(
     client: &SimpleHttpClient,
-    studentId: String,
+    studentId: &String,
     body: &GuardianInvitation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations",
-        studentId.as_str(),
+        studentId,
     );
 
     // Build request
@@ -9298,7 +9217,7 @@ pub fn classroom_user_profiles_guardian_invitations_create(
 > {
     let builder = classroom_user_profiles_guardian_invitations_create_builder(
         client,
-        args.studentId.clone(),
+        &args.studentId,
         &args.body,
     )?;
     classroom_user_profiles_guardian_invitations_create_execute(builder)
@@ -9312,14 +9231,13 @@ pub fn classroom_user_profiles_guardian_invitations_create(
 
 pub fn classroom_user_profiles_guardian_invitations_get_builder(
     client: &SimpleHttpClient,
-    studentId: String,
-    invitationId: String,
+    studentId: &String,
+    invitationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardianInvitations/{}",
-        studentId.as_str(),
-        invitationId.as_str(),
+        studentId, invitationId,
     );
 
     // Build request
@@ -9467,8 +9385,8 @@ pub fn classroom_user_profiles_guardian_invitations_get(
 > {
     let builder = classroom_user_profiles_guardian_invitations_get_builder(
         client,
-        args.studentId.clone(),
-        args.invitationId.clone(),
+        &args.studentId,
+        &args.invitationId,
     )?;
     classroom_user_profiles_guardian_invitations_get_execute(builder)
 }
@@ -9481,14 +9399,13 @@ pub fn classroom_user_profiles_guardian_invitations_get(
 
 pub fn classroom_user_profiles_guardians_delete_builder(
     client: &SimpleHttpClient,
-    studentId: String,
-    guardianId: String,
+    studentId: &String,
+    guardianId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians/{}",
-        studentId.as_str(),
-        guardianId.as_str(),
+        studentId, guardianId,
     );
 
     // Build request
@@ -9632,8 +9549,8 @@ pub fn classroom_user_profiles_guardians_delete(
 > {
     let builder = classroom_user_profiles_guardians_delete_builder(
         client,
-        args.studentId.clone(),
-        args.guardianId.clone(),
+        &args.studentId,
+        &args.guardianId,
     )?;
     classroom_user_profiles_guardians_delete_execute(builder)
 }
@@ -9646,26 +9563,26 @@ pub fn classroom_user_profiles_guardians_delete(
 
 pub fn classroom_user_profiles_guardians_list_builder(
     client: &SimpleHttpClient,
-    studentId: String,
-    invitedEmailAddress: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    studentId: &String,
+    invitedEmailAddress: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://classroom.googleapis.com/v1/userProfiles/{}/guardians",
-        studentId.as_str(),
+        studentId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = invitedEmailAddress {
+    if let Some(val) = invitedEmailAddress.as_ref() {
         query_parts.push(format!("invitedEmailAddress={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -9823,10 +9740,10 @@ pub fn classroom_user_profiles_guardians_list(
 > {
     let builder = classroom_user_profiles_guardians_list_builder(
         client,
-        args.studentId.clone(),
-        args.invitedEmailAddress.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.studentId,
+        &args.invitedEmailAddress,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     classroom_user_profiles_guardians_list_execute(builder)
 }

@@ -29,19 +29,19 @@ use serde::Serialize;
 
 pub fn checks_accounts_apps_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://checks.googleapis.com/v1alpha/accounts/{}/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -200,12 +200,8 @@ pub fn checks_accounts_apps_list(
         + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_list_builder(
-        client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        checks_accounts_apps_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     checks_accounts_apps_list_execute(builder)
 }
 

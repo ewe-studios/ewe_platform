@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn securitycenter_folders_assets_group_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GroupAssetsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -180,8 +180,7 @@ pub fn securitycenter_folders_assets_group(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_assets_group_builder(client, args.parent.clone(), &args.body)?;
+    let builder = securitycenter_folders_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_folders_assets_group_execute(builder)
 }
 
@@ -193,39 +192,39 @@ pub fn securitycenter_folders_assets_group(
 
 pub fn securitycenter_folders_assets_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    compareDuration: Option<String>,
-    fieldMask: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readTime: Option<String>,
+    parent: &String,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://securitycenter.googleapis.com/v1/folders/{}/assets",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = compareDuration {
+    if let Some(val) = compareDuration.as_ref() {
         query_parts.push(format!("compareDuration={}", val));
     }
-    if let Some(val) = fieldMask {
+    if let Some(val) = fieldMask.as_ref() {
         query_parts.push(format!("fieldMask={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readTime {
+    if let Some(val) = readTime.as_ref() {
         query_parts.push(format!("readTime={}", val));
     }
 
@@ -391,14 +390,14 @@ pub fn securitycenter_folders_assets_list(
 > {
     let builder = securitycenter_folders_assets_list_builder(
         client,
-        args.parent.clone(),
-        args.compareDuration.clone(),
-        args.fieldMask.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readTime.clone(),
+        &args.parent,
+        &args.compareDuration,
+        &args.fieldMask,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readTime,
     )?;
     securitycenter_folders_assets_list_execute(builder)
 }
@@ -411,8 +410,8 @@ pub fn securitycenter_folders_assets_list(
 
 pub fn securitycenter_folders_big_query_exports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    bigQueryExportId: Option<String>,
+    parent: &String,
+    bigQueryExportId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1BigQueryExport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -421,7 +420,7 @@ pub fn securitycenter_folders_big_query_exports_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = bigQueryExportId {
+    if let Some(val) = bigQueryExportId.as_ref() {
         query_parts.push(format!("bigQueryExportId={}", val));
     }
 
@@ -583,8 +582,8 @@ pub fn securitycenter_folders_big_query_exports_create(
 > {
     let builder = securitycenter_folders_big_query_exports_create_builder(
         client,
-        args.parent.clone(),
-        args.bigQueryExportId.clone(),
+        &args.parent,
+        &args.bigQueryExportId,
         &args.body,
     )?;
     securitycenter_folders_big_query_exports_create_execute(builder)
@@ -598,7 +597,7 @@ pub fn securitycenter_folders_big_query_exports_create(
 
 pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_module_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateEventThreatDetectionCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -761,7 +760,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
     let builder =
         securitycenter_folders_event_threat_detection_settings_validate_custom_module_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_folders_event_threat_detection_settings_validate_custom_module_execute(builder)
@@ -775,7 +774,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &EventThreatDetectionCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -936,7 +935,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_create_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_create_execute(builder)
@@ -950,9 +949,9 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -961,10 +960,10 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1135,7 +1134,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -1149,9 +1148,9 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 
 pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1160,10 +1159,10 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1334,7 +1333,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -1348,7 +1347,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 
 pub fn securitycenter_folders_findings_bulk_mute_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BulkMuteFindingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1497,7 +1496,7 @@ pub fn securitycenter_folders_findings_bulk_mute(
     ApiError,
 > {
     let builder =
-        securitycenter_folders_findings_bulk_mute_builder(client, args.parent.clone(), &args.body)?;
+        securitycenter_folders_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_folders_findings_bulk_mute_execute(builder)
 }
 
@@ -1509,8 +1508,8 @@ pub fn securitycenter_folders_findings_bulk_mute(
 
 pub fn securitycenter_folders_mute_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    muteConfigId: Option<String>,
+    parent: &String,
+    muteConfigId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1MuteConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1518,7 +1517,7 @@ pub fn securitycenter_folders_mute_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = muteConfigId {
+    if let Some(val) = muteConfigId.as_ref() {
         query_parts.push(format!("muteConfigId={}", val));
     }
 
@@ -1680,8 +1679,8 @@ pub fn securitycenter_folders_mute_configs_create(
 > {
     let builder = securitycenter_folders_mute_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.muteConfigId.clone(),
+        &args.parent,
+        &args.muteConfigId,
         &args.body,
     )?;
     securitycenter_folders_mute_configs_create_execute(builder)
@@ -1695,8 +1694,8 @@ pub fn securitycenter_folders_mute_configs_create(
 
 pub fn securitycenter_folders_notification_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    configId: Option<String>,
+    parent: &String,
+    configId: &Option<String>,
     body: &NotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1705,7 +1704,7 @@ pub fn securitycenter_folders_notification_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = configId {
+    if let Some(val) = configId.as_ref() {
         query_parts.push(format!("configId={}", val));
     }
 
@@ -1863,8 +1862,8 @@ pub fn securitycenter_folders_notification_configs_create(
 > {
     let builder = securitycenter_folders_notification_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.configId.clone(),
+        &args.parent,
+        &args.configId,
         &args.body,
     )?;
     securitycenter_folders_notification_configs_create_execute(builder)
@@ -1878,7 +1877,7 @@ pub fn securitycenter_folders_notification_configs_create(
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2051,7 +2050,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_create_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_create_execute(builder)
@@ -2065,9 +2064,9 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2076,10 +2075,10 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2247,7 +2246,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -2261,7 +2260,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2428,7 +2427,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_execute(
@@ -2444,9 +2443,9 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2455,10 +2454,10 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2626,7 +2625,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -2640,19 +2639,19 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 
 pub fn securitycenter_folders_sources_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://securitycenter.googleapis.com/v1/folders/{}/sources",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2808,9 +2807,9 @@ pub fn securitycenter_folders_sources_list(
 > {
     let builder = securitycenter_folders_sources_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     securitycenter_folders_sources_list_execute(builder)
 }
@@ -2823,7 +2822,7 @@ pub fn securitycenter_folders_sources_list(
 
 pub fn securitycenter_organizations_get_organization_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2971,7 +2970,7 @@ pub fn securitycenter_organizations_get_organization_settings(
     ApiError,
 > {
     let builder =
-        securitycenter_organizations_get_organization_settings_builder(client, args.name.clone())?;
+        securitycenter_organizations_get_organization_settings_builder(client, &args.name)?;
     securitycenter_organizations_get_organization_settings_execute(builder)
 }
 
@@ -2983,7 +2982,7 @@ pub fn securitycenter_organizations_get_organization_settings(
 
 pub fn securitycenter_organizations_assets_group_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GroupAssetsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3136,7 +3135,7 @@ pub fn securitycenter_organizations_assets_group(
     ApiError,
 > {
     let builder =
-        securitycenter_organizations_assets_group_builder(client, args.parent.clone(), &args.body)?;
+        securitycenter_organizations_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_assets_group_execute(builder)
 }
 
@@ -3148,39 +3147,39 @@ pub fn securitycenter_organizations_assets_group(
 
 pub fn securitycenter_organizations_assets_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    compareDuration: Option<String>,
-    fieldMask: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readTime: Option<String>,
+    parent: &String,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://securitycenter.googleapis.com/v1/organizations/{}/assets",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = compareDuration {
+    if let Some(val) = compareDuration.as_ref() {
         query_parts.push(format!("compareDuration={}", val));
     }
-    if let Some(val) = fieldMask {
+    if let Some(val) = fieldMask.as_ref() {
         query_parts.push(format!("fieldMask={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readTime {
+    if let Some(val) = readTime.as_ref() {
         query_parts.push(format!("readTime={}", val));
     }
 
@@ -3346,14 +3345,14 @@ pub fn securitycenter_organizations_assets_list(
 > {
     let builder = securitycenter_organizations_assets_list_builder(
         client,
-        args.parent.clone(),
-        args.compareDuration.clone(),
-        args.fieldMask.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readTime.clone(),
+        &args.parent,
+        &args.compareDuration,
+        &args.fieldMask,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readTime,
     )?;
     securitycenter_organizations_assets_list_execute(builder)
 }
@@ -3366,7 +3365,7 @@ pub fn securitycenter_organizations_assets_list(
 
 pub fn securitycenter_organizations_assets_run_discovery_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &RunAssetDiscoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3516,7 +3515,7 @@ pub fn securitycenter_organizations_assets_run_discovery(
 > {
     let builder = securitycenter_organizations_assets_run_discovery_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     securitycenter_organizations_assets_run_discovery_execute(builder)
@@ -3530,10 +3529,10 @@ pub fn securitycenter_organizations_assets_run_discovery(
 
 pub fn securitycenter_organizations_attack_paths_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3541,13 +3540,13 @@ pub fn securitycenter_organizations_attack_paths_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3705,10 +3704,10 @@ pub fn securitycenter_organizations_attack_paths_list(
 > {
     let builder = securitycenter_organizations_attack_paths_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     securitycenter_organizations_attack_paths_list_execute(builder)
 }
@@ -3721,8 +3720,8 @@ pub fn securitycenter_organizations_attack_paths_list(
 
 pub fn securitycenter_organizations_big_query_exports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    bigQueryExportId: Option<String>,
+    parent: &String,
+    bigQueryExportId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1BigQueryExport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3731,7 +3730,7 @@ pub fn securitycenter_organizations_big_query_exports_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = bigQueryExportId {
+    if let Some(val) = bigQueryExportId.as_ref() {
         query_parts.push(format!("bigQueryExportId={}", val));
     }
 
@@ -3893,8 +3892,8 @@ pub fn securitycenter_organizations_big_query_exports_create(
 > {
     let builder = securitycenter_organizations_big_query_exports_create_builder(
         client,
-        args.parent.clone(),
-        args.bigQueryExportId.clone(),
+        &args.parent,
+        &args.bigQueryExportId,
         &args.body,
     )?;
     securitycenter_organizations_big_query_exports_create_execute(builder)
@@ -3908,7 +3907,7 @@ pub fn securitycenter_organizations_big_query_exports_create(
 
 pub fn securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateEventThreatDetectionCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4069,7 +4068,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(client, args.parent.clone(), &args.body)?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_event_threat_detection_settings_validate_custom_module_execute(
         builder,
     )
@@ -4083,7 +4082,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &EventThreatDetectionCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4246,7 +4245,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_create_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_create_execute(
@@ -4262,9 +4261,9 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4273,10 +4272,10 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4444,7 +4443,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -4456,9 +4455,9 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4467,10 +4466,10 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4638,7 +4637,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_execute(builder)
 }
 
@@ -4650,7 +4649,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 
 pub fn securitycenter_organizations_findings_bulk_mute_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BulkMuteFindingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4798,11 +4797,8 @@ pub fn securitycenter_organizations_findings_bulk_mute(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_findings_bulk_mute_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        securitycenter_organizations_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_findings_bulk_mute_execute(builder)
 }
 
@@ -4814,8 +4810,8 @@ pub fn securitycenter_organizations_findings_bulk_mute(
 
 pub fn securitycenter_organizations_mute_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    muteConfigId: Option<String>,
+    parent: &String,
+    muteConfigId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1MuteConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4824,7 +4820,7 @@ pub fn securitycenter_organizations_mute_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = muteConfigId {
+    if let Some(val) = muteConfigId.as_ref() {
         query_parts.push(format!("muteConfigId={}", val));
     }
 
@@ -4986,8 +4982,8 @@ pub fn securitycenter_organizations_mute_configs_create(
 > {
     let builder = securitycenter_organizations_mute_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.muteConfigId.clone(),
+        &args.parent,
+        &args.muteConfigId,
         &args.body,
     )?;
     securitycenter_organizations_mute_configs_create_execute(builder)
@@ -5001,8 +4997,8 @@ pub fn securitycenter_organizations_mute_configs_create(
 
 pub fn securitycenter_organizations_notification_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    configId: Option<String>,
+    parent: &String,
+    configId: &Option<String>,
     body: &NotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5011,7 +5007,7 @@ pub fn securitycenter_organizations_notification_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = configId {
+    if let Some(val) = configId.as_ref() {
         query_parts.push(format!("configId={}", val));
     }
 
@@ -5169,8 +5165,8 @@ pub fn securitycenter_organizations_notification_configs_create(
 > {
     let builder = securitycenter_organizations_notification_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.configId.clone(),
+        &args.parent,
+        &args.configId,
         &args.body,
     )?;
     securitycenter_organizations_notification_configs_create_execute(builder)
@@ -5184,11 +5180,11 @@ pub fn securitycenter_organizations_notification_configs_create(
 
 pub fn securitycenter_organizations_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5196,16 +5192,16 @@ pub fn securitycenter_organizations_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5365,11 +5361,11 @@ pub fn securitycenter_organizations_operations_list(
 > {
     let builder = securitycenter_organizations_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     securitycenter_organizations_operations_list_execute(builder)
 }
@@ -5382,7 +5378,7 @@ pub fn securitycenter_organizations_operations_list(
 
 pub fn securitycenter_organizations_resource_value_configs_batch_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BatchCreateResourceValueConfigsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5542,7 +5538,7 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create(
 > {
     let builder = securitycenter_organizations_resource_value_configs_batch_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     securitycenter_organizations_resource_value_configs_batch_create_execute(builder)
@@ -5556,9 +5552,9 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create(
 
 pub fn securitycenter_organizations_resource_value_configs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5566,10 +5562,10 @@ pub fn securitycenter_organizations_resource_value_configs_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -5729,9 +5725,9 @@ pub fn securitycenter_organizations_resource_value_configs_list(
 > {
     let builder = securitycenter_organizations_resource_value_configs_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     securitycenter_organizations_resource_value_configs_list_execute(builder)
 }
@@ -5744,7 +5740,7 @@ pub fn securitycenter_organizations_resource_value_configs_list(
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5914,7 +5910,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_create_execute(
         builder,
     )
@@ -5928,9 +5924,9 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5939,10 +5935,10 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6111,7 +6107,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -6123,7 +6119,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6284,7 +6280,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_execute(
         builder,
     )
@@ -6298,9 +6294,9 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6309,10 +6305,10 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6481,7 +6477,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_execute(builder)
 }
 
@@ -6493,7 +6489,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 
 pub fn securitycenter_organizations_sources_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Source,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6641,11 +6637,8 @@ pub fn securitycenter_organizations_sources_create(
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_sources_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        securitycenter_organizations_sources_create_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_sources_create_execute(builder)
 }
 
@@ -6657,11 +6650,11 @@ pub fn securitycenter_organizations_sources_create(
 
 pub fn securitycenter_organizations_valued_resources_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6669,16 +6662,16 @@ pub fn securitycenter_organizations_valued_resources_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6842,11 +6835,11 @@ pub fn securitycenter_organizations_valued_resources_list(
 > {
     let builder = securitycenter_organizations_valued_resources_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     securitycenter_organizations_valued_resources_list_execute(builder)
 }
@@ -6859,7 +6852,7 @@ pub fn securitycenter_organizations_valued_resources_list(
 
 pub fn securitycenter_projects_assets_group_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GroupAssetsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7011,8 +7004,7 @@ pub fn securitycenter_projects_assets_group(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_assets_group_builder(client, args.parent.clone(), &args.body)?;
+    let builder = securitycenter_projects_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_projects_assets_group_execute(builder)
 }
 
@@ -7024,39 +7016,39 @@ pub fn securitycenter_projects_assets_group(
 
 pub fn securitycenter_projects_assets_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    compareDuration: Option<String>,
-    fieldMask: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readTime: Option<String>,
+    parent: &String,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://securitycenter.googleapis.com/v1/projects/{}/assets",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = compareDuration {
+    if let Some(val) = compareDuration.as_ref() {
         query_parts.push(format!("compareDuration={}", val));
     }
-    if let Some(val) = fieldMask {
+    if let Some(val) = fieldMask.as_ref() {
         query_parts.push(format!("fieldMask={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readTime {
+    if let Some(val) = readTime.as_ref() {
         query_parts.push(format!("readTime={}", val));
     }
 
@@ -7222,14 +7214,14 @@ pub fn securitycenter_projects_assets_list(
 > {
     let builder = securitycenter_projects_assets_list_builder(
         client,
-        args.parent.clone(),
-        args.compareDuration.clone(),
-        args.fieldMask.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readTime.clone(),
+        &args.parent,
+        &args.compareDuration,
+        &args.fieldMask,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readTime,
     )?;
     securitycenter_projects_assets_list_execute(builder)
 }
@@ -7242,8 +7234,8 @@ pub fn securitycenter_projects_assets_list(
 
 pub fn securitycenter_projects_big_query_exports_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    bigQueryExportId: Option<String>,
+    parent: &String,
+    bigQueryExportId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1BigQueryExport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7252,7 +7244,7 @@ pub fn securitycenter_projects_big_query_exports_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = bigQueryExportId {
+    if let Some(val) = bigQueryExportId.as_ref() {
         query_parts.push(format!("bigQueryExportId={}", val));
     }
 
@@ -7414,8 +7406,8 @@ pub fn securitycenter_projects_big_query_exports_create(
 > {
     let builder = securitycenter_projects_big_query_exports_create_builder(
         client,
-        args.parent.clone(),
-        args.bigQueryExportId.clone(),
+        &args.parent,
+        &args.bigQueryExportId,
         &args.body,
     )?;
     securitycenter_projects_big_query_exports_create_execute(builder)
@@ -7429,7 +7421,7 @@ pub fn securitycenter_projects_big_query_exports_create(
 
 pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_module_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateEventThreatDetectionCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7592,7 +7584,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
     let builder =
         securitycenter_projects_event_threat_detection_settings_validate_custom_module_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_projects_event_threat_detection_settings_validate_custom_module_execute(builder)
@@ -7606,7 +7598,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &EventThreatDetectionCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7768,7 +7760,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_create_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_create_execute(builder)
@@ -7782,9 +7774,9 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7793,10 +7785,10 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -7964,7 +7956,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -7978,9 +7970,9 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 
 pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7989,10 +7981,10 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -8163,7 +8155,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -8177,7 +8169,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 
 pub fn securitycenter_projects_findings_bulk_mute_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &BulkMuteFindingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8325,11 +8317,8 @@ pub fn securitycenter_projects_findings_bulk_mute(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_findings_bulk_mute_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        securitycenter_projects_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_projects_findings_bulk_mute_execute(builder)
 }
 
@@ -8341,8 +8330,8 @@ pub fn securitycenter_projects_findings_bulk_mute(
 
 pub fn securitycenter_projects_mute_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    muteConfigId: Option<String>,
+    parent: &String,
+    muteConfigId: &Option<String>,
     body: &GoogleCloudSecuritycenterV1MuteConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8350,7 +8339,7 @@ pub fn securitycenter_projects_mute_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = muteConfigId {
+    if let Some(val) = muteConfigId.as_ref() {
         query_parts.push(format!("muteConfigId={}", val));
     }
 
@@ -8512,8 +8501,8 @@ pub fn securitycenter_projects_mute_configs_create(
 > {
     let builder = securitycenter_projects_mute_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.muteConfigId.clone(),
+        &args.parent,
+        &args.muteConfigId,
         &args.body,
     )?;
     securitycenter_projects_mute_configs_create_execute(builder)
@@ -8527,8 +8516,8 @@ pub fn securitycenter_projects_mute_configs_create(
 
 pub fn securitycenter_projects_notification_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    configId: Option<String>,
+    parent: &String,
+    configId: &Option<String>,
     body: &NotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8537,7 +8526,7 @@ pub fn securitycenter_projects_notification_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = configId {
+    if let Some(val) = configId.as_ref() {
         query_parts.push(format!("configId={}", val));
     }
 
@@ -8695,8 +8684,8 @@ pub fn securitycenter_projects_notification_configs_create(
 > {
     let builder = securitycenter_projects_notification_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.configId.clone(),
+        &args.parent,
+        &args.configId,
         &args.body,
     )?;
     securitycenter_projects_notification_configs_create_execute(builder)
@@ -8710,7 +8699,7 @@ pub fn securitycenter_projects_notification_configs_create(
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8883,7 +8872,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_create_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_create_execute(
@@ -8899,9 +8888,9 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8910,10 +8899,10 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -9081,7 +9070,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -9093,7 +9082,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -9260,7 +9249,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_builder(
             client,
-            args.parent.clone(),
+            &args.parent,
             &args.body,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_execute(
@@ -9276,9 +9265,9 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9287,10 +9276,10 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -9458,7 +9447,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(client, args.parent.clone(), args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -9472,19 +9461,19 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 
 pub fn securitycenter_projects_sources_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://securitycenter.googleapis.com/v1/projects/{}/sources",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -9640,9 +9629,9 @@ pub fn securitycenter_projects_sources_list(
 > {
     let builder = securitycenter_projects_sources_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     securitycenter_projects_sources_list_execute(builder)
 }

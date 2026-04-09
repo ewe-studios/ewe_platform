@@ -29,10 +29,10 @@ use serde::Serialize;
 
 pub fn paymentsresellersubscription_partners_products_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -40,13 +40,13 @@ pub fn paymentsresellersubscription_partners_products_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -204,10 +204,10 @@ pub fn paymentsresellersubscription_partners_products_list(
 > {
     let builder = paymentsresellersubscription_partners_products_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     paymentsresellersubscription_partners_products_list_execute(builder)
 }
@@ -220,7 +220,7 @@ pub fn paymentsresellersubscription_partners_products_list(
 
 pub fn paymentsresellersubscription_partners_promotions_find_eligible_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &FindEligiblePromotionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -379,7 +379,7 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 > {
     let builder = paymentsresellersubscription_partners_promotions_find_eligible_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     paymentsresellersubscription_partners_promotions_find_eligible_execute(builder)
@@ -393,10 +393,10 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 
 pub fn paymentsresellersubscription_partners_promotions_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -404,13 +404,13 @@ pub fn paymentsresellersubscription_partners_promotions_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -568,10 +568,10 @@ pub fn paymentsresellersubscription_partners_promotions_list(
 > {
     let builder = paymentsresellersubscription_partners_promotions_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     paymentsresellersubscription_partners_promotions_list_execute(builder)
 }
@@ -584,8 +584,8 @@ pub fn paymentsresellersubscription_partners_promotions_list(
 
 pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    subscriptionId: Option<String>,
+    parent: &String,
+    subscriptionId: &Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -595,7 +595,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = subscriptionId {
+    if let Some(val) = subscriptionId.as_ref() {
         query_parts.push(format!("subscriptionId={}", val));
     }
 
@@ -753,8 +753,8 @@ pub fn paymentsresellersubscription_partners_subscriptions_create(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_create_builder(
         client,
-        args.parent.clone(),
-        args.subscriptionId.clone(),
+        &args.parent,
+        &args.subscriptionId,
         &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_create_execute(builder)
@@ -768,10 +768,10 @@ pub fn paymentsresellersubscription_partners_subscriptions_create(
 
 pub fn paymentsresellersubscription_partners_subscriptions_provision_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    cycleOptions_initialCycleDuration_count: Option<i32>,
-    cycleOptions_initialCycleDuration_unit: Option<String>,
-    subscriptionId: Option<String>,
+    parent: &String,
+    cycleOptions_initialCycleDuration_count: &Option<i32>,
+    cycleOptions_initialCycleDuration_unit: &Option<String>,
+    subscriptionId: &Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -781,13 +781,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cycleOptions_initialCycleDuration_count {
+    if let Some(val) = cycleOptions_initialCycleDuration_count.as_ref() {
         query_parts.push(format!("cycleOptions.initialCycleDuration.count={}", val));
     }
-    if let Some(val) = cycleOptions_initialCycleDuration_unit {
+    if let Some(val) = cycleOptions_initialCycleDuration_unit.as_ref() {
         query_parts.push(format!("cycleOptions.initialCycleDuration.unit={}", val));
     }
-    if let Some(val) = subscriptionId {
+    if let Some(val) = subscriptionId.as_ref() {
         query_parts.push(format!("subscriptionId={}", val));
     }
 
@@ -949,10 +949,10 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_provision_builder(
         client,
-        args.parent.clone(),
-        args.cycleOptions_initialCycleDuration_count.clone(),
-        args.cycleOptions_initialCycleDuration_unit.clone(),
-        args.subscriptionId.clone(),
+        &args.parent,
+        &args.cycleOptions_initialCycleDuration_count,
+        &args.cycleOptions_initialCycleDuration_unit,
+        &args.subscriptionId,
         &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_provision_execute(builder)
@@ -966,7 +966,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision(
 
 pub fn paymentsresellersubscription_partners_user_sessions_generate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GenerateUserSessionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1125,7 +1125,7 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate(
 > {
     let builder = paymentsresellersubscription_partners_user_sessions_generate_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     paymentsresellersubscription_partners_user_sessions_generate_execute(builder)

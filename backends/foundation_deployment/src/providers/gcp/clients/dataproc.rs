@@ -29,25 +29,24 @@ use serde::Serialize;
 
 pub fn dataproc_projects_regions_clusters_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    actionOnFailedPrimaryWorkers: Option<String>,
-    requestId: Option<String>,
+    projectId: &String,
+    region: &String,
+    actionOnFailedPrimaryWorkers: &Option<String>,
+    requestId: &Option<String>,
     body: &Cluster,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters",
-        projectId.as_str(),
-        region.as_str(),
+        projectId, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = actionOnFailedPrimaryWorkers {
+    if let Some(val) = actionOnFailedPrimaryWorkers.as_ref() {
         query_parts.push(format!("actionOnFailedPrimaryWorkers={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -205,10 +204,10 @@ pub fn dataproc_projects_regions_clusters_create(
 > {
     let builder = dataproc_projects_regions_clusters_create_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.actionOnFailedPrimaryWorkers.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.region,
+        &args.actionOnFailedPrimaryWorkers,
+        &args.requestId,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_create_execute(builder)
@@ -222,30 +221,28 @@ pub fn dataproc_projects_regions_clusters_create(
 
 pub fn dataproc_projects_regions_clusters_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: String,
-    clusterUuid: Option<String>,
-    gracefulTerminationTimeout: Option<String>,
-    requestId: Option<String>,
+    projectId: &String,
+    region: &String,
+    clusterName: &String,
+    clusterUuid: &Option<String>,
+    gracefulTerminationTimeout: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}",
-        projectId.as_str(),
-        region.as_str(),
-        clusterName.as_str(),
+        projectId, region, clusterName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clusterUuid {
+    if let Some(val) = clusterUuid.as_ref() {
         query_parts.push(format!("clusterUuid={}", val));
     }
-    if let Some(val) = gracefulTerminationTimeout {
+    if let Some(val) = gracefulTerminationTimeout.as_ref() {
         query_parts.push(format!("gracefulTerminationTimeout={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -403,12 +400,12 @@ pub fn dataproc_projects_regions_clusters_delete(
 > {
     let builder = dataproc_projects_regions_clusters_delete_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
-        args.clusterUuid.clone(),
-        args.gracefulTerminationTimeout.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.clusterUuid,
+        &args.gracefulTerminationTimeout,
+        &args.requestId,
     )?;
     dataproc_projects_regions_clusters_delete_execute(builder)
 }
@@ -421,17 +418,15 @@ pub fn dataproc_projects_regions_clusters_delete(
 
 pub fn dataproc_projects_regions_clusters_diagnose_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: String,
+    projectId: &String,
+    region: &String,
+    clusterName: &String,
     body: &DiagnoseClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:diagnose",
-        projectId.as_str(),
-        region.as_str(),
-        clusterName.as_str(),
+        projectId, region, clusterName,
     );
 
     // Build request
@@ -581,9 +576,9 @@ pub fn dataproc_projects_regions_clusters_diagnose(
 > {
     let builder = dataproc_projects_regions_clusters_diagnose_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_diagnose_execute(builder)
@@ -597,9 +592,9 @@ pub fn dataproc_projects_regions_clusters_diagnose(
 
 pub fn dataproc_projects_regions_clusters_inject_credentials_builder(
     client: &SimpleHttpClient,
-    project: String,
-    region: String,
-    cluster: String,
+    project: &String,
+    region: &String,
+    cluster: &String,
     body: &InjectCredentialsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -754,9 +749,9 @@ pub fn dataproc_projects_regions_clusters_inject_credentials(
 > {
     let builder = dataproc_projects_regions_clusters_inject_credentials_builder(
         client,
-        args.project.clone(),
-        args.region.clone(),
-        args.cluster.clone(),
+        &args.project,
+        &args.region,
+        &args.cluster,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_inject_credentials_execute(builder)
@@ -770,17 +765,15 @@ pub fn dataproc_projects_regions_clusters_inject_credentials(
 
 pub fn dataproc_projects_regions_clusters_repair_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: String,
+    projectId: &String,
+    region: &String,
+    clusterName: &String,
     body: &RepairClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:repair",
-        projectId.as_str(),
-        region.as_str(),
-        clusterName.as_str(),
+        projectId, region, clusterName,
     );
 
     // Build request
@@ -930,9 +923,9 @@ pub fn dataproc_projects_regions_clusters_repair(
 > {
     let builder = dataproc_projects_regions_clusters_repair_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_repair_execute(builder)
@@ -946,17 +939,15 @@ pub fn dataproc_projects_regions_clusters_repair(
 
 pub fn dataproc_projects_regions_clusters_start_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: String,
+    projectId: &String,
+    region: &String,
+    clusterName: &String,
     body: &StartClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:start",
-        projectId.as_str(),
-        region.as_str(),
-        clusterName.as_str(),
+        projectId, region, clusterName,
     );
 
     // Build request
@@ -1106,9 +1097,9 @@ pub fn dataproc_projects_regions_clusters_start(
 > {
     let builder = dataproc_projects_regions_clusters_start_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_start_execute(builder)
@@ -1122,17 +1113,15 @@ pub fn dataproc_projects_regions_clusters_start(
 
 pub fn dataproc_projects_regions_clusters_stop_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: String,
+    projectId: &String,
+    region: &String,
+    clusterName: &String,
     body: &StopClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/clusters/{}:stop",
-        projectId.as_str(),
-        region.as_str(),
-        clusterName.as_str(),
+        projectId, region, clusterName,
     );
 
     // Build request
@@ -1282,9 +1271,9 @@ pub fn dataproc_projects_regions_clusters_stop(
 > {
     let builder = dataproc_projects_regions_clusters_stop_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
         &args.body,
     )?;
     dataproc_projects_regions_clusters_stop_execute(builder)
@@ -1298,17 +1287,15 @@ pub fn dataproc_projects_regions_clusters_stop(
 
 pub fn dataproc_projects_regions_jobs_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    jobId: String,
+    projectId: &String,
+    region: &String,
+    jobId: &String,
     body: &CancelJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}:cancel",
-        projectId.as_str(),
-        region.as_str(),
-        jobId.as_str(),
+        projectId, region, jobId,
     );
 
     // Build request
@@ -1458,9 +1445,9 @@ pub fn dataproc_projects_regions_jobs_cancel(
 > {
     let builder = dataproc_projects_regions_jobs_cancel_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.region,
+        &args.jobId,
         &args.body,
     )?;
     dataproc_projects_regions_jobs_cancel_execute(builder)
@@ -1474,16 +1461,14 @@ pub fn dataproc_projects_regions_jobs_cancel(
 
 pub fn dataproc_projects_regions_jobs_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    jobId: String,
+    projectId: &String,
+    region: &String,
+    jobId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs/{}",
-        projectId.as_str(),
-        region.as_str(),
-        jobId.as_str(),
+        projectId, region, jobId,
     );
 
     // Build request
@@ -1629,9 +1614,9 @@ pub fn dataproc_projects_regions_jobs_delete(
 > {
     let builder = dataproc_projects_regions_jobs_delete_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.jobId.clone(),
+        &args.projectId,
+        &args.region,
+        &args.jobId,
     )?;
     dataproc_projects_regions_jobs_delete_execute(builder)
 }
@@ -1644,36 +1629,35 @@ pub fn dataproc_projects_regions_jobs_delete(
 
 pub fn dataproc_projects_regions_jobs_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
-    clusterName: Option<String>,
-    filter: Option<String>,
-    jobStateMatcher: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectId: &String,
+    region: &String,
+    clusterName: &Option<String>,
+    filter: &Option<String>,
+    jobStateMatcher: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs",
-        projectId.as_str(),
-        region.as_str(),
+        projectId, region,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = clusterName {
+    if let Some(val) = clusterName.as_ref() {
         query_parts.push(format!("clusterName={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = jobStateMatcher {
+    if let Some(val) = jobStateMatcher.as_ref() {
         query_parts.push(format!("jobStateMatcher={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1837,13 +1821,13 @@ pub fn dataproc_projects_regions_jobs_list(
 > {
     let builder = dataproc_projects_regions_jobs_list_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
-        args.clusterName.clone(),
-        args.filter.clone(),
-        args.jobStateMatcher.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.filter,
+        &args.jobStateMatcher,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     dataproc_projects_regions_jobs_list_execute(builder)
 }
@@ -1856,15 +1840,14 @@ pub fn dataproc_projects_regions_jobs_list(
 
 pub fn dataproc_projects_regions_jobs_submit_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
+    projectId: &String,
+    region: &String,
     body: &SubmitJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs:submit",
-        projectId.as_str(),
-        region.as_str(),
+        projectId, region,
     );
 
     // Build request
@@ -2012,8 +1995,8 @@ pub fn dataproc_projects_regions_jobs_submit(
 > {
     let builder = dataproc_projects_regions_jobs_submit_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
+        &args.projectId,
+        &args.region,
         &args.body,
     )?;
     dataproc_projects_regions_jobs_submit_execute(builder)
@@ -2027,15 +2010,14 @@ pub fn dataproc_projects_regions_jobs_submit(
 
 pub fn dataproc_projects_regions_jobs_submit_as_operation_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    region: String,
+    projectId: &String,
+    region: &String,
     body: &SubmitJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dataproc.googleapis.com/v1/projects/{}/regions/{}/jobs:submitAsOperation",
-        projectId.as_str(),
-        region.as_str(),
+        projectId, region,
     );
 
     // Build request
@@ -2183,8 +2165,8 @@ pub fn dataproc_projects_regions_jobs_submit_as_operation(
 > {
     let builder = dataproc_projects_regions_jobs_submit_as_operation_builder(
         client,
-        args.projectId.clone(),
-        args.region.clone(),
+        &args.projectId,
+        &args.region,
         &args.body,
     )?;
     dataproc_projects_regions_jobs_submit_as_operation_execute(builder)

@@ -185,7 +185,7 @@ pub fn mybusinessaccountmanagement_accounts_create(
 
 pub fn mybusinessaccountmanagement_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -328,7 +328,7 @@ pub fn mybusinessaccountmanagement_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_accounts_get_builder(client, args.name.clone())?;
+    let builder = mybusinessaccountmanagement_accounts_get_builder(client, &args.name)?;
     mybusinessaccountmanagement_accounts_get_execute(builder)
 }
 
@@ -340,7 +340,7 @@ pub fn mybusinessaccountmanagement_accounts_get(
 
 pub fn mybusinessaccountmanagement_accounts_admins_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Admin,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -490,7 +490,7 @@ pub fn mybusinessaccountmanagement_accounts_admins_create(
 > {
     let builder = mybusinessaccountmanagement_accounts_admins_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     mybusinessaccountmanagement_accounts_admins_create_execute(builder)
@@ -504,8 +504,8 @@ pub fn mybusinessaccountmanagement_accounts_admins_create(
 
 pub fn mybusinessaccountmanagement_accounts_invitations_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -513,7 +513,7 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
 
@@ -667,8 +667,8 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list(
 > {
     let builder = mybusinessaccountmanagement_accounts_invitations_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
+        &args.parent,
+        &args.filter,
     )?;
     mybusinessaccountmanagement_accounts_invitations_list_execute(builder)
 }
@@ -681,7 +681,7 @@ pub fn mybusinessaccountmanagement_accounts_invitations_list(
 
 pub fn mybusinessaccountmanagement_locations_transfer_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &TransferLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -829,11 +829,8 @@ pub fn mybusinessaccountmanagement_locations_transfer(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessaccountmanagement_locations_transfer_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        mybusinessaccountmanagement_locations_transfer_builder(client, &args.name, &args.body)?;
     mybusinessaccountmanagement_locations_transfer_execute(builder)
 }
 
@@ -845,7 +842,7 @@ pub fn mybusinessaccountmanagement_locations_transfer(
 
 pub fn mybusinessaccountmanagement_locations_admins_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Admin,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -995,7 +992,7 @@ pub fn mybusinessaccountmanagement_locations_admins_create(
 > {
     let builder = mybusinessaccountmanagement_locations_admins_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     mybusinessaccountmanagement_locations_admins_create_execute(builder)

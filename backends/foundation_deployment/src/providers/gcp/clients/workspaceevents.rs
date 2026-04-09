@@ -189,7 +189,7 @@ pub fn workspaceevents_message_stream(
 
 pub fn workspaceevents_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/operations/{}",);
@@ -331,7 +331,7 @@ pub fn workspaceevents_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_operations_get_builder(client, args.name.clone())?;
+    let builder = workspaceevents_operations_get_builder(client, &args.name)?;
     workspaceevents_operations_get_execute(builder)
 }
 
@@ -343,7 +343,7 @@ pub fn workspaceevents_operations_get(
 
 pub fn workspaceevents_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
+    validateOnly: &Option<bool>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -351,7 +351,7 @@ pub fn workspaceevents_subscriptions_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -501,11 +501,8 @@ pub fn workspaceevents_subscriptions_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_create_builder(
-        client,
-        args.validateOnly.clone(),
-        &args.body,
-    )?;
+    let builder =
+        workspaceevents_subscriptions_create_builder(client, &args.validateOnly, &args.body)?;
     workspaceevents_subscriptions_create_execute(builder)
 }
 
@@ -517,23 +514,23 @@ pub fn workspaceevents_subscriptions_create(
 
 pub fn workspaceevents_subscriptions_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    allowMissing: Option<bool>,
-    etag: Option<String>,
-    validateOnly: Option<bool>,
+    name: &String,
+    allowMissing: &Option<bool>,
+    etag: &Option<String>,
+    validateOnly: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowMissing {
+    if let Some(val) = allowMissing.as_ref() {
         query_parts.push(format!("allowMissing={}", val));
     }
-    if let Some(val) = etag {
+    if let Some(val) = etag.as_ref() {
         query_parts.push(format!("etag={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -687,10 +684,10 @@ pub fn workspaceevents_subscriptions_delete(
 > {
     let builder = workspaceevents_subscriptions_delete_builder(
         client,
-        args.name.clone(),
-        args.allowMissing.clone(),
-        args.etag.clone(),
-        args.validateOnly.clone(),
+        &args.name,
+        &args.allowMissing,
+        &args.etag,
+        &args.validateOnly,
     )?;
     workspaceevents_subscriptions_delete_execute(builder)
 }
@@ -703,7 +700,7 @@ pub fn workspaceevents_subscriptions_delete(
 
 pub fn workspaceevents_subscriptions_reactivate_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &ReactivateSubscriptionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -851,8 +848,7 @@ pub fn workspaceevents_subscriptions_reactivate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_subscriptions_reactivate_builder(client, args.name.clone(), &args.body)?;
+    let builder = workspaceevents_subscriptions_reactivate_builder(client, &args.name, &args.body)?;
     workspaceevents_subscriptions_reactivate_execute(builder)
 }
 
@@ -864,7 +860,7 @@ pub fn workspaceevents_subscriptions_reactivate(
 
 pub fn workspaceevents_tasks_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelTaskRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1011,7 +1007,7 @@ pub fn workspaceevents_tasks_cancel(
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = workspaceevents_tasks_cancel_builder(client, &args.name, &args.body)?;
     workspaceevents_tasks_cancel_execute(builder)
 }
 
@@ -1023,19 +1019,19 @@ pub fn workspaceevents_tasks_cancel(
 
 pub fn workspaceevents_tasks_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    historyLength: Option<i32>,
-    tenant: Option<String>,
+    name: &String,
+    historyLength: &Option<i32>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = historyLength {
+    if let Some(val) = historyLength.as_ref() {
         query_parts.push(format!("historyLength={}", val));
     }
-    if let Some(val) = tenant {
+    if let Some(val) = tenant.as_ref() {
         query_parts.push(format!("tenant={}", val));
     }
 
@@ -1185,12 +1181,8 @@ pub fn workspaceevents_tasks_get(
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_get_builder(
-        client,
-        args.name.clone(),
-        args.historyLength.clone(),
-        args.tenant.clone(),
-    )?;
+    let builder =
+        workspaceevents_tasks_get_builder(client, &args.name, &args.historyLength, &args.tenant)?;
     workspaceevents_tasks_get_execute(builder)
 }
 
@@ -1202,15 +1194,15 @@ pub fn workspaceevents_tasks_get(
 
 pub fn workspaceevents_tasks_subscribe_builder(
     client: &SimpleHttpClient,
-    name: String,
-    tenant: Option<String>,
+    name: &String,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}:subscribe",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = tenant {
+    if let Some(val) = tenant.as_ref() {
         query_parts.push(format!("tenant={}", val));
     }
 
@@ -1362,8 +1354,7 @@ pub fn workspaceevents_tasks_subscribe(
         + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_tasks_subscribe_builder(client, args.name.clone(), args.tenant.clone())?;
+    let builder = workspaceevents_tasks_subscribe_builder(client, &args.name, &args.tenant)?;
     workspaceevents_tasks_subscribe_execute(builder)
 }
 
@@ -1375,9 +1366,9 @@ pub fn workspaceevents_tasks_subscribe(
 
 pub fn workspaceevents_tasks_push_notification_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    configId: Option<String>,
-    tenant: Option<String>,
+    parent: &String,
+    configId: &Option<String>,
+    tenant: &Option<String>,
     body: &TaskPushNotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1386,10 +1377,10 @@ pub fn workspaceevents_tasks_push_notification_configs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = configId {
+    if let Some(val) = configId.as_ref() {
         query_parts.push(format!("configId={}", val));
     }
-    if let Some(val) = tenant {
+    if let Some(val) = tenant.as_ref() {
         query_parts.push(format!("tenant={}", val));
     }
 
@@ -1553,9 +1544,9 @@ pub fn workspaceevents_tasks_push_notification_configs_create(
 > {
     let builder = workspaceevents_tasks_push_notification_configs_create_builder(
         client,
-        args.parent.clone(),
-        args.configId.clone(),
-        args.tenant.clone(),
+        &args.parent,
+        &args.configId,
+        &args.tenant,
         &args.body,
     )?;
     workspaceevents_tasks_push_notification_configs_create_execute(builder)

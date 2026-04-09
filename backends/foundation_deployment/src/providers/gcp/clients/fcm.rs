@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn fcm_projects_messages_send_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SendMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,6 +176,6 @@ pub fn fcm_projects_messages_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fcm_projects_messages_send_builder(client, args.parent.clone(), &args.body)?;
+    let builder = fcm_projects_messages_send_builder(client, &args.parent, &args.body)?;
     fcm_projects_messages_send_execute(builder)
 }

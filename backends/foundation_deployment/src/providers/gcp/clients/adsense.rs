@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn adsense_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}",);
@@ -171,7 +171,7 @@ pub fn adsense_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_get_builder(client, args.name.clone())?;
+    let builder = adsense_accounts_get_builder(client, &args.name)?;
     adsense_accounts_get_execute(builder)
 }
 
@@ -183,7 +183,7 @@ pub fn adsense_accounts_get(
 
 pub fn adsense_accounts_get_ad_blocking_recovery_tag_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -330,7 +330,7 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag(
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_get_ad_blocking_recovery_tag_builder(client, args.name.clone())?;
+    let builder = adsense_accounts_get_ad_blocking_recovery_tag_builder(client, &args.name)?;
     adsense_accounts_get_ad_blocking_recovery_tag_execute(builder)
 }
 
@@ -342,18 +342,18 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag(
 
 pub fn adsense_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -505,8 +505,7 @@ pub fn adsense_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsense_accounts_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = adsense_accounts_list_builder(client, &args.pageSize, &args.pageToken)?;
     adsense_accounts_list_execute(builder)
 }
 
@@ -518,19 +517,19 @@ pub fn adsense_accounts_list(
 
 pub fn adsense_accounts_list_child_accounts_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}:listChildAccounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -686,9 +685,9 @@ pub fn adsense_accounts_list_child_accounts(
 > {
     let builder = adsense_accounts_list_child_accounts_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adsense_accounts_list_child_accounts_execute(builder)
 }
@@ -701,19 +700,19 @@ pub fn adsense_accounts_list_child_accounts(
 
 pub fn adsense_accounts_adclients_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/adclients",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -869,9 +868,9 @@ pub fn adsense_accounts_adclients_list(
 > {
     let builder = adsense_accounts_adclients_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adsense_accounts_adclients_list_execute(builder)
 }
@@ -884,15 +883,15 @@ pub fn adsense_accounts_adclients_list(
 
 pub fn adsense_accounts_alerts_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    languageCode: Option<String>,
+    parent: &String,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -1044,11 +1043,7 @@ pub fn adsense_accounts_alerts_list(
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_alerts_list_builder(
-        client,
-        args.parent.clone(),
-        args.languageCode.clone(),
-    )?;
+    let builder = adsense_accounts_alerts_list_builder(client, &args.parent, &args.languageCode)?;
     adsense_accounts_alerts_list_execute(builder)
 }
 
@@ -1060,7 +1055,7 @@ pub fn adsense_accounts_alerts_list(
 
 pub fn adsense_accounts_payments_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/payments",);
@@ -1206,7 +1201,7 @@ pub fn adsense_accounts_payments_list(
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_payments_list_builder(client, args.parent.clone())?;
+    let builder = adsense_accounts_payments_list_builder(client, &args.parent)?;
     adsense_accounts_payments_list_execute(builder)
 }
 
@@ -1218,19 +1213,19 @@ pub fn adsense_accounts_payments_list(
 
 pub fn adsense_accounts_policy_issues_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/policyIssues",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1386,9 +1381,9 @@ pub fn adsense_accounts_policy_issues_list(
 > {
     let builder = adsense_accounts_policy_issues_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adsense_accounts_policy_issues_list_execute(builder)
 }
@@ -1401,71 +1396,71 @@ pub fn adsense_accounts_policy_issues_list(
 
 pub fn adsense_accounts_reports_generate_builder(
     client: &SimpleHttpClient,
-    account: String,
-    currencyCode: Option<String>,
-    dateRange: Option<String>,
-    dimensions: Option<String>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    filters: Option<String>,
-    languageCode: Option<String>,
-    limit: Option<i32>,
-    metrics: Option<String>,
-    orderBy: Option<String>,
-    reportingTimeZone: Option<String>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    account: &String,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    dimensions: &Option<String>,
+    endDate_day: &Option<i32>,
+    endDate_month: &Option<i32>,
+    endDate_year: &Option<i32>,
+    filters: &Option<String>,
+    languageCode: &Option<String>,
+    limit: &Option<i32>,
+    metrics: &Option<String>,
+    orderBy: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<i32>,
+    startDate_month: &Option<i32>,
+    startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/reports:generate",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = currencyCode {
+    if let Some(val) = currencyCode.as_ref() {
         query_parts.push(format!("currencyCode={}", val));
     }
-    if let Some(val) = dateRange {
+    if let Some(val) = dateRange.as_ref() {
         query_parts.push(format!("dateRange={}", val));
     }
-    if let Some(val) = dimensions {
+    if let Some(val) = dimensions.as_ref() {
         query_parts.push(format!("dimensions={}", val));
     }
-    if let Some(val) = endDate_day {
+    if let Some(val) = endDate_day.as_ref() {
         query_parts.push(format!("endDate.day={}", val));
     }
-    if let Some(val) = endDate_month {
+    if let Some(val) = endDate_month.as_ref() {
         query_parts.push(format!("endDate.month={}", val));
     }
-    if let Some(val) = endDate_year {
+    if let Some(val) = endDate_year.as_ref() {
         query_parts.push(format!("endDate.year={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = reportingTimeZone {
+    if let Some(val) = reportingTimeZone.as_ref() {
         query_parts.push(format!("reportingTimeZone={}", val));
     }
-    if let Some(val) = startDate_day {
+    if let Some(val) = startDate_day.as_ref() {
         query_parts.push(format!("startDate.day={}", val));
     }
-    if let Some(val) = startDate_month {
+    if let Some(val) = startDate_month.as_ref() {
         query_parts.push(format!("startDate.month={}", val));
     }
-    if let Some(val) = startDate_year {
+    if let Some(val) = startDate_year.as_ref() {
         query_parts.push(format!("startDate.year={}", val));
     }
 
@@ -1647,22 +1642,22 @@ pub fn adsense_accounts_reports_generate(
 > {
     let builder = adsense_accounts_reports_generate_builder(
         client,
-        args.account.clone(),
-        args.currencyCode.clone(),
-        args.dateRange.clone(),
-        args.dimensions.clone(),
-        args.endDate_day.clone(),
-        args.endDate_month.clone(),
-        args.endDate_year.clone(),
-        args.filters.clone(),
-        args.languageCode.clone(),
-        args.limit.clone(),
-        args.metrics.clone(),
-        args.orderBy.clone(),
-        args.reportingTimeZone.clone(),
-        args.startDate_day.clone(),
-        args.startDate_month.clone(),
-        args.startDate_year.clone(),
+        &args.account,
+        &args.currencyCode,
+        &args.dateRange,
+        &args.dimensions,
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.filters,
+        &args.languageCode,
+        &args.limit,
+        &args.metrics,
+        &args.orderBy,
+        &args.reportingTimeZone,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
     )?;
     adsense_accounts_reports_generate_execute(builder)
 }
@@ -1675,22 +1670,22 @@ pub fn adsense_accounts_reports_generate(
 
 pub fn adsense_accounts_reports_generate_csv_builder(
     client: &SimpleHttpClient,
-    account: String,
-    currencyCode: Option<String>,
-    dateRange: Option<String>,
-    dimensions: Option<String>,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    filters: Option<String>,
-    languageCode: Option<String>,
-    limit: Option<i32>,
-    metrics: Option<String>,
-    orderBy: Option<String>,
-    reportingTimeZone: Option<String>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    account: &String,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    dimensions: &Option<String>,
+    endDate_day: &Option<i32>,
+    endDate_month: &Option<i32>,
+    endDate_year: &Option<i32>,
+    filters: &Option<String>,
+    languageCode: &Option<String>,
+    limit: &Option<i32>,
+    metrics: &Option<String>,
+    orderBy: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<i32>,
+    startDate_month: &Option<i32>,
+    startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1698,49 +1693,49 @@ pub fn adsense_accounts_reports_generate_csv_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = currencyCode {
+    if let Some(val) = currencyCode.as_ref() {
         query_parts.push(format!("currencyCode={}", val));
     }
-    if let Some(val) = dateRange {
+    if let Some(val) = dateRange.as_ref() {
         query_parts.push(format!("dateRange={}", val));
     }
-    if let Some(val) = dimensions {
+    if let Some(val) = dimensions.as_ref() {
         query_parts.push(format!("dimensions={}", val));
     }
-    if let Some(val) = endDate_day {
+    if let Some(val) = endDate_day.as_ref() {
         query_parts.push(format!("endDate.day={}", val));
     }
-    if let Some(val) = endDate_month {
+    if let Some(val) = endDate_month.as_ref() {
         query_parts.push(format!("endDate.month={}", val));
     }
-    if let Some(val) = endDate_year {
+    if let Some(val) = endDate_year.as_ref() {
         query_parts.push(format!("endDate.year={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = reportingTimeZone {
+    if let Some(val) = reportingTimeZone.as_ref() {
         query_parts.push(format!("reportingTimeZone={}", val));
     }
-    if let Some(val) = startDate_day {
+    if let Some(val) = startDate_day.as_ref() {
         query_parts.push(format!("startDate.day={}", val));
     }
-    if let Some(val) = startDate_month {
+    if let Some(val) = startDate_month.as_ref() {
         query_parts.push(format!("startDate.month={}", val));
     }
-    if let Some(val) = startDate_year {
+    if let Some(val) = startDate_year.as_ref() {
         query_parts.push(format!("startDate.year={}", val));
     }
 
@@ -1918,22 +1913,22 @@ pub fn adsense_accounts_reports_generate_csv(
 > {
     let builder = adsense_accounts_reports_generate_csv_builder(
         client,
-        args.account.clone(),
-        args.currencyCode.clone(),
-        args.dateRange.clone(),
-        args.dimensions.clone(),
-        args.endDate_day.clone(),
-        args.endDate_month.clone(),
-        args.endDate_year.clone(),
-        args.filters.clone(),
-        args.languageCode.clone(),
-        args.limit.clone(),
-        args.metrics.clone(),
-        args.orderBy.clone(),
-        args.reportingTimeZone.clone(),
-        args.startDate_day.clone(),
-        args.startDate_month.clone(),
-        args.startDate_year.clone(),
+        &args.account,
+        &args.currencyCode,
+        &args.dateRange,
+        &args.dimensions,
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.filters,
+        &args.languageCode,
+        &args.limit,
+        &args.metrics,
+        &args.orderBy,
+        &args.reportingTimeZone,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
     )?;
     adsense_accounts_reports_generate_csv_execute(builder)
 }
@@ -1946,19 +1941,19 @@ pub fn adsense_accounts_reports_generate_csv(
 
 pub fn adsense_accounts_reports_saved_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/reports/saved",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2114,9 +2109,9 @@ pub fn adsense_accounts_reports_saved_list(
 > {
     let builder = adsense_accounts_reports_saved_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     adsense_accounts_reports_saved_list_execute(builder)
 }
@@ -2129,19 +2124,19 @@ pub fn adsense_accounts_reports_saved_list(
 
 pub fn adsense_accounts_sites_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/sites",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2295,11 +2290,7 @@ pub fn adsense_accounts_sites_list(
         + 'static,
     ApiError,
 > {
-    let builder = adsense_accounts_sites_list_builder(
-        client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        adsense_accounts_sites_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     adsense_accounts_sites_list_execute(builder)
 }

@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn ml_projects_explain_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudMlV1__ExplainRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -180,7 +180,7 @@ pub fn ml_projects_explain(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_explain_builder(client, args.name.clone(), &args.body)?;
+    let builder = ml_projects_explain_builder(client, &args.name, &args.body)?;
     ml_projects_explain_execute(builder)
 }
 
@@ -192,7 +192,7 @@ pub fn ml_projects_explain(
 
 pub fn ml_projects_get_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}:getConfig",);
@@ -342,7 +342,7 @@ pub fn ml_projects_get_config(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_get_config_builder(client, args.name.clone())?;
+    let builder = ml_projects_get_config_builder(client, &args.name)?;
     ml_projects_get_config_execute(builder)
 }
 
@@ -354,7 +354,7 @@ pub fn ml_projects_get_config(
 
 pub fn ml_projects_predict_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudMlV1__PredictRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -505,7 +505,7 @@ pub fn ml_projects_predict(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_predict_builder(client, args.name.clone(), &args.body)?;
+    let builder = ml_projects_predict_builder(client, &args.name, &args.body)?;
     ml_projects_predict_execute(builder)
 }
 
@@ -517,7 +517,7 @@ pub fn ml_projects_predict(
 
 pub fn ml_projects_jobs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudMlV1__Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -668,7 +668,7 @@ pub fn ml_projects_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_jobs_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = ml_projects_jobs_create_builder(client, &args.parent, &args.body)?;
     ml_projects_jobs_create_execute(builder)
 }
 
@@ -680,19 +680,19 @@ pub fn ml_projects_jobs_create(
 
 pub fn ml_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -850,12 +850,8 @@ pub fn ml_projects_locations_list(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_locations_list_builder(
-        client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        ml_projects_locations_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     ml_projects_locations_list_execute(builder)
 }
 
@@ -867,7 +863,7 @@ pub fn ml_projects_locations_list(
 
 pub fn ml_projects_models_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudMlV1__Model,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1018,7 +1014,7 @@ pub fn ml_projects_models_create(
         + 'static,
     ApiError,
 > {
-    let builder = ml_projects_models_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = ml_projects_models_create_builder(client, &args.parent, &args.body)?;
     ml_projects_models_create_execute(builder)
 }
 
@@ -1030,27 +1026,27 @@ pub fn ml_projects_models_create(
 
 pub fn ml_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://ml.googleapis.com/v1/projects/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -1214,11 +1210,11 @@ pub fn ml_projects_operations_list(
 > {
     let builder = ml_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     ml_projects_operations_list_execute(builder)
 }

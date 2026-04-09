@@ -513,18 +513,15 @@ pub fn airquality_history_lookup(
 
 pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
     client: &SimpleHttpClient,
-    mapType: String,
-    zoom: String,
-    x: String,
-    y: String,
+    mapType: &String,
+    zoom: &i32,
+    x: &i32,
+    y: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://airquality.googleapis.com/v1/mapTypes/{}/heatmapTiles/{}/{}/{}",
-        mapType.as_str(),
-        zoom.as_str(),
-        x.as_str(),
-        y.as_str(),
+        mapType, zoom, x, y,
     );
 
     // Build request
@@ -645,11 +642,11 @@ pub struct AirqualityMapTypesHeatmapTilesLookupHeatmapTileArgs {
     /// Path parameter: mapType
     pub mapType: String,
     /// Path parameter: zoom
-    pub zoom: String,
+    pub zoom: i32,
     /// Path parameter: x
-    pub x: String,
+    pub x: i32,
     /// Path parameter: y
-    pub y: String,
+    pub y: i32,
 }
 
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
@@ -672,10 +669,10 @@ pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile(
 > {
     let builder = airquality_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
         client,
-        args.mapType.clone(),
-        args.zoom.clone(),
-        args.x.clone(),
-        args.y.clone(),
+        &args.mapType,
+        &args.zoom,
+        &args.x,
+        &args.y,
     )?;
     airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
 }

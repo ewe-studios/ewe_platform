@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn iap_projects_brands_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Brand,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,7 +176,7 @@ pub fn iap_projects_brands_create(
     impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = iap_projects_brands_create_builder(client, &args.parent, &args.body)?;
     iap_projects_brands_create_execute(builder)
 }
 
@@ -188,7 +188,7 @@ pub fn iap_projects_brands_create(
 
 pub fn iap_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -335,7 +335,7 @@ pub fn iap_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_get_iam_policy_builder(client, args.resource.clone(), &args.body)?;
+    let builder = iap_get_iam_policy_builder(client, &args.resource, &args.body)?;
     iap_get_iam_policy_execute(builder)
 }
 
@@ -347,7 +347,7 @@ pub fn iap_get_iam_policy(
 
 pub fn iap_get_iap_settings_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings",);
@@ -489,7 +489,7 @@ pub fn iap_get_iap_settings(
     impl StreamIterator<D = Result<ApiResponse<IapSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_get_iap_settings_builder(client, args.name.clone())?;
+    let builder = iap_get_iap_settings_builder(client, &args.name)?;
     iap_get_iap_settings_execute(builder)
 }
 
@@ -501,7 +501,7 @@ pub fn iap_get_iap_settings(
 
 pub fn iap_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -648,7 +648,7 @@ pub fn iap_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_set_iam_policy_builder(client, args.resource.clone(), &args.body)?;
+    let builder = iap_set_iam_policy_builder(client, &args.resource, &args.body)?;
     iap_set_iam_policy_execute(builder)
 }
 
@@ -660,7 +660,7 @@ pub fn iap_set_iam_policy(
 
 pub fn iap_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -815,7 +815,7 @@ pub fn iap_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = iap_test_iam_permissions_builder(client, args.resource.clone(), &args.body)?;
+    let builder = iap_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     iap_test_iam_permissions_execute(builder)
 }
 
@@ -827,15 +827,15 @@ pub fn iap_test_iam_permissions(
 
 pub fn iap_validate_attribute_expression_builder(
     client: &SimpleHttpClient,
-    name: String,
-    expression: Option<String>,
+    name: &String,
+    expression: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://iap.googleapis.com/v1/{}:validateAttributeExpression",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = expression {
+    if let Some(val) = expression.as_ref() {
         query_parts.push(format!("expression={}", val));
     }
 
@@ -991,10 +991,6 @@ pub fn iap_validate_attribute_expression(
         + 'static,
     ApiError,
 > {
-    let builder = iap_validate_attribute_expression_builder(
-        client,
-        args.name.clone(),
-        args.expression.clone(),
-    )?;
+    let builder = iap_validate_attribute_expression_builder(client, &args.name, &args.expression)?;
     iap_validate_attribute_expression_execute(builder)
 }

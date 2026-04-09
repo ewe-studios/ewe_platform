@@ -29,19 +29,19 @@ use serde::Serialize;
 
 pub fn orgpolicy_folders_constraints_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/folders/{}/constraints",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -202,9 +202,9 @@ pub fn orgpolicy_folders_constraints_list(
 > {
     let builder = orgpolicy_folders_constraints_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     orgpolicy_folders_constraints_list_execute(builder)
 }
@@ -217,7 +217,7 @@ pub fn orgpolicy_folders_constraints_list(
 
 pub fn orgpolicy_folders_policies_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -372,8 +372,7 @@ pub fn orgpolicy_folders_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        orgpolicy_folders_policies_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = orgpolicy_folders_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_folders_policies_create_execute(builder)
 }
 
@@ -385,19 +384,19 @@ pub fn orgpolicy_folders_policies_create(
 
 pub fn orgpolicy_organizations_constraints_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/organizations/{}/constraints",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -558,9 +557,9 @@ pub fn orgpolicy_organizations_constraints_list(
 > {
     let builder = orgpolicy_organizations_constraints_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     orgpolicy_organizations_constraints_list_execute(builder)
 }
@@ -573,7 +572,7 @@ pub fn orgpolicy_organizations_constraints_list(
 
 pub fn orgpolicy_organizations_custom_constraints_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudOrgpolicyV2CustomConstraint,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -731,7 +730,7 @@ pub fn orgpolicy_organizations_custom_constraints_create(
 > {
     let builder = orgpolicy_organizations_custom_constraints_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     orgpolicy_organizations_custom_constraints_create_execute(builder)
@@ -745,7 +744,7 @@ pub fn orgpolicy_organizations_custom_constraints_create(
 
 pub fn orgpolicy_organizations_policies_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -901,7 +900,7 @@ pub fn orgpolicy_organizations_policies_create(
     ApiError,
 > {
     let builder =
-        orgpolicy_organizations_policies_create_builder(client, args.parent.clone(), &args.body)?;
+        orgpolicy_organizations_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_organizations_policies_create_execute(builder)
 }
 
@@ -913,19 +912,19 @@ pub fn orgpolicy_organizations_policies_create(
 
 pub fn orgpolicy_projects_constraints_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/projects/{}/constraints",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1086,9 +1085,9 @@ pub fn orgpolicy_projects_constraints_list(
 > {
     let builder = orgpolicy_projects_constraints_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     orgpolicy_projects_constraints_list_execute(builder)
 }
@@ -1101,7 +1100,7 @@ pub fn orgpolicy_projects_constraints_list(
 
 pub fn orgpolicy_projects_policies_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1256,7 +1255,6 @@ pub fn orgpolicy_projects_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        orgpolicy_projects_policies_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = orgpolicy_projects_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_projects_policies_create_execute(builder)
 }

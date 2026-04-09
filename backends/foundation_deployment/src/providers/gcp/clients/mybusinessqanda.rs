@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn mybusinessqanda_locations_questions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Question,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,10 +176,7 @@ pub fn mybusinessqanda_locations_questions_create(
     impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessqanda_locations_questions_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        mybusinessqanda_locations_questions_create_builder(client, &args.parent, &args.body)?;
     mybusinessqanda_locations_questions_create_execute(builder)
 }

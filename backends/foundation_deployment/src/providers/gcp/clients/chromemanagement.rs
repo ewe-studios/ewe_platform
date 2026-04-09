@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    orderBy: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -42,16 +42,16 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -225,11 +225,11 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
 > {
     let builder = chromemanagement_customers_apps_count_chrome_app_requests_builder(
         client,
-        args.customer.clone(),
-        args.orderBy.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.orderBy,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_apps_count_chrome_app_requests_execute(builder)
 }
@@ -242,11 +242,11 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
 
 pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    extensionId: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    extensionId: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -255,16 +255,16 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builde
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extensionId {
+    if let Some(val) = extensionId.as_ref() {
         query_parts.push(format!("extensionId={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -438,11 +438,11 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 > {
     let builder = chromemanagement_customers_apps_fetch_devices_requesting_extension_builder(
         client,
-        args.customer.clone(),
-        args.extensionId.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.extensionId,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_apps_fetch_devices_requesting_extension_execute(builder)
 }
@@ -455,11 +455,11 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 
 pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    extensionId: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    extensionId: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -468,16 +468,16 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extensionId {
+    if let Some(val) = extensionId.as_ref() {
         query_parts.push(format!("extensionId={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -651,11 +651,11 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
 > {
     let builder = chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
         client,
-        args.customer.clone(),
-        args.extensionId.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.extensionId,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_apps_fetch_users_requesting_extension_execute(builder)
 }
@@ -668,27 +668,27 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
 
 pub fn chromemanagement_customers_profiles_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/customers/{}/profiles",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -862,11 +862,11 @@ pub fn chromemanagement_customers_profiles_list(
 > {
     let builder = chromemanagement_customers_profiles_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_profiles_list_execute(builder)
 }
@@ -879,10 +879,10 @@ pub fn chromemanagement_customers_profiles_list(
 
 pub fn chromemanagement_customers_reports_count_active_devices_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    customer: &String,
+    date_day: &Option<i32>,
+    date_month: &Option<i32>,
+    date_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -891,13 +891,13 @@ pub fn chromemanagement_customers_reports_count_active_devices_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = date_day {
+    if let Some(val) = date_day.as_ref() {
         query_parts.push(format!("date.day={}", val));
     }
-    if let Some(val) = date_month {
+    if let Some(val) = date_month.as_ref() {
         query_parts.push(format!("date.month={}", val));
     }
-    if let Some(val) = date_year {
+    if let Some(val) = date_year.as_ref() {
         query_parts.push(format!("date.year={}", val));
     }
 
@@ -1063,10 +1063,10 @@ pub fn chromemanagement_customers_reports_count_active_devices(
 > {
     let builder = chromemanagement_customers_reports_count_active_devices_builder(
         client,
-        args.customer.clone(),
-        args.date_day.clone(),
-        args.date_month.clone(),
-        args.date_year.clone(),
+        &args.customer,
+        &args.date_day,
+        &args.date_month,
+        &args.date_year,
     )?;
     chromemanagement_customers_reports_count_active_devices_execute(builder)
 }
@@ -1079,8 +1079,8 @@ pub fn chromemanagement_customers_reports_count_active_devices(
 
 pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    orgUnitId: Option<String>,
+    customer: &String,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1089,7 +1089,7 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
 
@@ -1259,8 +1259,8 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
     let builder =
         chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder(
             client,
-            args.customer.clone(),
-            args.orgUnitId.clone(),
+            &args.customer,
+            &args.orgUnitId,
         )?;
     chromemanagement_customers_reports_count_chrome_browsers_needing_attention_execute(builder)
 }
@@ -1273,10 +1273,10 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 
 pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    orgUnitId: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1285,13 +1285,13 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
 
@@ -1463,10 +1463,10 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events(
 > {
     let builder = chromemanagement_customers_reports_count_chrome_crash_events_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.orgUnitId.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.orgUnitId,
     )?;
     chromemanagement_customers_reports_count_chrome_crash_events_execute(builder)
 }
@@ -1479,10 +1479,10 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events(
 
 pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    maxAueDate: Option<String>,
-    minAueDate: Option<String>,
-    orgUnitId: Option<String>,
+    customer: &String,
+    maxAueDate: &Option<String>,
+    minAueDate: &Option<String>,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1491,13 +1491,13 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxAueDate {
+    if let Some(val) = maxAueDate.as_ref() {
         query_parts.push(format!("maxAueDate={}", val));
     }
-    if let Some(val) = minAueDate {
+    if let Some(val) = minAueDate.as_ref() {
         query_parts.push(format!("minAueDate={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
 
@@ -1670,7 +1670,7 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(client, args.customer.clone(), args.maxAueDate.clone(), args.minAueDate.clone(), args.orgUnitId.clone())?;
+    let builder = chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(client, &args.customer, &args.maxAueDate, &args.minAueDate, &args.orgUnitId)?;
     chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_execute(
         builder,
     )
@@ -1684,9 +1684,9 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 
 pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    orgUnitId: Option<String>,
-    readMask: Option<String>,
+    customer: &String,
+    orgUnitId: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1695,10 +1695,10 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -1870,9 +1870,9 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
     let builder =
         chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder(
             client,
-            args.customer.clone(),
-            args.orgUnitId.clone(),
-            args.readMask.clone(),
+            &args.customer,
+            &args.orgUnitId,
+            &args.readMask,
         )?;
     chromemanagement_customers_reports_count_chrome_devices_that_need_attention_execute(builder)
 }
@@ -1885,9 +1885,9 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 
 pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    orgUnitId: Option<String>,
-    readMask: Option<String>,
+    customer: &String,
+    orgUnitId: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1896,10 +1896,10 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_bu
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -2070,9 +2070,9 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
 > {
     let builder = chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder(
         client,
-        args.customer.clone(),
-        args.orgUnitId.clone(),
-        args.readMask.clone(),
+        &args.customer,
+        &args.orgUnitId,
+        &args.readMask,
     )?;
     chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_execute(builder)
 }
@@ -2085,11 +2085,11 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
 
 pub fn chromemanagement_customers_reports_count_chrome_versions_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2098,16 +2098,16 @@ pub fn chromemanagement_customers_reports_count_chrome_versions_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2275,11 +2275,11 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
 > {
     let builder = chromemanagement_customers_reports_count_chrome_versions_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_reports_count_chrome_versions_execute(builder)
 }
@@ -2292,10 +2292,10 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
 
 pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    customer: &String,
+    date_day: &Option<i32>,
+    date_month: &Option<i32>,
+    date_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2304,13 +2304,13 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = date_day {
+    if let Some(val) = date_day.as_ref() {
         query_parts.push(format!("date.day={}", val));
     }
-    if let Some(val) = date_month {
+    if let Some(val) = date_month.as_ref() {
         query_parts.push(format!("date.month={}", val));
     }
-    if let Some(val) = date_year {
+    if let Some(val) = date_year.as_ref() {
         query_parts.push(format!("date.year={}", val));
     }
 
@@ -2482,10 +2482,10 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
 > {
     let builder = chromemanagement_customers_reports_count_devices_per_boot_type_builder(
         client,
-        args.customer.clone(),
-        args.date_day.clone(),
-        args.date_month.clone(),
-        args.date_year.clone(),
+        &args.customer,
+        &args.date_day,
+        &args.date_month,
+        &args.date_year,
     )?;
     chromemanagement_customers_reports_count_devices_per_boot_type_execute(builder)
 }
@@ -2498,10 +2498,10 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
 
 pub fn chromemanagement_customers_reports_count_devices_per_release_channel_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    customer: &String,
+    date_day: &Option<i32>,
+    date_month: &Option<i32>,
+    date_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2510,13 +2510,13 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel_buil
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = date_day {
+    if let Some(val) = date_day.as_ref() {
         query_parts.push(format!("date.day={}", val));
     }
-    if let Some(val) = date_month {
+    if let Some(val) = date_month.as_ref() {
         query_parts.push(format!("date.month={}", val));
     }
-    if let Some(val) = date_year {
+    if let Some(val) = date_year.as_ref() {
         query_parts.push(format!("date.year={}", val));
     }
 
@@ -2688,10 +2688,10 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
 > {
     let builder = chromemanagement_customers_reports_count_devices_per_release_channel_builder(
         client,
-        args.customer.clone(),
-        args.date_day.clone(),
-        args.date_month.clone(),
-        args.date_year.clone(),
+        &args.customer,
+        &args.date_day,
+        &args.date_month,
+        &args.date_year,
     )?;
     chromemanagement_customers_reports_count_devices_per_release_channel_execute(builder)
 }
@@ -2704,12 +2704,12 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
 
 pub fn chromemanagement_customers_reports_count_installed_apps_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2718,19 +2718,19 @@ pub fn chromemanagement_customers_reports_count_installed_apps_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2900,12 +2900,12 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
 > {
     let builder = chromemanagement_customers_reports_count_installed_apps_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_reports_count_installed_apps_execute(builder)
 }
@@ -2918,12 +2918,12 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
 
 pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    printerOrgUnitId: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2932,19 +2932,19 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = printerOrgUnitId {
+    if let Some(val) = printerOrgUnitId.as_ref() {
         query_parts.push(format!("printerOrgUnitId={}", val));
     }
 
@@ -3120,12 +3120,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 > {
     let builder = chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.printerOrgUnitId.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.printerOrgUnitId,
     )?;
     chromemanagement_customers_reports_count_print_jobs_by_printer_execute(builder)
 }
@@ -3138,12 +3138,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 
 pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    printerOrgUnitId: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3152,19 +3152,19 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = printerOrgUnitId {
+    if let Some(val) = printerOrgUnitId.as_ref() {
         query_parts.push(format!("printerOrgUnitId={}", val));
     }
 
@@ -3334,12 +3334,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 > {
     let builder = chromemanagement_customers_reports_count_print_jobs_by_user_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.printerOrgUnitId.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.printerOrgUnitId,
     )?;
     chromemanagement_customers_reports_count_print_jobs_by_user_execute(builder)
 }
@@ -3352,12 +3352,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 
 pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    printerOrgUnitId: Option<String>,
+    customer: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3366,19 +3366,19 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = printerOrgUnitId {
+    if let Some(val) = printerOrgUnitId.as_ref() {
         query_parts.push(format!("printerOrgUnitId={}", val));
     }
 
@@ -3548,12 +3548,12 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 > {
     let builder = chromemanagement_customers_reports_enumerate_print_jobs_builder(
         client,
-        args.customer.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.printerOrgUnitId.clone(),
+        &args.customer,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.printerOrgUnitId,
     )?;
     chromemanagement_customers_reports_enumerate_print_jobs_execute(builder)
 }
@@ -3566,14 +3566,14 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 
 pub fn chromemanagement_customers_reports_find_installed_app_devices_builder(
     client: &SimpleHttpClient,
-    customer: String,
-    appId: Option<String>,
-    appType: Option<String>,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    orgUnitId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    customer: &String,
+    appId: &Option<String>,
+    appType: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3582,25 +3582,25 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = appId {
+    if let Some(val) = appId.as_ref() {
         query_parts.push(format!("appId={}", val));
     }
-    if let Some(val) = appType {
+    if let Some(val) = appType.as_ref() {
         query_parts.push(format!("appType={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = orgUnitId {
+    if let Some(val) = orgUnitId.as_ref() {
         query_parts.push(format!("orgUnitId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3780,14 +3780,14 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
 > {
     let builder = chromemanagement_customers_reports_find_installed_app_devices_builder(
         client,
-        args.customer.clone(),
-        args.appId.clone(),
-        args.appType.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.orgUnitId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.customer,
+        &args.appId,
+        &args.appType,
+        &args.filter,
+        &args.orderBy,
+        &args.orgUnitId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     chromemanagement_customers_reports_find_installed_app_devices_execute(builder)
 }
@@ -3800,11 +3800,11 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
 
 pub fn chromemanagement_customers_telemetry_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readMask: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3812,16 +3812,16 @@ pub fn chromemanagement_customers_telemetry_devices_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -3989,11 +3989,11 @@ pub fn chromemanagement_customers_telemetry_devices_list(
 > {
     let builder = chromemanagement_customers_telemetry_devices_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readMask.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
     )?;
     chromemanagement_customers_telemetry_devices_list_execute(builder)
 }
@@ -4006,11 +4006,11 @@ pub fn chromemanagement_customers_telemetry_devices_list(
 
 pub fn chromemanagement_customers_telemetry_events_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readMask: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4018,16 +4018,16 @@ pub fn chromemanagement_customers_telemetry_events_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -4195,11 +4195,11 @@ pub fn chromemanagement_customers_telemetry_events_list(
 > {
     let builder = chromemanagement_customers_telemetry_events_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readMask.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
     )?;
     chromemanagement_customers_telemetry_events_list_execute(builder)
 }
@@ -4212,7 +4212,7 @@ pub fn chromemanagement_customers_telemetry_events_list(
 
 pub fn chromemanagement_customers_telemetry_notification_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleChromeManagementV1TelemetryNotificationConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4375,7 +4375,7 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
 > {
     let builder = chromemanagement_customers_telemetry_notification_configs_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     chromemanagement_customers_telemetry_notification_configs_create_execute(builder)
@@ -4389,11 +4389,11 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
 
 pub fn chromemanagement_customers_telemetry_users_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    readMask: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4401,16 +4401,16 @@ pub fn chromemanagement_customers_telemetry_users_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -4578,11 +4578,11 @@ pub fn chromemanagement_customers_telemetry_users_list(
 > {
     let builder = chromemanagement_customers_telemetry_users_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.readMask.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
     )?;
     chromemanagement_customers_telemetry_users_list_execute(builder)
 }
@@ -4595,7 +4595,7 @@ pub fn chromemanagement_customers_telemetry_users_list(
 
 pub fn chromemanagement_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleLongrunningCancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4746,8 +4746,7 @@ pub fn chromemanagement_operations_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromemanagement_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = chromemanagement_operations_cancel_builder(client, &args.name, &args.body)?;
     chromemanagement_operations_cancel_execute(builder)
 }
 
@@ -4759,7 +4758,7 @@ pub fn chromemanagement_operations_cancel(
 
 pub fn chromemanagement_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://chromemanagement.googleapis.com/v1/operations/{}",);
@@ -4905,6 +4904,6 @@ pub fn chromemanagement_operations_delete(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_operations_delete_builder(client, args.name.clone())?;
+    let builder = chromemanagement_operations_delete_builder(client, &args.name)?;
     chromemanagement_operations_delete_execute(builder)
 }

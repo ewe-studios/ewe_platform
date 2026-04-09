@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder(
     client: &SimpleHttpClient,
-    app: String,
+    app: &String,
     body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -187,9 +187,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
     ApiError,
 > {
     let builder = firebaseappcheck_oauth_clients_exchange_app_attest_assertion_builder(
-        client,
-        args.app.clone(),
-        &args.body,
+        client, &args.app, &args.body,
     )?;
     firebaseappcheck_oauth_clients_exchange_app_attest_assertion_execute(builder)
 }
@@ -202,7 +200,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_assertion(
 
 pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder(
     client: &SimpleHttpClient,
-    app: String,
+    app: &String,
     body: &GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -370,9 +368,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
     ApiError,
 > {
     let builder = firebaseappcheck_oauth_clients_exchange_app_attest_attestation_builder(
-        client,
-        args.app.clone(),
-        &args.body,
+        client, &args.app, &args.body,
     )?;
     firebaseappcheck_oauth_clients_exchange_app_attest_attestation_execute(builder)
 }
@@ -385,7 +381,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_app_attest_attestation(
 
 pub fn firebaseappcheck_oauth_clients_exchange_debug_token_builder(
     client: &SimpleHttpClient,
-    app: String,
+    app: &String,
     body: &GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -541,11 +537,8 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_oauth_clients_exchange_debug_token_builder(
-        client,
-        args.app.clone(),
-        &args.body,
-    )?;
+    let builder =
+        firebaseappcheck_oauth_clients_exchange_debug_token_builder(client, &args.app, &args.body)?;
     firebaseappcheck_oauth_clients_exchange_debug_token_execute(builder)
 }
 
@@ -557,7 +550,7 @@ pub fn firebaseappcheck_oauth_clients_exchange_debug_token(
 
 pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder(
     client: &SimpleHttpClient,
-    app: String,
+    app: &String,
     body: &GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -725,9 +718,7 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
     ApiError,
 > {
     let builder = firebaseappcheck_oauth_clients_generate_app_attest_challenge_builder(
-        client,
-        args.app.clone(),
-        &args.body,
+        client, &args.app, &args.body,
     )?;
     firebaseappcheck_oauth_clients_generate_app_attest_challenge_execute(builder)
 }
@@ -740,8 +731,8 @@ pub fn firebaseappcheck_oauth_clients_generate_app_attest_challenge(
 
 pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -750,7 +741,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -918,8 +909,8 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_app_attest_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_app_attest_config_batch_get_execute(builder)
 }
@@ -932,8 +923,8 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get(
 
 pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -942,7 +933,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -1110,8 +1101,8 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_device_check_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_device_check_config_batch_get_execute(builder)
 }
@@ -1124,8 +1115,8 @@ pub fn firebaseappcheck_projects_apps_device_check_config_batch_get(
 
 pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1134,7 +1125,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -1302,8 +1293,8 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_play_integrity_config_batch_get_execute(builder)
 }
@@ -1316,8 +1307,8 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1326,7 +1317,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_buil
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -1494,8 +1485,8 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_execute(builder)
 }
@@ -1508,8 +1499,8 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get(
 
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1518,7 +1509,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -1686,8 +1677,8 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_execute(builder)
 }
@@ -1700,8 +1691,8 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get(
 
 pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    names: Option<String>,
+    parent: &String,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1710,7 +1701,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
 
@@ -1878,8 +1869,8 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
 > {
     let builder = firebaseappcheck_projects_apps_safety_net_config_batch_get_builder(
         client,
-        args.parent.clone(),
-        args.names.clone(),
+        &args.parent,
+        &args.names,
     )?;
     firebaseappcheck_projects_apps_safety_net_config_batch_get_execute(builder)
 }
@@ -1892,7 +1883,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get(
 
 pub fn firebaseappcheck_projects_services_batch_update_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleFirebaseAppcheckV1BatchUpdateServicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2052,11 +2043,8 @@ pub fn firebaseappcheck_projects_services_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappcheck_projects_services_batch_update_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        firebaseappcheck_projects_services_batch_update_builder(client, &args.parent, &args.body)?;
     firebaseappcheck_projects_services_batch_update_execute(builder)
 }
 
@@ -2068,19 +2056,19 @@ pub fn firebaseappcheck_projects_services_batch_update(
 
 pub fn firebaseappcheck_projects_services_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://firebaseappcheck.googleapis.com/v1/projects/{}/services",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2241,9 +2229,9 @@ pub fn firebaseappcheck_projects_services_list(
 > {
     let builder = firebaseappcheck_projects_services_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     firebaseappcheck_projects_services_list_execute(builder)
 }

@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn site_verification_web_resource_delete_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/siteVerification/v1/webResource/{}",
-        id.as_str(),
+        id,
     );
 
     // Build request
@@ -171,7 +171,7 @@ pub fn site_verification_web_resource_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_delete_builder(client, args.id.clone())?;
+    let builder = site_verification_web_resource_delete_builder(client, &args.id)?;
     site_verification_web_resource_delete_execute(builder)
 }
 

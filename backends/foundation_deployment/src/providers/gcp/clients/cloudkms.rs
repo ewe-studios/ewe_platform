@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudkms_folders_get_autokey_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudkms.googleapis.com/v1/folders/{}/autokeyConfig",);
@@ -175,7 +175,7 @@ pub fn cloudkms_folders_get_autokey_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_folders_get_autokey_config_builder(client, args.name.clone())?;
+    let builder = cloudkms_folders_get_autokey_config_builder(client, &args.name)?;
     cloudkms_folders_get_autokey_config_execute(builder)
 }
 
@@ -187,7 +187,7 @@ pub fn cloudkms_folders_get_autokey_config(
 
 pub fn cloudkms_folders_get_kaj_policy_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudkms.googleapis.com/v1/folders/{}/kajPolicyConfig",);
@@ -337,7 +337,7 @@ pub fn cloudkms_folders_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_folders_get_kaj_policy_config_builder(client, args.name.clone())?;
+    let builder = cloudkms_folders_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_folders_get_kaj_policy_config_execute(builder)
 }
 
@@ -349,7 +349,7 @@ pub fn cloudkms_folders_get_kaj_policy_config(
 
 pub fn cloudkms_organizations_get_kaj_policy_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -500,7 +500,7 @@ pub fn cloudkms_organizations_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_organizations_get_kaj_policy_config_builder(client, args.name.clone())?;
+    let builder = cloudkms_organizations_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_organizations_get_kaj_policy_config_execute(builder)
 }
 
@@ -512,7 +512,7 @@ pub fn cloudkms_organizations_get_kaj_policy_config(
 
 pub fn cloudkms_projects_get_autokey_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudkms.googleapis.com/v1/projects/{}/autokeyConfig",);
@@ -658,7 +658,7 @@ pub fn cloudkms_projects_get_autokey_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_get_autokey_config_builder(client, args.name.clone())?;
+    let builder = cloudkms_projects_get_autokey_config_builder(client, &args.name)?;
     cloudkms_projects_get_autokey_config_execute(builder)
 }
 
@@ -670,7 +670,7 @@ pub fn cloudkms_projects_get_autokey_config(
 
 pub fn cloudkms_projects_get_kaj_policy_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudkms.googleapis.com/v1/projects/{}/kajPolicyConfig",);
@@ -820,7 +820,7 @@ pub fn cloudkms_projects_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_get_kaj_policy_config_builder(client, args.name.clone())?;
+    let builder = cloudkms_projects_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_projects_get_kaj_policy_config_execute(builder)
 }
 
@@ -832,7 +832,7 @@ pub fn cloudkms_projects_get_kaj_policy_config(
 
 pub fn cloudkms_projects_show_effective_autokey_config_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -983,8 +983,7 @@ pub fn cloudkms_projects_show_effective_autokey_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_show_effective_autokey_config_builder(client, args.parent.clone())?;
+    let builder = cloudkms_projects_show_effective_autokey_config_builder(client, &args.parent)?;
     cloudkms_projects_show_effective_autokey_config_execute(builder)
 }
 
@@ -996,7 +995,7 @@ pub fn cloudkms_projects_show_effective_autokey_config(
 
 pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_config_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1162,7 +1161,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
     let builder =
         cloudkms_projects_show_effective_key_access_justifications_enrollment_config_builder(
             client,
-            args.project.clone(),
+            &args.project,
         )?;
     cloudkms_projects_show_effective_key_access_justifications_enrollment_config_execute(builder)
 }
@@ -1175,7 +1174,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
 
 pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1340,7 +1339,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
 > {
     let builder = cloudkms_projects_show_effective_key_access_justifications_policy_config_builder(
         client,
-        args.project.clone(),
+        &args.project,
     )?;
     cloudkms_projects_show_effective_key_access_justifications_policy_config_execute(builder)
 }
@@ -1353,27 +1352,27 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
 
 pub fn cloudkms_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudkms.googleapis.com/v1/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1533,11 +1532,11 @@ pub fn cloudkms_projects_locations_list(
 > {
     let builder = cloudkms_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudkms_projects_locations_list_execute(builder)
 }

@@ -358,22 +358,22 @@ pub fn firebasedynamiclinks_short_links_create(
 
 pub fn firebasedynamiclinks_get_link_stats_builder(
     client: &SimpleHttpClient,
-    dynamicLink: String,
-    durationDays: Option<String>,
-    sdkVersion: Option<String>,
+    dynamicLink: &String,
+    durationDays: &Option<String>,
+    sdkVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://firebasedynamiclinks.googleapis.com/v1/{}/linkStats",
-        dynamicLink.as_str(),
+        dynamicLink,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = durationDays {
+    if let Some(val) = durationDays.as_ref() {
         query_parts.push(format!("durationDays={}", val));
     }
-    if let Some(val) = sdkVersion {
+    if let Some(val) = sdkVersion.as_ref() {
         query_parts.push(format!("sdkVersion={}", val));
     }
 
@@ -529,9 +529,9 @@ pub fn firebasedynamiclinks_get_link_stats(
 > {
     let builder = firebasedynamiclinks_get_link_stats_builder(
         client,
-        args.dynamicLink.clone(),
-        args.durationDays.clone(),
-        args.sdkVersion.clone(),
+        &args.dynamicLink,
+        &args.durationDays,
+        &args.sdkVersion,
     )?;
     firebasedynamiclinks_get_link_stats_execute(builder)
 }

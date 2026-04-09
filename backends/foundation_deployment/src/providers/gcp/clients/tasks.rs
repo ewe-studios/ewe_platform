@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn tasks_tasklists_delete_builder(
     client: &SimpleHttpClient,
-    tasklist: String,
+    tasklist: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/users/@me/lists/{}",
-        tasklist.as_str(),
+        tasklist,
     );
 
     // Build request
@@ -171,7 +171,7 @@ pub fn tasks_tasklists_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_delete_builder(client, args.tasklist.clone())?;
+    let builder = tasks_tasklists_delete_builder(client, &args.tasklist)?;
     tasks_tasklists_delete_execute(builder)
 }
 
@@ -339,12 +339,12 @@ pub fn tasks_tasklists_insert(
 
 pub fn tasks_tasks_clear_builder(
     client: &SimpleHttpClient,
-    tasklist: String,
+    tasklist: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/clear",
-        tasklist.as_str(),
+        tasklist,
     );
 
     // Build request
@@ -481,7 +481,7 @@ pub fn tasks_tasks_clear(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_clear_builder(client, args.tasklist.clone())?;
+    let builder = tasks_tasks_clear_builder(client, &args.tasklist)?;
     tasks_tasks_clear_execute(builder)
 }
 
@@ -493,14 +493,13 @@ pub fn tasks_tasks_clear(
 
 pub fn tasks_tasks_delete_builder(
     client: &SimpleHttpClient,
-    tasklist: String,
-    task: String,
+    tasklist: &String,
+    task: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}",
-        tasklist.as_str(),
-        task.as_str(),
+        tasklist, task,
     );
 
     // Build request
@@ -639,7 +638,7 @@ pub fn tasks_tasks_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_delete_builder(client, args.tasklist.clone(), args.task.clone())?;
+    let builder = tasks_tasks_delete_builder(client, &args.tasklist, &args.task)?;
     tasks_tasks_delete_execute(builder)
 }
 
@@ -651,23 +650,23 @@ pub fn tasks_tasks_delete(
 
 pub fn tasks_tasks_insert_builder(
     client: &SimpleHttpClient,
-    tasklist: String,
-    parent: Option<String>,
-    previous: Option<String>,
+    tasklist: &String,
+    parent: &Option<String>,
+    previous: &Option<String>,
     body: &Task,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks",
-        tasklist.as_str(),
+        tasklist,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
-    if let Some(val) = previous {
+    if let Some(val) = previous.as_ref() {
         query_parts.push(format!("previous={}", val));
     }
 
@@ -823,9 +822,9 @@ pub fn tasks_tasks_insert(
 > {
     let builder = tasks_tasks_insert_builder(
         client,
-        args.tasklist.clone(),
-        args.parent.clone(),
-        args.previous.clone(),
+        &args.tasklist,
+        &args.parent,
+        &args.previous,
         &args.body,
     )?;
     tasks_tasks_insert_execute(builder)
@@ -839,28 +838,27 @@ pub fn tasks_tasks_insert(
 
 pub fn tasks_tasks_move_builder(
     client: &SimpleHttpClient,
-    tasklist: String,
-    task: String,
-    destinationTasklist: Option<String>,
-    parent: Option<String>,
-    previous: Option<String>,
+    tasklist: &String,
+    task: &String,
+    destinationTasklist: &Option<String>,
+    parent: &Option<String>,
+    previous: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://tasks.googleapis.com/tasks/v1/lists/{}/tasks/{}/move",
-        tasklist.as_str(),
-        task.as_str(),
+        tasklist, task,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinationTasklist {
+    if let Some(val) = destinationTasklist.as_ref() {
         query_parts.push(format!("destinationTasklist={}", val));
     }
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
-    if let Some(val) = previous {
+    if let Some(val) = previous.as_ref() {
         query_parts.push(format!("previous={}", val));
     }
 
@@ -1016,11 +1014,11 @@ pub fn tasks_tasks_move(
 > {
     let builder = tasks_tasks_move_builder(
         client,
-        args.tasklist.clone(),
-        args.task.clone(),
-        args.destinationTasklist.clone(),
-        args.parent.clone(),
-        args.previous.clone(),
+        &args.tasklist,
+        &args.task,
+        &args.destinationTasklist,
+        &args.parent,
+        &args.previous,
     )?;
     tasks_tasks_move_execute(builder)
 }
