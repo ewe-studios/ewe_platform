@@ -174,11 +174,11 @@ pub struct Schema {
     #[serde(default)]
     #[serde(rename = "$ref")]
     pub ref_path: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "anyOf")]
     pub any_of: Option<Vec<Schema>>,
-    #[serde(default)]
+    #[serde(default, rename = "oneOf")]
     pub one_of: Option<Vec<Schema>>,
-    #[serde(default)]
+    #[serde(default, rename = "allOf")]
     pub all_of: Option<Vec<Schema>>,
     #[serde(default)]
     pub default: Option<Value>,
@@ -529,12 +529,17 @@ impl ResourceGenerator {
 
         for schemas in schemas_maps {
             for (name, value) in schemas {
-                if value.get("type").and_then(|t| t.as_str()) == Some("object") {
-                    if let Some(props) = value.get("properties").and_then(|p| p.as_object()) {
-                        if !props.is_empty() {
-                            names.insert(name.clone());
-                        }
-                    }
+                // Include all object types and composition types (allOf/oneOf/anyOf)
+                let is_object = value.get("type").and_then(|t| t.as_str()) == Some("object")
+                    || value.get("allOf").is_some()
+                    || value.get("oneOf").is_some()
+                    || value.get("anyOf").is_some();
+
+                // Also include response types (they may be allOf-refs-only but are still needed)
+                let is_response = name.to_lowercase().contains("response");
+
+                if is_object || is_response {
+                    names.insert(name.clone());
                 }
             }
         }
@@ -638,26 +643,27 @@ impl ResourceGenerator {
     ) -> Option<ResourceDef> {
         let schema: Schema = serde_json::from_value(schema_value.clone()).ok()?;
 
-        // Only process object types
-        if schema.schema_type.as_deref() != Some("object") {
+        // Check if this is a response or request type (these should always be included)
+        let is_response_wrapper = schema_name.to_lowercase().contains("api_response") || schema_name.to_lowercase().contains("response");
+        let is_request_type = schema_name.to_lowercase().contains("request");
+
+        // Only process object types (including allOf/oneOf/anyOf which are implicitly objects)
+        // OR response/request types which are always needed
+        let is_object = schema.schema_type.as_deref() == Some("object")
+            || schema.all_of.is_some()
+            || schema.one_of.is_some()
+            || schema.any_of.is_some();
+        if !is_object && !is_response_wrapper && !is_request_type {
             return None;
         }
 
-        // Skip schemas that are just type aliases (only have $ref with no own properties or composition)
-        // These don't add value as separate types and just clutter the codebase
         let has_own_properties = schema.properties.as_ref().map_or(false, |p| !p.is_empty());
         let is_ref_only = schema.ref_path.is_some() && !has_own_properties;
+        let has_composition = schema.one_of.is_some() || schema.any_of.is_some();
+        let has_allof = schema.all_of.is_some();
 
-        // Check if it's allOf with only references (no properties in any member)
-        let is_allof_refs_only = schema.all_of.as_ref().map_or(false, |allof| {
-            allof.iter().all(|member| {
-                member.ref_path.is_some() && member.properties.as_ref().map_or(true, |p| p.is_empty())
-            })
-        });
-
-        if is_ref_only || is_allof_refs_only {
-            // This is just a type alias/composition wrapper - skip it
-            tracing::debug!("Skipping composition-only schema: {}", schema_name);
+        // Skip simple ref-only types (not composition, not response/request, not allOf)
+        if is_ref_only && !is_response_wrapper && !is_request_type && !has_composition && !has_allof {
             return None;
         }
 
