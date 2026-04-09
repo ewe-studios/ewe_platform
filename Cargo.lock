@@ -2069,6 +2069,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_logging"
+version = "0.0.1"
+dependencies = [
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "foundation_macros"
 version = "0.0.4"
 dependencies = [
