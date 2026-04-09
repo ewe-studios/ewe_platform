@@ -270,8 +270,8 @@ impl SpecProcessor {
                 base_url: self.spec.base_url(),
                 total_endpoints: endpoints.len(),
                 total_types,
-                api_version: self.spec.info.version.clone(),
-                api_title: self.spec.info.title.clone(),
+                api_version: self.spec.info.as_ref().map(|i| i.version.clone()).unwrap_or_default(),
+                api_title: self.spec.info.as_ref().map(|i| i.title.clone()).unwrap_or_default(),
             },
         }
     }
@@ -288,13 +288,13 @@ impl SpecProcessor {
     }
 
     /// Get API version from info.
-    pub fn version(&self) -> &str {
-        &self.spec.info.version
+    pub fn version(&self) -> Option<&str> {
+        self.spec.info.as_ref().map(|i| i.version.as_str())
     }
 
     /// Get API title from info.
-    pub fn title(&self) -> &str {
-        &self.spec.info.title
+    pub fn title(&self) -> Option<&str> {
+        self.spec.info.as_ref().map(|i| i.title.as_str())
     }
 }
 
