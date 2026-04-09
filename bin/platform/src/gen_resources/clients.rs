@@ -1,7 +1,7 @@
 //! WHY: Generates type-safe API client functions from OpenAPI specifications.
 //!
-//! WHAT: Reads OpenAPI specs from `artefacts/cloud_providers/`, extracts endpoint definitions,
-//! and generates Rust functions that use `SimpleHttpClient` to make API calls.
+//! WHAT: Reads OpenAPI specs from `artefacts/cloud_providers/`, uses foundation_openapi
+//! for endpoint extraction, and generates Rust functions using `SimpleHttpClient`.
 //!
 //! HOW: For each endpoint, generates four functions:
 //! - `{endpoint}_builder()` - Returns `ClientRequestBuilder` for customization
@@ -17,13 +17,9 @@
 //! - Task functions return `TaskIterator` for user composition before `execute()`
 
 use regex::Regex;
-use std::collections::BTreeMap;
 use std::fmt::Write as FmtWrite;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-use serde::de::Error;
-use serde::Deserialize;
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -83,198 +79,6 @@ impl From<std::fmt::Error> for GenClientError {
     fn from(e: std::fmt::Error) -> Self {
         GenClientError::FmtError(e)
     }
-}
-
-// ---------------------------------------------------------------------------
-// OpenAPI structures (minimal for endpoint extraction)
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Deserialize)]
-struct OpenApiSpec {
-    #[serde(default)]
-    openapi: Option<String>,
-    #[serde(default)]
-    info: Option<Info>,
-    #[serde(default)]
-    paths: BTreeMap<String, PathItem>,
-    // GCP Discovery Document format
-    #[serde(default)]
-    resources: Option<BTreeMap<String, Resource>>,
-    #[serde(default, rename = "baseUrl")]
-    base_url: Option<String>,
-    // Standard OpenAPI 3.x servers
-    #[serde(default)]
-    servers: Option<Vec<Server>>,
-    // GCP Discovery Document basePath (alternative to baseUrl)
-    #[serde(default, rename = "basePath")]
-    base_path: Option<String>,
-    // GCP Discovery Document rootUrl
-    #[serde(default, rename = "rootUrl")]
-    root_url: Option<String>,
-    // GCP Discovery Document servicePath
-    #[serde(default, rename = "servicePath")]
-    service_path: Option<String>,
-    // OpenAPI 3.x components
-    #[serde(default)]
-    components: Option<Components>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct Components {
-    #[serde(default, rename = "schemas")]
-    schemas: Option<BTreeMap<String, SchemaRef>>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Server {
-    #[serde(default)]
-    url: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Info {
-    title: String,
-    version: String,
-}
-
-// GCP Discovery Document resource structure
-#[derive(Debug, Deserialize, Default)]
-struct Resource {
-    #[serde(default)]
-    methods: Option<BTreeMap<String, GcpMethod>>,
-    #[serde(default)]
-    resources: Option<BTreeMap<String, Resource>>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct GcpMethod {
-    #[serde(default)]
-    id: Option<String>,
-    #[serde(default)]
-    description: Option<String>,
-    #[serde(default)]
-    path: Option<String>,
-    #[serde(default, rename = "flatPath")]
-    flat_path: Option<String>,
-    #[serde(default)]
-    http_method: Option<String>,
-    #[serde(default)]
-    parameters: Option<BTreeMap<String, GcpParameter>>,
-    #[serde(default, rename = "parameterOrder")]
-    parameter_order: Option<Vec<String>>,
-    #[serde(default, rename = "request")]
-    request_body: Option<GcpRequestBody>,
-    #[serde(default)]
-    response: Option<GcpResponse>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct GcpParameter {
-    #[serde(default)]
-    description: Option<String>,
-    #[serde(default)]
-    location: Option<String>,
-    #[serde(default)]
-    required: bool,
-    #[serde(default)]
-    #[serde(rename = "type")]
-    param_type: Option<String>,
-    #[serde(default)]
-    format: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct GcpRequestBody {
-    #[serde(default, rename = "$ref")]
-    ref_path: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct GcpResponse {
-    #[serde(default, rename = "$ref")]
-    ref_path: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct PathItem {
-    #[serde(default)]
-    get: Option<Operation>,
-    #[serde(default)]
-    post: Option<Operation>,
-    #[serde(default)]
-    put: Option<Operation>,
-    #[serde(default)]
-    patch: Option<Operation>,
-    #[serde(default)]
-    delete: Option<Operation>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct Operation {
-    #[serde(default)]
-    operation_id: Option<String>,
-    #[serde(default)]
-    summary: Option<String>,
-    #[serde(default)]
-    description: Option<String>,
-    #[serde(default)]
-    parameters: Vec<Parameter>,
-    #[serde(default, rename = "requestBody")]
-    request_body: Option<RequestBody>,
-    #[serde(default)]
-    responses: BTreeMap<String, Response>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct Parameter {
-    #[serde(default)]
-    name: Option<String>,
-    #[serde(rename = "in", default)]
-    location: Option<String>,
-    #[serde(default)]
-    required: bool,
-    #[serde(default)]
-    schema: Option<ParameterSchema>,
-    #[serde(default)]
-    description: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct ParameterSchema {
-    #[serde(default, rename = "type")]
-    param_type: Option<serde_json::Value>,
-    #[serde(default)]
-    format: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct RequestBody {
-    #[serde(default)]
-    content: BTreeMap<String, MediaType>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct Response {
-    content: Option<BTreeMap<String, MediaType>>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct MediaType {
-    schema: Option<SchemaRef>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct SchemaRef {
-    #[serde(default, rename = "$ref")]
-    ref_path: Option<String>,
-    #[serde(default)]
-    properties: Option<serde_json::Value>,
-    #[serde(default, rename = "anyOf")]
-    any_of: Option<Vec<SchemaRef>>,
-    #[serde(default, rename = "oneOf")]
-    one_of: Option<Vec<SchemaRef>>,
-    #[serde(default, rename = "allOf")]
-    all_of: Option<Vec<SchemaRef>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -500,28 +304,68 @@ impl ClientGenerator {
             }
         }
 
-        // Try parsing as OpenAPI spec directly first
-        let spec: OpenApiSpec = serde_json::from_str(&content)
-            .or_else(|parse_err| {
+        // Use foundation_openapi for spec parsing and endpoint extraction
+        let processor = foundation_openapi::process_spec(&content)
+            .or_else(|_| {
                 // Try unwrapping from nested structure (e.g., {"openapi.json": {...}})
                 let wrapped: serde_json::Value = serde_json::from_str(&content)
-                    .map_err(|_| serde_json::Error::custom("failed to parse wrapped spec"))?;
+                    .map_err(|e| foundation_openapi::ProcessError::Json(e))?;
                 if let Some(obj) = wrapped.as_object() {
-                    // Try common wrapper keys
                     for key in ["openapi.json", "openapi", "spec"] {
                         if let Some(inner) = obj.get(key) {
-                            if let Ok(spec) = serde_json::from_value(inner.clone()) {
-                                return Ok(spec);
+                            if let Ok(proc) = foundation_openapi::process_spec(&inner.to_string()) {
+                                return Ok(proc);
                             }
                         }
                     }
                 }
-                // Return original error
-                Err(parse_err)
-            })?;
+                Err(foundation_openapi::ProcessError::InvalidSpec("Failed to parse spec".to_string()))
+            })
+            .map_err(|e| GenClientError::ParseFailed(format!("OpenAPI parse error: {}", e)))?;
 
-        // Extract endpoints
-        let endpoints = self.extract_endpoints(&spec)?;
+        // Get endpoints from foundation_openapi
+        let endpoints_foundation = processor.endpoints();
+
+        // Convert to ApiEndpoint format for codegen
+        let endpoints: Vec<ApiEndpoint> = endpoints_foundation
+            .into_iter()
+            .map(|ep| {
+                // Extract path placeholders from path template
+                let placeholder_re = Regex::new(r"\{(\+)?([^}]+)\}").unwrap();
+                let path_placeholders: Vec<String> = placeholder_re
+                    .captures_iter(&ep.path)
+                    .map(|cap| cap[2].to_string())
+                    .collect();
+
+                // Extract base URL
+                let base_url = processor.base_url();
+
+                ApiEndpoint {
+                    path: ep.path,
+                    method: ep.method,
+                    operation_id: Some(ep.operation_id),
+                    summary: ep.summary,
+                    path_params: ep.path_params.iter().map(|p| ParameterInfo {
+                        name: p.replace('-', "_").replace('.', "_"),
+                        original_name: p.clone(),
+                        rust_type: "String".to_string(),
+                        required: true,
+                        description: None,
+                    }).collect(),
+                    query_params: ep.query_params.iter().map(|p| ParameterInfo {
+                        name: p.replace('-', "_").replace('.', "_"),
+                        original_name: p.clone(),
+                        rust_type: "Option<String>".to_string(),
+                        required: false,
+                        description: None,
+                    }).collect(),
+                    request_body_type: ep.request_type,
+                    response_type: ep.response_type.map(|rt| rt.as_rust_type().to_string()),
+                    base_url,
+                    path_placeholders,
+                }
+            })
+            .collect();
         tracing::info!("    Found {} endpoints", endpoints.len());
 
         if endpoints.is_empty() {
@@ -566,6 +410,7 @@ impl ClientGenerator {
         writeln!(out, "use serde::Serialize;")?;
         writeln!(out, "use crate::providers::{}::clients::types::*;", provider_module)?;
         writeln!(out, "use crate::providers::{}::resources::*;", provider_module)?;
+        writeln!(out, "use foundation_db::state::resource_identifier::ResourceIdentifier;")?;
         writeln!(out)?;
 
         // Deduplicate endpoints by generated struct name to avoid duplicate definitions
@@ -581,11 +426,18 @@ impl ClientGenerator {
         }
 
         // Generate functions for each unique endpoint
-        for endpoint in unique_endpoints {
+        for endpoint in &unique_endpoints {
             self.generate_builder_fn(&mut out, endpoint)?;
             self.generate_task_fn(&mut out, endpoint)?;
             self.generate_execute_fn(&mut out, endpoint)?;
             self.generate_convenience_fn(&mut out, endpoint)?;
+        }
+
+        // Generate ResourceIdentifier implementations for each endpoint
+        for endpoint in &unique_endpoints {
+            if let Some(response_type) = &endpoint.response_type {
+                self.generate_resource_identifier_impl(&mut out, endpoint, response_type, label)?;
+            }
         }
 
         // Write output
@@ -593,425 +445,6 @@ impl ClientGenerator {
         tracing::info!("    Written: {}", output_path.display());
 
         Ok(())
-    }
-
-    fn extract_endpoints(&self, spec: &OpenApiSpec) -> Result<Vec<ApiEndpoint>, GenClientError> {
-        let mut endpoints = Vec::new();
-
-        // Regex to extract placeholders like {sitesId} or {+name} from paths
-        let placeholder_re = Regex::new(r"\{(\+)?([^}]+)\}").unwrap();
-
-        // Extract base URL from multiple possible sources:
-        // 1. OpenAPI 3.x: servers[0].url
-        // 2. GCP Discovery: baseUrl
-        // 3. GCP Discovery: rootUrl + servicePath
-        let base_url: String = spec
-            .servers
-            .as_ref()
-            .and_then(|servers| servers.first())
-            .map(|s| s.url.clone())
-            .or(spec.base_url.clone())
-            .or_else(|| {
-                // Combine rootUrl and servicePath for GCP
-                match (&spec.root_url, &spec.service_path) {
-                    (Some(root), Some(service)) => Some(format!("{}{}", root, service)),
-                    (Some(root), None) => Some(root.clone()),
-                    (None, Some(service)) => Some(service.clone()),
-                    (None, None) => None,
-                }
-            })
-            .ok_or_else(|| GenClientError::ParseFailed(
-                "No base URL found in spec - missing 'servers' (OpenAPI 3.x), 'baseUrl', or 'rootUrl'+'servicePath' (GCP Discovery)".to_string()
-            ))?;
-
-        // Extract from standard OpenAPI paths
-        for (path, path_item) in &spec.paths {
-            // Check each HTTP method
-            let methods = [
-                ("get", &path_item.get),
-                ("post", &path_item.post),
-                ("put", &path_item.put),
-                ("patch", &path_item.patch),
-                ("delete", &path_item.delete),
-            ];
-
-            for (method_name, operation_opt) in methods {
-                if let Some(operation) = operation_opt {
-                    let mut path_params = Vec::new();
-                    let mut query_params = Vec::new();
-
-                    // Extract parameters
-                    for param in &operation.parameters {
-                        // Skip parameters without name or location
-                        let original_name = match &param.name {
-                            Some(n) => n.clone(),
-                            None => continue,
-                        };
-                        let name = original_name
-                            .replace('.', "_")
-                            .replace('-', "_")
-                            .replace('<', "_")
-                            .replace('>', "_")
-                            .replace('[', "_")
-                            .replace(']', "_")
-                            .replace('~', "_");
-                        let location = match &param.location {
-                            Some(l) => l.clone(),
-                            None => continue,
-                        };
-
-                        let rust_type = self.param_to_rust_type(param);
-                        let param_info = ParameterInfo {
-                            name,
-                            original_name,
-                            rust_type,
-                            required: param.required,
-                            description: param.description.clone(),
-                        };
-
-                        match location.as_str() {
-                            "path" => path_params.push(param_info),
-                            "query" => query_params.push(param_info),
-                            _ => {}
-                        }
-                    }
-
-                    // Extract request body type - use serde_json::Value for complex union types
-                    let request_body_type = operation
-                        .request_body
-                        .as_ref()
-                        .and_then(|rb| rb.content.get("application/json"))
-                        .and_then(|mt| mt.schema.as_ref())
-                        .and_then(|s| {
-                            // Check if this is a union type (anyOf/oneOf without properties)
-                            // For $ref schemas, look up the definition in components
-                            let schema_to_check = if s.ref_path.is_some() && s.properties.is_none()
-                                && s.any_of.is_none() && s.one_of.is_none() {
-                                // It's a $ref, look up the actual schema
-                                s.ref_path.as_ref()
-                                    .and_then(|ref_path| {
-                                        let type_name = ref_path.trim_start_matches("#/components/schemas/");
-                                        spec.components.as_ref()
-                                            .and_then(|c| c.schemas.as_ref())
-                                            .and_then(|schemas| schemas.get(type_name))
-                                    })
-                            } else {
-                                Some(s)
-                            };
-
-                            schema_to_check.map(|schema| {
-                                // Use serde_json::Value for union types (anyOf/oneOf without properties)
-                                let is_union_type = (schema.any_of.is_some() || schema.one_of.is_some())
-                                    && schema.properties.is_none();
-                                if is_union_type {
-                                    "serde_json::Value".to_string()
-                                } else {
-                                    self.extract_type_name_from_ref(schema).unwrap_or_else(|| "serde_json::Value".to_string())
-                                }
-                            })
-                        });
-
-                    // Extract response type
-                    let response_type = self.extract_response_type(&operation.responses, spec);
-
-                    // Extract placeholder names from path in order (e.g., ["project"] from "/projects/{project}")
-                    let path_placeholders: Vec<String> = placeholder_re
-                        .captures_iter(path)
-                        .map(|cap| cap[2].to_string())
-                        .collect();
-
-                    endpoints.push(ApiEndpoint {
-                        path: path.clone(),
-                        method: method_name.to_uppercase(),
-                        operation_id: operation.operation_id.clone(),
-                        summary: operation.summary.clone(),
-                        path_params,
-                        query_params,
-                        request_body_type,
-                        response_type,
-                        base_url: Some(base_url.clone()),
-                        path_placeholders,
-                    });
-                }
-            }
-        }
-
-        // Extract from GCP Discovery Document format (resources -> methods)
-        if let Some(resources) = &spec.resources {
-            self.extract_gcp_endpoints(resources, "", &mut endpoints, Some(&base_url));
-        }
-
-        // Filter out endpoints where path placeholders don't match path_params
-        // (OpenAPI spec may have {account_id} in path but not declare it as a parameter)
-        endpoints.retain(|ep| {
-            ep.path_placeholders.len() == ep.path_params.len()
-        });
-
-        // Deduplicate endpoints by method + path (some specs have duplicates with different operation_ids)
-        let mut seen = std::collections::HashSet::new();
-        endpoints.retain(|ep| {
-            let key = format!("{}:{}", ep.method, ep.path);
-            seen.insert(key)
-        });
-
-        Ok(endpoints)
-    }
-
-    /// Extract endpoints from GCP Discovery Document resources recursively.
-    fn extract_gcp_endpoints(
-        &self,
-        resources: &BTreeMap<String, Resource>,
-        parent_path: &str,
-        endpoints: &mut Vec<ApiEndpoint>,
-        base_url: Option<&str>,
-    ) {
-        // Regex to extract placeholders like {sitesId} or {+name} from paths
-        let placeholder_re = Regex::new(r"\{(\+)?([^}]+)\}").unwrap();
-
-        for (_resource_name, resource) in resources {
-            // Extract methods from this resource
-            if let Some(methods) = &resource.methods {
-                for (_method_name, method) in methods {
-                    // Use flatPath for the actual request URL (path is a template like "v1/{+name}")
-                    let path = method.flat_path.as_deref().unwrap_or_else(|| method.path.as_deref().unwrap_or(""));
-
-                    // Extract placeholder names from flatPath in order (e.g., ["sitesId"] from "v1/sites/{sitesId}")
-                    let path_placeholders: Vec<String> = placeholder_re
-                        .captures_iter(path)
-                        .map(|cap| cap[2].to_string())
-                        .collect();
-
-                    // Extract all parameters first
-                    let mut all_params: BTreeMap<String, ParameterInfo> = BTreeMap::new();
-
-                    if let Some(parameters) = &method.parameters {
-                        for (param_name, param) in parameters {
-                            let rust_type = self.gcp_param_to_rust_type(param);
-                            // Sanitize parameter names: replace dots, dashes, and special chars with underscores
-                            let sanitized_name = param_name
-                                .replace('.', "_")
-                                .replace('-', "_")
-                                .replace('<', "_")
-                                .replace('>', "_")
-                                .replace('[', "_")
-                                .replace(']', "_")
-                                .replace('~', "_");
-                            let param_info = ParameterInfo {
-                                name: sanitized_name,
-                                original_name: param_name.clone(),
-                                rust_type,
-                                required: param.required,
-                                description: param.description.clone(),
-                            };
-                            all_params.insert(param_name.clone(), param_info);
-                        }
-                    }
-
-                    // Now build path_params and query_params in the correct order
-                    // For path params, use parameterOrder if available to get correct ordering
-                    let mut path_params = Vec::new();
-                    let mut query_params = Vec::new();
-
-                    // First, add path parameters in parameterOrder sequence (for GCP, this maps placeholders to param names)
-                    if let Some(param_order) = &method.parameter_order {
-                        for param_name in param_order {
-                            if let Some(param_info) = all_params.get(param_name) {
-                                path_params.push(param_info.clone());
-                            }
-                        }
-                    } else {
-                        // Fallback: extract path params from their location
-                        for (param_name, param_info) in &all_params {
-                            // Check if this param is in path_placeholders (indicates it's a path param)
-                            if path_placeholders.contains(param_name) {
-                                path_params.push(param_info.clone());
-                            }
-                        }
-                    }
-
-                    // Then add remaining params as query params
-                    for (param_name, param_info) in &all_params {
-                        if !path_params.iter().any(|p| p.name == param_info.name) {
-                            query_params.push(param_info.clone());
-                        }
-                    }
-
-                    // Extract request body type
-                    let request_body_type = method
-                        .request_body
-                        .as_ref()
-                        .and_then(|rb| rb.ref_path.as_ref())
-                        .and_then(|ref_path| self.extract_type_name_from_gcp_ref(ref_path));
-
-                    // Extract response type
-                    let response_type = method
-                        .response
-                        .as_ref()
-                        .and_then(|resp| resp.ref_path.as_ref())
-                        .and_then(|ref_path| self.extract_type_name_from_gcp_ref(ref_path));
-
-                    endpoints.push(ApiEndpoint {
-                        path: path.to_string(),
-                        method: method.http_method.as_deref().unwrap_or("GET").to_uppercase(),
-                        operation_id: method.id.clone(),
-                        summary: method.description.clone(),
-                        path_params,
-                        query_params,
-                        request_body_type,
-                        response_type,
-                        base_url: base_url.map(String::from),
-                        path_placeholders,
-                    });
-                }
-            }
-
-            // Recurse into nested resources
-            if let Some(nested) = &resource.resources {
-                self.extract_gcp_endpoints(nested, parent_path, endpoints, base_url);
-            }
-        }
-    }
-
-    fn gcp_param_to_rust_type(&self, param: &GcpParameter) -> String {
-        let param_type = param.param_type.as_deref().unwrap_or("string");
-        let format = param.format.as_deref();
-
-        match (param_type, format) {
-            ("integer", Some("int64")) => "i64".to_string(),
-            ("integer", Some("int32")) => "i32".to_string(),
-            ("integer", _) => "i32".to_string(),
-            ("number", Some("float")) => "f32".to_string(),
-            ("number", Some("double")) => "f64".to_string(),
-            ("number", _) => "f64".to_string(),
-            ("boolean", _) => "bool".to_string(),
-            ("string", Some("date-time")) => "String".to_string(),
-            ("string", Some("date")) => "String".to_string(),
-            ("string", _) => "String".to_string(),
-            ("array", _) => "Vec<String>".to_string(),
-            _ => "String".to_string(),
-        }
-    }
-
-    fn extract_type_name_from_gcp_ref(&self, ref_path: &str) -> Option<String> {
-        // Extract type name from GCP ref like "GoogleCloudRunV2Service"
-        // Use the exact name that gen_resource_types generates (no stripping)
-        Some(
-            ref_path
-                .split('.')
-                .map(|part| {
-                    let mut chars = part.chars();
-                    chars.next().map(|c| c.to_uppercase().collect::<String>()).unwrap_or_default()
-                        + chars.as_str()
-                })
-                .collect::<String>(),
-        )
-    }
-
-    fn param_to_rust_type(&self, param: &Parameter) -> String {
-        let schema = param.schema.as_ref();
-        // Handle type being either a string or array of strings (e.g., ["string", "null"])
-        let param_type = schema
-            .and_then(|s| s.param_type.as_ref())
-            .and_then(|v| {
-                if let Some(s) = v.as_str() {
-                    Some(s)
-                } else if let Some(arr) = v.as_array() {
-                    // Take the first non-null type from the array
-                    arr.iter()
-                        .filter_map(|item| item.as_str())
-                        .find(|t| *t != "null")
-                } else {
-                    None
-                }
-            })
-            .unwrap_or("string");
-        let format = schema.and_then(|s| s.format.as_deref());
-
-        match (param_type, format) {
-            ("integer", Some("int64")) => "i64".to_string(),
-            ("integer", Some("int32")) => "i32".to_string(),
-            ("integer", _) => "i32".to_string(),
-            ("number", Some("float")) => "f32".to_string(),
-            ("number", Some("double")) => "f64".to_string(),
-            ("number", _) => "f64".to_string(),
-            ("boolean", _) => "bool".to_string(),
-            ("string", Some("date-time")) => "String".to_string(),
-            ("string", Some("date")) => "String".to_string(),
-            ("string", _) => "String".to_string(),
-            ("array", _) => "Vec<String>".to_string(),
-            _ => "String".to_string(),
-        }
-    }
-
-    fn extract_type_name_from_ref(&self, schema: &SchemaRef) -> Option<String> {
-        schema.ref_path.as_ref().and_then(|ref_path| {
-            // Extract type name from #/components/schemas/ServiceName
-            ref_path.split('/').last().map(|s| {
-                // Convert to proper PascalCase to match gen_resource_types output
-                // Split on dots, hyphens, @, AND underscores
-                // e.g., treasury.transaction -> TreasuryTransaction
-                // e.g., Custom-pages -> CustomPages
-                // e.g., iam_response_collection_accounts -> IamResponseCollectionAccounts
-                // e.g., @cf_ai4bharat... -> CfAi4bharat
-                s.split(|c| c == '.' || c == '-' || c == '@' || c == '_')
-                    .map(|part| {
-                        let mut chars = part.chars();
-                        chars.next().map(|c| c.to_uppercase().collect::<String>()).unwrap_or_default()
-                            + chars.as_str()
-                    })
-                    .collect::<String>()
-            })
-        })
-    }
-
-    fn extract_response_type(&self, responses: &BTreeMap<String, Response>, spec: &OpenApiSpec) -> Option<String> {
-        // Look for 200, 201, 204 responses
-        for status in &["200", "201", "202", "204"] {
-            if let Some(response) = responses.get(*status) {
-                if let Some(content) = &response.content {
-                    if let Some(media) = content.get("application/json") {
-                        if let Some(schema) = &media.schema {
-                            // Check if this is a generatable type
-                            // For $ref schemas, look up the definition in components
-                            let schema_to_check = if schema.ref_path.is_some()
-                                && schema.properties.is_none()
-                                && schema.any_of.is_none()
-                                && schema.one_of.is_none() {
-                                // It's a $ref, look up the actual schema
-                                schema.ref_path.as_ref()
-                                    .and_then(|ref_path| {
-                                        let type_name = ref_path.trim_start_matches("#/components/schemas/");
-                                        spec.components.as_ref()
-                                            .and_then(|c| c.schemas.as_ref())
-                                            .and_then(|schemas| schemas.get(type_name))
-                                    })
-                            } else {
-                                Some(schema)
-                            };
-
-                            // Check if the type is generatable (has properties or simple structure)
-                            let is_generatable = schema_to_check.map_or(true, |s| {
-                                // Skip types that are only allOf/anyOf/oneOf without properties
-                                // unless they're simple wrappers
-                                s.properties.is_some()
-                                || (s.all_of.is_none() && s.any_of.is_none() && s.one_of.is_none())
-                            });
-
-                            if is_generatable {
-                                return self.extract_type_name_from_ref(schema);
-                            } else {
-                                return Some("serde_json::Value".to_string());
-                            }
-                        }
-                    }
-                }
-                // 204 No Content
-                if *status == "204" {
-                    return Some("()".to_string());
-                }
-            }
-        }
-        None
     }
 
     fn generate_builder_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
@@ -1380,6 +813,77 @@ impl ClientGenerator {
         }
         writeln!(out, ")?;")?;
         writeln!(out, "    {}_execute(builder)", fn_name)?;
+        writeln!(out, "}}")?;
+        writeln!(out)?;
+
+        Ok(())
+    }
+
+    /// Generate ResourceIdentifier trait implementation for an endpoint's response type.
+    ///
+    /// This allows the response type to be used with StoreStateIdentifierTask for automatic
+    /// state tracking.
+    fn generate_resource_identifier_impl(
+        &self,
+        out: &mut String,
+        endpoint: &ApiEndpoint,
+        response_type: &str,
+        label: &str,
+    ) -> Result<(), GenClientError> {
+        let fn_name = self.endpoint_to_fn_name(endpoint);
+        let args_struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
+
+        // Extract provider and kind from the label and response type
+        // e.g., "gcp/cloudkms" -> provider="gcp", kind_prefix="gcp::cloudkms"
+        let (provider, kind_prefix) = if let Some(pos) = label.find('/') {
+            (&label[..pos], &format!("{}::{}", &label[..pos].replace('-', "_"), &label[pos+1..].replace('-', "_")))
+        } else {
+            (label, &label.replace('-', "_"))
+        };
+
+        // Build resource kind: e.g., "gcp::cloudkms::AutokeyConfig"
+        let resource_kind = format!("{}::{}", kind_prefix, response_type);
+
+        writeln!(out, "// =============================================================================")?;
+        writeln!(out, "// ResourceIdentifier implementation for {}", response_type)?;
+        writeln!(out, "// =============================================================================")?;
+        writeln!(out)?;
+        writeln!(out, "/// ResourceIdentifier implementation for {} with {} input.", response_type, args_struct_name)?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// HOW: Computes resource ID from input path parameters.")?;
+        writeln!(out, "impl ResourceIdentifier<{}> for {} {{", args_struct_name, response_type)?;
+        writeln!(out, "    fn generate_resource_id(&self, input: &{}) -> String {{", args_struct_name)?;
+
+        // Generate resource ID from path parameters
+        // e.g., for path "/v1/folders/{folderName}/autokeyConfig"
+        // and resource "AutokeyConfig", generate:
+        // format!("gcp::cloudkms::AutokeyConfig/folders/{}", input.folder_name)
+        if !endpoint.path_params.is_empty() {
+            write!(out, "        format!(\"{}", resource_kind)?;
+            for _param in &endpoint.path_params {
+                write!(out, "/{{}}")?;
+            }
+            write!(out, "\"")?;
+            for param in &endpoint.path_params {
+                write!(out, ", input.{}", self.escape_keyword(&param.name))?;
+            }
+            writeln!(out, ")")?;
+        } else {
+            // No path parameters - just use the resource kind
+            writeln!(out, "        \"{}\".to_string()", resource_kind)?;
+        }
+
+        writeln!(out, "    }}")?;
+        writeln!(out)?;
+        writeln!(out, "    fn resource_kind(&self) -> &'static str {{")?;
+        writeln!(out, "        \"{}\"", resource_kind)?;
+        writeln!(out, "    }}")?;
+        writeln!(out)?;
+        writeln!(out, "    fn provider(&self) -> &'static str {{")?;
+        writeln!(out, "        \"{}\"", provider)?;
+        writeln!(out, "    }}")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 

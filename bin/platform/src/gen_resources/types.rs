@@ -1,12 +1,10 @@
 //! WHY: Generates Rust type definitions from OpenAPI specs for cloud providers.
 //!
-//! WHAT: Reads OpenAPI specs from `artefacts/cloud_providers/`, parses resource definitions,
-//! and generates Rust structs that represent cloud resources (e.g., GCP Compute Instance,
-//! Cloudflare Worker, etc.).
+//! WHAT: Reads OpenAPI specs from `artefacts/cloud_providers/`, uses foundation_openapi
+//! for parsing and normalization, then generates Rust structs representing cloud resources.
 //!
-//! HOW: Uses `serde_json` to parse OpenAPI specs, extracts schema definitions from
-//! `components/schemas`, maps OpenAPI types to Rust types, and generates Rust source files
-//! using string templates.
+//! HOW: Uses foundation_openapi for all OpenAPI processing (parsing, type resolution,
+//! endpoint extraction), then generates Rust source files using string templates.
 //!
 //! Feature Flags:
 //! - Provider-level: `gcp`, `cloudflare`, etc. in provider/mod.rs
@@ -15,13 +13,24 @@
 
 use regex::Regex;
 use std::borrow::Cow;
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap};
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+// Import from foundation_openapi to avoid duplication
+use foundation_openapi::spec::Schema;
+
+/// Endpoint info for codegen - simplified from foundation_openapi::EndpointInfo.
+#[derive(Debug, Clone)]
+struct CodegenEndpoint {
+    operation_id: String,
+    response_type: Option<String>,
+    path_params: Vec<String>,
+}
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -82,152 +91,13 @@ impl From<serde_json::Error> for GenResourceError {
     }
 }
 
-// ---------------------------------------------------------------------------
-// OpenAPI spec structures
-// ---------------------------------------------------------------------------
-
-/// WHY: Minimal OpenAPI spec deserialization for resource extraction.
-///
-/// WHAT: Captures only the fields needed for code generation.
-///
-/// HOW: Uses serde for flexible JSON parsing.
-#[derive(Debug, Deserialize)]
-pub struct OpenApiSpec {
-    pub openapi: String,
-    pub info: Info,
-    #[serde(default)]
-    pub paths: BTreeMap<String, PathItem>,
-    #[serde(default)]
-    pub components: Components,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Info {
-    pub title: String,
-    pub version: String,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct PathItem {
-    #[serde(default)]
-    pub get: Option<Operation>,
-    #[serde(default)]
-    pub post: Option<Operation>,
-    #[serde(default)]
-    pub put: Option<Operation>,
-    #[serde(default)]
-    pub patch: Option<Operation>,
-    #[serde(default)]
-    pub delete: Option<Operation>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct Operation {
-    #[serde(default)]
-    pub operation_id: Option<String>,
-    #[serde(default)]
-    pub summary: Option<String>,
-    #[serde(default)]
-    pub description: Option<String>,
-    #[serde(default, rename = "requestBody")]
-    pub request_body: Option<RequestBody>,
-    #[serde(default)]
-    pub responses: BTreeMap<String, Response>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct RequestBody {
-    pub content: BTreeMap<String, MediaType>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct Response {
-    pub content: Option<BTreeMap<String, MediaType>>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct MediaType {
-    pub schema: Option<Schema>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub struct Components {
-    #[serde(default)]
-    pub schemas: BTreeMap<String, Schema>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Schema {
-    #[serde(default, deserialize_with = "deserialize_type_field")]
-    #[serde(rename = "type")]
-    pub schema_type: Option<String>,
-    #[serde(default)]
-    pub format: Option<String>,
-    #[serde(default)]
-    pub description: Option<String>,
-    #[serde(default)]
-    pub required: Vec<String>,
-    #[serde(default)]
-    pub properties: Option<BTreeMap<String, Schema>>,
-    #[serde(default)]
-    pub items: Option<Box<Schema>>,
-    #[serde(default)]
-    #[serde(rename = "$ref")]
-    pub ref_path: Option<String>,
-    #[serde(default, rename = "anyOf")]
-    pub any_of: Option<Vec<Schema>>,
-    #[serde(default, rename = "oneOf")]
-    pub one_of: Option<Vec<Schema>>,
-    #[serde(default, rename = "allOf")]
-    pub all_of: Option<Vec<Schema>>,
-    #[serde(default)]
-    pub default: Option<Value>,
-    #[serde(default)]
-    pub example: Option<Value>,
-    /// Enum values for string enums.
-    #[serde(default, rename = "enum")]
-    pub enum_values: Option<Vec<Value>>,
-    /// OpenAPI 3.1.0 const field (e.g., "const": "compute-service")
-    #[serde(default)]
-    pub const_value: Option<Value>,
-}
-
-/// Deserialize the `type` field which can be a string or an array of strings.
-///
-/// OpenAPI 3.0 uses `"type": "string"`.
-/// OpenAPI 3.1 uses `"type": ["string", "null"]` for nullable types.
-///
-/// For arrays, we extract the non-null type (e.g., ["string", "null"] -> "string").
-fn deserialize_type_field<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    use serde::Deserialize;
-
-    #[derive(Deserialize)]
-    #[serde(untagged)]
-    enum TypeField {
-        String(String),
-        Array(Vec<String>),
-    }
-
-    let opt = Option::<TypeField>::deserialize(deserializer)?;
-    Ok(match opt {
-        Some(TypeField::String(s)) => Some(s),
-        Some(TypeField::Array(arr)) => {
-            // For nullable types like ["string", "null"], extract the non-null type
-            let non_null: Vec<&String> = arr.iter().filter(|s| s != &"null").collect();
-            if non_null.len() == 1 {
-                Some(non_null[0].clone())
-            } else if non_null.is_empty() {
-                None
-            } else {
-                // Multiple non-null types - use the first one (shouldn't happen in practice)
-                Some(non_null[0].clone())
-            }
+impl From<std::fmt::Error> for GenResourceError {
+    fn from(e: std::fmt::Error) -> Self {
+        GenResourceError::WriteFile {
+            path: String::new(),
+            source: std::io::Error::new(std::io::ErrorKind::Other, e),
         }
-        None => None,
-    })
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -453,11 +323,14 @@ impl ResourceGenerator {
         // Dedup pass: detect PascalCase name collisions and append numeric suffix
         let resources = Self::dedup_type_names(resources);
 
+        // Extract endpoint information for ResourceIdentifier generation
+        let endpoints = self.extract_endpoints(&spec_content);
+
         // Note: We no longer filter out 'trivial' types (single serde_json::Value field)
         // because types like GoogleCloudAiplatformV1ContentMap have semantic meaning
         // even with one `additionalProperties` field that references another type.
 
-        let rust_code = self.generate_rust(label, &resources)?;
+        let rust_code = self.generate_rust(label, &resources, &endpoints)?;
 
         std::fs::write(output_path, rust_code).map_err(|e| GenResourceError::WriteFile {
             path: output_path.display().to_string(),
@@ -633,6 +506,34 @@ impl ResourceGenerator {
         }
 
         Ok(resources)
+    }
+
+    /// Extract endpoint information using foundation_openapi.
+    ///
+    /// This builds a mapping of response types to their endpoint parameters,
+    /// which is used to generate ResourceIdentifier implementations.
+    fn extract_endpoints(&self, spec_content: &str) -> Vec<CodegenEndpoint> {
+        // Use foundation_openapi for all endpoint extraction
+        let Ok(processor) = foundation_openapi::process_spec(spec_content) else {
+            tracing::warn!("Failed to parse spec for endpoint extraction");
+            return Vec::new();
+        };
+
+        // Get endpoints from foundation_openapi
+        let endpoints = processor.endpoints();
+
+        // Convert to CodegenEndpoint format for codegen
+        endpoints
+            .into_iter()
+            .map(|ep| {
+                let response_type = ep.response_type.map(|rt| rt.as_rust_type().to_string());
+                CodegenEndpoint {
+                    operation_id: ep.operation_id,
+                    response_type,
+                    path_params: ep.path_params,
+                }
+            })
+            .collect()
     }
 
     /// Extract a single resource from a schema.
@@ -931,6 +832,7 @@ impl ResourceGenerator {
         &self,
         provider: &str,
         resources: &[ResourceDef],
+        endpoints: &[CodegenEndpoint],
     ) -> Result<String, GenResourceError> {
         let mut out = String::with_capacity(256 * 1024);
 
@@ -985,7 +887,92 @@ impl ResourceGenerator {
             self.generate_struct(&mut out, resource)?;
         }
 
+        // Generate ResourceIdentifier implementations for response types
+        self.generate_resource_identifier_impls(&mut out, endpoints, provider)?;
+
         Ok(out)
+    }
+
+    /// Generate ResourceIdentifier implementations for response types.
+    ///
+    /// For each endpoint with a response type, generates an impl block that
+    /// computes the resource ID from path parameters.
+    fn generate_resource_identifier_impls(
+        &self,
+        out: &mut String,
+        endpoints: &[CodegenEndpoint],
+        provider: &str,
+    ) -> Result<(), GenResourceError> {
+        // Build provider prefix for resource kinds
+        let provider_prefix = provider.replace('-', "_");
+
+        // Deduplicate by response type - we only want one ResourceIdentifier impl per type
+        let mut seen_response_types: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+        writeln!(out)?;
+        writeln!(out, "// =============================================================================")?;
+        writeln!(out, "// ResourceIdentifier implementations")?;
+        writeln!(out, "// =============================================================================")?;
+        writeln!(out)?;
+
+        for endpoint in endpoints {
+            // Skip endpoints without response types (e.g., 204 No Content)
+            let response_type = match &endpoint.response_type {
+                Some(t) => t,
+                None => continue,
+            };
+
+            // Skip if we already generated an impl for this type
+            if !seen_response_types.insert(response_type.clone()) {
+                continue;
+            }
+
+            // Generate Args type name from operation_id
+            let args_type = format!("{}Args", self.to_pascal_case(&endpoint.operation_id));
+
+            // Build resource kind: e.g., "prisma_postgres::ComputeservicesGetResponse"
+            let resource_kind = format!("{}::{}", provider_prefix, response_type);
+
+            writeln!(out, "/// ResourceIdentifier implementation for {}.", response_type)?;
+            writeln!(out, "///")?;
+            writeln!(out, "/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.")?;
+            writeln!(out, "///")?;
+            writeln!(out, "/// HOW: Computes resource ID from input path parameters.")?;
+            writeln!(out, "impl ResourceIdentifier<{}> for {} {{", args_type, response_type)?;
+            writeln!(out, "    fn generate_resource_id(&self, input: &{}) -> String {{", args_type)?;
+
+            // Generate resource ID from path parameters
+            if !endpoint.path_params.is_empty() {
+                // Build format string: "provider::type/{} /{}" (one {} per param)
+                write!(out, "        format!(\"{}", resource_kind)?;
+                for _ in 0..endpoint.path_params.len() {
+                    write!(out, "/{{}}")?;
+                }
+                write!(out, "\"")?;
+                for param in &endpoint.path_params {
+                    let param_name = self.to_snake_case(param);
+                    write!(out, ", input.{}", param_name)?;
+                }
+                writeln!(out, ")")?;
+            } else {
+                // No path parameters - just use the resource kind
+                writeln!(out, "        \"{}\".to_string()", resource_kind)?;
+            }
+
+            writeln!(out, "    }}")?;
+            writeln!(out)?;
+            writeln!(out, "    fn resource_kind(&self) -> &'static str {{")?;
+            writeln!(out, "        \"{}\"", resource_kind)?;
+            writeln!(out, "    }}")?;
+            writeln!(out)?;
+            writeln!(out, "    fn provider(&self) -> &'static str {{")?;
+            writeln!(out, "        \"{}\"", provider.split('/').next().unwrap_or(provider))?;
+            writeln!(out, "    }}")?;
+            writeln!(out, "}}")?;
+            writeln!(out)?;
+        }
+
+        Ok(())
     }
 
     /// Generate a single struct definition.
@@ -1139,7 +1126,7 @@ impl ResourceGenerator {
         }
 
         // Wrap recursive references in Box
-        let mut result = ty.to_string();
+        let result = ty.to_string();
 
         // Handle Vec<T> - wrap inner recursive types
         if result.starts_with("::std::vec::Vec<") || result.starts_with("Vec<") {
@@ -1267,7 +1254,10 @@ impl ResourceGenerator {
         let resources = self.extract_resources(&spec, &object_schemas)?;
         let resources = Self::dedup_type_names(resources);
 
-        let rust_code = self.generate_rust_simple(label, &resources)?;
+        // Extract endpoint information for ResourceIdentifier generation
+        let endpoints = self.extract_endpoints(&spec_content);
+
+        let rust_code = self.generate_rust_simple(label, &resources, &endpoints)?;
 
         std::fs::write(output_path, rust_code)
             .map_err(|e| GenResourceError::WriteFile { path: output_path.display().to_string(), source: e })?;
@@ -1306,7 +1296,7 @@ impl ResourceGenerator {
     }
 
     /// Generate Rust source code with provider-level feature flag.
-    fn generate_rust_simple(&self, label: &str, resources: &[ResourceDef]) -> Result<String, GenResourceError> {
+    fn generate_rust_simple(&self, label: &str, resources: &[ResourceDef], endpoints: &[CodegenEndpoint]) -> Result<String, GenResourceError> {
         let mut out = String::with_capacity(256 * 1024);
         let provider = label.split('/').next().unwrap_or(label);
         let api_name = label.split('/').nth(1).unwrap_or("");
@@ -1339,6 +1329,10 @@ impl ResourceGenerator {
         for resource in sorted {
             self.generate_struct_with_box(&mut out, resource, &recursive_types)?;
         }
+
+        // Generate ResourceIdentifier implementations for response types
+        self.generate_resource_identifier_impls(&mut out, endpoints, provider)?;
+
         Ok(out)
     }
 

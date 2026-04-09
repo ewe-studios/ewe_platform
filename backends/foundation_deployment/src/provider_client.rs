@@ -1,4 +1,4 @@
-//! GCP Provider Client - Central client wrapping StateStore.
+//! Provider Client - Central client wrapping StateStore.
 //!
 //! WHY: Users need a single entry point that manages state tracking
 //!      for all API operations in a project/stage context.
@@ -76,3 +76,9 @@ where
         &self.stage
     }
 }
+
+/// Re-export ProviderError for use in per-API providers.
+pub use foundation_db::state::store_state_task::ProviderError;
+
+/// Re-export StoreStateIdentifierTask for state-aware operations.
+pub use foundation_db::state::store_state_task::StoreStateIdentifierTask;
