@@ -114,6 +114,15 @@ struct OpenApiSpec {
     // GCP Discovery Document servicePath
     #[serde(default, rename = "servicePath")]
     service_path: Option<String>,
+    // OpenAPI 3.x components
+    #[serde(default)]
+    components: Option<Components>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct Components {
+    #[serde(default, rename = "schemas")]
+    schemas: Option<BTreeMap<String, SchemaRef>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -258,6 +267,14 @@ struct MediaType {
 struct SchemaRef {
     #[serde(default, rename = "$ref")]
     ref_path: Option<String>,
+    #[serde(default)]
+    properties: Option<serde_json::Value>,
+    #[serde(default, rename = "anyOf")]
+    any_of: Option<Vec<SchemaRef>>,
+    #[serde(default, rename = "oneOf")]
+    one_of: Option<Vec<SchemaRef>>,
+    #[serde(default, rename = "allOf")]
+    all_of: Option<Vec<SchemaRef>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -541,7 +558,7 @@ impl ClientGenerator {
 
         // Imports
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
-        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt}};")?;
+        writeln!(out, "use foundation_core::valtron::{{execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
         writeln!(out, "    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
@@ -551,8 +568,20 @@ impl ClientGenerator {
         writeln!(out, "use crate::providers::{}::resources::*;", provider_module)?;
         writeln!(out)?;
 
-        // Generate functions for each endpoint
+        // Deduplicate endpoints by generated struct name to avoid duplicate definitions
+        // (e.g., indicator-types and indicatorTypes both become IndicatorTypes)
+        let mut seen_struct_names = std::collections::HashSet::new();
+        let mut unique_endpoints = Vec::new();
         for endpoint in &endpoints {
+            let fn_name = self.endpoint_to_fn_name(endpoint);
+            let struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
+            if seen_struct_names.insert(struct_name) {
+                unique_endpoints.push(endpoint);
+            }
+        }
+
+        // Generate functions for each unique endpoint
+        for endpoint in unique_endpoints {
             self.generate_builder_fn(&mut out, endpoint)?;
             self.generate_task_fn(&mut out, endpoint)?;
             self.generate_execute_fn(&mut out, endpoint)?;
@@ -647,16 +676,43 @@ impl ClientGenerator {
                         }
                     }
 
-                    // Extract request body type
+                    // Extract request body type - use serde_json::Value for complex union types
                     let request_body_type = operation
                         .request_body
                         .as_ref()
                         .and_then(|rb| rb.content.get("application/json"))
                         .and_then(|mt| mt.schema.as_ref())
-                        .and_then(|s| self.extract_type_name_from_ref(s));
+                        .and_then(|s| {
+                            // Check if this is a union type (anyOf/oneOf without properties)
+                            // For $ref schemas, look up the definition in components
+                            let schema_to_check = if s.ref_path.is_some() && s.properties.is_none()
+                                && s.any_of.is_none() && s.one_of.is_none() {
+                                // It's a $ref, look up the actual schema
+                                s.ref_path.as_ref()
+                                    .and_then(|ref_path| {
+                                        let type_name = ref_path.trim_start_matches("#/components/schemas/");
+                                        spec.components.as_ref()
+                                            .and_then(|c| c.schemas.as_ref())
+                                            .and_then(|schemas| schemas.get(type_name))
+                                    })
+                            } else {
+                                Some(s)
+                            };
+
+                            schema_to_check.map(|schema| {
+                                // Use serde_json::Value for union types (anyOf/oneOf without properties)
+                                let is_union_type = (schema.any_of.is_some() || schema.one_of.is_some())
+                                    && schema.properties.is_none();
+                                if is_union_type {
+                                    "serde_json::Value".to_string()
+                                } else {
+                                    self.extract_type_name_from_ref(schema).unwrap_or_else(|| "serde_json::Value".to_string())
+                                }
+                            })
+                        });
 
                     // Extract response type
-                    let response_type = self.extract_response_type(&operation.responses);
+                    let response_type = self.extract_response_type(&operation.responses, spec);
 
                     // Extract placeholder names from path in order (e.g., ["project"] from "/projects/{project}")
                     let path_placeholders: Vec<String> = placeholder_re
@@ -684,6 +740,19 @@ impl ClientGenerator {
         if let Some(resources) = &spec.resources {
             self.extract_gcp_endpoints(resources, "", &mut endpoints, Some(&base_url));
         }
+
+        // Filter out endpoints where path placeholders don't match path_params
+        // (OpenAPI spec may have {account_id} in path but not declare it as a parameter)
+        endpoints.retain(|ep| {
+            ep.path_placeholders.len() == ep.path_params.len()
+        });
+
+        // Deduplicate endpoints by method + path (some specs have duplicates with different operation_ids)
+        let mut seen = std::collections::HashSet::new();
+        endpoints.retain(|ep| {
+            let key = format!("{}:{}", ep.method, ep.path);
+            seen.insert(key)
+        });
 
         Ok(endpoints)
     }
@@ -878,13 +947,13 @@ impl ClientGenerator {
         schema.ref_path.as_ref().and_then(|ref_path| {
             // Extract type name from #/components/schemas/ServiceName
             ref_path.split('/').last().map(|s| {
-                // Use exact name (no stripping) to match gen_resource_types output
-                // Replace dots, hyphens, and @ with underscores, then capitalize each part
+                // Convert to proper PascalCase to match gen_resource_types output
+                // Split on dots, hyphens, @, AND underscores
                 // e.g., treasury.transaction -> TreasuryTransaction
                 // e.g., Custom-pages -> CustomPages
-                // e.g., Iam_create-account -> IamCreateAccount
+                // e.g., iam_response_collection_accounts -> IamResponseCollectionAccounts
                 // e.g., @cf_ai4bharat... -> CfAi4bharat
-                s.split(|c| c == '.' || c == '-' || c == '@')
+                s.split(|c| c == '.' || c == '-' || c == '@' || c == '_')
                     .map(|part| {
                         let mut chars = part.chars();
                         chars.next().map(|c| c.to_uppercase().collect::<String>()).unwrap_or_default()
@@ -895,14 +964,44 @@ impl ClientGenerator {
         })
     }
 
-    fn extract_response_type(&self, responses: &BTreeMap<String, Response>) -> Option<String> {
+    fn extract_response_type(&self, responses: &BTreeMap<String, Response>, spec: &OpenApiSpec) -> Option<String> {
         // Look for 200, 201, 204 responses
         for status in &["200", "201", "202", "204"] {
             if let Some(response) = responses.get(*status) {
                 if let Some(content) = &response.content {
                     if let Some(media) = content.get("application/json") {
                         if let Some(schema) = &media.schema {
-                            return self.extract_type_name_from_ref(schema);
+                            // Check if this is a generatable type
+                            // For $ref schemas, look up the definition in components
+                            let schema_to_check = if schema.ref_path.is_some()
+                                && schema.properties.is_none()
+                                && schema.any_of.is_none()
+                                && schema.one_of.is_none() {
+                                // It's a $ref, look up the actual schema
+                                schema.ref_path.as_ref()
+                                    .and_then(|ref_path| {
+                                        let type_name = ref_path.trim_start_matches("#/components/schemas/");
+                                        spec.components.as_ref()
+                                            .and_then(|c| c.schemas.as_ref())
+                                            .and_then(|schemas| schemas.get(type_name))
+                                    })
+                            } else {
+                                Some(schema)
+                            };
+
+                            // Check if the type is generatable (has properties or simple structure)
+                            let is_generatable = schema_to_check.map_or(true, |s| {
+                                // Skip types that are only allOf/anyOf/oneOf without properties
+                                // unless they're simple wrappers
+                                s.properties.is_some()
+                                || (s.all_of.is_none() && s.any_of.is_none() && s.one_of.is_none())
+                            });
+
+                            if is_generatable {
+                                return self.extract_type_name_from_ref(schema);
+                            } else {
+                                return Some("serde_json::Value".to_string());
+                            }
                         }
                     }
                 }
@@ -928,24 +1027,19 @@ impl ClientGenerator {
         writeln!(out, "/// Use `{}_execute()` to send, or `{}` for simplest API.", fn_name, fn_name)?;
         writeln!(out)?;
 
-        // Function signature
+        // Function signature - take owned types, use .as_str() internally
         write!(out, "pub fn {}_builder(\n    client: &SimpleHttpClient,", fn_name)?;
 
-        // Path parameters
+        // Path parameters - owned String
         for param in &endpoint.path_params {
             writeln!(out)?;
-            write!(out, "    {}: &str,", self.escape_keyword(&param.name))?;
+            write!(out, "    {}: String,", self.escape_keyword(&param.name))?;
         }
 
-        // Query parameters (optional)
+        // Query parameters (optional) - owned String types
         for param in &endpoint.query_params {
-            let rust_type = if param.rust_type == "String" {
-                "&str".to_string()
-            } else {
-                param.rust_type.clone()
-            };
             writeln!(out)?;
-            write!(out, "    {}: Option<{}>,", self.escape_keyword(&param.name), rust_type)?;
+            write!(out, "    {}: Option<{}>,", self.escape_keyword(&param.name), param.rust_type)?;
         }
 
         // Request body
@@ -962,20 +1056,25 @@ impl ClientGenerator {
         writeln!(out, "    // Build URL")?;
 
         // Build URL format string by replacing placeholders with {}
-        // For GCP: path_placeholders = ["sitesId"] from flatPath, path_params ordered by parameterOrder
-        // We replace placeholders positionally: first placeholder gets first path_param
+        // Replace placeholders in order of appearance, passing params positionally
         let mut url_format = endpoint.path.clone();
 
-        // Replace each placeholder with {} in order of appearance in the path
-        // Use find/replace to only replace the FIRST occurrence of each placeholder
-        if !endpoint.path_placeholders.is_empty() {
-            for placeholder in endpoint.path_placeholders.iter() {
-                let placeholder_pattern = format!("{{{}}}", placeholder);
-                // Only replace first occurrence
-                if let Some(pos) = url_format.find(&placeholder_pattern) {
-                    let before = &url_format[..pos];
-                    let after = &url_format[pos + placeholder_pattern.len()..];
-                    url_format = format!("{}{{}}{}", before, after);
+        // For each placeholder in order, replace its first occurrence with {}
+        // and track which param to pass for it
+        let mut params_to_pass: Vec<&str> = Vec::new();
+
+        for placeholder in endpoint.path_placeholders.iter() {
+            let placeholder_pattern = format!("{{{}}}", placeholder);
+            if let Some(pos) = url_format.find(&placeholder_pattern) {
+                let before = &url_format[..pos];
+                let after = &url_format[pos + placeholder_pattern.len()..];
+                url_format = format!("{}{{}}{}", before, after);
+
+                // Find the matching param and add it to the list
+                if let Some(param) = endpoint.path_params.iter()
+                    .find(|p| &p.name == placeholder || &p.original_name == placeholder)
+                {
+                    params_to_pass.push(&param.name);
                 }
             }
         }
@@ -983,15 +1082,9 @@ impl ClientGenerator {
         let base_url = endpoint.base_url.as_deref().unwrap_or("https://api.example.com");
         writeln!(out, "    let url = format!(")?;
         writeln!(out, "        \"{}{}\",", base_url, url_format)?;
-        // Pass path parameters matching the placeholders in the path
-        // A parameter may appear multiple times if its placeholder appears multiple times
-        for placeholder in &endpoint.path_placeholders {
-            // Find the matching path param by name
-            let param_name = endpoint.path_params.iter()
-                .find(|p| &p.name == placeholder || &p.original_name == placeholder)
-                .map(|p| p.name.as_str())
-                .unwrap_or(placeholder);
-            writeln!(out, "        {},", self.escape_keyword(param_name))?;
+        // Pass path parameters in the order they appear in the path
+        for param_name in &params_to_pass {
+            writeln!(out, "        {}.as_str(),", self.escape_keyword(param_name))?;
         }
         writeln!(out, "    );")?;
 
@@ -1086,8 +1179,9 @@ impl ClientGenerator {
         writeln!(out, "    builder: ClientRequestBuilder<SystemDnsResolver>,")?;
         writeln!(out, ") -> Result<")?;
         writeln!(out, "    impl TaskIterator<")?;
-        writeln!(out, "        D = Result<ApiResponse<{}>, ApiError>,", return_type)?;
-        writeln!(out, "        P = ApiPending")?;
+        writeln!(out, "        Ready = Result<ApiResponse<{}>, ApiError>,", return_type)?;
+        writeln!(out, "        Pending = ApiPending,")?;
+        writeln!(out, "        Spawner = BoxedSendExecutionAction")?;
         writeln!(out, "    > + Send + 'static,")?;
         writeln!(out, "    ApiError,")?;
         writeln!(out, "> {{")?;
@@ -1267,18 +1361,15 @@ impl ClientGenerator {
         writeln!(out, "    ApiError,")?;
         writeln!(out, "> {{")?;
 
-        // Call builder then execute
+        // Call builder then execute - pass owned values, cloning as needed
         writeln!(out)?;
         write!(out, "    let builder = {}_builder(client", fn_name)?;
         for param in &endpoint.path_params {
-            write!(out, ", &args.{}", self.escape_keyword(&param.name))?;
+            write!(out, ", args.{}.clone()", self.escape_keyword(&param.name))?;
         }
         for param in &endpoint.query_params {
-            if param.rust_type == "String" {
-                write!(out, ", args.{}.as_deref()", self.escape_keyword(&param.name))?;
-            } else {
-                write!(out, ", args.{}", self.escape_keyword(&param.name))?;
-            }
+            // Clone all query params since builder takes owned types
+            write!(out, ", args.{}.clone()", self.escape_keyword(&param.name))?;
         }
         if endpoint.request_body_type.is_some() {
             write!(out, ", &args.body")?;
