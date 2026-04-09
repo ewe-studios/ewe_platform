@@ -1080,7 +1080,7 @@ impl ClientGenerator {
         }
 
         let base_url = endpoint.base_url.as_deref().unwrap_or("https://api.example.com");
-        writeln!(out, "    let url = format!(")?;
+        writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", base_url, url_format)?;
         // Pass path parameters in the order they appear in the path
         for param_name in &params_to_pass {
@@ -1116,16 +1116,16 @@ impl ClientGenerator {
             }
             writeln!(out)?;
             writeln!(out, "    let url_with_query = if query_parts.is_empty() {{")?;
-            writeln!(out, "        url")?;
+            writeln!(out, "        endpoint_url")?;
             writeln!(out, "    }} else {{")?;
-            writeln!(out, "        format!(\"{{}}?{{}}\", url, query_parts.join(\"&\"))")?;
+            writeln!(out, "        format!(\"{{}}?{{}}\", endpoint_url, query_parts.join(\"&\"))")?;
             writeln!(out, "    }};")?;
             writeln!(out)?;
             let method_lower = endpoint.method.to_lowercase();
             writeln!(out, "    let builder = client.{}(&url_with_query)", method_lower)?;
         } else {
             let method_lower = endpoint.method.to_lowercase();
-            writeln!(out, "    let builder = client.{}(&url)", method_lower)?;
+            writeln!(out, "    let builder = client.{}(&endpoint_url)", method_lower)?;
         }
         writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;")?;
 
