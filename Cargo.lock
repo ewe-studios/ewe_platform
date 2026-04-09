@@ -2101,6 +2101,18 @@ name = "foundation_nostd"
 version = "0.0.4"
 
 [[package]]
+name = "foundation_openapi"
+version = "0.0.1"
+dependencies = [
+ "derive_more",
+ "indexmap 2.12.1",
+ "regex",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_runtimes"
 version = "0.0.3"
 dependencies = [
