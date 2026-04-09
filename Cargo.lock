@@ -2057,6 +2057,7 @@ dependencies = [
  "foundation_db",
  "foundation_macros",
  "http 1.4.0",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

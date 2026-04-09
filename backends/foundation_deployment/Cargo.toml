@@ -41,6 +41,9 @@ dirs = "5.0"
 urlencoding = "2.1"
 http = "1.4.0"
 
+# -- regex for path template parsing
+regex = "1.10"
+
 # -- dev dependencies for testing
 [dev-dependencies]
 tracing-test = "0.2"
