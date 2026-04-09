@@ -13,11 +13,13 @@ use std::collections::BTreeMap;
 /// Root OpenAPI specification (handles multiple formats).
 #[derive(Debug, Deserialize, Clone)]
 pub struct OpenApiSpec {
-    /// OpenAPI version (e.g., "3.0.1")
-    pub openapi: String,
+    /// OpenAPI version (e.g., "3.0.1") - optional for GCP Discovery format
+    #[serde(default)]
+    pub openapi: Option<String>,
 
-    /// API metadata
-    pub info: Info,
+    /// API metadata - optional for GCP Discovery format
+    #[serde(default)]
+    pub info: Option<Info>,
 
     /// Server URLs (OpenAPI 3.x)
     #[serde(default)]

@@ -1582,6 +1582,7 @@ dependencies = [
  "foundation_deployment",
  "foundation_macros",
  "foundation_nostd",
+ "foundation_openapi",
  "foundation_runtimes",
  "http 1.4.0",
  "http-body 1.0.1",
