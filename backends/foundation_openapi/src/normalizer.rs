@@ -35,6 +35,7 @@ pub struct NormalizedEndpoint {
     pub request_type: Option<String>,
     pub response_type: Option<String>,
     pub error_types: BTreeMap<String, String>,
+    pub success_codes: Vec<String>,
     pub path_params: Vec<String>,
     pub query_params: Vec<String>,
 }
@@ -240,6 +241,7 @@ impl SpecProcessor {
                     request_type: ep.request_type.clone(),
                     response_type: response_type_str,
                     error_types: ep.error_types.clone(),
+                    success_codes: ep.success_codes.clone(),
                     path_params: ep.path_params.clone(),
                     query_params: ep.query_params.clone(),
                 },
