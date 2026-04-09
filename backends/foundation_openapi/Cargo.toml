@@ -1,0 +1,33 @@
+[package]
+name = "foundation_openapi"
+version = "0.0.1"
+description = "Foundation OpenAPI spec processing and normalization"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["openapi", "swagger", "api", "schema"]
+
+[dependencies]
+# -- workspace dependencies
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true, features = ["display"] }
+tracing = { workspace = true }
+
+# -- regex for path parameter extraction
+regex = "1.10"
+
+# -- for normalized spec output
+indexmap = { version = "2.0", features = ["serde"] }
+
+# -- dev dependencies
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[features]
+default = []
+
+[lints]
+workspace = true

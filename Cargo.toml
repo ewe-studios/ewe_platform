@@ -52,6 +52,7 @@ infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0
 foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1" }
 foundation_db = { path = "./backends/foundation_db", version = "0.0.1" }
 foundation_deployment = { path = "./backends/foundation_deployment", version = "0.0.1" }
+foundation_openapi = { path = "./backends/foundation_openapi", version = "0.0.1" }
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
