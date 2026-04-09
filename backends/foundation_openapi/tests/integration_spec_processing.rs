@@ -6,7 +6,8 @@
 //! Test fixtures are frozen snapshots copied from artefacts/cloud_providers/
 //! to ensure tests are deterministic and don't change when upstream specs update.
 
-use foundation_openapi::{process_spec, normalize_spec};
+use foundation_openapi::{process_spec, normalize_spec, NormalizedEndpoint};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -226,4 +227,100 @@ fn endpoint_has_request_and_response_types() {
 
     assert!(found_complete_endpoint,
         "Should have at least one endpoint with both request_type and response_type");
+}
+
+/// Validates complete endpoint structure extraction with all fields.
+#[test]
+fn endpoint_extracted_with_full_structure() {
+    let spec_json = load_fixture("prisma_postgres");
+    let normalized = normalize_spec(&spec_json).expect("Should normalize spec");
+
+    // Find POST /v1/compute-services endpoint
+    let compute_services_post = normalized.endpoints
+        .get("/v1/compute-services")
+        .and_then(|methods| methods.get("POST"));
+
+    assert!(compute_services_post.is_some(),
+        "POST /v1/compute-services should exist");
+
+    let endpoint = compute_services_post.unwrap();
+
+    // Build expected endpoint structure
+    let mut expected_error_types = BTreeMap::new();
+    expected_error_types.insert("401".to_string(), "PrismaApiError".to_string());
+    expected_error_types.insert("403".to_string(), "PrismaApiError".to_string());
+    expected_error_types.insert("404".to_string(), "PrismaApiError".to_string());
+    expected_error_types.insert("422".to_string(), "PrismaApiError".to_string());
+    expected_error_types.insert("429".to_string(), "PrismaApiError".to_string());
+
+    let expected = NormalizedEndpoint {
+        operation_id: "postV1Compute-services".to_string(),
+        request_type: Some("ComputeservicesPostRequest".to_string()),
+        response_type: Some("ComputeservicesPostResponse".to_string()),
+        error_types: expected_error_types,
+        success_codes: vec!["201".to_string()],
+        path_params: vec![],
+        query_params: vec![],
+    };
+
+    assert_eq!(endpoint.operation_id, expected.operation_id,
+        "operation_id should match");
+    assert_eq!(endpoint.request_type, expected.request_type,
+        "request_type should match");
+    assert_eq!(endpoint.response_type, expected.response_type,
+        "response_type should match");
+    assert_eq!(endpoint.error_types, expected.error_types,
+        "error_types should match");
+    assert_eq!(endpoint.success_codes, expected.success_codes,
+        "success_codes should match");
+    assert_eq!(endpoint.path_params, expected.path_params,
+        "path_params should match");
+    assert_eq!(endpoint.query_params, expected.query_params,
+        "query_params should match");
+}
+
+/// Validates GCP Discovery format endpoint extraction.
+#[test]
+fn gcp_endpoint_extracted_with_full_structure() {
+    let spec_json = load_fixture("gcp_abusiveexperiencereport");
+    let normalized = normalize_spec(&spec_json).expect("Should normalize GCP spec");
+
+    // GCP Discovery format should have endpoints from resources
+    assert!(!normalized.endpoints.is_empty(),
+        "GCP spec should have endpoints");
+
+    // Find and validate first endpoint with complete structure
+    let mut found_valid_endpoint = false;
+    for (path, methods) in &normalized.endpoints {
+        for (method, endpoint) in methods {
+            if !endpoint.operation_id.is_empty() {
+                found_valid_endpoint = true;
+
+                // Validate GCP-specific structure (dotted notation: resource.method)
+                assert!(endpoint.operation_id.contains('.'),
+                    "GCP operation_id should use dotted notation (resource.method): {}", endpoint.operation_id);
+
+                // Validate endpoint has response type
+                assert!(endpoint.response_type.is_some(),
+                    "GCP endpoint should have response_type: {} {}", method, path);
+
+                // Validate success codes were extracted
+                assert!(!endpoint.success_codes.is_empty(),
+                    "GCP endpoint should have success_codes: {} {}", method, path);
+
+                // Validate path params match the path template
+                let path_param_count = path.matches('{').count();
+                assert_eq!(endpoint.path_params.len(), path_param_count,
+                    "path_params count should match {{}} placeholders in path: {} {}", method, path);
+
+                break;
+            }
+        }
+        if found_valid_endpoint {
+            break;
+        }
+    }
+
+    assert!(found_valid_endpoint,
+        "Should have at least one endpoint with operation_id");
 }
