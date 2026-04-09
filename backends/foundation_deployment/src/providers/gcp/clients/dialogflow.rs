@@ -29,27 +29,27 @@ use serde::Serialize;
 
 pub fn dialogflow_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dialogflow.googleapis.com/v3/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -213,11 +213,11 @@ pub fn dialogflow_projects_locations_list(
 > {
     let builder = dialogflow_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     dialogflow_projects_locations_list_execute(builder)
 }
@@ -230,27 +230,27 @@ pub fn dialogflow_projects_locations_list(
 
 pub fn dialogflow_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dialogflow.googleapis.com/v3/projects/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -415,11 +415,11 @@ pub fn dialogflow_projects_operations_list(
 > {
     let builder = dialogflow_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     dialogflow_projects_operations_list_execute(builder)
 }

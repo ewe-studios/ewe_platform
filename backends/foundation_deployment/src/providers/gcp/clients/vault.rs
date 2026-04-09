@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn vault_matters_add_permissions_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &AddMatterPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:addPermissions",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -183,7 +183,7 @@ pub fn vault_matters_add_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_add_permissions_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_add_permissions_builder(client, &args.matterId, &args.body)?;
     vault_matters_add_permissions_execute(builder)
 }
 
@@ -195,14 +195,11 @@ pub fn vault_matters_add_permissions(
 
 pub fn vault_matters_close_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &CloseMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://vault.googleapis.com/v1/matters/{}:close",
-        matterId.as_str(),
-    );
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:close", matterId,);
 
     // Build request
     let builder = client
@@ -349,7 +346,7 @@ pub fn vault_matters_close(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_close_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_close_builder(client, &args.matterId, &args.body)?;
     vault_matters_close_execute(builder)
 }
 
@@ -361,14 +358,11 @@ pub fn vault_matters_close(
 
 pub fn vault_matters_count_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &CountArtifactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://vault.googleapis.com/v1/matters/{}:count",
-        matterId.as_str(),
-    );
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:count", matterId,);
 
     // Build request
     let builder = client
@@ -511,7 +505,7 @@ pub fn vault_matters_count(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_count_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_count_builder(client, &args.matterId, &args.body)?;
     vault_matters_count_execute(builder)
 }
 
@@ -679,13 +673,10 @@ pub fn vault_matters_create(
 
 pub fn vault_matters_delete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://vault.googleapis.com/v1/matters/{}",
-        matterId.as_str(),
-    );
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
 
     // Build request
     let builder = client
@@ -824,7 +815,7 @@ pub fn vault_matters_delete(
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_delete_builder(client, args.matterId.clone())?;
+    let builder = vault_matters_delete_builder(client, &args.matterId)?;
     vault_matters_delete_execute(builder)
 }
 
@@ -836,13 +827,13 @@ pub fn vault_matters_delete(
 
 pub fn vault_matters_remove_permissions_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &RemoveMatterPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:removePermissions",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -986,8 +977,7 @@ pub fn vault_matters_remove_permissions(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vault_matters_remove_permissions_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_remove_permissions_builder(client, &args.matterId, &args.body)?;
     vault_matters_remove_permissions_execute(builder)
 }
 
@@ -999,13 +989,13 @@ pub fn vault_matters_remove_permissions(
 
 pub fn vault_matters_reopen_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &ReopenMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:reopen",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -1153,7 +1143,7 @@ pub fn vault_matters_reopen(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_reopen_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_reopen_builder(client, &args.matterId, &args.body)?;
     vault_matters_reopen_execute(builder)
 }
 
@@ -1165,13 +1155,13 @@ pub fn vault_matters_reopen(
 
 pub fn vault_matters_undelete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &UndeleteMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}:undelete",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -1315,7 +1305,7 @@ pub fn vault_matters_undelete(
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_undelete_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_undelete_builder(client, &args.matterId, &args.body)?;
     vault_matters_undelete_execute(builder)
 }
 
@@ -1327,13 +1317,13 @@ pub fn vault_matters_undelete(
 
 pub fn vault_matters_exports_create_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &Export,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -1477,7 +1467,7 @@ pub fn vault_matters_exports_create(
     impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_create_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_exports_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_exports_create_execute(builder)
 }
 
@@ -1489,14 +1479,13 @@ pub fn vault_matters_exports_create(
 
 pub fn vault_matters_exports_delete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    exportId: String,
+    matterId: &String,
+    exportId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/exports/{}",
-        matterId.as_str(),
-        exportId.as_str(),
+        matterId, exportId,
     );
 
     // Build request
@@ -1638,8 +1627,7 @@ pub fn vault_matters_exports_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vault_matters_exports_delete_builder(client, args.matterId.clone(), args.exportId.clone())?;
+    let builder = vault_matters_exports_delete_builder(client, &args.matterId, &args.exportId)?;
     vault_matters_exports_delete_execute(builder)
 }
 
@@ -1651,15 +1639,14 @@ pub fn vault_matters_exports_delete(
 
 pub fn vault_matters_holds_add_held_accounts_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    holdId: String,
+    matterId: &String,
+    holdId: &String,
     body: &AddHeldAccountsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}:addHeldAccounts",
-        matterId.as_str(),
-        holdId.as_str(),
+        matterId, holdId,
     );
 
     // Build request
@@ -1811,8 +1798,8 @@ pub fn vault_matters_holds_add_held_accounts(
 > {
     let builder = vault_matters_holds_add_held_accounts_builder(
         client,
-        args.matterId.clone(),
-        args.holdId.clone(),
+        &args.matterId,
+        &args.holdId,
         &args.body,
     )?;
     vault_matters_holds_add_held_accounts_execute(builder)
@@ -1826,14 +1813,11 @@ pub fn vault_matters_holds_add_held_accounts(
 
 pub fn vault_matters_holds_create_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &Hold,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://vault.googleapis.com/v1/matters/{}/holds",
-        matterId.as_str(),
-    );
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}/holds", matterId,);
 
     // Build request
     let builder = client
@@ -1976,7 +1960,7 @@ pub fn vault_matters_holds_create(
     impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_create_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_holds_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_holds_create_execute(builder)
 }
 
@@ -1988,14 +1972,13 @@ pub fn vault_matters_holds_create(
 
 pub fn vault_matters_holds_delete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    holdId: String,
+    matterId: &String,
+    holdId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}",
-        matterId.as_str(),
-        holdId.as_str(),
+        matterId, holdId,
     );
 
     // Build request
@@ -2137,8 +2120,7 @@ pub fn vault_matters_holds_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vault_matters_holds_delete_builder(client, args.matterId.clone(), args.holdId.clone())?;
+    let builder = vault_matters_holds_delete_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_delete_execute(builder)
 }
 
@@ -2150,15 +2132,14 @@ pub fn vault_matters_holds_delete(
 
 pub fn vault_matters_holds_remove_held_accounts_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    holdId: String,
+    matterId: &String,
+    holdId: &String,
     body: &RemoveHeldAccountsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}:removeHeldAccounts",
-        matterId.as_str(),
-        holdId.as_str(),
+        matterId, holdId,
     );
 
     // Build request
@@ -2314,8 +2295,8 @@ pub fn vault_matters_holds_remove_held_accounts(
 > {
     let builder = vault_matters_holds_remove_held_accounts_builder(
         client,
-        args.matterId.clone(),
-        args.holdId.clone(),
+        &args.matterId,
+        &args.holdId,
         &args.body,
     )?;
     vault_matters_holds_remove_held_accounts_execute(builder)
@@ -2329,15 +2310,14 @@ pub fn vault_matters_holds_remove_held_accounts(
 
 pub fn vault_matters_holds_accounts_create_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    holdId: String,
+    matterId: &String,
+    holdId: &String,
     body: &HeldAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts",
-        matterId.as_str(),
-        holdId.as_str(),
+        matterId, holdId,
     );
 
     // Build request
@@ -2485,8 +2465,8 @@ pub fn vault_matters_holds_accounts_create(
 > {
     let builder = vault_matters_holds_accounts_create_builder(
         client,
-        args.matterId.clone(),
-        args.holdId.clone(),
+        &args.matterId,
+        &args.holdId,
         &args.body,
     )?;
     vault_matters_holds_accounts_create_execute(builder)
@@ -2500,16 +2480,14 @@ pub fn vault_matters_holds_accounts_create(
 
 pub fn vault_matters_holds_accounts_delete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    holdId: String,
-    accountId: String,
+    matterId: &String,
+    holdId: &String,
+    accountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts/{}",
-        matterId.as_str(),
-        holdId.as_str(),
-        accountId.as_str(),
+        matterId, holdId, accountId,
     );
 
     // Build request
@@ -2655,9 +2633,9 @@ pub fn vault_matters_holds_accounts_delete(
 > {
     let builder = vault_matters_holds_accounts_delete_builder(
         client,
-        args.matterId.clone(),
-        args.holdId.clone(),
-        args.accountId.clone(),
+        &args.matterId,
+        &args.holdId,
+        &args.accountId,
     )?;
     vault_matters_holds_accounts_delete_execute(builder)
 }
@@ -2670,13 +2648,13 @@ pub fn vault_matters_holds_accounts_delete(
 
 pub fn vault_matters_saved_queries_create_builder(
     client: &SimpleHttpClient,
-    matterId: String,
+    matterId: &String,
     body: &SavedQuery,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries",
-        matterId.as_str(),
+        matterId,
     );
 
     // Build request
@@ -2820,8 +2798,7 @@ pub fn vault_matters_saved_queries_create(
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vault_matters_saved_queries_create_builder(client, args.matterId.clone(), &args.body)?;
+    let builder = vault_matters_saved_queries_create_builder(client, &args.matterId, &args.body)?;
     vault_matters_saved_queries_create_execute(builder)
 }
 
@@ -2833,14 +2810,13 @@ pub fn vault_matters_saved_queries_create(
 
 pub fn vault_matters_saved_queries_delete_builder(
     client: &SimpleHttpClient,
-    matterId: String,
-    savedQueryId: String,
+    matterId: &String,
+    savedQueryId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://vault.googleapis.com/v1/matters/{}/savedQueries/{}",
-        matterId.as_str(),
-        savedQueryId.as_str(),
+        matterId, savedQueryId,
     );
 
     // Build request
@@ -2982,11 +2958,8 @@ pub fn vault_matters_saved_queries_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_delete_builder(
-        client,
-        args.matterId.clone(),
-        args.savedQueryId.clone(),
-    )?;
+    let builder =
+        vault_matters_saved_queries_delete_builder(client, &args.matterId, &args.savedQueryId)?;
     vault_matters_saved_queries_delete_execute(builder)
 }
 
@@ -2998,7 +2971,7 @@ pub fn vault_matters_saved_queries_delete(
 
 pub fn vault_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3145,7 +3118,7 @@ pub fn vault_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = vault_operations_cancel_builder(client, &args.name, &args.body)?;
     vault_operations_cancel_execute(builder)
 }
 
@@ -3157,7 +3130,7 @@ pub fn vault_operations_cancel(
 
 pub fn vault_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}",);
@@ -3299,6 +3272,6 @@ pub fn vault_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_delete_builder(client, args.name.clone())?;
+    let builder = vault_operations_delete_builder(client, &args.name)?;
     vault_operations_delete_execute(builder)
 }

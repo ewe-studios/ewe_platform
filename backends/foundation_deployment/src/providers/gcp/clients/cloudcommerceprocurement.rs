@@ -29,9 +29,9 @@ use serde::Serialize;
 
 pub fn cloudcommerceprocurement_providers_accounts_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -39,10 +39,10 @@ pub fn cloudcommerceprocurement_providers_accounts_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -198,9 +198,9 @@ pub fn cloudcommerceprocurement_providers_accounts_list(
 > {
     let builder = cloudcommerceprocurement_providers_accounts_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudcommerceprocurement_providers_accounts_list_execute(builder)
 }
@@ -213,10 +213,10 @@ pub fn cloudcommerceprocurement_providers_accounts_list(
 
 pub fn cloudcommerceprocurement_providers_entitlements_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -224,13 +224,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -388,10 +388,10 @@ pub fn cloudcommerceprocurement_providers_entitlements_list(
 > {
     let builder = cloudcommerceprocurement_providers_entitlements_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudcommerceprocurement_providers_entitlements_list_execute(builder)
 }

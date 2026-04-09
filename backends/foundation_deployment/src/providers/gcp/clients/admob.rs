@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn admob_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}",);
@@ -175,7 +175,7 @@ pub fn admob_accounts_get(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_get_builder(client, args.name.clone())?;
+    let builder = admob_accounts_get_builder(client, &args.name)?;
     admob_accounts_get_execute(builder)
 }
 
@@ -187,18 +187,18 @@ pub fn admob_accounts_get(
 
 pub fn admob_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -354,8 +354,7 @@ pub fn admob_accounts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        admob_accounts_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = admob_accounts_list_builder(client, &args.pageSize, &args.pageToken)?;
     admob_accounts_list_execute(builder)
 }
 
@@ -367,19 +366,19 @@ pub fn admob_accounts_list(
 
 pub fn admob_accounts_ad_units_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/adUnits",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -535,9 +534,9 @@ pub fn admob_accounts_ad_units_list(
 > {
     let builder = admob_accounts_ad_units_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     admob_accounts_ad_units_list_execute(builder)
 }
@@ -550,19 +549,19 @@ pub fn admob_accounts_ad_units_list(
 
 pub fn admob_accounts_apps_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://admob.googleapis.com/v1/accounts/{}/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -716,12 +715,8 @@ pub fn admob_accounts_apps_list(
         + 'static,
     ApiError,
 > {
-    let builder = admob_accounts_apps_list_builder(
-        client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        admob_accounts_apps_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     admob_accounts_apps_list_execute(builder)
 }
 
@@ -733,7 +728,7 @@ pub fn admob_accounts_apps_list(
 
 pub fn admob_accounts_mediation_report_generate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GenerateMediationReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -890,7 +885,7 @@ pub fn admob_accounts_mediation_report_generate(
     ApiError,
 > {
     let builder =
-        admob_accounts_mediation_report_generate_builder(client, args.parent.clone(), &args.body)?;
+        admob_accounts_mediation_report_generate_builder(client, &args.parent, &args.body)?;
     admob_accounts_mediation_report_generate_execute(builder)
 }
 
@@ -902,7 +897,7 @@ pub fn admob_accounts_mediation_report_generate(
 
 pub fn admob_accounts_network_report_generate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GenerateNetworkReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1058,7 +1053,6 @@ pub fn admob_accounts_network_report_generate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        admob_accounts_network_report_generate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = admob_accounts_network_report_generate_builder(client, &args.parent, &args.body)?;
     admob_accounts_network_report_generate_execute(builder)
 }

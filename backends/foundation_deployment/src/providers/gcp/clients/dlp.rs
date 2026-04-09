@@ -29,26 +29,26 @@ use serde::Serialize;
 
 pub fn dlp_info_types_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    locationId: Option<String>,
-    parent: Option<String>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dlp.googleapis.com/v2/infoTypes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = locationId {
+    if let Some(val) = locationId.as_ref() {
         query_parts.push(format!("locationId={}", val));
     }
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -211,10 +211,10 @@ pub fn dlp_info_types_list(
 > {
     let builder = dlp_info_types_list_builder(
         client,
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.locationId.clone(),
-        args.parent.clone(),
+        &args.filter,
+        &args.languageCode,
+        &args.locationId,
+        &args.parent,
     )?;
     dlp_info_types_list_execute(builder)
 }
@@ -227,23 +227,23 @@ pub fn dlp_info_types_list(
 
 pub fn dlp_locations_info_types_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    locationId: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dlp.googleapis.com/v2/locations/{}/infoTypes",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = locationId {
+    if let Some(val) = locationId.as_ref() {
         query_parts.push(format!("locationId={}", val));
     }
 
@@ -406,10 +406,10 @@ pub fn dlp_locations_info_types_list(
 > {
     let builder = dlp_locations_info_types_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.locationId.clone(),
+        &args.parent,
+        &args.filter,
+        &args.languageCode,
+        &args.locationId,
     )?;
     dlp_locations_info_types_list_execute(builder)
 }
@@ -422,7 +422,7 @@ pub fn dlp_locations_info_types_list(
 
 pub fn dlp_organizations_deidentify_templates_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -578,11 +578,8 @@ pub fn dlp_organizations_deidentify_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_deidentify_templates_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dlp_organizations_deidentify_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_deidentify_templates_create_execute(builder)
 }
 
@@ -594,7 +591,7 @@ pub fn dlp_organizations_deidentify_templates_create(
 
 pub fn dlp_organizations_inspect_templates_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -749,11 +746,8 @@ pub fn dlp_organizations_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_inspect_templates_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dlp_organizations_inspect_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_inspect_templates_create_execute(builder)
 }
 
@@ -765,7 +759,7 @@ pub fn dlp_organizations_inspect_templates_create(
 
 pub fn dlp_organizations_stored_info_types_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -920,11 +914,8 @@ pub fn dlp_organizations_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_stored_info_types_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dlp_organizations_stored_info_types_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_stored_info_types_create_execute(builder)
 }
 
@@ -936,7 +927,7 @@ pub fn dlp_organizations_stored_info_types_create(
 
 pub fn dlp_projects_content_deidentify_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2DeidentifyContentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1092,7 +1083,7 @@ pub fn dlp_projects_content_deidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_deidentify_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_content_deidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_deidentify_execute(builder)
 }
 
@@ -1104,7 +1095,7 @@ pub fn dlp_projects_content_deidentify(
 
 pub fn dlp_projects_content_inspect_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2InspectContentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1259,7 +1250,7 @@ pub fn dlp_projects_content_inspect(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_inspect_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_content_inspect_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_inspect_execute(builder)
 }
 
@@ -1271,7 +1262,7 @@ pub fn dlp_projects_content_inspect(
 
 pub fn dlp_projects_content_reidentify_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2ReidentifyContentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1427,7 +1418,7 @@ pub fn dlp_projects_content_reidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_reidentify_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_content_reidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_reidentify_execute(builder)
 }
 
@@ -1439,7 +1430,7 @@ pub fn dlp_projects_content_reidentify(
 
 pub fn dlp_projects_deidentify_templates_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1595,7 +1586,7 @@ pub fn dlp_projects_deidentify_templates_create(
     ApiError,
 > {
     let builder =
-        dlp_projects_deidentify_templates_create_builder(client, args.parent.clone(), &args.body)?;
+        dlp_projects_deidentify_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_deidentify_templates_create_execute(builder)
 }
 
@@ -1607,7 +1598,7 @@ pub fn dlp_projects_deidentify_templates_create(
 
 pub fn dlp_projects_dlp_jobs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateDlpJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1758,7 +1749,7 @@ pub fn dlp_projects_dlp_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_dlp_jobs_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_dlp_jobs_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_dlp_jobs_create_execute(builder)
 }
 
@@ -1770,7 +1761,7 @@ pub fn dlp_projects_dlp_jobs_create(
 
 pub fn dlp_projects_image_redact_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2RedactImageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1925,7 +1916,7 @@ pub fn dlp_projects_image_redact(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_image_redact_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_image_redact_builder(client, &args.parent, &args.body)?;
     dlp_projects_image_redact_execute(builder)
 }
 
@@ -1937,7 +1928,7 @@ pub fn dlp_projects_image_redact(
 
 pub fn dlp_projects_inspect_templates_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2092,8 +2083,7 @@ pub fn dlp_projects_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_projects_inspect_templates_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_inspect_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_inspect_templates_create_execute(builder)
 }
 
@@ -2105,7 +2095,7 @@ pub fn dlp_projects_inspect_templates_create(
 
 pub fn dlp_projects_job_triggers_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateJobTriggerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2260,8 +2250,7 @@ pub fn dlp_projects_job_triggers_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_projects_job_triggers_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_job_triggers_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_job_triggers_create_execute(builder)
 }
 
@@ -2273,7 +2262,7 @@ pub fn dlp_projects_job_triggers_create(
 
 pub fn dlp_projects_stored_info_types_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2428,7 +2417,6 @@ pub fn dlp_projects_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_projects_stored_info_types_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = dlp_projects_stored_info_types_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_stored_info_types_create_execute(builder)
 }

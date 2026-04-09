@@ -194,23 +194,23 @@ pub fn places_places_autocomplete(
 
 pub fn places_places_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    languageCode: Option<String>,
-    regionCode: Option<String>,
-    sessionToken: Option<String>,
+    name: &String,
+    languageCode: &Option<String>,
+    regionCode: &Option<String>,
+    sessionToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = regionCode {
+    if let Some(val) = regionCode.as_ref() {
         query_parts.push(format!("regionCode={}", val));
     }
-    if let Some(val) = sessionToken {
+    if let Some(val) = sessionToken.as_ref() {
         query_parts.push(format!("sessionToken={}", val));
     }
 
@@ -368,10 +368,10 @@ pub fn places_places_get(
 > {
     let builder = places_places_get_builder(
         client,
-        args.name.clone(),
-        args.languageCode.clone(),
-        args.regionCode.clone(),
-        args.sessionToken.clone(),
+        &args.name,
+        &args.languageCode,
+        &args.regionCode,
+        &args.sessionToken,
     )?;
     places_places_get_execute(builder)
 }

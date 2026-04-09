@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn bigtableadmin_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://bigtableadmin.googleapis.com/v2/operations/{}",);
@@ -171,7 +171,7 @@ pub fn bigtableadmin_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigtableadmin_operations_get_builder(client, args.name.clone())?;
+    let builder = bigtableadmin_operations_get_builder(client, &args.name)?;
     bigtableadmin_operations_get_execute(builder)
 }
 
@@ -183,11 +183,11 @@ pub fn bigtableadmin_operations_get(
 
 pub fn bigtableadmin_operations_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -195,16 +195,16 @@ pub fn bigtableadmin_operations_projects_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -364,11 +364,11 @@ pub fn bigtableadmin_operations_projects_operations_list(
 > {
     let builder = bigtableadmin_operations_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     bigtableadmin_operations_projects_operations_list_execute(builder)
 }
@@ -381,7 +381,7 @@ pub fn bigtableadmin_operations_projects_operations_list(
 
 pub fn bigtableadmin_projects_instances_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CreateInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -529,7 +529,7 @@ pub fn bigtableadmin_projects_instances_create(
     ApiError,
 > {
     let builder =
-        bigtableadmin_projects_instances_create_builder(client, args.parent.clone(), &args.body)?;
+        bigtableadmin_projects_instances_create_builder(client, &args.parent, &args.body)?;
     bigtableadmin_projects_instances_create_execute(builder)
 }
 
@@ -541,27 +541,27 @@ pub fn bigtableadmin_projects_instances_create(
 
 pub fn bigtableadmin_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://bigtableadmin.googleapis.com/v2/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -721,11 +721,11 @@ pub fn bigtableadmin_projects_locations_list(
 > {
     let builder = bigtableadmin_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     bigtableadmin_projects_locations_list_execute(builder)
 }

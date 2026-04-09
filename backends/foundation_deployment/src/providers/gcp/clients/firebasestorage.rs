@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn firebasestorage_projects_delete_default_bucket_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -172,8 +172,7 @@ pub fn firebasestorage_projects_delete_default_bucket(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebasestorage_projects_delete_default_bucket_builder(client, args.name.clone())?;
+    let builder = firebasestorage_projects_delete_default_bucket_builder(client, &args.name)?;
     firebasestorage_projects_delete_default_bucket_execute(builder)
 }
 
@@ -185,9 +184,9 @@ pub fn firebasestorage_projects_delete_default_bucket(
 
 pub fn firebasestorage_projects_buckets_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -195,10 +194,10 @@ pub fn firebasestorage_projects_buckets_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -354,9 +353,9 @@ pub fn firebasestorage_projects_buckets_list(
 > {
     let builder = firebasestorage_projects_buckets_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     firebasestorage_projects_buckets_list_execute(builder)
 }

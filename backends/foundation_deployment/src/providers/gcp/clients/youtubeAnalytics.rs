@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn youtube_analytics_group_items_delete_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -194,8 +194,8 @@ pub fn youtube_analytics_group_items_delete(
 > {
     let builder = youtube_analytics_group_items_delete_builder(
         client,
-        args.id.clone(),
-        args.onBehalfOfContentOwner.clone(),
+        &args.id,
+        &args.onBehalfOfContentOwner,
     )?;
     youtube_analytics_group_items_delete_execute(builder)
 }
@@ -208,18 +208,18 @@ pub fn youtube_analytics_group_items_delete(
 
 pub fn youtube_analytics_groups_delete_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
-    onBehalfOfContentOwner: Option<String>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
-    if let Some(val) = onBehalfOfContentOwner {
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
         query_parts.push(format!("onBehalfOfContentOwner={}", val));
     }
 
@@ -371,11 +371,8 @@ pub fn youtube_analytics_groups_delete(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_analytics_groups_delete_builder(
-        client,
-        args.id.clone(),
-        args.onBehalfOfContentOwner.clone(),
-    )?;
+    let builder =
+        youtube_analytics_groups_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
     youtube_analytics_groups_delete_execute(builder)
 }
 
@@ -387,54 +384,54 @@ pub fn youtube_analytics_groups_delete(
 
 pub fn youtube_analytics_reports_query_builder(
     client: &SimpleHttpClient,
-    currency: Option<String>,
-    dimensions: Option<String>,
-    endDate: Option<String>,
-    filters: Option<String>,
-    ids: Option<String>,
-    includeHistoricalChannelData: Option<bool>,
-    maxResults: Option<i32>,
-    metrics: Option<String>,
-    sort: Option<String>,
-    startDate: Option<String>,
-    startIndex: Option<i32>,
+    currency: &Option<String>,
+    dimensions: &Option<String>,
+    endDate: &Option<String>,
+    filters: &Option<String>,
+    ids: &Option<String>,
+    includeHistoricalChannelData: &Option<bool>,
+    maxResults: &Option<i32>,
+    metrics: &Option<String>,
+    sort: &Option<String>,
+    startDate: &Option<String>,
+    startIndex: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/reports",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = currency {
+    if let Some(val) = currency.as_ref() {
         query_parts.push(format!("currency={}", val));
     }
-    if let Some(val) = dimensions {
+    if let Some(val) = dimensions.as_ref() {
         query_parts.push(format!("dimensions={}", val));
     }
-    if let Some(val) = endDate {
+    if let Some(val) = endDate.as_ref() {
         query_parts.push(format!("endDate={}", val));
     }
-    if let Some(val) = filters {
+    if let Some(val) = filters.as_ref() {
         query_parts.push(format!("filters={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = includeHistoricalChannelData {
+    if let Some(val) = includeHistoricalChannelData.as_ref() {
         query_parts.push(format!("includeHistoricalChannelData={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
-    if let Some(val) = sort {
+    if let Some(val) = sort.as_ref() {
         query_parts.push(format!("sort={}", val));
     }
-    if let Some(val) = startDate {
+    if let Some(val) = startDate.as_ref() {
         query_parts.push(format!("startDate={}", val));
     }
-    if let Some(val) = startIndex {
+    if let Some(val) = startIndex.as_ref() {
         query_parts.push(format!("startIndex={}", val));
     }
 
@@ -606,17 +603,17 @@ pub fn youtube_analytics_reports_query(
 > {
     let builder = youtube_analytics_reports_query_builder(
         client,
-        args.currency.clone(),
-        args.dimensions.clone(),
-        args.endDate.clone(),
-        args.filters.clone(),
-        args.ids.clone(),
-        args.includeHistoricalChannelData.clone(),
-        args.maxResults.clone(),
-        args.metrics.clone(),
-        args.sort.clone(),
-        args.startDate.clone(),
-        args.startIndex.clone(),
+        &args.currency,
+        &args.dimensions,
+        &args.endDate,
+        &args.filters,
+        &args.ids,
+        &args.includeHistoricalChannelData,
+        &args.maxResults,
+        &args.metrics,
+        &args.sort,
+        &args.startDate,
+        &args.startIndex,
     )?;
     youtube_analytics_reports_query_execute(builder)
 }

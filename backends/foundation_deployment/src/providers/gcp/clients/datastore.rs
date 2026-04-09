@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn datastore_projects_allocate_ids_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &AllocateIdsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:allocateIds",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -183,8 +183,7 @@ pub fn datastore_projects_allocate_ids(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastore_projects_allocate_ids_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_allocate_ids_builder(client, &args.projectId, &args.body)?;
     datastore_projects_allocate_ids_execute(builder)
 }
 
@@ -196,13 +195,13 @@ pub fn datastore_projects_allocate_ids(
 
 pub fn datastore_projects_begin_transaction_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &BeginTransactionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:beginTransaction",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -351,7 +350,7 @@ pub fn datastore_projects_begin_transaction(
     ApiError,
 > {
     let builder =
-        datastore_projects_begin_transaction_builder(client, args.projectId.clone(), &args.body)?;
+        datastore_projects_begin_transaction_builder(client, &args.projectId, &args.body)?;
     datastore_projects_begin_transaction_execute(builder)
 }
 
@@ -363,13 +362,13 @@ pub fn datastore_projects_begin_transaction(
 
 pub fn datastore_projects_commit_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &CommitRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:commit",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -517,7 +516,7 @@ pub fn datastore_projects_commit(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_commit_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_commit_builder(client, &args.projectId, &args.body)?;
     datastore_projects_commit_execute(builder)
 }
 
@@ -529,13 +528,13 @@ pub fn datastore_projects_commit(
 
 pub fn datastore_projects_export_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &GoogleDatastoreAdminV1ExportEntitiesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:export",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -687,7 +686,7 @@ pub fn datastore_projects_export(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_export_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_export_builder(client, &args.projectId, &args.body)?;
     datastore_projects_export_execute(builder)
 }
 
@@ -699,13 +698,13 @@ pub fn datastore_projects_export(
 
 pub fn datastore_projects_import_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &GoogleDatastoreAdminV1ImportEntitiesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:import",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -857,7 +856,7 @@ pub fn datastore_projects_import(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_import_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_import_builder(client, &args.projectId, &args.body)?;
     datastore_projects_import_execute(builder)
 }
 
@@ -869,13 +868,13 @@ pub fn datastore_projects_import(
 
 pub fn datastore_projects_lookup_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &LookupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:lookup",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1023,7 +1022,7 @@ pub fn datastore_projects_lookup(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_lookup_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_lookup_builder(client, &args.projectId, &args.body)?;
     datastore_projects_lookup_execute(builder)
 }
 
@@ -1035,13 +1034,13 @@ pub fn datastore_projects_lookup(
 
 pub fn datastore_projects_reserve_ids_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &ReserveIdsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:reserveIds",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1189,8 +1188,7 @@ pub fn datastore_projects_reserve_ids(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastore_projects_reserve_ids_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_reserve_ids_builder(client, &args.projectId, &args.body)?;
     datastore_projects_reserve_ids_execute(builder)
 }
 
@@ -1202,13 +1200,13 @@ pub fn datastore_projects_reserve_ids(
 
 pub fn datastore_projects_rollback_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &RollbackRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:rollback",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1356,7 +1354,7 @@ pub fn datastore_projects_rollback(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_rollback_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_rollback_builder(client, &args.projectId, &args.body)?;
     datastore_projects_rollback_execute(builder)
 }
 
@@ -1368,13 +1366,13 @@ pub fn datastore_projects_rollback(
 
 pub fn datastore_projects_run_aggregation_query_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &RunAggregationQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:runAggregationQuery",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1526,11 +1524,8 @@ pub fn datastore_projects_run_aggregation_query(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_run_aggregation_query_builder(
-        client,
-        args.projectId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        datastore_projects_run_aggregation_query_builder(client, &args.projectId, &args.body)?;
     datastore_projects_run_aggregation_query_execute(builder)
 }
 
@@ -1542,13 +1537,13 @@ pub fn datastore_projects_run_aggregation_query(
 
 pub fn datastore_projects_run_query_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &RunQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}:runQuery",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1696,7 +1691,7 @@ pub fn datastore_projects_run_query(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_run_query_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_run_query_builder(client, &args.projectId, &args.body)?;
     datastore_projects_run_query_execute(builder)
 }
 
@@ -1708,13 +1703,13 @@ pub fn datastore_projects_run_query(
 
 pub fn datastore_projects_indexes_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &GoogleDatastoreAdminV1Index,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -1866,8 +1861,7 @@ pub fn datastore_projects_indexes_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastore_projects_indexes_create_builder(client, args.projectId.clone(), &args.body)?;
+    let builder = datastore_projects_indexes_create_builder(client, &args.projectId, &args.body)?;
     datastore_projects_indexes_create_execute(builder)
 }
 
@@ -1879,14 +1873,13 @@ pub fn datastore_projects_indexes_create(
 
 pub fn datastore_projects_indexes_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    indexId: String,
+    projectId: &String,
+    indexId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://datastore.googleapis.com/v1/projects/{}/indexes/{}",
-        projectId.as_str(),
-        indexId.as_str(),
+        projectId, indexId,
     );
 
     // Build request
@@ -2036,11 +2029,8 @@ pub fn datastore_projects_indexes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_indexes_delete_builder(
-        client,
-        args.projectId.clone(),
-        args.indexId.clone(),
-    )?;
+    let builder =
+        datastore_projects_indexes_delete_builder(client, &args.projectId, &args.indexId)?;
     datastore_projects_indexes_delete_execute(builder)
 }
 
@@ -2052,27 +2042,27 @@ pub fn datastore_projects_indexes_delete(
 
 pub fn datastore_projects_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datastore.googleapis.com/v1/projects/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -2237,11 +2227,11 @@ pub fn datastore_projects_operations_list(
 > {
     let builder = datastore_projects_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     datastore_projects_operations_list_execute(builder)
 }

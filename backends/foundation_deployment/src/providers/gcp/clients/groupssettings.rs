@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn groups_settings_groups_get_builder(
     client: &SimpleHttpClient,
-    groupUniqueId: String,
+    groupUniqueId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/groups/v1/groups/{}",
-        groupUniqueId.as_str(),
+        groupUniqueId,
     );
 
     // Build request
@@ -174,6 +174,6 @@ pub fn groups_settings_groups_get(
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groups_settings_groups_get_builder(client, args.groupUniqueId.clone())?;
+    let builder = groups_settings_groups_get_builder(client, &args.groupUniqueId)?;
     groups_settings_groups_get_execute(builder)
 }

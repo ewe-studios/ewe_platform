@@ -29,15 +29,15 @@ use serde::Serialize;
 
 pub fn mybusinesslodging_locations_get_lodging_builder(
     client: &SimpleHttpClient,
-    name: String,
-    readMask: Option<String>,
+    name: &String,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://mybusinesslodging.googleapis.com/v1/locations/{}/lodging",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -185,11 +185,8 @@ pub fn mybusinesslodging_locations_get_lodging(
     impl StreamIterator<D = Result<ApiResponse<Lodging>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinesslodging_locations_get_lodging_builder(
-        client,
-        args.name.clone(),
-        args.readMask.clone(),
-    )?;
+    let builder =
+        mybusinesslodging_locations_get_lodging_builder(client, &args.name, &args.readMask)?;
     mybusinesslodging_locations_get_lodging_execute(builder)
 }
 
@@ -201,8 +198,8 @@ pub fn mybusinesslodging_locations_get_lodging(
 
 pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
     client: &SimpleHttpClient,
-    name: String,
-    readMask: Option<String>,
+    name: &String,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -211,7 +208,7 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -369,8 +366,8 @@ pub fn mybusinesslodging_locations_lodging_get_google_updated(
 > {
     let builder = mybusinesslodging_locations_lodging_get_google_updated_builder(
         client,
-        args.name.clone(),
-        args.readMask.clone(),
+        &args.name,
+        &args.readMask,
     )?;
     mybusinesslodging_locations_lodging_get_google_updated_execute(builder)
 }

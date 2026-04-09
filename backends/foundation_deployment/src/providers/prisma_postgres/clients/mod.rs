@@ -29,22 +29,22 @@ use serde::Serialize;
 
 pub fn get_v1_compute_services_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
-    projectId: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/compute-services",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
 
@@ -202,12 +202,8 @@ pub fn get_v1_compute_services(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.projectId.clone(),
-    )?;
+    let builder =
+        get_v1_compute_services_builder(client, &args.cursor, &args.limit, &args.projectId)?;
     get_v1_compute_services_execute(builder)
 }
 
@@ -383,12 +379,12 @@ pub fn post_v1_compute_services(
 
 pub fn get_v1_compute_services_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
-        versionId.as_str(),
+        versionId,
     );
 
     // Build request
@@ -536,8 +532,7 @@ pub fn get_v1_compute_services_versions_versionId(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_compute_services_versions_versionId_builder(client, args.versionId.clone())?;
+    let builder = get_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
     get_v1_compute_services_versions_versionId_execute(builder)
 }
 
@@ -549,12 +544,12 @@ pub fn get_v1_compute_services_versions_versionId(
 
 pub fn delete_v1_compute_services_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
-        versionId.as_str(),
+        versionId,
     );
 
     // Build request
@@ -691,8 +686,7 @@ pub fn delete_v1_compute_services_versions_versionId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_compute_services_versions_versionId_builder(client, args.versionId.clone())?;
+    let builder = delete_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
     delete_v1_compute_services_versions_versionId_execute(builder)
 }
 
@@ -704,12 +698,12 @@ pub fn delete_v1_compute_services_versions_versionId(
 
 pub fn post_v1_compute_services_versions_versionId_start_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/start",
-        versionId.as_str(),
+        versionId,
     );
 
     // Build request
@@ -858,7 +852,7 @@ pub fn post_v1_compute_services_versions_versionId_start(
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_start_builder(client, args.versionId.clone())?;
+        post_v1_compute_services_versions_versionId_start_builder(client, &args.versionId)?;
     post_v1_compute_services_versions_versionId_start_execute(builder)
 }
 
@@ -870,12 +864,12 @@ pub fn post_v1_compute_services_versions_versionId_start(
 
 pub fn post_v1_compute_services_versions_versionId_stop_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/stop",
-        versionId.as_str(),
+        versionId,
     );
 
     // Build request
@@ -1013,7 +1007,7 @@ pub fn post_v1_compute_services_versions_versionId_stop(
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_stop_builder(client, args.versionId.clone())?;
+        post_v1_compute_services_versions_versionId_stop_builder(client, &args.versionId)?;
     post_v1_compute_services_versions_versionId_stop_execute(builder)
 }
 
@@ -1025,12 +1019,12 @@ pub fn post_v1_compute_services_versions_versionId_stop(
 
 pub fn get_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
+    computeServiceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
@@ -1178,8 +1172,7 @@ pub fn get_v1_compute_services_computeServiceId(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_compute_services_computeServiceId_builder(client, args.computeServiceId.clone())?;
+    let builder = get_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
     get_v1_compute_services_computeServiceId_execute(builder)
 }
 
@@ -1191,13 +1184,13 @@ pub fn get_v1_compute_services_computeServiceId(
 
 pub fn patch_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
+    computeServiceId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
@@ -1351,7 +1344,7 @@ pub fn patch_v1_compute_services_computeServiceId(
 > {
     let builder = patch_v1_compute_services_computeServiceId_builder(
         client,
-        args.computeServiceId.clone(),
+        &args.computeServiceId,
         &args.body,
     )?;
     patch_v1_compute_services_computeServiceId_execute(builder)
@@ -1365,12 +1358,12 @@ pub fn patch_v1_compute_services_computeServiceId(
 
 pub fn delete_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
+    computeServiceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
@@ -1508,7 +1501,7 @@ pub fn delete_v1_compute_services_computeServiceId(
     ApiError,
 > {
     let builder =
-        delete_v1_compute_services_computeServiceId_builder(client, args.computeServiceId.clone())?;
+        delete_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
     delete_v1_compute_services_computeServiceId_execute(builder)
 }
 
@@ -1520,13 +1513,13 @@ pub fn delete_v1_compute_services_computeServiceId(
 
 pub fn post_v1_compute_services_computeServiceId_promote_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
+    computeServiceId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/promote",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
@@ -1680,7 +1673,7 @@ pub fn post_v1_compute_services_computeServiceId_promote(
 > {
     let builder = post_v1_compute_services_computeServiceId_promote_builder(
         client,
-        args.computeServiceId.clone(),
+        &args.computeServiceId,
         &args.body,
     )?;
     post_v1_compute_services_computeServiceId_promote_execute(builder)
@@ -1694,22 +1687,22 @@ pub fn post_v1_compute_services_computeServiceId_promote(
 
 pub fn get_v1_compute_services_computeServiceId_versions_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    computeServiceId: &String,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -1869,9 +1862,9 @@ pub fn get_v1_compute_services_computeServiceId_versions(
 > {
     let builder = get_v1_compute_services_computeServiceId_versions_builder(
         client,
-        args.computeServiceId.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.computeServiceId,
+        &args.cursor,
+        &args.limit,
     )?;
     get_v1_compute_services_computeServiceId_versions_execute(builder)
 }
@@ -1884,13 +1877,13 @@ pub fn get_v1_compute_services_computeServiceId_versions(
 
 pub fn post_v1_compute_services_computeServiceId_versions_builder(
     client: &SimpleHttpClient,
-    computeServiceId: String,
+    computeServiceId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
-        computeServiceId.as_str(),
+        computeServiceId,
     );
 
     // Build request
@@ -2044,7 +2037,7 @@ pub fn post_v1_compute_services_computeServiceId_versions(
 > {
     let builder = post_v1_compute_services_computeServiceId_versions_builder(
         client,
-        args.computeServiceId.clone(),
+        &args.computeServiceId,
         &args.body,
     )?;
     post_v1_compute_services_computeServiceId_versions_execute(builder)
@@ -2058,22 +2051,22 @@ pub fn post_v1_compute_services_computeServiceId_versions(
 
 pub fn get_v1_connections_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
-    databaseId: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
+    databaseId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/connections",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = databaseId {
+    if let Some(val) = databaseId.as_ref() {
         query_parts.push(format!("databaseId={}", val));
     }
 
@@ -2227,12 +2220,7 @@ pub fn get_v1_connections(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_connections_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.databaseId.clone(),
-    )?;
+    let builder = get_v1_connections_builder(client, &args.cursor, &args.limit, &args.databaseId)?;
     get_v1_connections_execute(builder)
 }
 
@@ -2404,10 +2392,10 @@ pub fn post_v1_connections(
 
 pub fn get_v1_connections_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id,);
 
     // Build request
     let builder = client
@@ -2550,7 +2538,7 @@ pub fn get_v1_connections_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_connections_id_builder(client, args.id.clone())?;
+    let builder = get_v1_connections_id_builder(client, &args.id)?;
     get_v1_connections_id_execute(builder)
 }
 
@@ -2562,10 +2550,10 @@ pub fn get_v1_connections_id(
 
 pub fn delete_v1_connections_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id,);
 
     // Build request
     let builder = client
@@ -2701,7 +2689,7 @@ pub fn delete_v1_connections_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_connections_id_builder(client, args.id.clone())?;
+    let builder = delete_v1_connections_id_builder(client, &args.id)?;
     delete_v1_connections_id_execute(builder)
 }
 
@@ -2713,13 +2701,10 @@ pub fn delete_v1_connections_id(
 
 pub fn post_v1_connections_id_rotate_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/connections/{}/rotate",
-        id.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}/rotate", id,);
 
     // Build request
     let builder = client
@@ -2866,7 +2851,7 @@ pub fn post_v1_connections_id_rotate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_connections_id_rotate_builder(client, args.id.clone())?;
+    let builder = post_v1_connections_id_rotate_builder(client, &args.id)?;
     post_v1_connections_id_rotate_execute(builder)
 }
 
@@ -2878,22 +2863,22 @@ pub fn post_v1_connections_id_rotate(
 
 pub fn get_v1_databases_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
-    projectId: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/databases",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
 
@@ -3047,12 +3032,7 @@ pub fn get_v1_databases(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.projectId.clone(),
-    )?;
+    let builder = get_v1_databases_builder(client, &args.cursor, &args.limit, &args.projectId)?;
     get_v1_databases_execute(builder)
 }
 
@@ -3224,10 +3204,10 @@ pub fn post_v1_databases(
 
 pub fn get_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
+    databaseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
     // Build request
     let builder = client
@@ -3370,7 +3350,7 @@ pub fn get_v1_databases_databaseId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_builder(client, args.databaseId.clone())?;
+    let builder = get_v1_databases_databaseId_builder(client, &args.databaseId)?;
     get_v1_databases_databaseId_execute(builder)
 }
 
@@ -3382,11 +3362,11 @@ pub fn get_v1_databases_databaseId(
 
 pub fn patch_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
+    databaseId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
     // Build request
     let builder = client
@@ -3533,8 +3513,7 @@ pub fn patch_v1_databases_databaseId(
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_databases_databaseId_builder(client, args.databaseId.clone(), &args.body)?;
+    let builder = patch_v1_databases_databaseId_builder(client, &args.databaseId, &args.body)?;
     patch_v1_databases_databaseId_execute(builder)
 }
 
@@ -3546,10 +3525,10 @@ pub fn patch_v1_databases_databaseId(
 
 pub fn delete_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
+    databaseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
 
     // Build request
     let builder = client
@@ -3685,7 +3664,7 @@ pub fn delete_v1_databases_databaseId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_databases_databaseId_builder(client, args.databaseId.clone())?;
+    let builder = delete_v1_databases_databaseId_builder(client, &args.databaseId)?;
     delete_v1_databases_databaseId_execute(builder)
 }
 
@@ -3697,18 +3676,15 @@ pub fn delete_v1_databases_databaseId(
 
 pub fn get_v1_databases_databaseId_backups_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
-    limit: Option<i32>,
+    databaseId: &String,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/databases/{}/backups",
-        databaseId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}/backups", databaseId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -3864,11 +3840,8 @@ pub fn get_v1_databases_databaseId_backups(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_backups_builder(
-        client,
-        args.databaseId.clone(),
-        args.limit.clone(),
-    )?;
+    let builder =
+        get_v1_databases_databaseId_backups_builder(client, &args.databaseId, &args.limit)?;
     get_v1_databases_databaseId_backups_execute(builder)
 }
 
@@ -3880,22 +3853,22 @@ pub fn get_v1_databases_databaseId_backups(
 
 pub fn get_v1_databases_databaseId_connections_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    databaseId: &String,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
-        databaseId.as_str(),
+        databaseId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -4055,9 +4028,9 @@ pub fn get_v1_databases_databaseId_connections(
 > {
     let builder = get_v1_databases_databaseId_connections_builder(
         client,
-        args.databaseId.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.databaseId,
+        &args.cursor,
+        &args.limit,
     )?;
     get_v1_databases_databaseId_connections_execute(builder)
 }
@@ -4070,13 +4043,13 @@ pub fn get_v1_databases_databaseId_connections(
 
 pub fn post_v1_databases_databaseId_connections_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
+    databaseId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
-        databaseId.as_str(),
+        databaseId,
     );
 
     // Build request
@@ -4228,11 +4201,8 @@ pub fn post_v1_databases_databaseId_connections(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_databases_databaseId_connections_builder(
-        client,
-        args.databaseId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_databases_databaseId_connections_builder(client, &args.databaseId, &args.body)?;
     post_v1_databases_databaseId_connections_execute(builder)
 }
 
@@ -4244,22 +4214,19 @@ pub fn post_v1_databases_databaseId_connections(
 
 pub fn get_v1_databases_databaseId_usage_builder(
     client: &SimpleHttpClient,
-    databaseId: String,
-    startDate: Option<String>,
-    endDate: Option<String>,
+    databaseId: &String,
+    startDate: &Option<String>,
+    endDate: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/databases/{}/usage",
-        databaseId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}/usage", databaseId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = startDate {
+    if let Some(val) = startDate.as_ref() {
         query_parts.push(format!("startDate={}", val));
     }
-    if let Some(val) = endDate {
+    if let Some(val) = endDate.as_ref() {
         query_parts.push(format!("endDate={}", val));
     }
 
@@ -4415,9 +4382,9 @@ pub fn get_v1_databases_databaseId_usage(
 > {
     let builder = get_v1_databases_databaseId_usage_builder(
         client,
-        args.databaseId.clone(),
-        args.startDate.clone(),
-        args.endDate.clone(),
+        &args.databaseId,
+        &args.startDate,
+        &args.endDate,
     )?;
     get_v1_databases_databaseId_usage_execute(builder)
 }
@@ -4430,13 +4397,13 @@ pub fn get_v1_databases_databaseId_usage(
 
 pub fn post_v1_databases_targetDatabaseId_restore_builder(
     client: &SimpleHttpClient,
-    targetDatabaseId: String,
+    targetDatabaseId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/restore",
-        targetDatabaseId.as_str(),
+        targetDatabaseId,
     );
 
     // Build request
@@ -4590,7 +4557,7 @@ pub fn post_v1_databases_targetDatabaseId_restore(
 > {
     let builder = post_v1_databases_targetDatabaseId_restore_builder(
         client,
-        args.targetDatabaseId.clone(),
+        &args.targetDatabaseId,
         &args.body,
     )?;
     post_v1_databases_targetDatabaseId_restore_execute(builder)
@@ -4604,22 +4571,22 @@ pub fn post_v1_databases_targetDatabaseId_restore(
 
 pub fn get_v1_integrations_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
-    workspaceId: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
+    workspaceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/integrations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = workspaceId {
+    if let Some(val) = workspaceId.as_ref() {
         query_parts.push(format!("workspaceId={}", val));
     }
 
@@ -4773,12 +4740,8 @@ pub fn get_v1_integrations(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_integrations_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.workspaceId.clone(),
-    )?;
+    let builder =
+        get_v1_integrations_builder(client, &args.cursor, &args.limit, &args.workspaceId)?;
     get_v1_integrations_execute(builder)
 }
 
@@ -4790,10 +4753,10 @@ pub fn get_v1_integrations(
 
 pub fn get_v1_integrations_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id,);
 
     // Build request
     let builder = client
@@ -4936,7 +4899,7 @@ pub fn get_v1_integrations_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_integrations_id_builder(client, args.id.clone())?;
+    let builder = get_v1_integrations_id_builder(client, &args.id)?;
     get_v1_integrations_id_execute(builder)
 }
 
@@ -4948,10 +4911,10 @@ pub fn get_v1_integrations_id(
 
 pub fn delete_v1_integrations_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id,);
 
     // Build request
     let builder = client
@@ -5087,7 +5050,7 @@ pub fn delete_v1_integrations_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_integrations_id_builder(client, args.id.clone())?;
+    let builder = delete_v1_integrations_id_builder(client, &args.id)?;
     delete_v1_integrations_id_execute(builder)
 }
 
@@ -5099,18 +5062,18 @@ pub fn delete_v1_integrations_id(
 
 pub fn get_v1_projects_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -5262,7 +5225,7 @@ pub fn get_v1_projects(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_builder(client, args.cursor.clone(), args.limit.clone())?;
+    let builder = get_v1_projects_builder(client, &args.cursor, &args.limit)?;
     get_v1_projects_execute(builder)
 }
 
@@ -5434,10 +5397,10 @@ pub fn post_v1_projects(
 
 pub fn get_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
     // Build request
     let builder = client
@@ -5580,7 +5543,7 @@ pub fn get_v1_projects_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_id_builder(client, args.id.clone())?;
+    let builder = get_v1_projects_id_builder(client, &args.id)?;
     get_v1_projects_id_execute(builder)
 }
 
@@ -5592,11 +5555,11 @@ pub fn get_v1_projects_id(
 
 pub fn patch_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
     // Build request
     let builder = client
@@ -5743,7 +5706,7 @@ pub fn patch_v1_projects_id(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_id_builder(client, args.id.clone(), &args.body)?;
+    let builder = patch_v1_projects_id_builder(client, &args.id, &args.body)?;
     patch_v1_projects_id_execute(builder)
 }
 
@@ -5755,10 +5718,10 @@ pub fn patch_v1_projects_id(
 
 pub fn delete_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id,);
 
     // Build request
     let builder = client
@@ -5894,7 +5857,7 @@ pub fn delete_v1_projects_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_id_builder(client, args.id.clone())?;
+    let builder = delete_v1_projects_id_builder(client, &args.id)?;
     delete_v1_projects_id_execute(builder)
 }
 
@@ -5906,11 +5869,11 @@ pub fn delete_v1_projects_id(
 
 pub fn post_v1_projects_id_transfer_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/transfer", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/transfer", id,);
 
     // Build request
     let builder = client
@@ -6050,7 +6013,7 @@ pub fn post_v1_projects_id_transfer(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_id_transfer_builder(client, args.id.clone(), &args.body)?;
+    let builder = post_v1_projects_id_transfer_builder(client, &args.id, &args.body)?;
     post_v1_projects_id_transfer_execute(builder)
 }
 
@@ -6062,22 +6025,22 @@ pub fn post_v1_projects_id_transfer(
 
 pub fn get_v1_projects_projectId_compute_services_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    projectId: &String,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -6237,9 +6200,9 @@ pub fn get_v1_projects_projectId_compute_services(
 > {
     let builder = get_v1_projects_projectId_compute_services_builder(
         client,
-        args.projectId.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.projectId,
+        &args.cursor,
+        &args.limit,
     )?;
     get_v1_projects_projectId_compute_services_execute(builder)
 }
@@ -6252,13 +6215,13 @@ pub fn get_v1_projects_projectId_compute_services(
 
 pub fn post_v1_projects_projectId_compute_services_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
@@ -6410,11 +6373,8 @@ pub fn post_v1_projects_projectId_compute_services(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_projectId_compute_services_builder(
-        client,
-        args.projectId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_projectId_compute_services_builder(client, &args.projectId, &args.body)?;
     post_v1_projects_projectId_compute_services_execute(builder)
 }
 
@@ -6426,22 +6386,19 @@ pub fn post_v1_projects_projectId_compute_services(
 
 pub fn get_v1_projects_projectId_databases_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    projectId: &String,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/projects/{}/databases",
-        projectId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -6601,9 +6558,9 @@ pub fn get_v1_projects_projectId_databases(
 > {
     let builder = get_v1_projects_projectId_databases_builder(
         client,
-        args.projectId.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.projectId,
+        &args.cursor,
+        &args.limit,
     )?;
     get_v1_projects_projectId_databases_execute(builder)
 }
@@ -6616,14 +6573,11 @@ pub fn get_v1_projects_projectId_databases(
 
 pub fn post_v1_projects_projectId_databases_builder(
     client: &SimpleHttpClient,
-    projectId: String,
+    projectId: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/projects/{}/databases",
-        projectId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
 
     // Build request
     let builder = client
@@ -6775,7 +6729,7 @@ pub fn post_v1_projects_projectId_databases(
     ApiError,
 > {
     let builder =
-        post_v1_projects_projectId_databases_builder(client, args.projectId.clone(), &args.body)?;
+        post_v1_projects_projectId_databases_builder(client, &args.projectId, &args.body)?;
     post_v1_projects_projectId_databases_execute(builder)
 }
 
@@ -6787,14 +6741,14 @@ pub fn post_v1_projects_projectId_databases(
 
 pub fn get_v1_regions_builder(
     client: &SimpleHttpClient,
-    product: Option<String>,
+    product: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/regions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = product {
+    if let Some(val) = product.as_ref() {
         query_parts.push(format!("product={}", val));
     }
 
@@ -6944,7 +6898,7 @@ pub fn get_v1_regions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_regions_builder(client, args.product.clone())?;
+    let builder = get_v1_regions_builder(client, &args.product)?;
     get_v1_regions_execute(builder)
 }
 
@@ -7262,22 +7216,22 @@ pub fn get_v1_regions_postgres(
 
 pub fn get_v1_versions_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
-    computeServiceId: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
+    computeServiceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/versions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = computeServiceId {
+    if let Some(val) = computeServiceId.as_ref() {
         query_parts.push(format!("computeServiceId={}", val));
     }
 
@@ -7431,12 +7385,8 @@ pub fn get_v1_versions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_versions_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.computeServiceId.clone(),
-    )?;
+    let builder =
+        get_v1_versions_builder(client, &args.cursor, &args.limit, &args.computeServiceId)?;
     get_v1_versions_execute(builder)
 }
 
@@ -7608,10 +7558,10 @@ pub fn post_v1_versions(
 
 pub fn get_v1_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
 
     // Build request
     let builder = client
@@ -7754,7 +7704,7 @@ pub fn get_v1_versions_versionId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_versions_versionId_builder(client, args.versionId.clone())?;
+    let builder = get_v1_versions_versionId_builder(client, &args.versionId)?;
     get_v1_versions_versionId_execute(builder)
 }
 
@@ -7766,10 +7716,10 @@ pub fn get_v1_versions_versionId(
 
 pub fn delete_v1_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
 
     // Build request
     let builder = client
@@ -7905,7 +7855,7 @@ pub fn delete_v1_versions_versionId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_versions_versionId_builder(client, args.versionId.clone())?;
+    let builder = delete_v1_versions_versionId_builder(client, &args.versionId)?;
     delete_v1_versions_versionId_execute(builder)
 }
 
@@ -7917,13 +7867,10 @@ pub fn delete_v1_versions_versionId(
 
 pub fn post_v1_versions_versionId_start_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/versions/{}/start",
-        versionId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}/start", versionId,);
 
     // Build request
     let builder = client
@@ -8066,7 +8013,7 @@ pub fn post_v1_versions_versionId_start(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_start_builder(client, args.versionId.clone())?;
+    let builder = post_v1_versions_versionId_start_builder(client, &args.versionId)?;
     post_v1_versions_versionId_start_execute(builder)
 }
 
@@ -8078,13 +8025,10 @@ pub fn post_v1_versions_versionId_start(
 
 pub fn post_v1_versions_versionId_stop_builder(
     client: &SimpleHttpClient,
-    versionId: String,
+    versionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.prisma.io/v1/versions/{}/stop",
-        versionId.as_str(),
-    );
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}/stop", versionId,);
 
     // Build request
     let builder = client
@@ -8220,7 +8164,7 @@ pub fn post_v1_versions_versionId_stop(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_stop_builder(client, args.versionId.clone())?;
+    let builder = post_v1_versions_versionId_stop_builder(client, &args.versionId)?;
     post_v1_versions_versionId_stop_execute(builder)
 }
 
@@ -8232,18 +8176,18 @@ pub fn post_v1_versions_versionId_stop(
 
 pub fn get_v1_workspaces_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.prisma.io/v1/workspaces",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -8395,7 +8339,7 @@ pub fn get_v1_workspaces(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_builder(client, args.cursor.clone(), args.limit.clone())?;
+    let builder = get_v1_workspaces_builder(client, &args.cursor, &args.limit)?;
     get_v1_workspaces_execute(builder)
 }
 
@@ -8407,10 +8351,10 @@ pub fn get_v1_workspaces(
 
 pub fn get_v1_workspaces_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.prisma.io/v1/workspaces/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.prisma.io/v1/workspaces/{}", id,);
 
     // Build request
     let builder = client
@@ -8553,7 +8497,7 @@ pub fn get_v1_workspaces_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_id_builder(client, args.id.clone())?;
+    let builder = get_v1_workspaces_id_builder(client, &args.id)?;
     get_v1_workspaces_id_execute(builder)
 }
 
@@ -8565,22 +8509,22 @@ pub fn get_v1_workspaces_id(
 
 pub fn get_v1_workspaces_workspaceId_integrations_builder(
     client: &SimpleHttpClient,
-    workspaceId: String,
-    cursor: Option<String>,
-    limit: Option<f64>,
+    workspaceId: &String,
+    cursor: &Option<String>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations",
-        workspaceId.as_str(),
+        workspaceId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -8740,9 +8684,9 @@ pub fn get_v1_workspaces_workspaceId_integrations(
 > {
     let builder = get_v1_workspaces_workspaceId_integrations_builder(
         client,
-        args.workspaceId.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.workspaceId,
+        &args.cursor,
+        &args.limit,
     )?;
     get_v1_workspaces_workspaceId_integrations_execute(builder)
 }
@@ -8755,14 +8699,13 @@ pub fn get_v1_workspaces_workspaceId_integrations(
 
 pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
     client: &SimpleHttpClient,
-    clientId: String,
-    workspaceId: String,
+    clientId: &String,
+    workspaceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations/{}",
-        workspaceId.as_str(),
-        clientId.as_str(),
+        workspaceId, clientId,
     );
 
     // Build request
@@ -8903,8 +8846,8 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId(
 > {
     let builder = delete_v1_workspaces_workspaceId_integrations_clientId_builder(
         client,
-        args.clientId.clone(),
-        args.workspaceId.clone(),
+        &args.clientId,
+        &args.workspaceId,
     )?;
     delete_v1_workspaces_workspaceId_integrations_clientId_execute(builder)
 }

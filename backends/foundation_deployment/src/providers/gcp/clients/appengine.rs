@@ -185,18 +185,15 @@ pub fn appengine_apps_create(
 
 pub fn appengine_apps_get_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    includeExtraData: Option<String>,
+    appsId: &String,
+    includeExtraData: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}",
-        appsId.as_str(),
-    );
+    let endpoint_url = format!("https://appengine.googleapis.com/v1/apps/{}", appsId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeExtraData {
+    if let Some(val) = includeExtraData.as_ref() {
         query_parts.push(format!("includeExtraData={}", val));
     }
 
@@ -344,8 +341,7 @@ pub fn appengine_apps_get(
     impl StreamIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_get_builder(client, args.appsId.clone(), args.includeExtraData.clone())?;
+    let builder = appengine_apps_get_builder(client, &args.appsId, &args.includeExtraData)?;
     appengine_apps_get_execute(builder)
 }
 
@@ -357,18 +353,18 @@ pub fn appengine_apps_get(
 
 pub fn appengine_apps_list_runtimes_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    environment: Option<String>,
+    appsId: &String,
+    environment: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}:listRuntimes",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = environment {
+    if let Some(val) = environment.as_ref() {
         query_parts.push(format!("environment={}", val));
     }
 
@@ -520,11 +516,7 @@ pub fn appengine_apps_list_runtimes(
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_list_runtimes_builder(
-        client,
-        args.appsId.clone(),
-        args.environment.clone(),
-    )?;
+    let builder = appengine_apps_list_runtimes_builder(client, &args.appsId, &args.environment)?;
     appengine_apps_list_runtimes_execute(builder)
 }
 
@@ -536,14 +528,11 @@ pub fn appengine_apps_list_runtimes(
 
 pub fn appengine_apps_repair_builder(
     client: &SimpleHttpClient,
-    appsId: String,
+    appsId: &String,
     body: &RepairApplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}:repair",
-        appsId.as_str(),
-    );
+    let endpoint_url = format!("https://appengine.googleapis.com/v1/apps/{}:repair", appsId,);
 
     // Build request
     let builder = client
@@ -686,7 +675,7 @@ pub fn appengine_apps_repair(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_repair_builder(client, args.appsId.clone(), &args.body)?;
+    let builder = appengine_apps_repair_builder(client, &args.appsId, &args.body)?;
     appengine_apps_repair_execute(builder)
 }
 
@@ -698,13 +687,13 @@ pub fn appengine_apps_repair(
 
 pub fn appengine_apps_authorized_certificates_create_builder(
     client: &SimpleHttpClient,
-    appsId: String,
+    appsId: &String,
     body: &AuthorizedCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
@@ -852,11 +841,8 @@ pub fn appengine_apps_authorized_certificates_create(
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_authorized_certificates_create_builder(
-        client,
-        args.appsId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        appengine_apps_authorized_certificates_create_builder(client, &args.appsId, &args.body)?;
     appengine_apps_authorized_certificates_create_execute(builder)
 }
 
@@ -868,14 +854,13 @@ pub fn appengine_apps_authorized_certificates_create(
 
 pub fn appengine_apps_authorized_certificates_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    authorizedCertificatesId: String,
+    appsId: &String,
+    authorizedCertificatesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
-        appsId.as_str(),
-        authorizedCertificatesId.as_str(),
+        appsId, authorizedCertificatesId,
     );
 
     // Build request
@@ -1019,8 +1004,8 @@ pub fn appengine_apps_authorized_certificates_delete(
 > {
     let builder = appengine_apps_authorized_certificates_delete_builder(
         client,
-        args.appsId.clone(),
-        args.authorizedCertificatesId.clone(),
+        &args.appsId,
+        &args.authorizedCertificatesId,
     )?;
     appengine_apps_authorized_certificates_delete_execute(builder)
 }
@@ -1033,22 +1018,22 @@ pub fn appengine_apps_authorized_certificates_delete(
 
 pub fn appengine_apps_authorized_domains_list_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    appsId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedDomains",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1208,9 +1193,9 @@ pub fn appengine_apps_authorized_domains_list(
 > {
     let builder = appengine_apps_authorized_domains_list_builder(
         client,
-        args.appsId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.appsId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     appengine_apps_authorized_domains_list_execute(builder)
 }
@@ -1223,19 +1208,19 @@ pub fn appengine_apps_authorized_domains_list(
 
 pub fn appengine_apps_domain_mappings_create_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    overrideStrategy: Option<String>,
+    appsId: &String,
+    overrideStrategy: &Option<String>,
     body: &DomainMapping,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = overrideStrategy {
+    if let Some(val) = overrideStrategy.as_ref() {
         query_parts.push(format!("overrideStrategy={}", val));
     }
 
@@ -1389,8 +1374,8 @@ pub fn appengine_apps_domain_mappings_create(
 > {
     let builder = appengine_apps_domain_mappings_create_builder(
         client,
-        args.appsId.clone(),
-        args.overrideStrategy.clone(),
+        &args.appsId,
+        &args.overrideStrategy,
         &args.body,
     )?;
     appengine_apps_domain_mappings_create_execute(builder)
@@ -1404,14 +1389,13 @@ pub fn appengine_apps_domain_mappings_create(
 
 pub fn appengine_apps_domain_mappings_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    domainMappingsId: String,
+    appsId: &String,
+    domainMappingsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
-        appsId.as_str(),
-        domainMappingsId.as_str(),
+        appsId, domainMappingsId,
     );
 
     // Build request
@@ -1555,8 +1539,8 @@ pub fn appengine_apps_domain_mappings_delete(
 > {
     let builder = appengine_apps_domain_mappings_delete_builder(
         client,
-        args.appsId.clone(),
-        args.domainMappingsId.clone(),
+        &args.appsId,
+        &args.domainMappingsId,
     )?;
     appengine_apps_domain_mappings_delete_execute(builder)
 }
@@ -1569,13 +1553,13 @@ pub fn appengine_apps_domain_mappings_delete(
 
 pub fn appengine_apps_firewall_ingress_rules_batch_update_builder(
     client: &SimpleHttpClient,
-    appsId: String,
+    appsId: &String,
     body: &BatchUpdateIngressRulesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules:batchUpdate",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
@@ -1729,7 +1713,7 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
 > {
     let builder = appengine_apps_firewall_ingress_rules_batch_update_builder(
         client,
-        args.appsId.clone(),
+        &args.appsId,
         &args.body,
     )?;
     appengine_apps_firewall_ingress_rules_batch_update_execute(builder)
@@ -1743,13 +1727,13 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
 
 pub fn appengine_apps_firewall_ingress_rules_create_builder(
     client: &SimpleHttpClient,
-    appsId: String,
+    appsId: &String,
     body: &FirewallRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
@@ -1897,11 +1881,8 @@ pub fn appengine_apps_firewall_ingress_rules_create(
         + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_firewall_ingress_rules_create_builder(
-        client,
-        args.appsId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        appengine_apps_firewall_ingress_rules_create_builder(client, &args.appsId, &args.body)?;
     appengine_apps_firewall_ingress_rules_create_execute(builder)
 }
 
@@ -1913,14 +1894,13 @@ pub fn appengine_apps_firewall_ingress_rules_create(
 
 pub fn appengine_apps_firewall_ingress_rules_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    ingressRulesId: String,
+    appsId: &String,
+    ingressRulesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
-        appsId.as_str(),
-        ingressRulesId.as_str(),
+        appsId, ingressRulesId,
     );
 
     // Build request
@@ -2064,8 +2044,8 @@ pub fn appengine_apps_firewall_ingress_rules_delete(
 > {
     let builder = appengine_apps_firewall_ingress_rules_delete_builder(
         client,
-        args.appsId.clone(),
-        args.ingressRulesId.clone(),
+        &args.appsId,
+        &args.ingressRulesId,
     )?;
     appengine_apps_firewall_ingress_rules_delete_execute(builder)
 }
@@ -2078,14 +2058,13 @@ pub fn appengine_apps_firewall_ingress_rules_delete(
 
 pub fn appengine_apps_locations_get_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    locationsId: String,
+    appsId: &String,
+    locationsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations/{}",
-        appsId.as_str(),
-        locationsId.as_str(),
+        appsId, locationsId,
     );
 
     // Build request
@@ -2227,11 +2206,7 @@ pub fn appengine_apps_locations_get(
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_locations_get_builder(
-        client,
-        args.appsId.clone(),
-        args.locationsId.clone(),
-    )?;
+    let builder = appengine_apps_locations_get_builder(client, &args.appsId, &args.locationsId)?;
     appengine_apps_locations_get_execute(builder)
 }
 
@@ -2243,30 +2218,30 @@ pub fn appengine_apps_locations_get(
 
 pub fn appengine_apps_locations_list_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    appsId: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2426,11 +2401,11 @@ pub fn appengine_apps_locations_list(
 > {
     let builder = appengine_apps_locations_list_builder(
         client,
-        args.appsId.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.appsId,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     appengine_apps_locations_list_execute(builder)
 }
@@ -2443,14 +2418,13 @@ pub fn appengine_apps_locations_list(
 
 pub fn appengine_apps_operations_get_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    operationsId: String,
+    appsId: &String,
+    operationsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations/{}",
-        appsId.as_str(),
-        operationsId.as_str(),
+        appsId, operationsId,
     );
 
     // Build request
@@ -2592,11 +2566,7 @@ pub fn appengine_apps_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_operations_get_builder(
-        client,
-        args.appsId.clone(),
-        args.operationsId.clone(),
-    )?;
+    let builder = appengine_apps_operations_get_builder(client, &args.appsId, &args.operationsId)?;
     appengine_apps_operations_get_execute(builder)
 }
 
@@ -2608,30 +2578,30 @@ pub fn appengine_apps_operations_get(
 
 pub fn appengine_apps_operations_list_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    appsId: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -2791,11 +2761,11 @@ pub fn appengine_apps_operations_list(
 > {
     let builder = appengine_apps_operations_list_builder(
         client,
-        args.appsId.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.appsId,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     appengine_apps_operations_list_execute(builder)
 }
@@ -2808,14 +2778,13 @@ pub fn appengine_apps_operations_list(
 
 pub fn appengine_apps_services_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
+    appsId: &String,
+    servicesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}",
-        appsId.as_str(),
-        servicesId.as_str(),
+        appsId, servicesId,
     );
 
     // Build request
@@ -2957,11 +2926,7 @@ pub fn appengine_apps_services_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_services_delete_builder(
-        client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-    )?;
+    let builder = appengine_apps_services_delete_builder(client, &args.appsId, &args.servicesId)?;
     appengine_apps_services_delete_execute(builder)
 }
 
@@ -2973,22 +2938,22 @@ pub fn appengine_apps_services_delete(
 
 pub fn appengine_apps_services_list_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    appsId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services",
-        appsId.as_str(),
+        appsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3144,9 +3109,9 @@ pub fn appengine_apps_services_list(
 > {
     let builder = appengine_apps_services_list_builder(
         client,
-        args.appsId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.appsId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     appengine_apps_services_list_execute(builder)
 }
@@ -3159,15 +3124,14 @@ pub fn appengine_apps_services_list(
 
 pub fn appengine_apps_services_versions_create_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
+    appsId: &String,
+    servicesId: &String,
     body: &Version,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions",
-        appsId.as_str(),
-        servicesId.as_str(),
+        appsId, servicesId,
     );
 
     // Build request
@@ -3315,8 +3279,8 @@ pub fn appengine_apps_services_versions_create(
 > {
     let builder = appengine_apps_services_versions_create_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
+        &args.appsId,
+        &args.servicesId,
         &args.body,
     )?;
     appengine_apps_services_versions_create_execute(builder)
@@ -3330,16 +3294,14 @@ pub fn appengine_apps_services_versions_create(
 
 pub fn appengine_apps_services_versions_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
-    versionsId: String,
+    appsId: &String,
+    servicesId: &String,
+    versionsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
-        appsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
+        appsId, servicesId, versionsId,
     );
 
     // Build request
@@ -3485,9 +3447,9 @@ pub fn appengine_apps_services_versions_delete(
 > {
     let builder = appengine_apps_services_versions_delete_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
     )?;
     appengine_apps_services_versions_delete_execute(builder)
 }
@@ -3500,17 +3462,15 @@ pub fn appengine_apps_services_versions_delete(
 
 pub fn appengine_apps_services_versions_export_app_image_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
-    versionsId: String,
+    appsId: &String,
+    servicesId: &String,
+    versionsId: &String,
     body: &ExportAppImageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}:exportAppImage",
-        appsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
+        appsId, servicesId, versionsId,
     );
 
     // Build request
@@ -3660,9 +3620,9 @@ pub fn appengine_apps_services_versions_export_app_image(
 > {
     let builder = appengine_apps_services_versions_export_app_image_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
         &args.body,
     )?;
     appengine_apps_services_versions_export_app_image_execute(builder)
@@ -3676,19 +3636,16 @@ pub fn appengine_apps_services_versions_export_app_image(
 
 pub fn appengine_apps_services_versions_instances_debug_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
-    versionsId: String,
-    instancesId: String,
+    appsId: &String,
+    servicesId: &String,
+    versionsId: &String,
+    instancesId: &String,
     body: &DebugInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}:debug",
-        appsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
-        instancesId.as_str(),
+        appsId, servicesId, versionsId, instancesId,
     );
 
     // Build request
@@ -3840,10 +3797,10 @@ pub fn appengine_apps_services_versions_instances_debug(
 > {
     let builder = appengine_apps_services_versions_instances_debug_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
-        args.instancesId.clone(),
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.instancesId,
         &args.body,
     )?;
     appengine_apps_services_versions_instances_debug_execute(builder)
@@ -3857,18 +3814,15 @@ pub fn appengine_apps_services_versions_instances_debug(
 
 pub fn appengine_apps_services_versions_instances_delete_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
-    versionsId: String,
-    instancesId: String,
+    appsId: &String,
+    servicesId: &String,
+    versionsId: &String,
+    instancesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}",
-        appsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
-        instancesId.as_str(),
+        appsId, servicesId, versionsId, instancesId,
     );
 
     // Build request
@@ -4016,10 +3970,10 @@ pub fn appengine_apps_services_versions_instances_delete(
 > {
     let builder = appengine_apps_services_versions_instances_delete_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
-        args.instancesId.clone(),
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.instancesId,
     )?;
     appengine_apps_services_versions_instances_delete_execute(builder)
 }
@@ -4032,26 +3986,24 @@ pub fn appengine_apps_services_versions_instances_delete(
 
 pub fn appengine_apps_services_versions_instances_list_builder(
     client: &SimpleHttpClient,
-    appsId: String,
-    servicesId: String,
-    versionsId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    appsId: &String,
+    servicesId: &String,
+    versionsId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances",
-        appsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
+        appsId, servicesId, versionsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4211,11 +4163,11 @@ pub fn appengine_apps_services_versions_instances_list(
 > {
     let builder = appengine_apps_services_versions_instances_list_builder(
         client,
-        args.appsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.appsId,
+        &args.servicesId,
+        &args.versionsId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     appengine_apps_services_versions_instances_list_execute(builder)
 }
@@ -4228,23 +4180,21 @@ pub fn appengine_apps_services_versions_instances_list(
 
 pub fn appengine_projects_locations_applications_patch_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    updateMask: Option<String>,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    updateMask: &Option<String>,
     body: &Application,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
+        projectsId, locationsId, applicationsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
+    if let Some(val) = updateMask.as_ref() {
         query_parts.push(format!("updateMask={}", val));
     }
 
@@ -4402,10 +4352,10 @@ pub fn appengine_projects_locations_applications_patch(
 > {
     let builder = appengine_projects_locations_applications_patch_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.updateMask.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.updateMask,
         &args.body,
     )?;
     appengine_projects_locations_applications_patch_execute(builder)
@@ -4419,17 +4369,17 @@ pub fn appengine_projects_locations_applications_patch(
 
 pub fn appengine_projects_locations_applications_authorized_certificates_create_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
     body: &AuthorizedCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
     );
 
     // Build request
@@ -4584,9 +4534,9 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_create_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
         &args.body,
     )?;
     appengine_projects_locations_applications_authorized_certificates_create_execute(builder)
@@ -4600,18 +4550,18 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 
 pub fn appengine_projects_locations_applications_authorized_certificates_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    authorizedCertificatesId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    authorizedCertificatesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        authorizedCertificatesId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        authorizedCertificatesId,
     );
 
     // Build request
@@ -4760,10 +4710,10 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_delete_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.authorizedCertificatesId.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.authorizedCertificatesId,
     )?;
     appengine_projects_locations_applications_authorized_certificates_delete_execute(builder)
 }
@@ -4776,26 +4726,26 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete(
 
 pub fn appengine_projects_locations_applications_authorized_domains_list_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedDomains",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4959,11 +4909,11 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 > {
     let builder = appengine_projects_locations_applications_authorized_domains_list_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     appengine_projects_locations_applications_authorized_domains_list_execute(builder)
 }
@@ -4976,23 +4926,23 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 
 pub fn appengine_projects_locations_applications_domain_mappings_create_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    overrideStrategy: Option<String>,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    overrideStrategy: &Option<String>,
     body: &DomainMapping,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = overrideStrategy {
+    if let Some(val) = overrideStrategy.as_ref() {
         query_parts.push(format!("overrideStrategy={}", val));
     }
 
@@ -5150,10 +5100,10 @@ pub fn appengine_projects_locations_applications_domain_mappings_create(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_create_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.overrideStrategy.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.overrideStrategy,
         &args.body,
     )?;
     appengine_projects_locations_applications_domain_mappings_create_execute(builder)
@@ -5167,18 +5117,18 @@ pub fn appengine_projects_locations_applications_domain_mappings_create(
 
 pub fn appengine_projects_locations_applications_domain_mappings_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    domainMappingsId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    domainMappingsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        domainMappingsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        domainMappingsId,
     );
 
     // Build request
@@ -5326,10 +5276,10 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_delete_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.domainMappingsId.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.domainMappingsId,
     )?;
     appengine_projects_locations_applications_domain_mappings_delete_execute(builder)
 }
@@ -5342,18 +5292,15 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete(
 
 pub fn appengine_projects_locations_applications_services_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    servicesId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    servicesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        servicesId.as_str(),
+        projectsId, locationsId, applicationsId, servicesId,
     );
 
     // Build request
@@ -5501,10 +5448,10 @@ pub fn appengine_projects_locations_applications_services_delete(
 > {
     let builder = appengine_projects_locations_applications_services_delete_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.servicesId.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
     )?;
     appengine_projects_locations_applications_services_delete_execute(builder)
 }
@@ -5517,20 +5464,20 @@ pub fn appengine_projects_locations_applications_services_delete(
 
 pub fn appengine_projects_locations_applications_services_versions_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    servicesId: String,
-    versionsId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    servicesId: &String,
+    versionsId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        servicesId,
+        versionsId,
     );
 
     // Build request
@@ -5680,11 +5627,11 @@ pub fn appengine_projects_locations_applications_services_versions_delete(
 > {
     let builder = appengine_projects_locations_applications_services_versions_delete_builder(
         client,
-        args.projectsId.clone(),
-        args.locationsId.clone(),
-        args.applicationsId.clone(),
-        args.servicesId.clone(),
-        args.versionsId.clone(),
+        &args.projectsId,
+        &args.locationsId,
+        &args.applicationsId,
+        &args.servicesId,
+        &args.versionsId,
     )?;
     appengine_projects_locations_applications_services_versions_delete_execute(builder)
 }
@@ -5697,21 +5644,21 @@ pub fn appengine_projects_locations_applications_services_versions_delete(
 
 pub fn appengine_projects_locations_applications_services_versions_export_app_image_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    servicesId: String,
-    versionsId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    servicesId: &String,
+    versionsId: &String,
     body: &ExportAppImageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}:exportAppImage",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        servicesId,
+        versionsId,
     );
 
     // Build request
@@ -5867,11 +5814,11 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
     let builder =
         appengine_projects_locations_applications_services_versions_export_app_image_builder(
             client,
-            args.projectsId.clone(),
-            args.locationsId.clone(),
-            args.applicationsId.clone(),
-            args.servicesId.clone(),
-            args.versionsId.clone(),
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
             &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_export_app_image_execute(builder)
@@ -5885,23 +5832,23 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
 
 pub fn appengine_projects_locations_applications_services_versions_instances_debug_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    servicesId: String,
-    versionsId: String,
-    instancesId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    servicesId: &String,
+    versionsId: &String,
+    instancesId: &String,
     body: &DebugInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}:debug",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
-        instancesId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        servicesId,
+        versionsId,
+        instancesId,
     );
 
     // Build request
@@ -6059,12 +6006,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
     let builder =
         appengine_projects_locations_applications_services_versions_instances_debug_builder(
             client,
-            args.projectsId.clone(),
-            args.locationsId.clone(),
-            args.applicationsId.clone(),
-            args.servicesId.clone(),
-            args.versionsId.clone(),
-            args.instancesId.clone(),
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
+            &args.instancesId,
             &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_instances_debug_execute(builder)
@@ -6078,22 +6025,22 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
 
 pub fn appengine_projects_locations_applications_services_versions_instances_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: String,
-    locationsId: String,
-    applicationsId: String,
-    servicesId: String,
-    versionsId: String,
-    instancesId: String,
+    projectsId: &String,
+    locationsId: &String,
+    applicationsId: &String,
+    servicesId: &String,
+    versionsId: &String,
+    instancesId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}",
-        projectsId.as_str(),
-        locationsId.as_str(),
-        applicationsId.as_str(),
-        servicesId.as_str(),
-        versionsId.as_str(),
-        instancesId.as_str(),
+        projectsId,
+        locationsId,
+        applicationsId,
+        servicesId,
+        versionsId,
+        instancesId,
     );
 
     // Build request
@@ -6247,12 +6194,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
     let builder =
         appengine_projects_locations_applications_services_versions_instances_delete_builder(
             client,
-            args.projectsId.clone(),
-            args.locationsId.clone(),
-            args.applicationsId.clone(),
-            args.servicesId.clone(),
-            args.versionsId.clone(),
-            args.instancesId.clone(),
+            &args.projectsId,
+            &args.locationsId,
+            &args.applicationsId,
+            &args.servicesId,
+            &args.versionsId,
+            &args.instancesId,
         )?;
     appengine_projects_locations_applications_services_versions_instances_delete_execute(builder)
 }

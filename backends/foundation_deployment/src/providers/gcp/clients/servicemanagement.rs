@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn servicemanagement_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations/{}",);
@@ -171,7 +171,7 @@ pub fn servicemanagement_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_operations_get_builder(client, args.name.clone())?;
+    let builder = servicemanagement_operations_get_builder(client, &args.name)?;
     servicemanagement_operations_get_execute(builder)
 }
 
@@ -183,30 +183,30 @@ pub fn servicemanagement_operations_get(
 
 pub fn servicemanagement_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    name: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://servicemanagement.googleapis.com/v1/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -366,11 +366,11 @@ pub fn servicemanagement_operations_list(
 > {
     let builder = servicemanagement_operations_list_builder(
         client,
-        args.filter.clone(),
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.filter,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     servicemanagement_operations_list_execute(builder)
 }
@@ -539,12 +539,12 @@ pub fn servicemanagement_services_create(
 
 pub fn servicemanagement_services_delete_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -684,7 +684,7 @@ pub fn servicemanagement_services_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_delete_builder(client, args.serviceName.clone())?;
+    let builder = servicemanagement_services_delete_builder(client, &args.serviceName)?;
     servicemanagement_services_delete_execute(builder)
 }
 
@@ -861,22 +861,22 @@ pub fn servicemanagement_services_generate_config_report(
 
 pub fn servicemanagement_services_get_config_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
-    configId: Option<String>,
-    view: Option<String>,
+    serviceName: &String,
+    configId: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/config",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = configId {
+    if let Some(val) = configId.as_ref() {
         query_parts.push(format!("configId={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -1028,9 +1028,9 @@ pub fn servicemanagement_services_get_config(
 > {
     let builder = servicemanagement_services_get_config_builder(
         client,
-        args.serviceName.clone(),
-        args.configId.clone(),
-        args.view.clone(),
+        &args.serviceName,
+        &args.configId,
+        &args.view,
     )?;
     servicemanagement_services_get_config_execute(builder)
 }
@@ -1043,7 +1043,7 @@ pub fn servicemanagement_services_get_config(
 
 pub fn servicemanagement_services_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1191,11 +1191,8 @@ pub fn servicemanagement_services_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_get_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicemanagement_services_get_iam_policy_builder(client, &args.resource, &args.body)?;
     servicemanagement_services_get_iam_policy_execute(builder)
 }
 
@@ -1207,7 +1204,7 @@ pub fn servicemanagement_services_get_iam_policy(
 
 pub fn servicemanagement_services_set_iam_policy_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1355,11 +1352,8 @@ pub fn servicemanagement_services_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_set_iam_policy_builder(
-        client,
-        args.resource.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicemanagement_services_set_iam_policy_builder(client, &args.resource, &args.body)?;
     servicemanagement_services_set_iam_policy_execute(builder)
 }
 
@@ -1371,7 +1365,7 @@ pub fn servicemanagement_services_set_iam_policy(
 
 pub fn servicemanagement_services_test_iam_permissions_builder(
     client: &SimpleHttpClient,
-    resource: String,
+    resource: &String,
     body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1529,7 +1523,7 @@ pub fn servicemanagement_services_test_iam_permissions(
 > {
     let builder = servicemanagement_services_test_iam_permissions_builder(
         client,
-        args.resource.clone(),
+        &args.resource,
         &args.body,
     )?;
     servicemanagement_services_test_iam_permissions_execute(builder)
@@ -1543,12 +1537,12 @@ pub fn servicemanagement_services_test_iam_permissions(
 
 pub fn servicemanagement_services_undelete_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}:undelete",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -1688,7 +1682,7 @@ pub fn servicemanagement_services_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_undelete_builder(client, args.serviceName.clone())?;
+    let builder = servicemanagement_services_undelete_builder(client, &args.serviceName)?;
     servicemanagement_services_undelete_execute(builder)
 }
 
@@ -1700,13 +1694,13 @@ pub fn servicemanagement_services_undelete(
 
 pub fn servicemanagement_services_configs_create_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
     body: &Service,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -1850,11 +1844,8 @@ pub fn servicemanagement_services_configs_create(
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_configs_create_builder(
-        client,
-        args.serviceName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicemanagement_services_configs_create_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_configs_create_execute(builder)
 }
 
@@ -1866,20 +1857,19 @@ pub fn servicemanagement_services_configs_create(
 
 pub fn servicemanagement_services_configs_get_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
-    configId: String,
-    view: Option<String>,
+    serviceName: &String,
+    configId: &String,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs/{}",
-        serviceName.as_str(),
-        configId.as_str(),
+        serviceName, configId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -2031,9 +2021,9 @@ pub fn servicemanagement_services_configs_get(
 > {
     let builder = servicemanagement_services_configs_get_builder(
         client,
-        args.serviceName.clone(),
-        args.configId.clone(),
-        args.view.clone(),
+        &args.serviceName,
+        &args.configId,
+        &args.view,
     )?;
     servicemanagement_services_configs_get_execute(builder)
 }
@@ -2046,13 +2036,13 @@ pub fn servicemanagement_services_configs_get(
 
 pub fn servicemanagement_services_configs_submit_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
     body: &SubmitConfigSourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/configs:submit",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -2196,11 +2186,8 @@ pub fn servicemanagement_services_configs_submit(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_configs_submit_builder(
-        client,
-        args.serviceName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicemanagement_services_configs_submit_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_configs_submit_execute(builder)
 }
 
@@ -2212,13 +2199,13 @@ pub fn servicemanagement_services_configs_submit(
 
 pub fn servicemanagement_services_rollouts_create_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
     body: &Rollout,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -2362,11 +2349,8 @@ pub fn servicemanagement_services_rollouts_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_rollouts_create_builder(
-        client,
-        args.serviceName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicemanagement_services_rollouts_create_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_rollouts_create_execute(builder)
 }
 
@@ -2378,14 +2362,13 @@ pub fn servicemanagement_services_rollouts_create(
 
 pub fn servicemanagement_services_rollouts_get_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
-    rolloutId: String,
+    serviceName: &String,
+    rolloutId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicemanagement.googleapis.com/v1/services/{}/rollouts/{}",
-        serviceName.as_str(),
-        rolloutId.as_str(),
+        serviceName, rolloutId,
     );
 
     // Build request
@@ -2529,8 +2512,8 @@ pub fn servicemanagement_services_rollouts_get(
 > {
     let builder = servicemanagement_services_rollouts_get_builder(
         client,
-        args.serviceName.clone(),
-        args.rolloutId.clone(),
+        &args.serviceName,
+        &args.rolloutId,
     )?;
     servicemanagement_services_rollouts_get_execute(builder)
 }

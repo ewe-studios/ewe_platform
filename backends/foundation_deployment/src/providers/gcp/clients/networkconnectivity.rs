@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn networkconnectivity_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -41,16 +41,16 @@ pub fn networkconnectivity_projects_locations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -210,11 +210,11 @@ pub fn networkconnectivity_projects_locations_list(
 > {
     let builder = networkconnectivity_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     networkconnectivity_projects_locations_list_execute(builder)
 }
@@ -227,9 +227,9 @@ pub fn networkconnectivity_projects_locations_list(
 
 pub fn networkconnectivity_projects_locations_global_hubs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    hubId: Option<String>,
-    requestId: Option<String>,
+    parent: &String,
+    hubId: &Option<String>,
+    requestId: &Option<String>,
     body: &Hub,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -238,10 +238,10 @@ pub fn networkconnectivity_projects_locations_global_hubs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = hubId {
+    if let Some(val) = hubId.as_ref() {
         query_parts.push(format!("hubId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -405,9 +405,9 @@ pub fn networkconnectivity_projects_locations_global_hubs_create(
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_create_builder(
         client,
-        args.parent.clone(),
-        args.hubId.clone(),
-        args.requestId.clone(),
+        &args.parent,
+        &args.hubId,
+        &args.requestId,
         &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_create_execute(builder)
@@ -421,9 +421,9 @@ pub fn networkconnectivity_projects_locations_global_hubs_create(
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    policyBasedRouteId: Option<String>,
-    requestId: Option<String>,
+    parent: &String,
+    policyBasedRouteId: &Option<String>,
+    requestId: &Option<String>,
     body: &PolicyBasedRoute,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -433,10 +433,10 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policyBasedRouteId {
+    if let Some(val) = policyBasedRouteId.as_ref() {
         query_parts.push(format!("policyBasedRouteId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -601,9 +601,9 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create(
 > {
     let builder = networkconnectivity_projects_locations_global_policy_based_routes_create_builder(
         client,
-        args.parent.clone(),
-        args.policyBasedRouteId.clone(),
-        args.requestId.clone(),
+        &args.parent,
+        &args.policyBasedRouteId,
+        &args.requestId,
         &args.body,
     )?;
     networkconnectivity_projects_locations_global_policy_based_routes_create_execute(builder)

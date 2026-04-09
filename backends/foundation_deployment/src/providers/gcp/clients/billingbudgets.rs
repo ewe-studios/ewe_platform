@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn billingbudgets_billing_accounts_budgets_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudBillingBudgetsV1Budget,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -185,10 +185,7 @@ pub fn billingbudgets_billing_accounts_budgets_create(
         + 'static,
     ApiError,
 > {
-    let builder = billingbudgets_billing_accounts_budgets_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        billingbudgets_billing_accounts_budgets_create_builder(client, &args.parent, &args.body)?;
     billingbudgets_billing_accounts_budgets_create_execute(builder)
 }

@@ -29,19 +29,19 @@ use serde::Serialize;
 
 pub fn versionhistory_platforms_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://versionhistory.googleapis.com/v1/{}/platforms",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -197,9 +197,9 @@ pub fn versionhistory_platforms_list(
 > {
     let builder = versionhistory_platforms_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     versionhistory_platforms_list_execute(builder)
 }

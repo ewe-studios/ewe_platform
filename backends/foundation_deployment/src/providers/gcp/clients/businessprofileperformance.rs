@@ -29,14 +29,14 @@ use serde::Serialize;
 
 pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
-    location: String,
-    dailyMetrics: Option<String>,
-    dailyRange_endDate_day: Option<i32>,
-    dailyRange_endDate_month: Option<i32>,
-    dailyRange_endDate_year: Option<i32>,
-    dailyRange_startDate_day: Option<i32>,
-    dailyRange_startDate_month: Option<i32>,
-    dailyRange_startDate_year: Option<i32>,
+    location: &String,
+    dailyMetrics: &Option<String>,
+    dailyRange_endDate_day: &Option<i32>,
+    dailyRange_endDate_month: &Option<i32>,
+    dailyRange_endDate_year: &Option<i32>,
+    dailyRange_startDate_day: &Option<i32>,
+    dailyRange_startDate_month: &Option<i32>,
+    dailyRange_startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -45,25 +45,25 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dailyMetrics {
+    if let Some(val) = dailyMetrics.as_ref() {
         query_parts.push(format!("dailyMetrics={}", val));
     }
-    if let Some(val) = dailyRange_endDate_day {
+    if let Some(val) = dailyRange_endDate_day.as_ref() {
         query_parts.push(format!("dailyRange.endDate.day={}", val));
     }
-    if let Some(val) = dailyRange_endDate_month {
+    if let Some(val) = dailyRange_endDate_month.as_ref() {
         query_parts.push(format!("dailyRange.endDate.month={}", val));
     }
-    if let Some(val) = dailyRange_endDate_year {
+    if let Some(val) = dailyRange_endDate_year.as_ref() {
         query_parts.push(format!("dailyRange.endDate.year={}", val));
     }
-    if let Some(val) = dailyRange_startDate_day {
+    if let Some(val) = dailyRange_startDate_day.as_ref() {
         query_parts.push(format!("dailyRange.startDate.day={}", val));
     }
-    if let Some(val) = dailyRange_startDate_month {
+    if let Some(val) = dailyRange_startDate_month.as_ref() {
         query_parts.push(format!("dailyRange.startDate.month={}", val));
     }
-    if let Some(val) = dailyRange_startDate_year {
+    if let Some(val) = dailyRange_startDate_year.as_ref() {
         query_parts.push(format!("dailyRange.startDate.year={}", val));
     }
 
@@ -235,14 +235,14 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     let builder =
         businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
             client,
-            args.location.clone(),
-            args.dailyMetrics.clone(),
-            args.dailyRange_endDate_day.clone(),
-            args.dailyRange_endDate_month.clone(),
-            args.dailyRange_endDate_year.clone(),
-            args.dailyRange_startDate_day.clone(),
-            args.dailyRange_startDate_month.clone(),
-            args.dailyRange_startDate_year.clone(),
+            &args.location,
+            &args.dailyMetrics,
+            &args.dailyRange_endDate_day,
+            &args.dailyRange_endDate_month,
+            &args.dailyRange_endDate_year,
+            &args.dailyRange_startDate_day,
+            &args.dailyRange_startDate_month,
+            &args.dailyRange_startDate_year,
         )?;
     businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_execute(builder)
 }
@@ -255,19 +255,19 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 
 pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
-    name: String,
-    dailyMetric: Option<String>,
-    dailyRange_endDate_day: Option<i32>,
-    dailyRange_endDate_month: Option<i32>,
-    dailyRange_endDate_year: Option<i32>,
-    dailyRange_startDate_day: Option<i32>,
-    dailyRange_startDate_month: Option<i32>,
-    dailyRange_startDate_year: Option<i32>,
-    dailySubEntityType_dayOfWeek: Option<String>,
-    dailySubEntityType_timeOfDay_hours: Option<i32>,
-    dailySubEntityType_timeOfDay_minutes: Option<i32>,
-    dailySubEntityType_timeOfDay_nanos: Option<i32>,
-    dailySubEntityType_timeOfDay_seconds: Option<i32>,
+    name: &String,
+    dailyMetric: &Option<String>,
+    dailyRange_endDate_day: &Option<i32>,
+    dailyRange_endDate_month: &Option<i32>,
+    dailyRange_endDate_year: &Option<i32>,
+    dailyRange_startDate_day: &Option<i32>,
+    dailyRange_startDate_month: &Option<i32>,
+    dailyRange_startDate_year: &Option<i32>,
+    dailySubEntityType_dayOfWeek: &Option<String>,
+    dailySubEntityType_timeOfDay_hours: &Option<i32>,
+    dailySubEntityType_timeOfDay_minutes: &Option<i32>,
+    dailySubEntityType_timeOfDay_nanos: &Option<i32>,
+    dailySubEntityType_timeOfDay_seconds: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -276,40 +276,40 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builde
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = dailyMetric {
+    if let Some(val) = dailyMetric.as_ref() {
         query_parts.push(format!("dailyMetric={}", val));
     }
-    if let Some(val) = dailyRange_endDate_day {
+    if let Some(val) = dailyRange_endDate_day.as_ref() {
         query_parts.push(format!("dailyRange.endDate.day={}", val));
     }
-    if let Some(val) = dailyRange_endDate_month {
+    if let Some(val) = dailyRange_endDate_month.as_ref() {
         query_parts.push(format!("dailyRange.endDate.month={}", val));
     }
-    if let Some(val) = dailyRange_endDate_year {
+    if let Some(val) = dailyRange_endDate_year.as_ref() {
         query_parts.push(format!("dailyRange.endDate.year={}", val));
     }
-    if let Some(val) = dailyRange_startDate_day {
+    if let Some(val) = dailyRange_startDate_day.as_ref() {
         query_parts.push(format!("dailyRange.startDate.day={}", val));
     }
-    if let Some(val) = dailyRange_startDate_month {
+    if let Some(val) = dailyRange_startDate_month.as_ref() {
         query_parts.push(format!("dailyRange.startDate.month={}", val));
     }
-    if let Some(val) = dailyRange_startDate_year {
+    if let Some(val) = dailyRange_startDate_year.as_ref() {
         query_parts.push(format!("dailyRange.startDate.year={}", val));
     }
-    if let Some(val) = dailySubEntityType_dayOfWeek {
+    if let Some(val) = dailySubEntityType_dayOfWeek.as_ref() {
         query_parts.push(format!("dailySubEntityType.dayOfWeek={}", val));
     }
-    if let Some(val) = dailySubEntityType_timeOfDay_hours {
+    if let Some(val) = dailySubEntityType_timeOfDay_hours.as_ref() {
         query_parts.push(format!("dailySubEntityType.timeOfDay.hours={}", val));
     }
-    if let Some(val) = dailySubEntityType_timeOfDay_minutes {
+    if let Some(val) = dailySubEntityType_timeOfDay_minutes.as_ref() {
         query_parts.push(format!("dailySubEntityType.timeOfDay.minutes={}", val));
     }
-    if let Some(val) = dailySubEntityType_timeOfDay_nanos {
+    if let Some(val) = dailySubEntityType_timeOfDay_nanos.as_ref() {
         query_parts.push(format!("dailySubEntityType.timeOfDay.nanos={}", val));
     }
-    if let Some(val) = dailySubEntityType_timeOfDay_seconds {
+    if let Some(val) = dailySubEntityType_timeOfDay_seconds.as_ref() {
         query_parts.push(format!("dailySubEntityType.timeOfDay.seconds={}", val));
     }
 
@@ -489,19 +489,19 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 > {
     let builder = businessprofileperformance_locations_get_daily_metrics_time_series_builder(
         client,
-        args.name.clone(),
-        args.dailyMetric.clone(),
-        args.dailyRange_endDate_day.clone(),
-        args.dailyRange_endDate_month.clone(),
-        args.dailyRange_endDate_year.clone(),
-        args.dailyRange_startDate_day.clone(),
-        args.dailyRange_startDate_month.clone(),
-        args.dailyRange_startDate_year.clone(),
-        args.dailySubEntityType_dayOfWeek.clone(),
-        args.dailySubEntityType_timeOfDay_hours.clone(),
-        args.dailySubEntityType_timeOfDay_minutes.clone(),
-        args.dailySubEntityType_timeOfDay_nanos.clone(),
-        args.dailySubEntityType_timeOfDay_seconds.clone(),
+        &args.name,
+        &args.dailyMetric,
+        &args.dailyRange_endDate_day,
+        &args.dailyRange_endDate_month,
+        &args.dailyRange_endDate_year,
+        &args.dailyRange_startDate_day,
+        &args.dailyRange_startDate_month,
+        &args.dailyRange_startDate_year,
+        &args.dailySubEntityType_dayOfWeek,
+        &args.dailySubEntityType_timeOfDay_hours,
+        &args.dailySubEntityType_timeOfDay_minutes,
+        &args.dailySubEntityType_timeOfDay_nanos,
+        &args.dailySubEntityType_timeOfDay_seconds,
     )?;
     businessprofileperformance_locations_get_daily_metrics_time_series_execute(builder)
 }
@@ -514,15 +514,15 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 
 pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    monthlyRange_endMonth_day: Option<i32>,
-    monthlyRange_endMonth_month: Option<i32>,
-    monthlyRange_endMonth_year: Option<i32>,
-    monthlyRange_startMonth_day: Option<i32>,
-    monthlyRange_startMonth_month: Option<i32>,
-    monthlyRange_startMonth_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    monthlyRange_endMonth_day: &Option<i32>,
+    monthlyRange_endMonth_month: &Option<i32>,
+    monthlyRange_endMonth_year: &Option<i32>,
+    monthlyRange_startMonth_day: &Option<i32>,
+    monthlyRange_startMonth_month: &Option<i32>,
+    monthlyRange_startMonth_year: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -531,28 +531,28 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = monthlyRange_endMonth_day {
+    if let Some(val) = monthlyRange_endMonth_day.as_ref() {
         query_parts.push(format!("monthlyRange.endMonth.day={}", val));
     }
-    if let Some(val) = monthlyRange_endMonth_month {
+    if let Some(val) = monthlyRange_endMonth_month.as_ref() {
         query_parts.push(format!("monthlyRange.endMonth.month={}", val));
     }
-    if let Some(val) = monthlyRange_endMonth_year {
+    if let Some(val) = monthlyRange_endMonth_year.as_ref() {
         query_parts.push(format!("monthlyRange.endMonth.year={}", val));
     }
-    if let Some(val) = monthlyRange_startMonth_day {
+    if let Some(val) = monthlyRange_startMonth_day.as_ref() {
         query_parts.push(format!("monthlyRange.startMonth.day={}", val));
     }
-    if let Some(val) = monthlyRange_startMonth_month {
+    if let Some(val) = monthlyRange_startMonth_month.as_ref() {
         query_parts.push(format!("monthlyRange.startMonth.month={}", val));
     }
-    if let Some(val) = monthlyRange_startMonth_year {
+    if let Some(val) = monthlyRange_startMonth_year.as_ref() {
         query_parts.push(format!("monthlyRange.startMonth.year={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -727,15 +727,15 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     let builder =
         businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
             client,
-            args.parent.clone(),
-            args.monthlyRange_endMonth_day.clone(),
-            args.monthlyRange_endMonth_month.clone(),
-            args.monthlyRange_endMonth_year.clone(),
-            args.monthlyRange_startMonth_day.clone(),
-            args.monthlyRange_startMonth_month.clone(),
-            args.monthlyRange_startMonth_year.clone(),
-            args.pageSize.clone(),
-            args.pageToken.clone(),
+            &args.parent,
+            &args.monthlyRange_endMonth_day,
+            &args.monthlyRange_endMonth_month,
+            &args.monthlyRange_endMonth_year,
+            &args.monthlyRange_startMonth_day,
+            &args.monthlyRange_startMonth_month,
+            &args.monthlyRange_startMonth_year,
+            &args.pageSize,
+            &args.pageToken,
         )?;
     businessprofileperformance_locations_searchkeywords_impressions_monthly_list_execute(builder)
 }

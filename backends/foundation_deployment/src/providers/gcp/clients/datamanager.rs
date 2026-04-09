@@ -517,14 +517,14 @@ pub fn datamanager_events_ingest(
 
 pub fn datamanager_request_status_retrieve_builder(
     client: &SimpleHttpClient,
-    requestId: Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datamanager.googleapis.com/v1/requestStatus:retrieve",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -678,6 +678,6 @@ pub fn datamanager_request_status_retrieve(
         + 'static,
     ApiError,
 > {
-    let builder = datamanager_request_status_retrieve_builder(client, args.requestId.clone())?;
+    let builder = datamanager_request_status_retrieve_builder(client, &args.requestId)?;
     datamanager_request_status_retrieve_execute(builder)
 }

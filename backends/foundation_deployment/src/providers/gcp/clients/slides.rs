@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn slides_presentations_batch_update_builder(
     client: &SimpleHttpClient,
-    presentationId: String,
+    presentationId: &String,
     body: &BatchUpdatePresentationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}:batchUpdate",
-        presentationId.as_str(),
+        presentationId,
     );
 
     // Build request
@@ -188,7 +188,7 @@ pub fn slides_presentations_batch_update(
     ApiError,
 > {
     let builder =
-        slides_presentations_batch_update_builder(client, args.presentationId.clone(), &args.body)?;
+        slides_presentations_batch_update_builder(client, &args.presentationId, &args.body)?;
     slides_presentations_batch_update_execute(builder)
 }
 
@@ -360,7 +360,7 @@ pub fn slides_presentations_create(
 
 pub fn slides_presentations_get_builder(
     client: &SimpleHttpClient,
-    presentationId: String,
+    presentationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://slides.googleapis.com/v1/presentations/{}",);
@@ -506,7 +506,7 @@ pub fn slides_presentations_get(
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_get_builder(client, args.presentationId.clone())?;
+    let builder = slides_presentations_get_builder(client, &args.presentationId)?;
     slides_presentations_get_execute(builder)
 }
 
@@ -518,14 +518,13 @@ pub fn slides_presentations_get(
 
 pub fn slides_presentations_pages_get_builder(
     client: &SimpleHttpClient,
-    presentationId: String,
-    pageObjectId: String,
+    presentationId: &String,
+    pageObjectId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}",
-        presentationId.as_str(),
-        pageObjectId.as_str(),
+        presentationId, pageObjectId,
     );
 
     // Build request
@@ -667,11 +666,8 @@ pub fn slides_presentations_pages_get(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_pages_get_builder(
-        client,
-        args.presentationId.clone(),
-        args.pageObjectId.clone(),
-    )?;
+    let builder =
+        slides_presentations_pages_get_builder(client, &args.presentationId, &args.pageObjectId)?;
     slides_presentations_pages_get_execute(builder)
 }
 
@@ -683,24 +679,23 @@ pub fn slides_presentations_pages_get(
 
 pub fn slides_presentations_pages_get_thumbnail_builder(
     client: &SimpleHttpClient,
-    presentationId: String,
-    pageObjectId: String,
-    thumbnailProperties_mimeType: Option<String>,
-    thumbnailProperties_thumbnailSize: Option<String>,
+    presentationId: &String,
+    pageObjectId: &String,
+    thumbnailProperties_mimeType: &Option<String>,
+    thumbnailProperties_thumbnailSize: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}/thumbnail",
-        presentationId.as_str(),
-        pageObjectId.as_str(),
+        presentationId, pageObjectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = thumbnailProperties_mimeType {
+    if let Some(val) = thumbnailProperties_mimeType.as_ref() {
         query_parts.push(format!("thumbnailProperties.mimeType={}", val));
     }
-    if let Some(val) = thumbnailProperties_thumbnailSize {
+    if let Some(val) = thumbnailProperties_thumbnailSize.as_ref() {
         query_parts.push(format!("thumbnailProperties.thumbnailSize={}", val));
     }
 
@@ -854,10 +849,10 @@ pub fn slides_presentations_pages_get_thumbnail(
 > {
     let builder = slides_presentations_pages_get_thumbnail_builder(
         client,
-        args.presentationId.clone(),
-        args.pageObjectId.clone(),
-        args.thumbnailProperties_mimeType.clone(),
-        args.thumbnailProperties_thumbnailSize.clone(),
+        &args.presentationId,
+        &args.pageObjectId,
+        &args.thumbnailProperties_mimeType,
+        &args.thumbnailProperties_thumbnailSize,
     )?;
     slides_presentations_pages_get_thumbnail_execute(builder)
 }

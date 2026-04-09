@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn playintegrity_device_recall_write_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &WriteDeviceRecallRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -180,8 +180,7 @@ pub fn playintegrity_device_recall_write(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playintegrity_device_recall_write_builder(client, args.packageName.clone(), &args.body)?;
+    let builder = playintegrity_device_recall_write_builder(client, &args.packageName, &args.body)?;
     playintegrity_device_recall_write_execute(builder)
 }
 
@@ -193,7 +192,7 @@ pub fn playintegrity_device_recall_write(
 
 pub fn playintegrity_decode_integrity_token_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &DecodeIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -349,7 +348,7 @@ pub fn playintegrity_decode_integrity_token(
     ApiError,
 > {
     let builder =
-        playintegrity_decode_integrity_token_builder(client, args.packageName.clone(), &args.body)?;
+        playintegrity_decode_integrity_token_builder(client, &args.packageName, &args.body)?;
     playintegrity_decode_integrity_token_execute(builder)
 }
 
@@ -361,7 +360,7 @@ pub fn playintegrity_decode_integrity_token(
 
 pub fn playintegrity_decode_pc_integrity_token_builder(
     client: &SimpleHttpClient,
-    packageName: String,
+    packageName: &String,
     body: &DecodePcIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -517,10 +516,7 @@ pub fn playintegrity_decode_pc_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_decode_pc_integrity_token_builder(
-        client,
-        args.packageName.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playintegrity_decode_pc_integrity_token_builder(client, &args.packageName, &args.body)?;
     playintegrity_decode_pc_integrity_token_execute(builder)
 }

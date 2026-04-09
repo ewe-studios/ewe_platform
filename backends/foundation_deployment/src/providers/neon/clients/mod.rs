@@ -331,13 +331,10 @@ pub fn post_api_keys(
 
 pub fn delete_api_keys_key_id_builder(
     client: &SimpleHttpClient,
-    key_id: String,
+    key_id: &i64,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://console.neon.tech/api/v2/api_keys/{}",
-        key_id.as_str(),
-    );
+    let endpoint_url = format!("https://console.neon.tech/api/v2/api_keys/{}", key_id,);
 
     // Build request
     let builder = client
@@ -457,7 +454,7 @@ pub fn delete_api_keys_key_id_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteApiKeysKeyIdArgs {
     /// Path parameter: key_id
-    pub key_id: String,
+    pub key_id: i64,
 }
 
 /// DELETE /api_keys/{key_id}
@@ -480,7 +477,7 @@ pub fn delete_api_keys_key_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_api_keys_key_id_builder(client, args.key_id.clone())?;
+    let builder = delete_api_keys_key_id_builder(client, &args.key_id)?;
     delete_api_keys_key_id_execute(builder)
 }
 
@@ -641,34 +638,34 @@ pub fn get_auth(
 
 pub fn get_consumption_history_account_builder(
     client: &SimpleHttpClient,
-    from: Option<String>,
-    to: Option<String>,
-    granularity: Option<String>,
-    org_id: Option<String>,
-    include_v1_metrics: Option<bool>,
-    metrics: Option<String>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    include_v1_metrics: &Option<bool>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/account",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = from {
+    if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
     }
-    if let Some(val) = to {
+    if let Some(val) = to.as_ref() {
         query_parts.push(format!("to={}", val));
     }
-    if let Some(val) = granularity {
+    if let Some(val) = granularity.as_ref() {
         query_parts.push(format!("granularity={}", val));
     }
-    if let Some(val) = org_id {
+    if let Some(val) = org_id.as_ref() {
         query_parts.push(format!("org_id={}", val));
     }
-    if let Some(val) = include_v1_metrics {
+    if let Some(val) = include_v1_metrics.as_ref() {
         query_parts.push(format!("include_v1_metrics={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
 
@@ -834,12 +831,12 @@ pub fn get_consumption_history_account(
 > {
     let builder = get_consumption_history_account_builder(
         client,
-        args.from.clone(),
-        args.to.clone(),
-        args.granularity.clone(),
-        args.org_id.clone(),
-        args.include_v1_metrics.clone(),
-        args.metrics.clone(),
+        &args.from,
+        &args.to,
+        &args.granularity,
+        &args.org_id,
+        &args.include_v1_metrics,
+        &args.metrics,
     )?;
     get_consumption_history_account_execute(builder)
 }
@@ -852,48 +849,48 @@ pub fn get_consumption_history_account(
 
 pub fn get_consumption_history_projects_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<i32>,
-    project_ids: Option<Vec<String>>,
-    from: Option<String>,
-    to: Option<String>,
-    granularity: Option<String>,
-    org_id: Option<String>,
-    include_v1_metrics: Option<bool>,
-    metrics: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
+    project_ids: &Option<Vec<String>>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    include_v1_metrics: &Option<bool>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = project_ids {
+    if let Some(vals) = project_ids.as_ref() {
         for val in vals {
             query_parts.push(format!("project_ids={}", val));
         }
     }
-    if let Some(val) = from {
+    if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
     }
-    if let Some(val) = to {
+    if let Some(val) = to.as_ref() {
         query_parts.push(format!("to={}", val));
     }
-    if let Some(val) = granularity {
+    if let Some(val) = granularity.as_ref() {
         query_parts.push(format!("granularity={}", val));
     }
-    if let Some(val) = org_id {
+    if let Some(val) = org_id.as_ref() {
         query_parts.push(format!("org_id={}", val));
     }
-    if let Some(val) = include_v1_metrics {
+    if let Some(val) = include_v1_metrics.as_ref() {
         query_parts.push(format!("include_v1_metrics={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
 
@@ -1061,15 +1058,15 @@ pub fn get_consumption_history_projects(
 > {
     let builder = get_consumption_history_projects_builder(
         client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.project_ids.clone(),
-        args.from.clone(),
-        args.to.clone(),
-        args.granularity.clone(),
-        args.org_id.clone(),
-        args.include_v1_metrics.clone(),
-        args.metrics.clone(),
+        &args.cursor,
+        &args.limit,
+        &args.project_ids,
+        &args.from,
+        &args.to,
+        &args.granularity,
+        &args.org_id,
+        &args.include_v1_metrics,
+        &args.metrics,
     )?;
     get_consumption_history_projects_execute(builder)
 }
@@ -1082,44 +1079,44 @@ pub fn get_consumption_history_projects(
 
 pub fn get_consumption_history_v2_projects_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<i32>,
-    project_ids: Option<Vec<String>>,
-    from: Option<String>,
-    to: Option<String>,
-    granularity: Option<String>,
-    org_id: Option<String>,
-    metrics: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
+    project_ids: &Option<Vec<String>>,
+    from: &Option<String>,
+    to: &Option<String>,
+    granularity: &Option<String>,
+    org_id: &Option<String>,
+    metrics: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/consumption_history/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(vals) = project_ids {
+    if let Some(vals) = project_ids.as_ref() {
         for val in vals {
             query_parts.push(format!("project_ids={}", val));
         }
     }
-    if let Some(val) = from {
+    if let Some(val) = from.as_ref() {
         query_parts.push(format!("from={}", val));
     }
-    if let Some(val) = to {
+    if let Some(val) = to.as_ref() {
         query_parts.push(format!("to={}", val));
     }
-    if let Some(val) = granularity {
+    if let Some(val) = granularity.as_ref() {
         query_parts.push(format!("granularity={}", val));
     }
-    if let Some(val) = org_id {
+    if let Some(val) = org_id.as_ref() {
         query_parts.push(format!("org_id={}", val));
     }
-    if let Some(val) = metrics {
+    if let Some(val) = metrics.as_ref() {
         query_parts.push(format!("metrics={}", val));
     }
 
@@ -1285,14 +1282,14 @@ pub fn get_consumption_history_v2_projects(
 > {
     let builder = get_consumption_history_v2_projects_builder(
         client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.project_ids.clone(),
-        args.from.clone(),
-        args.to.clone(),
-        args.granularity.clone(),
-        args.org_id.clone(),
-        args.metrics.clone(),
+        &args.cursor,
+        &args.limit,
+        &args.project_ids,
+        &args.from,
+        &args.to,
+        &args.granularity,
+        &args.org_id,
+        &args.metrics,
     )?;
     get_consumption_history_v2_projects_execute(builder)
 }
@@ -1305,30 +1302,30 @@ pub fn get_consumption_history_v2_projects(
 
 pub fn get_projects_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<i32>,
-    search: Option<String>,
-    org_id: Option<String>,
-    recoverable: Option<bool>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
+    search: &Option<String>,
+    org_id: &Option<String>,
+    recoverable: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = search {
+    if let Some(val) = search.as_ref() {
         query_parts.push(format!("search={}", val));
     }
-    if let Some(val) = org_id {
+    if let Some(val) = org_id.as_ref() {
         query_parts.push(format!("org_id={}", val));
     }
-    if let Some(val) = recoverable {
+    if let Some(val) = recoverable.as_ref() {
         query_parts.push(format!("recoverable={}", val));
     }
 
@@ -1488,11 +1485,11 @@ pub fn get_projects(
 > {
     let builder = get_projects_builder(
         client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.search.clone(),
-        args.org_id.clone(),
-        args.recoverable.clone(),
+        &args.cursor,
+        &args.limit,
+        &args.search,
+        &args.org_id,
+        &args.recoverable,
     )?;
     get_projects_execute(builder)
 }
@@ -2316,22 +2313,22 @@ pub fn post_projects_auth_user(
 
 pub fn get_projects_shared_builder(
     client: &SimpleHttpClient,
-    cursor: Option<String>,
-    limit: Option<i32>,
-    search: Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
+    search: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/projects/shared",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = search {
+    if let Some(val) = search.as_ref() {
         query_parts.push(format!("search={}", val));
     }
 
@@ -2485,12 +2482,7 @@ pub fn get_projects_shared(
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_shared_builder(
-        client,
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.search.clone(),
-    )?;
+    let builder = get_projects_shared_builder(client, &args.cursor, &args.limit, &args.search)?;
     get_projects_shared_execute(builder)
 }
 
@@ -2502,15 +2494,14 @@ pub fn get_projects_shared(
 
 pub fn delete_projects_project_id_auth_integration_auth_provider_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    auth_provider: String,
+    project_id: &String,
+    auth_provider: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/integration/{}",
-        project_id.as_str(),
-        auth_provider.as_str(),
+        project_id, auth_provider,
     );
 
     // Build request
@@ -2655,8 +2646,8 @@ pub fn delete_projects_project_id_auth_integration_auth_provider(
 > {
     let builder = delete_projects_project_id_auth_integration_auth_provider_builder(
         client,
-        args.project_id.clone(),
-        args.auth_provider.clone(),
+        &args.project_id,
+        &args.auth_provider,
         &args.body,
     )?;
     delete_projects_project_id_auth_integration_auth_provider_execute(builder)
@@ -2670,12 +2661,12 @@ pub fn delete_projects_project_id_auth_integration_auth_provider(
 
 pub fn get_projects_project_id_auth_integrations_builder(
     client: &SimpleHttpClient,
-    project_id: String,
+    project_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/integrations",
-        project_id.as_str(),
+        project_id,
     );
 
     // Build request
@@ -2823,8 +2814,7 @@ pub fn get_projects_project_id_auth_integrations(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_projects_project_id_auth_integrations_builder(client, args.project_id.clone())?;
+    let builder = get_projects_project_id_auth_integrations_builder(client, &args.project_id)?;
     get_projects_project_id_auth_integrations_execute(builder)
 }
 
@@ -2836,14 +2826,13 @@ pub fn get_projects_project_id_auth_integrations(
 
 pub fn delete_projects_project_id_auth_users_auth_user_id_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    auth_user_id: String,
+    project_id: &String,
+    auth_user_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/auth/users/{}",
-        project_id.as_str(),
-        auth_user_id.as_str(),
+        project_id, auth_user_id,
     );
 
     // Build request
@@ -2984,8 +2973,8 @@ pub fn delete_projects_project_id_auth_users_auth_user_id(
 > {
     let builder = delete_projects_project_id_auth_users_auth_user_id_builder(
         client,
-        args.project_id.clone(),
-        args.auth_user_id.clone(),
+        &args.project_id,
+        &args.auth_user_id,
     )?;
     delete_projects_project_id_auth_users_auth_user_id_execute(builder)
 }
@@ -2998,12 +2987,12 @@ pub fn delete_projects_project_id_auth_users_auth_user_id(
 
 pub fn get_projects_project_id_available_preload_libraries_builder(
     client: &SimpleHttpClient,
-    project_id: String,
+    project_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/available_preload_libraries",
-        project_id.as_str(),
+        project_id,
     );
 
     // Build request
@@ -3147,10 +3136,8 @@ pub fn get_projects_project_id_available_preload_libraries(
         + 'static,
     ApiError,
 > {
-    let builder = get_projects_project_id_available_preload_libraries_builder(
-        client,
-        args.project_id.clone(),
-    )?;
+    let builder =
+        get_projects_project_id_available_preload_libraries_builder(client, &args.project_id)?;
     get_projects_project_id_available_preload_libraries_execute(builder)
 }
 
@@ -3162,40 +3149,39 @@ pub fn get_projects_project_id_available_preload_libraries(
 
 pub fn get_projects_project_id_branches_branch_id_compare_schema_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    branch_id: String,
-    base_branch_id: Option<String>,
-    db_name: Option<String>,
-    lsn: Option<String>,
-    timestamp: Option<String>,
-    base_lsn: Option<String>,
-    base_timestamp: Option<String>,
+    project_id: &String,
+    branch_id: &String,
+    base_branch_id: &Option<String>,
+    db_name: &Option<String>,
+    lsn: &Option<String>,
+    timestamp: &Option<String>,
+    base_lsn: &Option<String>,
+    base_timestamp: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/branches/{}/compare_schema",
-        project_id.as_str(),
-        branch_id.as_str(),
+        project_id, branch_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = base_branch_id {
+    if let Some(val) = base_branch_id.as_ref() {
         query_parts.push(format!("base_branch_id={}", val));
     }
-    if let Some(val) = db_name {
+    if let Some(val) = db_name.as_ref() {
         query_parts.push(format!("db_name={}", val));
     }
-    if let Some(val) = lsn {
+    if let Some(val) = lsn.as_ref() {
         query_parts.push(format!("lsn={}", val));
     }
-    if let Some(val) = timestamp {
+    if let Some(val) = timestamp.as_ref() {
         query_parts.push(format!("timestamp={}", val));
     }
-    if let Some(val) = base_lsn {
+    if let Some(val) = base_lsn.as_ref() {
         query_parts.push(format!("base_lsn={}", val));
     }
-    if let Some(val) = base_timestamp {
+    if let Some(val) = base_timestamp.as_ref() {
         query_parts.push(format!("base_timestamp={}", val));
     }
 
@@ -3365,14 +3351,14 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema(
 > {
     let builder = get_projects_project_id_branches_branch_id_compare_schema_builder(
         client,
-        args.project_id.clone(),
-        args.branch_id.clone(),
-        args.base_branch_id.clone(),
-        args.db_name.clone(),
-        args.lsn.clone(),
-        args.timestamp.clone(),
-        args.base_lsn.clone(),
-        args.base_timestamp.clone(),
+        &args.project_id,
+        &args.branch_id,
+        &args.base_branch_id,
+        &args.db_name,
+        &args.lsn,
+        &args.timestamp,
+        &args.base_lsn,
+        &args.base_timestamp,
     )?;
     get_projects_project_id_branches_branch_id_compare_schema_execute(builder)
 }
@@ -3385,15 +3371,14 @@ pub fn get_projects_project_id_branches_branch_id_compare_schema(
 
 pub fn post_projects_project_id_branches_branch_id_restore_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    branch_id: String,
+    project_id: &String,
+    branch_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/branches/{}/restore",
-        project_id.as_str(),
-        branch_id.as_str(),
+        project_id, branch_id,
     );
 
     // Build request
@@ -3545,8 +3530,8 @@ pub fn post_projects_project_id_branches_branch_id_restore(
 > {
     let builder = post_projects_project_id_branches_branch_id_restore_builder(
         client,
-        args.project_id.clone(),
-        args.branch_id.clone(),
+        &args.project_id,
+        &args.branch_id,
         &args.body,
     )?;
     post_projects_project_id_branches_branch_id_restore_execute(builder)
@@ -3560,32 +3545,31 @@ pub fn post_projects_project_id_branches_branch_id_restore(
 
 pub fn get_projects_project_id_branches_branch_id_schema_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    branch_id: String,
-    db_name: Option<String>,
-    lsn: Option<String>,
-    timestamp: Option<String>,
-    format: Option<String>,
+    project_id: &String,
+    branch_id: &String,
+    db_name: &Option<String>,
+    lsn: &Option<String>,
+    timestamp: &Option<String>,
+    format: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/branches/{}/schema",
-        project_id.as_str(),
-        branch_id.as_str(),
+        project_id, branch_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = db_name {
+    if let Some(val) = db_name.as_ref() {
         query_parts.push(format!("db_name={}", val));
     }
-    if let Some(val) = lsn {
+    if let Some(val) = lsn.as_ref() {
         query_parts.push(format!("lsn={}", val));
     }
-    if let Some(val) = timestamp {
+    if let Some(val) = timestamp.as_ref() {
         query_parts.push(format!("timestamp={}", val));
     }
-    if let Some(val) = format {
+    if let Some(val) = format.as_ref() {
         query_parts.push(format!("format={}", val));
     }
 
@@ -3747,12 +3731,12 @@ pub fn get_projects_project_id_branches_branch_id_schema(
 > {
     let builder = get_projects_project_id_branches_branch_id_schema_builder(
         client,
-        args.project_id.clone(),
-        args.branch_id.clone(),
-        args.db_name.clone(),
-        args.lsn.clone(),
-        args.timestamp.clone(),
-        args.format.clone(),
+        &args.project_id,
+        &args.branch_id,
+        &args.db_name,
+        &args.lsn,
+        &args.timestamp,
+        &args.format,
     )?;
     get_projects_project_id_branches_branch_id_schema_execute(builder)
 }
@@ -3765,34 +3749,34 @@ pub fn get_projects_project_id_branches_branch_id_schema(
 
 pub fn get_projects_project_id_connection_uri_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    branch_id: Option<String>,
-    endpoint_id: Option<String>,
-    database_name: Option<String>,
-    role_name: Option<String>,
-    pooled: Option<bool>,
+    project_id: &String,
+    branch_id: &Option<String>,
+    endpoint_id: &Option<String>,
+    database_name: &Option<String>,
+    role_name: &Option<String>,
+    pooled: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/connection_uri",
-        project_id.as_str(),
+        project_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = branch_id {
+    if let Some(val) = branch_id.as_ref() {
         query_parts.push(format!("branch_id={}", val));
     }
-    if let Some(val) = endpoint_id {
+    if let Some(val) = endpoint_id.as_ref() {
         query_parts.push(format!("endpoint_id={}", val));
     }
-    if let Some(val) = database_name {
+    if let Some(val) = database_name.as_ref() {
         query_parts.push(format!("database_name={}", val));
     }
-    if let Some(val) = role_name {
+    if let Some(val) = role_name.as_ref() {
         query_parts.push(format!("role_name={}", val));
     }
-    if let Some(val) = pooled {
+    if let Some(val) = pooled.as_ref() {
         query_parts.push(format!("pooled={}", val));
     }
 
@@ -3954,12 +3938,12 @@ pub fn get_projects_project_id_connection_uri(
 > {
     let builder = get_projects_project_id_connection_uri_builder(
         client,
-        args.project_id.clone(),
-        args.branch_id.clone(),
-        args.endpoint_id.clone(),
-        args.database_name.clone(),
-        args.role_name.clone(),
-        args.pooled.clone(),
+        &args.project_id,
+        &args.branch_id,
+        &args.endpoint_id,
+        &args.database_name,
+        &args.role_name,
+        &args.pooled,
     )?;
     get_projects_project_id_connection_uri_execute(builder)
 }
@@ -3972,14 +3956,13 @@ pub fn get_projects_project_id_connection_uri(
 
 pub fn post_projects_project_id_endpoints_endpoint_id_start_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    endpoint_id: String,
+    project_id: &String,
+    endpoint_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/endpoints/{}/start",
-        project_id.as_str(),
-        endpoint_id.as_str(),
+        project_id, endpoint_id,
     );
 
     // Build request
@@ -4127,8 +4110,8 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start(
 > {
     let builder = post_projects_project_id_endpoints_endpoint_id_start_builder(
         client,
-        args.project_id.clone(),
-        args.endpoint_id.clone(),
+        &args.project_id,
+        &args.endpoint_id,
     )?;
     post_projects_project_id_endpoints_endpoint_id_start_execute(builder)
 }
@@ -4141,22 +4124,22 @@ pub fn post_projects_project_id_endpoints_endpoint_id_start(
 
 pub fn get_projects_project_id_operations_builder(
     client: &SimpleHttpClient,
-    project_id: String,
-    cursor: Option<String>,
-    limit: Option<i32>,
+    project_id: &String,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://console.neon.tech/api/v2/projects/{}/operations",
-        project_id.as_str(),
+        project_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -4305,9 +4288,9 @@ pub fn get_projects_project_id_operations(
 > {
     let builder = get_projects_project_id_operations_builder(
         client,
-        args.project_id.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.project_id,
+        &args.cursor,
+        &args.limit,
     )?;
     get_projects_project_id_operations_execute(builder)
 }
@@ -4320,14 +4303,14 @@ pub fn get_projects_project_id_operations(
 
 pub fn get_regions_builder(
     client: &SimpleHttpClient,
-    org_id: Option<String>,
+    org_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://console.neon.tech/api/v2/regions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = org_id {
+    if let Some(val) = org_id.as_ref() {
         query_parts.push(format!("org_id={}", val));
     }
 
@@ -4477,7 +4460,7 @@ pub fn get_regions(
         + 'static,
     ApiError,
 > {
-    let builder = get_regions_builder(client, args.org_id.clone())?;
+    let builder = get_regions_builder(client, &args.org_id)?;
     get_regions_execute(builder)
 }
 

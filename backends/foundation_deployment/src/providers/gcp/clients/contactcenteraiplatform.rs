@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn contactcenteraiplatform_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -41,16 +41,16 @@ pub fn contactcenteraiplatform_projects_locations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -210,11 +210,11 @@ pub fn contactcenteraiplatform_projects_locations_list(
 > {
     let builder = contactcenteraiplatform_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     contactcenteraiplatform_projects_locations_list_execute(builder)
 }

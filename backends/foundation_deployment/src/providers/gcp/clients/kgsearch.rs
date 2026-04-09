@@ -29,38 +29,38 @@ use serde::Serialize;
 
 pub fn kgsearch_entities_search_builder(
     client: &SimpleHttpClient,
-    ids: Option<String>,
-    indent: Option<bool>,
-    languages: Option<String>,
-    limit: Option<i32>,
-    prefix: Option<bool>,
-    query: Option<String>,
-    types: Option<String>,
+    ids: &Option<String>,
+    indent: &Option<bool>,
+    languages: &Option<String>,
+    limit: &Option<i32>,
+    prefix: &Option<bool>,
+    query: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://kgsearch.googleapis.com/v1/entities:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = indent {
+    if let Some(val) = indent.as_ref() {
         query_parts.push(format!("indent={}", val));
     }
-    if let Some(val) = languages {
+    if let Some(val) = languages.as_ref() {
         query_parts.push(format!("languages={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = prefix {
+    if let Some(val) = prefix.as_ref() {
         query_parts.push(format!("prefix={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = types {
+    if let Some(val) = types.as_ref() {
         query_parts.push(format!("types={}", val));
     }
 
@@ -224,13 +224,13 @@ pub fn kgsearch_entities_search(
 > {
     let builder = kgsearch_entities_search_builder(
         client,
-        args.ids.clone(),
-        args.indent.clone(),
-        args.languages.clone(),
-        args.limit.clone(),
-        args.prefix.clone(),
-        args.query.clone(),
-        args.types.clone(),
+        &args.ids,
+        &args.indent,
+        &args.languages,
+        &args.limit,
+        &args.prefix,
+        &args.query,
+        &args.types,
     )?;
     kgsearch_entities_search_execute(builder)
 }

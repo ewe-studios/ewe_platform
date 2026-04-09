@@ -29,71 +29,71 @@ use serde::Serialize;
 
 pub fn monitoring_folders_time_series_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    aggregation_alignmentPeriod: Option<String>,
-    aggregation_crossSeriesReducer: Option<String>,
-    aggregation_groupByFields: Option<String>,
-    aggregation_perSeriesAligner: Option<String>,
-    filter: Option<String>,
-    interval_endTime: Option<String>,
-    interval_startTime: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    secondaryAggregation_alignmentPeriod: Option<String>,
-    secondaryAggregation_crossSeriesReducer: Option<String>,
-    secondaryAggregation_groupByFields: Option<String>,
-    secondaryAggregation_perSeriesAligner: Option<String>,
-    view: Option<String>,
+    name: &String,
+    aggregation_alignmentPeriod: &Option<String>,
+    aggregation_crossSeriesReducer: &Option<String>,
+    aggregation_groupByFields: &Option<String>,
+    aggregation_perSeriesAligner: &Option<String>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    secondaryAggregation_alignmentPeriod: &Option<String>,
+    secondaryAggregation_crossSeriesReducer: &Option<String>,
+    secondaryAggregation_groupByFields: &Option<String>,
+    secondaryAggregation_perSeriesAligner: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://monitoring.googleapis.com/v3/folders/{}/timeSeries",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = aggregation_alignmentPeriod {
+    if let Some(val) = aggregation_alignmentPeriod.as_ref() {
         query_parts.push(format!("aggregation.alignmentPeriod={}", val));
     }
-    if let Some(val) = aggregation_crossSeriesReducer {
+    if let Some(val) = aggregation_crossSeriesReducer.as_ref() {
         query_parts.push(format!("aggregation.crossSeriesReducer={}", val));
     }
-    if let Some(val) = aggregation_groupByFields {
+    if let Some(val) = aggregation_groupByFields.as_ref() {
         query_parts.push(format!("aggregation.groupByFields={}", val));
     }
-    if let Some(val) = aggregation_perSeriesAligner {
+    if let Some(val) = aggregation_perSeriesAligner.as_ref() {
         query_parts.push(format!("aggregation.perSeriesAligner={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = interval_endTime {
+    if let Some(val) = interval_endTime.as_ref() {
         query_parts.push(format!("interval.endTime={}", val));
     }
-    if let Some(val) = interval_startTime {
+    if let Some(val) = interval_startTime.as_ref() {
         query_parts.push(format!("interval.startTime={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = secondaryAggregation_alignmentPeriod {
+    if let Some(val) = secondaryAggregation_alignmentPeriod.as_ref() {
         query_parts.push(format!("secondaryAggregation.alignmentPeriod={}", val));
     }
-    if let Some(val) = secondaryAggregation_crossSeriesReducer {
+    if let Some(val) = secondaryAggregation_crossSeriesReducer.as_ref() {
         query_parts.push(format!("secondaryAggregation.crossSeriesReducer={}", val));
     }
-    if let Some(val) = secondaryAggregation_groupByFields {
+    if let Some(val) = secondaryAggregation_groupByFields.as_ref() {
         query_parts.push(format!("secondaryAggregation.groupByFields={}", val));
     }
-    if let Some(val) = secondaryAggregation_perSeriesAligner {
+    if let Some(val) = secondaryAggregation_perSeriesAligner.as_ref() {
         query_parts.push(format!("secondaryAggregation.perSeriesAligner={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -275,22 +275,22 @@ pub fn monitoring_folders_time_series_list(
 > {
     let builder = monitoring_folders_time_series_list_builder(
         client,
-        args.name.clone(),
-        args.aggregation_alignmentPeriod.clone(),
-        args.aggregation_crossSeriesReducer.clone(),
-        args.aggregation_groupByFields.clone(),
-        args.aggregation_perSeriesAligner.clone(),
-        args.filter.clone(),
-        args.interval_endTime.clone(),
-        args.interval_startTime.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.secondaryAggregation_alignmentPeriod.clone(),
-        args.secondaryAggregation_crossSeriesReducer.clone(),
-        args.secondaryAggregation_groupByFields.clone(),
-        args.secondaryAggregation_perSeriesAligner.clone(),
-        args.view.clone(),
+        &args.name,
+        &args.aggregation_alignmentPeriod,
+        &args.aggregation_crossSeriesReducer,
+        &args.aggregation_groupByFields,
+        &args.aggregation_perSeriesAligner,
+        &args.filter,
+        &args.interval_endTime,
+        &args.interval_startTime,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.secondaryAggregation_alignmentPeriod,
+        &args.secondaryAggregation_crossSeriesReducer,
+        &args.secondaryAggregation_groupByFields,
+        &args.secondaryAggregation_perSeriesAligner,
+        &args.view,
     )?;
     monitoring_folders_time_series_list_execute(builder)
 }
@@ -303,71 +303,71 @@ pub fn monitoring_folders_time_series_list(
 
 pub fn monitoring_organizations_time_series_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    aggregation_alignmentPeriod: Option<String>,
-    aggregation_crossSeriesReducer: Option<String>,
-    aggregation_groupByFields: Option<String>,
-    aggregation_perSeriesAligner: Option<String>,
-    filter: Option<String>,
-    interval_endTime: Option<String>,
-    interval_startTime: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    secondaryAggregation_alignmentPeriod: Option<String>,
-    secondaryAggregation_crossSeriesReducer: Option<String>,
-    secondaryAggregation_groupByFields: Option<String>,
-    secondaryAggregation_perSeriesAligner: Option<String>,
-    view: Option<String>,
+    name: &String,
+    aggregation_alignmentPeriod: &Option<String>,
+    aggregation_crossSeriesReducer: &Option<String>,
+    aggregation_groupByFields: &Option<String>,
+    aggregation_perSeriesAligner: &Option<String>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    secondaryAggregation_alignmentPeriod: &Option<String>,
+    secondaryAggregation_crossSeriesReducer: &Option<String>,
+    secondaryAggregation_groupByFields: &Option<String>,
+    secondaryAggregation_perSeriesAligner: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://monitoring.googleapis.com/v3/organizations/{}/timeSeries",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = aggregation_alignmentPeriod {
+    if let Some(val) = aggregation_alignmentPeriod.as_ref() {
         query_parts.push(format!("aggregation.alignmentPeriod={}", val));
     }
-    if let Some(val) = aggregation_crossSeriesReducer {
+    if let Some(val) = aggregation_crossSeriesReducer.as_ref() {
         query_parts.push(format!("aggregation.crossSeriesReducer={}", val));
     }
-    if let Some(val) = aggregation_groupByFields {
+    if let Some(val) = aggregation_groupByFields.as_ref() {
         query_parts.push(format!("aggregation.groupByFields={}", val));
     }
-    if let Some(val) = aggregation_perSeriesAligner {
+    if let Some(val) = aggregation_perSeriesAligner.as_ref() {
         query_parts.push(format!("aggregation.perSeriesAligner={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = interval_endTime {
+    if let Some(val) = interval_endTime.as_ref() {
         query_parts.push(format!("interval.endTime={}", val));
     }
-    if let Some(val) = interval_startTime {
+    if let Some(val) = interval_startTime.as_ref() {
         query_parts.push(format!("interval.startTime={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = secondaryAggregation_alignmentPeriod {
+    if let Some(val) = secondaryAggregation_alignmentPeriod.as_ref() {
         query_parts.push(format!("secondaryAggregation.alignmentPeriod={}", val));
     }
-    if let Some(val) = secondaryAggregation_crossSeriesReducer {
+    if let Some(val) = secondaryAggregation_crossSeriesReducer.as_ref() {
         query_parts.push(format!("secondaryAggregation.crossSeriesReducer={}", val));
     }
-    if let Some(val) = secondaryAggregation_groupByFields {
+    if let Some(val) = secondaryAggregation_groupByFields.as_ref() {
         query_parts.push(format!("secondaryAggregation.groupByFields={}", val));
     }
-    if let Some(val) = secondaryAggregation_perSeriesAligner {
+    if let Some(val) = secondaryAggregation_perSeriesAligner.as_ref() {
         query_parts.push(format!("secondaryAggregation.perSeriesAligner={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -549,22 +549,22 @@ pub fn monitoring_organizations_time_series_list(
 > {
     let builder = monitoring_organizations_time_series_list_builder(
         client,
-        args.name.clone(),
-        args.aggregation_alignmentPeriod.clone(),
-        args.aggregation_crossSeriesReducer.clone(),
-        args.aggregation_groupByFields.clone(),
-        args.aggregation_perSeriesAligner.clone(),
-        args.filter.clone(),
-        args.interval_endTime.clone(),
-        args.interval_startTime.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.secondaryAggregation_alignmentPeriod.clone(),
-        args.secondaryAggregation_crossSeriesReducer.clone(),
-        args.secondaryAggregation_groupByFields.clone(),
-        args.secondaryAggregation_perSeriesAligner.clone(),
-        args.view.clone(),
+        &args.name,
+        &args.aggregation_alignmentPeriod,
+        &args.aggregation_crossSeriesReducer,
+        &args.aggregation_groupByFields,
+        &args.aggregation_perSeriesAligner,
+        &args.filter,
+        &args.interval_endTime,
+        &args.interval_startTime,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.secondaryAggregation_alignmentPeriod,
+        &args.secondaryAggregation_crossSeriesReducer,
+        &args.secondaryAggregation_groupByFields,
+        &args.secondaryAggregation_perSeriesAligner,
+        &args.view,
     )?;
     monitoring_organizations_time_series_list_execute(builder)
 }
@@ -577,7 +577,7 @@ pub fn monitoring_organizations_time_series_list(
 
 pub fn monitoring_projects_alert_policies_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &AlertPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -725,7 +725,7 @@ pub fn monitoring_projects_alert_policies_create(
     ApiError,
 > {
     let builder =
-        monitoring_projects_alert_policies_create_builder(client, args.name.clone(), &args.body)?;
+        monitoring_projects_alert_policies_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_alert_policies_create_execute(builder)
 }
 
@@ -737,27 +737,27 @@ pub fn monitoring_projects_alert_policies_create(
 
 pub fn monitoring_projects_alerts_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -917,11 +917,11 @@ pub fn monitoring_projects_alerts_list(
 > {
     let builder = monitoring_projects_alerts_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     monitoring_projects_alerts_list_execute(builder)
 }
@@ -934,7 +934,7 @@ pub fn monitoring_projects_alerts_list(
 
 pub fn monitoring_projects_collectd_time_series_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CreateCollectdTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1090,11 +1090,8 @@ pub fn monitoring_projects_collectd_time_series_create(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_collectd_time_series_create_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        monitoring_projects_collectd_time_series_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_collectd_time_series_create_execute(builder)
 }
 
@@ -1106,8 +1103,8 @@ pub fn monitoring_projects_collectd_time_series_create(
 
 pub fn monitoring_projects_groups_create_builder(
     client: &SimpleHttpClient,
-    name: String,
-    validateOnly: Option<bool>,
+    name: &String,
+    validateOnly: &Option<bool>,
     body: &Group,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1115,7 +1112,7 @@ pub fn monitoring_projects_groups_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -1269,8 +1266,8 @@ pub fn monitoring_projects_groups_create(
 > {
     let builder = monitoring_projects_groups_create_builder(
         client,
-        args.name.clone(),
-        args.validateOnly.clone(),
+        &args.name,
+        &args.validateOnly,
         &args.body,
     )?;
     monitoring_projects_groups_create_execute(builder)
@@ -1284,7 +1281,7 @@ pub fn monitoring_projects_groups_create(
 
 pub fn monitoring_projects_metric_descriptors_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &MetricDescriptor,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1436,11 +1433,8 @@ pub fn monitoring_projects_metric_descriptors_create(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_metric_descriptors_create_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        monitoring_projects_metric_descriptors_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_metric_descriptors_create_execute(builder)
 }
 
@@ -1452,10 +1446,10 @@ pub fn monitoring_projects_metric_descriptors_create(
 
 pub fn monitoring_projects_monitored_resource_descriptors_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1463,13 +1457,13 @@ pub fn monitoring_projects_monitored_resource_descriptors_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1631,10 +1625,10 @@ pub fn monitoring_projects_monitored_resource_descriptors_list(
 > {
     let builder = monitoring_projects_monitored_resource_descriptors_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     monitoring_projects_monitored_resource_descriptors_list_execute(builder)
 }
@@ -1647,9 +1641,9 @@ pub fn monitoring_projects_monitored_resource_descriptors_list(
 
 pub fn monitoring_projects_notification_channel_descriptors_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1657,10 +1651,10 @@ pub fn monitoring_projects_notification_channel_descriptors_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1821,9 +1815,9 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
 > {
     let builder = monitoring_projects_notification_channel_descriptors_list_builder(
         client,
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     monitoring_projects_notification_channel_descriptors_list_execute(builder)
 }
@@ -1836,7 +1830,7 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
 
 pub fn monitoring_projects_notification_channels_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &NotificationChannel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1988,11 +1982,8 @@ pub fn monitoring_projects_notification_channels_create(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channels_create_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        monitoring_projects_notification_channels_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_notification_channels_create_execute(builder)
 }
 
@@ -2004,7 +1995,7 @@ pub fn monitoring_projects_notification_channels_create(
 
 pub fn monitoring_projects_snoozes_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Snooze,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2151,8 +2142,7 @@ pub fn monitoring_projects_snoozes_create(
     impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_snoozes_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = monitoring_projects_snoozes_create_builder(client, &args.parent, &args.body)?;
     monitoring_projects_snoozes_create_execute(builder)
 }
 
@@ -2164,7 +2154,7 @@ pub fn monitoring_projects_snoozes_create(
 
 pub fn monitoring_projects_time_series_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CreateTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2311,8 +2301,7 @@ pub fn monitoring_projects_time_series_create(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_time_series_create_builder(client, args.name.clone(), &args.body)?;
+    let builder = monitoring_projects_time_series_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_create_execute(builder)
 }
 
@@ -2324,7 +2313,7 @@ pub fn monitoring_projects_time_series_create(
 
 pub fn monitoring_projects_time_series_create_service_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CreateTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2472,11 +2461,8 @@ pub fn monitoring_projects_time_series_create_service(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_create_service_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        monitoring_projects_time_series_create_service_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_create_service_execute(builder)
 }
 
@@ -2488,7 +2474,7 @@ pub fn monitoring_projects_time_series_create_service(
 
 pub fn monitoring_projects_time_series_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &QueryTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2640,8 +2626,7 @@ pub fn monitoring_projects_time_series_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_time_series_query_builder(client, args.name.clone(), &args.body)?;
+    let builder = monitoring_projects_time_series_query_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_query_execute(builder)
 }
 
@@ -2653,7 +2638,7 @@ pub fn monitoring_projects_time_series_query(
 
 pub fn monitoring_projects_uptime_check_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &UptimeCheckConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2805,11 +2790,8 @@ pub fn monitoring_projects_uptime_check_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_uptime_check_configs_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        monitoring_projects_uptime_check_configs_create_builder(client, &args.parent, &args.body)?;
     monitoring_projects_uptime_check_configs_create_execute(builder)
 }
 
@@ -2821,18 +2803,18 @@ pub fn monitoring_projects_uptime_check_configs_create(
 
 pub fn monitoring_uptime_check_ips_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://monitoring.googleapis.com/v3/uptimeCheckIps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2988,10 +2970,7 @@ pub fn monitoring_uptime_check_ips_list(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_uptime_check_ips_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        monitoring_uptime_check_ips_list_builder(client, &args.pageSize, &args.pageToken)?;
     monitoring_uptime_check_ips_list_execute(builder)
 }

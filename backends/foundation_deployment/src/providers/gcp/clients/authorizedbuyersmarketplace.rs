@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -42,16 +42,16 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -215,11 +215,11 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
 > {
     let builder = authorizedbuyersmarketplace_bidders_auction_packages_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_bidders_auction_packages_list_execute(builder)
 }
@@ -232,11 +232,11 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
 
 pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -244,16 +244,16 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -417,11 +417,11 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
 > {
     let builder = authorizedbuyersmarketplace_bidders_finalized_deals_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_bidders_finalized_deals_list_execute(builder)
 }
@@ -434,11 +434,11 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -446,16 +446,16 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -619,11 +619,11 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list(
 > {
     let builder = authorizedbuyersmarketplace_buyers_auction_packages_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_buyers_auction_packages_list_execute(builder)
 }
@@ -636,7 +636,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Client,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -786,7 +786,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_create(
 > {
     let builder = authorizedbuyersmarketplace_buyers_clients_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_clients_create_execute(builder)
@@ -800,11 +800,11 @@ pub fn authorizedbuyersmarketplace_buyers_clients_create(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -812,16 +812,16 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -985,11 +985,11 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list(
 > {
     let builder = authorizedbuyersmarketplace_buyers_finalized_deals_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_list_execute(builder)
 }
@@ -1002,10 +1002,10 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1013,13 +1013,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1177,10 +1177,10 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_buyers_proposals_list_execute(builder)
 }
@@ -1193,7 +1193,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder(
     client: &SimpleHttpClient,
-    buyer: String,
+    buyer: &String,
     body: &SendRfpRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1344,7 +1344,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp(
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder(
         client,
-        args.buyer.clone(),
+        &args.buyer,
         &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_proposals_send_rfp_execute(builder)
@@ -1358,10 +1358,10 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp(
 
 pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1370,13 +1370,13 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1538,10 +1538,10 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list(
 > {
     let builder = authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute(builder)
 }

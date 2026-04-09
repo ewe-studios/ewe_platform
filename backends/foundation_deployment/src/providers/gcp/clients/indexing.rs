@@ -29,14 +29,14 @@ use serde::Serialize;
 
 pub fn indexing_url_notifications_get_metadata_builder(
     client: &SimpleHttpClient,
-    url: Option<String>,
+    url: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://indexing.googleapis.com/v3/urlNotifications/metadata",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = url {
+    if let Some(val) = url.as_ref() {
         query_parts.push(format!("url={}", val));
     }
 
@@ -186,7 +186,7 @@ pub fn indexing_url_notifications_get_metadata(
         + 'static,
     ApiError,
 > {
-    let builder = indexing_url_notifications_get_metadata_builder(client, args.url.clone())?;
+    let builder = indexing_url_notifications_get_metadata_builder(client, &args.url)?;
     indexing_url_notifications_get_metadata_execute(builder)
 }
 

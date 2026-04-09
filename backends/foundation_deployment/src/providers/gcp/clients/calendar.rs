@@ -29,14 +29,13 @@ use serde::Serialize;
 
 pub fn calendar_acl_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    ruleId: String,
+    calendarId: &String,
+    ruleId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
-        calendarId.as_str(),
-        ruleId.as_str(),
+        calendarId, ruleId,
     );
 
     // Build request
@@ -175,8 +174,7 @@ pub fn calendar_acl_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        calendar_acl_delete_builder(client, args.calendarId.clone(), args.ruleId.clone())?;
+    let builder = calendar_acl_delete_builder(client, &args.calendarId, &args.ruleId)?;
     calendar_acl_delete_execute(builder)
 }
 
@@ -188,19 +186,19 @@ pub fn calendar_acl_delete(
 
 pub fn calendar_acl_insert_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    sendNotifications: Option<bool>,
+    calendarId: &String,
+    sendNotifications: &Option<bool>,
     body: &AclRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
+    if let Some(val) = sendNotifications.as_ref() {
         query_parts.push(format!("sendNotifications={}", val));
     }
 
@@ -354,8 +352,8 @@ pub fn calendar_acl_insert(
 > {
     let builder = calendar_acl_insert_builder(
         client,
-        args.calendarId.clone(),
-        args.sendNotifications.clone(),
+        &args.calendarId,
+        &args.sendNotifications,
         &args.body,
     )?;
     calendar_acl_insert_execute(builder)
@@ -369,31 +367,31 @@ pub fn calendar_acl_insert(
 
 pub fn calendar_acl_watch_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
-    syncToken: Option<String>,
+    calendarId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
+    syncToken: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/acl/watch",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -553,11 +551,11 @@ pub fn calendar_acl_watch(
 > {
     let builder = calendar_acl_watch_builder(
         client,
-        args.calendarId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
-        args.syncToken.clone(),
+        &args.calendarId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.showDeleted,
+        &args.syncToken,
         &args.body,
     )?;
     calendar_acl_watch_execute(builder)
@@ -571,12 +569,12 @@ pub fn calendar_acl_watch(
 
 pub fn calendar_calendar_list_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
+    calendarId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
@@ -713,7 +711,7 @@ pub fn calendar_calendar_list_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_delete_builder(client, args.calendarId.clone())?;
+    let builder = calendar_calendar_list_delete_builder(client, &args.calendarId)?;
     calendar_calendar_list_delete_execute(builder)
 }
 
@@ -725,7 +723,7 @@ pub fn calendar_calendar_list_delete(
 
 pub fn calendar_calendar_list_insert_builder(
     client: &SimpleHttpClient,
-    colorRgbFormat: Option<bool>,
+    colorRgbFormat: &Option<bool>,
     body: &CalendarListEntry,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -733,7 +731,7 @@ pub fn calendar_calendar_list_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = colorRgbFormat {
+    if let Some(val) = colorRgbFormat.as_ref() {
         query_parts.push(format!("colorRgbFormat={}", val));
     }
 
@@ -887,8 +885,7 @@ pub fn calendar_calendar_list_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        calendar_calendar_list_insert_builder(client, args.colorRgbFormat.clone(), &args.body)?;
+    let builder = calendar_calendar_list_insert_builder(client, &args.colorRgbFormat, &args.body)?;
     calendar_calendar_list_insert_execute(builder)
 }
 
@@ -900,12 +897,12 @@ pub fn calendar_calendar_list_insert(
 
 pub fn calendar_calendar_list_watch_builder(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    minAccessRole: Option<String>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    syncToken: Option<String>,
+    maxResults: &Option<i32>,
+    minAccessRole: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
+    showHidden: &Option<bool>,
+    syncToken: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -914,22 +911,22 @@ pub fn calendar_calendar_list_watch_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = minAccessRole {
+    if let Some(val) = minAccessRole.as_ref() {
         query_parts.push(format!("minAccessRole={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
-    if let Some(val) = showHidden {
+    if let Some(val) = showHidden.as_ref() {
         query_parts.push(format!("showHidden={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -1091,12 +1088,12 @@ pub fn calendar_calendar_list_watch(
 > {
     let builder = calendar_calendar_list_watch_builder(
         client,
-        args.maxResults.clone(),
-        args.minAccessRole.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
-        args.showHidden.clone(),
-        args.syncToken.clone(),
+        &args.maxResults,
+        &args.minAccessRole,
+        &args.pageToken,
+        &args.showDeleted,
+        &args.showHidden,
+        &args.syncToken,
         &args.body,
     )?;
     calendar_calendar_list_watch_execute(builder)
@@ -1110,12 +1107,12 @@ pub fn calendar_calendar_list_watch(
 
 pub fn calendar_calendars_clear_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
+    calendarId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/clear",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
@@ -1252,7 +1249,7 @@ pub fn calendar_calendars_clear(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_clear_builder(client, args.calendarId.clone())?;
+    let builder = calendar_calendars_clear_builder(client, &args.calendarId)?;
     calendar_calendars_clear_execute(builder)
 }
 
@@ -1264,12 +1261,12 @@ pub fn calendar_calendars_clear(
 
 pub fn calendar_calendars_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
+    calendarId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
@@ -1406,7 +1403,7 @@ pub fn calendar_calendars_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_delete_builder(client, args.calendarId.clone())?;
+    let builder = calendar_calendars_delete_builder(client, &args.calendarId)?;
     calendar_calendars_delete_execute(builder)
 }
 
@@ -1872,24 +1869,23 @@ pub fn calendar_colors_get(
 
 pub fn calendar_events_delete_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    eventId: String,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<String>,
+    calendarId: &String,
+    eventId: &String,
+    sendNotifications: &Option<bool>,
+    sendUpdates: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
-        calendarId.as_str(),
-        eventId.as_str(),
+        calendarId, eventId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sendNotifications {
+    if let Some(val) = sendNotifications.as_ref() {
         query_parts.push(format!("sendNotifications={}", val));
     }
-    if let Some(val) = sendUpdates {
+    if let Some(val) = sendUpdates.as_ref() {
         query_parts.push(format!("sendUpdates={}", val));
     }
 
@@ -2040,10 +2036,10 @@ pub fn calendar_events_delete(
 > {
     let builder = calendar_events_delete_builder(
         client,
-        args.calendarId.clone(),
-        args.eventId.clone(),
-        args.sendNotifications.clone(),
-        args.sendUpdates.clone(),
+        &args.calendarId,
+        &args.eventId,
+        &args.sendNotifications,
+        &args.sendUpdates,
     )?;
     calendar_events_delete_execute(builder)
 }
@@ -2056,23 +2052,23 @@ pub fn calendar_events_delete(
 
 pub fn calendar_events_import_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    conferenceDataVersion: Option<i32>,
-    supportsAttachments: Option<bool>,
+    calendarId: &String,
+    conferenceDataVersion: &Option<i32>,
+    supportsAttachments: &Option<bool>,
     body: &Event,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/import",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = conferenceDataVersion {
+    if let Some(val) = conferenceDataVersion.as_ref() {
         query_parts.push(format!("conferenceDataVersion={}", val));
     }
-    if let Some(val) = supportsAttachments {
+    if let Some(val) = supportsAttachments.as_ref() {
         query_parts.push(format!("supportsAttachments={}", val));
     }
 
@@ -2228,9 +2224,9 @@ pub fn calendar_events_import(
 > {
     let builder = calendar_events_import_builder(
         client,
-        args.calendarId.clone(),
-        args.conferenceDataVersion.clone(),
-        args.supportsAttachments.clone(),
+        &args.calendarId,
+        &args.conferenceDataVersion,
+        &args.supportsAttachments,
         &args.body,
     )?;
     calendar_events_import_execute(builder)
@@ -2244,35 +2240,35 @@ pub fn calendar_events_import(
 
 pub fn calendar_events_insert_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<String>,
-    supportsAttachments: Option<bool>,
+    calendarId: &String,
+    conferenceDataVersion: &Option<i32>,
+    maxAttendees: &Option<i32>,
+    sendNotifications: &Option<bool>,
+    sendUpdates: &Option<String>,
+    supportsAttachments: &Option<bool>,
     body: &Event,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = conferenceDataVersion {
+    if let Some(val) = conferenceDataVersion.as_ref() {
         query_parts.push(format!("conferenceDataVersion={}", val));
     }
-    if let Some(val) = maxAttendees {
+    if let Some(val) = maxAttendees.as_ref() {
         query_parts.push(format!("maxAttendees={}", val));
     }
-    if let Some(val) = sendNotifications {
+    if let Some(val) = sendNotifications.as_ref() {
         query_parts.push(format!("sendNotifications={}", val));
     }
-    if let Some(val) = sendUpdates {
+    if let Some(val) = sendUpdates.as_ref() {
         query_parts.push(format!("sendUpdates={}", val));
     }
-    if let Some(val) = supportsAttachments {
+    if let Some(val) = supportsAttachments.as_ref() {
         query_parts.push(format!("supportsAttachments={}", val));
     }
 
@@ -2434,12 +2430,12 @@ pub fn calendar_events_insert(
 > {
     let builder = calendar_events_insert_builder(
         client,
-        args.calendarId.clone(),
-        args.conferenceDataVersion.clone(),
-        args.maxAttendees.clone(),
-        args.sendNotifications.clone(),
-        args.sendUpdates.clone(),
-        args.supportsAttachments.clone(),
+        &args.calendarId,
+        &args.conferenceDataVersion,
+        &args.maxAttendees,
+        &args.sendNotifications,
+        &args.sendUpdates,
+        &args.supportsAttachments,
         &args.body,
     )?;
     calendar_events_insert_execute(builder)
@@ -2453,52 +2449,51 @@ pub fn calendar_events_insert(
 
 pub fn calendar_events_instances_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    eventId: String,
-    alwaysIncludeEmail: Option<bool>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    originalStart: Option<String>,
-    pageToken: Option<String>,
-    showDeleted: Option<bool>,
-    timeMax: Option<String>,
-    timeMin: Option<String>,
-    timeZone: Option<String>,
+    calendarId: &String,
+    eventId: &String,
+    alwaysIncludeEmail: &Option<bool>,
+    maxAttendees: &Option<i32>,
+    maxResults: &Option<i32>,
+    originalStart: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<bool>,
+    timeMax: &Option<String>,
+    timeMin: &Option<String>,
+    timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/instances",
-        calendarId.as_str(),
-        eventId.as_str(),
+        calendarId, eventId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
         query_parts.push(format!("alwaysIncludeEmail={}", val));
     }
-    if let Some(val) = maxAttendees {
+    if let Some(val) = maxAttendees.as_ref() {
         query_parts.push(format!("maxAttendees={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = originalStart {
+    if let Some(val) = originalStart.as_ref() {
         query_parts.push(format!("originalStart={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
-    if let Some(val) = timeMax {
+    if let Some(val) = timeMax.as_ref() {
         query_parts.push(format!("timeMax={}", val));
     }
-    if let Some(val) = timeMin {
+    if let Some(val) = timeMin.as_ref() {
         query_parts.push(format!("timeMin={}", val));
     }
-    if let Some(val) = timeZone {
+    if let Some(val) = timeZone.as_ref() {
         query_parts.push(format!("timeZone={}", val));
     }
 
@@ -2666,17 +2661,17 @@ pub fn calendar_events_instances(
 > {
     let builder = calendar_events_instances_builder(
         client,
-        args.calendarId.clone(),
-        args.eventId.clone(),
-        args.alwaysIncludeEmail.clone(),
-        args.maxAttendees.clone(),
-        args.maxResults.clone(),
-        args.originalStart.clone(),
-        args.pageToken.clone(),
-        args.showDeleted.clone(),
-        args.timeMax.clone(),
-        args.timeMin.clone(),
-        args.timeZone.clone(),
+        &args.calendarId,
+        &args.eventId,
+        &args.alwaysIncludeEmail,
+        &args.maxAttendees,
+        &args.maxResults,
+        &args.originalStart,
+        &args.pageToken,
+        &args.showDeleted,
+        &args.timeMax,
+        &args.timeMin,
+        &args.timeZone,
     )?;
     calendar_events_instances_execute(builder)
 }
@@ -2689,87 +2684,87 @@ pub fn calendar_events_instances(
 
 pub fn calendar_events_watch_builder(
     client: &SimpleHttpClient,
-    calendarId: String,
-    alwaysIncludeEmail: Option<bool>,
-    eventTypes: Option<String>,
-    iCalUID: Option<String>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    orderBy: Option<String>,
-    pageToken: Option<String>,
-    privateExtendedProperty: Option<String>,
-    q: Option<String>,
-    sharedExtendedProperty: Option<String>,
-    showDeleted: Option<bool>,
-    showHiddenInvitations: Option<bool>,
-    singleEvents: Option<bool>,
-    syncToken: Option<String>,
-    timeMax: Option<String>,
-    timeMin: Option<String>,
-    timeZone: Option<String>,
-    updatedMin: Option<String>,
+    calendarId: &String,
+    alwaysIncludeEmail: &Option<bool>,
+    eventTypes: &Option<String>,
+    iCalUID: &Option<String>,
+    maxAttendees: &Option<i32>,
+    maxResults: &Option<i32>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    privateExtendedProperty: &Option<String>,
+    q: &Option<String>,
+    sharedExtendedProperty: &Option<String>,
+    showDeleted: &Option<bool>,
+    showHiddenInvitations: &Option<bool>,
+    singleEvents: &Option<bool>,
+    syncToken: &Option<String>,
+    timeMax: &Option<String>,
+    timeMin: &Option<String>,
+    timeZone: &Option<String>,
+    updatedMin: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/calendars/{}/events/watch",
-        calendarId.as_str(),
+        calendarId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = alwaysIncludeEmail {
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
         query_parts.push(format!("alwaysIncludeEmail={}", val));
     }
-    if let Some(val) = eventTypes {
+    if let Some(val) = eventTypes.as_ref() {
         query_parts.push(format!("eventTypes={}", val));
     }
-    if let Some(val) = iCalUID {
+    if let Some(val) = iCalUID.as_ref() {
         query_parts.push(format!("iCalUID={}", val));
     }
-    if let Some(val) = maxAttendees {
+    if let Some(val) = maxAttendees.as_ref() {
         query_parts.push(format!("maxAttendees={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = privateExtendedProperty {
+    if let Some(val) = privateExtendedProperty.as_ref() {
         query_parts.push(format!("privateExtendedProperty={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = sharedExtendedProperty {
+    if let Some(val) = sharedExtendedProperty.as_ref() {
         query_parts.push(format!("sharedExtendedProperty={}", val));
     }
-    if let Some(val) = showDeleted {
+    if let Some(val) = showDeleted.as_ref() {
         query_parts.push(format!("showDeleted={}", val));
     }
-    if let Some(val) = showHiddenInvitations {
+    if let Some(val) = showHiddenInvitations.as_ref() {
         query_parts.push(format!("showHiddenInvitations={}", val));
     }
-    if let Some(val) = singleEvents {
+    if let Some(val) = singleEvents.as_ref() {
         query_parts.push(format!("singleEvents={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
-    if let Some(val) = timeMax {
+    if let Some(val) = timeMax.as_ref() {
         query_parts.push(format!("timeMax={}", val));
     }
-    if let Some(val) = timeMin {
+    if let Some(val) = timeMin.as_ref() {
         query_parts.push(format!("timeMin={}", val));
     }
-    if let Some(val) = timeZone {
+    if let Some(val) = timeZone.as_ref() {
         query_parts.push(format!("timeZone={}", val));
     }
-    if let Some(val) = updatedMin {
+    if let Some(val) = updatedMin.as_ref() {
         query_parts.push(format!("updatedMin={}", val));
     }
 
@@ -2957,25 +2952,25 @@ pub fn calendar_events_watch(
 > {
     let builder = calendar_events_watch_builder(
         client,
-        args.calendarId.clone(),
-        args.alwaysIncludeEmail.clone(),
-        args.eventTypes.clone(),
-        args.iCalUID.clone(),
-        args.maxAttendees.clone(),
-        args.maxResults.clone(),
-        args.orderBy.clone(),
-        args.pageToken.clone(),
-        args.privateExtendedProperty.clone(),
-        args.q.clone(),
-        args.sharedExtendedProperty.clone(),
-        args.showDeleted.clone(),
-        args.showHiddenInvitations.clone(),
-        args.singleEvents.clone(),
-        args.syncToken.clone(),
-        args.timeMax.clone(),
-        args.timeMin.clone(),
-        args.timeZone.clone(),
-        args.updatedMin.clone(),
+        &args.calendarId,
+        &args.alwaysIncludeEmail,
+        &args.eventTypes,
+        &args.iCalUID,
+        &args.maxAttendees,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.privateExtendedProperty,
+        &args.q,
+        &args.sharedExtendedProperty,
+        &args.showDeleted,
+        &args.showHiddenInvitations,
+        &args.singleEvents,
+        &args.syncToken,
+        &args.timeMax,
+        &args.timeMin,
+        &args.timeZone,
+        &args.updatedMin,
         &args.body,
     )?;
     calendar_events_watch_execute(builder)
@@ -3149,12 +3144,12 @@ pub fn calendar_freebusy_query(
 
 pub fn calendar_settings_get_builder(
     client: &SimpleHttpClient,
-    setting: String,
+    setting: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://www.googleapis.com/calendar/v3/users/me/settings/{}",
-        setting.as_str(),
+        setting,
     );
 
     // Build request
@@ -3294,7 +3289,7 @@ pub fn calendar_settings_get(
     impl StreamIterator<D = Result<ApiResponse<Setting>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_get_builder(client, args.setting.clone())?;
+    let builder = calendar_settings_get_builder(client, &args.setting)?;
     calendar_settings_get_execute(builder)
 }
 
@@ -3306,22 +3301,22 @@ pub fn calendar_settings_get(
 
 pub fn calendar_settings_list_builder(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    syncToken: Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -3471,12 +3466,8 @@ pub fn calendar_settings_list(
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_list_builder(
-        client,
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.syncToken.clone(),
-    )?;
+    let builder =
+        calendar_settings_list_builder(client, &args.maxResults, &args.pageToken, &args.syncToken)?;
     calendar_settings_list_execute(builder)
 }
 
@@ -3488,9 +3479,9 @@ pub fn calendar_settings_list(
 
 pub fn calendar_settings_watch_builder(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    syncToken: Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    syncToken: &Option<String>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3498,13 +3489,13 @@ pub fn calendar_settings_watch_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = syncToken {
+    if let Some(val) = syncToken.as_ref() {
         query_parts.push(format!("syncToken={}", val));
     }
 
@@ -3660,9 +3651,9 @@ pub fn calendar_settings_watch(
 > {
     let builder = calendar_settings_watch_builder(
         client,
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.syncToken.clone(),
+        &args.maxResults,
+        &args.pageToken,
+        &args.syncToken,
         &args.body,
     )?;
     calendar_settings_watch_execute(builder)

@@ -29,13 +29,10 @@ use serde::Serialize;
 
 pub fn get_v1_branches_branch_id_or_ref_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let builder = client
@@ -178,7 +175,7 @@ pub fn get_v1_branches_branch_id_or_ref(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_branches_branch_id_or_ref_builder(client, args.branch_id_or_ref.clone())?;
+    let builder = get_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref)?;
     get_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -190,14 +187,11 @@ pub fn get_v1_branches_branch_id_or_ref(
 
 pub fn patch_v1_branches_branch_id_or_ref_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let builder = client
@@ -344,11 +338,8 @@ pub fn patch_v1_branches_branch_id_or_ref(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_branches_branch_id_or_ref_builder(
-        client,
-        args.branch_id_or_ref.clone(),
-        &args.body,
-    )?;
+    let builder =
+        patch_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref, &args.body)?;
     patch_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -360,18 +351,15 @@ pub fn patch_v1_branches_branch_id_or_ref(
 
 pub fn delete_v1_branches_branch_id_or_ref_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
-    force: Option<bool>,
+    branch_id_or_ref: &String,
+    force: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = force {
+    if let Some(val) = force.as_ref() {
         query_parts.push(format!("force={}", val));
     }
 
@@ -523,11 +511,8 @@ pub fn delete_v1_branches_branch_id_or_ref(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_branches_branch_id_or_ref_builder(
-        client,
-        args.branch_id_or_ref.clone(),
-        args.force.clone(),
-    )?;
+    let builder =
+        delete_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref, &args.force)?;
     delete_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -539,22 +524,22 @@ pub fn delete_v1_branches_branch_id_or_ref(
 
 pub fn get_v1_branches_branch_id_or_ref_diff_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
-    included_schemas: Option<String>,
-    pgdelta: Option<bool>,
+    branch_id_or_ref: &String,
+    included_schemas: &Option<String>,
+    pgdelta: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/diff",
-        branch_id_or_ref.as_str(),
+        branch_id_or_ref,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = included_schemas {
+    if let Some(val) = included_schemas.as_ref() {
         query_parts.push(format!("included_schemas={}", val));
     }
-    if let Some(val) = pgdelta {
+    if let Some(val) = pgdelta.as_ref() {
         query_parts.push(format!("pgdelta={}", val));
     }
 
@@ -703,9 +688,9 @@ pub fn get_v1_branches_branch_id_or_ref_diff(
 > {
     let builder = get_v1_branches_branch_id_or_ref_diff_builder(
         client,
-        args.branch_id_or_ref.clone(),
-        args.included_schemas.clone(),
-        args.pgdelta.clone(),
+        &args.branch_id_or_ref,
+        &args.included_schemas,
+        &args.pgdelta,
     )?;
     get_v1_branches_branch_id_or_ref_diff_execute(builder)
 }
@@ -718,13 +703,13 @@ pub fn get_v1_branches_branch_id_or_ref_diff(
 
 pub fn post_v1_branches_branch_id_or_ref_merge_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/merge",
-        branch_id_or_ref.as_str(),
+        branch_id_or_ref,
     );
 
     // Build request
@@ -874,7 +859,7 @@ pub fn post_v1_branches_branch_id_or_ref_merge(
 > {
     let builder = post_v1_branches_branch_id_or_ref_merge_builder(
         client,
-        args.branch_id_or_ref.clone(),
+        &args.branch_id_or_ref,
         &args.body,
     )?;
     post_v1_branches_branch_id_or_ref_merge_execute(builder)
@@ -888,13 +873,13 @@ pub fn post_v1_branches_branch_id_or_ref_merge(
 
 pub fn post_v1_branches_branch_id_or_ref_push_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/push",
-        branch_id_or_ref.as_str(),
+        branch_id_or_ref,
     );
 
     // Build request
@@ -1042,11 +1027,8 @@ pub fn post_v1_branches_branch_id_or_ref_push(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_branches_branch_id_or_ref_push_builder(
-        client,
-        args.branch_id_or_ref.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_branches_branch_id_or_ref_push_builder(client, &args.branch_id_or_ref, &args.body)?;
     post_v1_branches_branch_id_or_ref_push_execute(builder)
 }
 
@@ -1058,13 +1040,13 @@ pub fn post_v1_branches_branch_id_or_ref_push(
 
 pub fn post_v1_branches_branch_id_or_ref_reset_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/reset",
-        branch_id_or_ref.as_str(),
+        branch_id_or_ref,
     );
 
     // Build request
@@ -1214,7 +1196,7 @@ pub fn post_v1_branches_branch_id_or_ref_reset(
 > {
     let builder = post_v1_branches_branch_id_or_ref_reset_builder(
         client,
-        args.branch_id_or_ref.clone(),
+        &args.branch_id_or_ref,
         &args.body,
     )?;
     post_v1_branches_branch_id_or_ref_reset_execute(builder)
@@ -1228,12 +1210,12 @@ pub fn post_v1_branches_branch_id_or_ref_reset(
 
 pub fn post_v1_branches_branch_id_or_ref_restore_builder(
     client: &SimpleHttpClient,
-    branch_id_or_ref: String,
+    branch_id_or_ref: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/restore",
-        branch_id_or_ref.as_str(),
+        branch_id_or_ref,
     );
 
     // Build request
@@ -1378,7 +1360,7 @@ pub fn post_v1_branches_branch_id_or_ref_restore(
     ApiError,
 > {
     let builder =
-        post_v1_branches_branch_id_or_ref_restore_builder(client, args.branch_id_or_ref.clone())?;
+        post_v1_branches_branch_id_or_ref_restore_builder(client, &args.branch_id_or_ref)?;
     post_v1_branches_branch_id_or_ref_restore_execute(builder)
 }
 
@@ -1390,50 +1372,50 @@ pub fn post_v1_branches_branch_id_or_ref_restore(
 
 pub fn get_v1_oauth_authorize_builder(
     client: &SimpleHttpClient,
-    client_id: Option<String>,
-    response_type: Option<String>,
-    redirect_uri: Option<String>,
-    scope: Option<String>,
-    state: Option<String>,
-    response_mode: Option<String>,
-    code_challenge: Option<String>,
-    code_challenge_method: Option<String>,
-    organization_slug: Option<String>,
-    resource: Option<String>,
+    client_id: &Option<String>,
+    response_type: &Option<String>,
+    redirect_uri: &Option<String>,
+    scope: &Option<String>,
+    state: &Option<String>,
+    response_mode: &Option<String>,
+    code_challenge: &Option<String>,
+    code_challenge_method: &Option<String>,
+    organization_slug: &Option<String>,
+    resource: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.supabase.com/v1/oauth/authorize",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = client_id {
+    if let Some(val) = client_id.as_ref() {
         query_parts.push(format!("client_id={}", val));
     }
-    if let Some(val) = response_type {
+    if let Some(val) = response_type.as_ref() {
         query_parts.push(format!("response_type={}", val));
     }
-    if let Some(val) = redirect_uri {
+    if let Some(val) = redirect_uri.as_ref() {
         query_parts.push(format!("redirect_uri={}", val));
     }
-    if let Some(val) = scope {
+    if let Some(val) = scope.as_ref() {
         query_parts.push(format!("scope={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = response_mode {
+    if let Some(val) = response_mode.as_ref() {
         query_parts.push(format!("response_mode={}", val));
     }
-    if let Some(val) = code_challenge {
+    if let Some(val) = code_challenge.as_ref() {
         query_parts.push(format!("code_challenge={}", val));
     }
-    if let Some(val) = code_challenge_method {
+    if let Some(val) = code_challenge_method.as_ref() {
         query_parts.push(format!("code_challenge_method={}", val));
     }
-    if let Some(val) = organization_slug {
+    if let Some(val) = organization_slug.as_ref() {
         query_parts.push(format!("organization_slug={}", val));
     }
-    if let Some(val) = resource {
+    if let Some(val) = resource.as_ref() {
         query_parts.push(format!("resource={}", val));
     }
 
@@ -1596,16 +1578,16 @@ pub fn get_v1_oauth_authorize(
 > {
     let builder = get_v1_oauth_authorize_builder(
         client,
-        args.client_id.clone(),
-        args.response_type.clone(),
-        args.redirect_uri.clone(),
-        args.scope.clone(),
-        args.state.clone(),
-        args.response_mode.clone(),
-        args.code_challenge.clone(),
-        args.code_challenge_method.clone(),
-        args.organization_slug.clone(),
-        args.resource.clone(),
+        &args.client_id,
+        &args.response_type,
+        &args.redirect_uri,
+        &args.scope,
+        &args.state,
+        &args.response_mode,
+        &args.code_challenge,
+        &args.code_challenge_method,
+        &args.organization_slug,
+        &args.resource,
     )?;
     get_v1_oauth_authorize_execute(builder)
 }
@@ -1618,42 +1600,42 @@ pub fn get_v1_oauth_authorize(
 
 pub fn get_v1_oauth_authorize_project_claim_builder(
     client: &SimpleHttpClient,
-    project_ref: Option<String>,
-    client_id: Option<String>,
-    response_type: Option<String>,
-    redirect_uri: Option<String>,
-    state: Option<String>,
-    response_mode: Option<String>,
-    code_challenge: Option<String>,
-    code_challenge_method: Option<String>,
+    project_ref: &Option<String>,
+    client_id: &Option<String>,
+    response_type: &Option<String>,
+    redirect_uri: &Option<String>,
+    state: &Option<String>,
+    response_mode: &Option<String>,
+    code_challenge: &Option<String>,
+    code_challenge_method: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.supabase.com/v1/oauth/authorize/project-claim",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = project_ref {
+    if let Some(val) = project_ref.as_ref() {
         query_parts.push(format!("project_ref={}", val));
     }
-    if let Some(val) = client_id {
+    if let Some(val) = client_id.as_ref() {
         query_parts.push(format!("client_id={}", val));
     }
-    if let Some(val) = response_type {
+    if let Some(val) = response_type.as_ref() {
         query_parts.push(format!("response_type={}", val));
     }
-    if let Some(val) = redirect_uri {
+    if let Some(val) = redirect_uri.as_ref() {
         query_parts.push(format!("redirect_uri={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = response_mode {
+    if let Some(val) = response_mode.as_ref() {
         query_parts.push(format!("response_mode={}", val));
     }
-    if let Some(val) = code_challenge {
+    if let Some(val) = code_challenge.as_ref() {
         query_parts.push(format!("code_challenge={}", val));
     }
-    if let Some(val) = code_challenge_method {
+    if let Some(val) = code_challenge_method.as_ref() {
         query_parts.push(format!("code_challenge_method={}", val));
     }
 
@@ -1812,14 +1794,14 @@ pub fn get_v1_oauth_authorize_project_claim(
 > {
     let builder = get_v1_oauth_authorize_project_claim_builder(
         client,
-        args.project_ref.clone(),
-        args.client_id.clone(),
-        args.response_type.clone(),
-        args.redirect_uri.clone(),
-        args.state.clone(),
-        args.response_mode.clone(),
-        args.code_challenge.clone(),
-        args.code_challenge_method.clone(),
+        &args.project_ref,
+        &args.client_id,
+        &args.response_type,
+        &args.redirect_uri,
+        &args.state,
+        &args.response_mode,
+        &args.code_challenge,
+        &args.code_challenge_method,
     )?;
     get_v1_oauth_authorize_project_claim_execute(builder)
 }
@@ -2436,13 +2418,10 @@ pub fn post_v1_organizations(
 
 pub fn get_v1_organizations_slug_builder(
     client: &SimpleHttpClient,
-    slug: String,
+    slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations/{}",
-        slug.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations/{}", slug,);
 
     // Build request
     let builder = client
@@ -2589,7 +2568,7 @@ pub fn get_v1_organizations_slug(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_builder(client, args.slug.clone())?;
+    let builder = get_v1_organizations_slug_builder(client, &args.slug)?;
     get_v1_organizations_slug_execute(builder)
 }
 
@@ -2601,12 +2580,12 @@ pub fn get_v1_organizations_slug(
 
 pub fn get_v1_organizations_slug_entitlements_builder(
     client: &SimpleHttpClient,
-    slug: String,
+    slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/entitlements",
-        slug.as_str(),
+        slug,
     );
 
     // Build request
@@ -2754,7 +2733,7 @@ pub fn get_v1_organizations_slug_entitlements(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_entitlements_builder(client, args.slug.clone())?;
+    let builder = get_v1_organizations_slug_entitlements_builder(client, &args.slug)?;
     get_v1_organizations_slug_entitlements_execute(builder)
 }
 
@@ -2766,13 +2745,10 @@ pub fn get_v1_organizations_slug_entitlements(
 
 pub fn get_v1_organizations_slug_members_builder(
     client: &SimpleHttpClient,
-    slug: String,
+    slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations/{}/members",
-        slug.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations/{}/members", slug,);
 
     // Build request
     let builder = client
@@ -2908,7 +2884,7 @@ pub fn get_v1_organizations_slug_members(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_members_builder(client, args.slug.clone())?;
+    let builder = get_v1_organizations_slug_members_builder(client, &args.slug)?;
     get_v1_organizations_slug_members_execute(builder)
 }
 
@@ -2920,14 +2896,13 @@ pub fn get_v1_organizations_slug_members(
 
 pub fn get_v1_organizations_slug_project_claim_token_builder(
     client: &SimpleHttpClient,
-    slug: String,
-    token: String,
+    slug: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
-        slug.as_str(),
-        token.as_str(),
+        slug, token,
     );
 
     // Build request
@@ -3077,11 +3052,8 @@ pub fn get_v1_organizations_slug_project_claim_token(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_project_claim_token_builder(
-        client,
-        args.slug.clone(),
-        args.token.clone(),
-    )?;
+    let builder =
+        get_v1_organizations_slug_project_claim_token_builder(client, &args.slug, &args.token)?;
     get_v1_organizations_slug_project_claim_token_execute(builder)
 }
 
@@ -3093,14 +3065,13 @@ pub fn get_v1_organizations_slug_project_claim_token(
 
 pub fn post_v1_organizations_slug_project_claim_token_builder(
     client: &SimpleHttpClient,
-    slug: String,
-    token: String,
+    slug: &String,
+    token: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
-        slug.as_str(),
-        token.as_str(),
+        slug, token,
     );
 
     // Build request
@@ -3239,11 +3210,8 @@ pub fn post_v1_organizations_slug_project_claim_token(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_organizations_slug_project_claim_token_builder(
-        client,
-        args.slug.clone(),
-        args.token.clone(),
-    )?;
+    let builder =
+        post_v1_organizations_slug_project_claim_token_builder(client, &args.slug, &args.token)?;
     post_v1_organizations_slug_project_claim_token_execute(builder)
 }
 
@@ -3255,34 +3223,34 @@ pub fn post_v1_organizations_slug_project_claim_token(
 
 pub fn get_v1_organizations_slug_projects_builder(
     client: &SimpleHttpClient,
-    slug: String,
-    offset: Option<i32>,
-    limit: Option<i32>,
-    search: Option<String>,
-    sort: Option<String>,
-    statuses: Option<String>,
+    slug: &String,
+    offset: &Option<i32>,
+    limit: &Option<i32>,
+    search: &Option<String>,
+    sort: &Option<String>,
+    statuses: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/projects",
-        slug.as_str(),
+        slug,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = offset {
+    if let Some(val) = offset.as_ref() {
         query_parts.push(format!("offset={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = search {
+    if let Some(val) = search.as_ref() {
         query_parts.push(format!("search={}", val));
     }
-    if let Some(val) = sort {
+    if let Some(val) = sort.as_ref() {
         query_parts.push(format!("sort={}", val));
     }
-    if let Some(val) = statuses {
+    if let Some(val) = statuses.as_ref() {
         query_parts.push(format!("statuses={}", val));
     }
 
@@ -3448,12 +3416,12 @@ pub fn get_v1_organizations_slug_projects(
 > {
     let builder = get_v1_organizations_slug_projects_builder(
         client,
-        args.slug.clone(),
-        args.offset.clone(),
-        args.limit.clone(),
-        args.search.clone(),
-        args.sort.clone(),
-        args.statuses.clone(),
+        &args.slug,
+        &args.offset,
+        &args.limit,
+        &args.search,
+        &args.sort,
+        &args.statuses,
     )?;
     get_v1_organizations_slug_projects_execute(builder)
 }
@@ -3917,22 +3885,22 @@ pub fn post_v1_projects(
 
 pub fn get_v1_projects_available_regions_builder(
     client: &SimpleHttpClient,
-    organization_slug: Option<String>,
-    continent: Option<String>,
-    desired_instance_size: Option<String>,
+    organization_slug: &Option<String>,
+    continent: &Option<String>,
+    desired_instance_size: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.supabase.com/v1/projects/available-regions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = organization_slug {
+    if let Some(val) = organization_slug.as_ref() {
         query_parts.push(format!("organization_slug={}", val));
     }
-    if let Some(val) = continent {
+    if let Some(val) = continent.as_ref() {
         query_parts.push(format!("continent={}", val));
     }
-    if let Some(val) = desired_instance_size {
+    if let Some(val) = desired_instance_size.as_ref() {
         query_parts.push(format!("desired_instance_size={}", val));
     }
 
@@ -4084,9 +4052,9 @@ pub fn get_v1_projects_available_regions(
 > {
     let builder = get_v1_projects_available_regions_builder(
         client,
-        args.organization_slug.clone(),
-        args.continent.clone(),
-        args.desired_instance_size.clone(),
+        &args.organization_slug,
+        &args.continent,
+        &args.desired_instance_size,
     )?;
     get_v1_projects_available_regions_execute(builder)
 }
@@ -4099,10 +4067,10 @@ pub fn get_v1_projects_available_regions(
 
 pub fn get_v1_projects_ref_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs.as_str(),);
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -4249,7 +4217,7 @@ pub fn get_v1_projects_ref(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_execute(builder)
 }
 
@@ -4261,11 +4229,11 @@ pub fn get_v1_projects_ref(
 
 pub fn patch_v1_projects_ref_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs.as_str(),);
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -4412,7 +4380,7 @@ pub fn patch_v1_projects_ref(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_execute(builder)
 }
 
@@ -4424,10 +4392,10 @@ pub fn patch_v1_projects_ref(
 
 pub fn delete_v1_projects_ref_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs.as_str(),);
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -4570,7 +4538,7 @@ pub fn delete_v1_projects_ref(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_execute(builder)
 }
 
@@ -4582,22 +4550,19 @@ pub fn delete_v1_projects_ref(
 
 pub fn get_v1_projects_ref_actions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    offset: Option<f64>,
-    limit: Option<f64>,
+    ref_rs: &String,
+    offset: &Option<f64>,
+    limit: &Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/actions",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/actions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = offset {
+    if let Some(val) = offset.as_ref() {
         query_parts.push(format!("offset={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -4751,12 +4716,8 @@ pub fn get_v1_projects_ref_actions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_builder(
-        client,
-        args.ref_rs.clone(),
-        args.offset.clone(),
-        args.limit.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_actions_builder(client, &args.ref_rs, &args.offset, &args.limit)?;
     get_v1_projects_ref_actions_execute(builder)
 }
 
@@ -4768,14 +4729,13 @@ pub fn get_v1_projects_ref_actions(
 
 pub fn get_v1_projects_ref_actions_run_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    run_id: String,
+    ref_rs: &String,
+    run_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}",
-        ref_rs.as_str(),
-        run_id.as_str(),
+        ref_rs, run_id,
     );
 
     // Build request
@@ -4921,11 +4881,7 @@ pub fn get_v1_projects_ref_actions_run_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_run_id_builder(
-        client,
-        args.ref_rs.clone(),
-        args.run_id.clone(),
-    )?;
+    let builder = get_v1_projects_ref_actions_run_id_builder(client, &args.ref_rs, &args.run_id)?;
     get_v1_projects_ref_actions_run_id_execute(builder)
 }
 
@@ -4937,14 +4893,13 @@ pub fn get_v1_projects_ref_actions_run_id(
 
 pub fn get_v1_projects_ref_actions_run_id_logs_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    run_id: String,
+    ref_rs: &String,
+    run_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}/logs",
-        ref_rs.as_str(),
-        run_id.as_str(),
+        ref_rs, run_id,
     );
 
     // Build request
@@ -5083,11 +5038,8 @@ pub fn get_v1_projects_ref_actions_run_id_logs(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_run_id_logs_builder(
-        client,
-        args.ref_rs.clone(),
-        args.run_id.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_actions_run_id_logs_builder(client, &args.ref_rs, &args.run_id)?;
     get_v1_projects_ref_actions_run_id_logs_execute(builder)
 }
 
@@ -5099,15 +5051,14 @@ pub fn get_v1_projects_ref_actions_run_id_logs(
 
 pub fn patch_v1_projects_ref_actions_run_id_status_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    run_id: String,
+    ref_rs: &String,
+    run_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}/status",
-        ref_rs.as_str(),
-        run_id.as_str(),
+        ref_rs, run_id,
     );
 
     // Build request
@@ -5259,8 +5210,8 @@ pub fn patch_v1_projects_ref_actions_run_id_status(
 > {
     let builder = patch_v1_projects_ref_actions_run_id_status_builder(
         client,
-        args.ref_rs.clone(),
-        args.run_id.clone(),
+        &args.ref_rs,
+        &args.run_id,
         &args.body,
     )?;
     patch_v1_projects_ref_actions_run_id_status_execute(builder)
@@ -5274,12 +5225,12 @@ pub fn patch_v1_projects_ref_actions_run_id_status(
 
 pub fn get_v1_projects_ref_advisors_performance_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/advisors/performance",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -5423,7 +5374,7 @@ pub fn get_v1_projects_ref_advisors_performance(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_advisors_performance_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_advisors_performance_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_advisors_performance_execute(builder)
 }
 
@@ -5435,18 +5386,18 @@ pub fn get_v1_projects_ref_advisors_performance(
 
 pub fn get_v1_projects_ref_advisors_security_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    lint_type: Option<String>,
+    ref_rs: &String,
+    lint_type: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/advisors/security",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = lint_type {
+    if let Some(val) = lint_type.as_ref() {
         query_parts.push(format!("lint_type={}", val));
     }
 
@@ -5598,11 +5549,8 @@ pub fn get_v1_projects_ref_advisors_security(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_advisors_security_builder(
-        client,
-        args.ref_rs.clone(),
-        args.lint_type.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_advisors_security_builder(client, &args.ref_rs, &args.lint_type)?;
     get_v1_projects_ref_advisors_security_execute(builder)
 }
 
@@ -5614,22 +5562,22 @@ pub fn get_v1_projects_ref_advisors_security(
 
 pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    interval: Option<String>,
-    function_id: Option<String>,
+    ref_rs: &String,
+    interval: &Option<String>,
+    function_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/functions.combined-stats",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = interval {
+    if let Some(val) = interval.as_ref() {
         query_parts.push(format!("interval={}", val));
     }
-    if let Some(val) = function_id {
+    if let Some(val) = function_id.as_ref() {
         query_parts.push(format!("function_id={}", val));
     }
 
@@ -5785,9 +5733,9 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_functions_combined_stats_builder(
         client,
-        args.ref_rs.clone(),
-        args.interval.clone(),
-        args.function_id.clone(),
+        &args.ref_rs,
+        &args.interval,
+        &args.function_id,
     )?;
     get_v1_projects_ref_analytics_endpoints_functions_combined_stats_execute(builder)
 }
@@ -5800,26 +5748,26 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats(
 
 pub fn get_v1_projects_ref_analytics_endpoints_logs_all_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    sql: Option<String>,
-    iso_timestamp_start: Option<String>,
-    iso_timestamp_end: Option<String>,
+    ref_rs: &String,
+    sql: &Option<String>,
+    iso_timestamp_start: &Option<String>,
+    iso_timestamp_end: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/logs.all",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sql {
+    if let Some(val) = sql.as_ref() {
         query_parts.push(format!("sql={}", val));
     }
-    if let Some(val) = iso_timestamp_start {
+    if let Some(val) = iso_timestamp_start.as_ref() {
         query_parts.push(format!("iso_timestamp_start={}", val));
     }
-    if let Some(val) = iso_timestamp_end {
+    if let Some(val) = iso_timestamp_end.as_ref() {
         query_parts.push(format!("iso_timestamp_end={}", val));
     }
 
@@ -5977,10 +5925,10 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_logs_all_builder(
         client,
-        args.ref_rs.clone(),
-        args.sql.clone(),
-        args.iso_timestamp_start.clone(),
-        args.iso_timestamp_end.clone(),
+        &args.ref_rs,
+        &args.sql,
+        &args.iso_timestamp_start,
+        &args.iso_timestamp_end,
     )?;
     get_v1_projects_ref_analytics_endpoints_logs_all_execute(builder)
 }
@@ -5993,18 +5941,18 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all(
 
 pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    interval: Option<String>,
+    ref_rs: &String,
+    interval: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-counts",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = interval {
+    if let Some(val) = interval.as_ref() {
         query_parts.push(format!("interval={}", val));
     }
 
@@ -6162,8 +6110,8 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_usage_api_counts_builder(
         client,
-        args.ref_rs.clone(),
-        args.interval.clone(),
+        &args.ref_rs,
+        &args.interval,
     )?;
     get_v1_projects_ref_analytics_endpoints_usage_api_counts_execute(builder)
 }
@@ -6176,12 +6124,12 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts(
 
 pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-requests-count",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -6331,7 +6279,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_builder(
         client,
-        args.ref_rs.clone(),
+        &args.ref_rs,
     )?;
     get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_execute(builder)
 }
@@ -6344,18 +6292,15 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count(
 
 pub fn get_v1_projects_ref_api_keys_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    reveal: Option<bool>,
+    ref_rs: &String,
+    reveal: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/api-keys",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = reveal {
+    if let Some(val) = reveal.as_ref() {
         query_parts.push(format!("reveal={}", val));
     }
 
@@ -6500,8 +6445,7 @@ pub fn get_v1_projects_ref_api_keys(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_api_keys_builder(client, args.ref_rs.clone(), args.reveal.clone())?;
+    let builder = get_v1_projects_ref_api_keys_builder(client, &args.ref_rs, &args.reveal)?;
     get_v1_projects_ref_api_keys_execute(builder)
 }
 
@@ -6513,19 +6457,16 @@ pub fn get_v1_projects_ref_api_keys(
 
 pub fn post_v1_projects_ref_api_keys_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    reveal: Option<bool>,
+    ref_rs: &String,
+    reveal: &Option<bool>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/api-keys",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = reveal {
+    if let Some(val) = reveal.as_ref() {
         query_parts.push(format!("reveal={}", val));
     }
 
@@ -6681,12 +6622,8 @@ pub fn post_v1_projects_ref_api_keys(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_api_keys_builder(
-        client,
-        args.ref_rs.clone(),
-        args.reveal.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_api_keys_builder(client, &args.ref_rs, &args.reveal, &args.body)?;
     post_v1_projects_ref_api_keys_execute(builder)
 }
 
@@ -6698,12 +6635,12 @@ pub fn post_v1_projects_ref_api_keys(
 
 pub fn get_v1_projects_ref_api_keys_legacy_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -6847,7 +6784,7 @@ pub fn get_v1_projects_ref_api_keys_legacy(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_api_keys_legacy_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_api_keys_legacy_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_api_keys_legacy_execute(builder)
 }
 
@@ -6859,18 +6796,18 @@ pub fn get_v1_projects_ref_api_keys_legacy(
 
 pub fn put_v1_projects_ref_api_keys_legacy_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    enabled: Option<bool>,
+    ref_rs: &String,
+    enabled: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = enabled {
+    if let Some(val) = enabled.as_ref() {
         query_parts.push(format!("enabled={}", val));
     }
 
@@ -7022,11 +6959,7 @@ pub fn put_v1_projects_ref_api_keys_legacy(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_api_keys_legacy_builder(
-        client,
-        args.ref_rs.clone(),
-        args.enabled.clone(),
-    )?;
+    let builder = put_v1_projects_ref_api_keys_legacy_builder(client, &args.ref_rs, &args.enabled)?;
     put_v1_projects_ref_api_keys_legacy_execute(builder)
 }
 
@@ -7038,20 +6971,19 @@ pub fn put_v1_projects_ref_api_keys_legacy(
 
 pub fn get_v1_projects_ref_api_keys_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    id: String,
-    reveal: Option<bool>,
+    ref_rs: &String,
+    id: &String,
+    reveal: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = reveal {
+    if let Some(val) = reveal.as_ref() {
         query_parts.push(format!("reveal={}", val));
     }
 
@@ -7205,12 +7137,8 @@ pub fn get_v1_projects_ref_api_keys_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_api_keys_id_builder(
-        client,
-        args.ref_rs.clone(),
-        args.id.clone(),
-        args.reveal.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_api_keys_id_builder(client, &args.ref_rs, &args.id, &args.reveal)?;
     get_v1_projects_ref_api_keys_id_execute(builder)
 }
 
@@ -7222,21 +7150,20 @@ pub fn get_v1_projects_ref_api_keys_id(
 
 pub fn patch_v1_projects_ref_api_keys_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    id: String,
-    reveal: Option<bool>,
+    ref_rs: &String,
+    id: &String,
+    reveal: &Option<bool>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = reveal {
+    if let Some(val) = reveal.as_ref() {
         query_parts.push(format!("reveal={}", val));
     }
 
@@ -7396,9 +7323,9 @@ pub fn patch_v1_projects_ref_api_keys_id(
 > {
     let builder = patch_v1_projects_ref_api_keys_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.id.clone(),
-        args.reveal.clone(),
+        &args.ref_rs,
+        &args.id,
+        &args.reveal,
         &args.body,
     )?;
     patch_v1_projects_ref_api_keys_id_execute(builder)
@@ -7412,28 +7339,27 @@ pub fn patch_v1_projects_ref_api_keys_id(
 
 pub fn delete_v1_projects_ref_api_keys_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    id: String,
-    reveal: Option<bool>,
-    was_compromised: Option<bool>,
-    reason: Option<String>,
+    ref_rs: &String,
+    id: &String,
+    reveal: &Option<bool>,
+    was_compromised: &Option<bool>,
+    reason: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = reveal {
+    if let Some(val) = reveal.as_ref() {
         query_parts.push(format!("reveal={}", val));
     }
-    if let Some(val) = was_compromised {
+    if let Some(val) = was_compromised.as_ref() {
         query_parts.push(format!("was_compromised={}", val));
     }
-    if let Some(val) = reason {
+    if let Some(val) = reason.as_ref() {
         query_parts.push(format!("reason={}", val));
     }
 
@@ -7593,11 +7519,11 @@ pub fn delete_v1_projects_ref_api_keys_id(
 > {
     let builder = delete_v1_projects_ref_api_keys_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.id.clone(),
-        args.reveal.clone(),
-        args.was_compromised.clone(),
-        args.reason.clone(),
+        &args.ref_rs,
+        &args.id,
+        &args.reveal,
+        &args.was_compromised,
+        &args.reason,
     )?;
     delete_v1_projects_ref_api_keys_id_execute(builder)
 }
@@ -7610,12 +7536,12 @@ pub fn delete_v1_projects_ref_api_keys_id(
 
 pub fn get_v1_projects_ref_billing_addons_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -7759,7 +7685,7 @@ pub fn get_v1_projects_ref_billing_addons(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_billing_addons_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_billing_addons_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_billing_addons_execute(builder)
 }
 
@@ -7771,13 +7697,13 @@ pub fn get_v1_projects_ref_billing_addons(
 
 pub fn patch_v1_projects_ref_billing_addons_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -7918,8 +7844,7 @@ pub fn patch_v1_projects_ref_billing_addons(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_billing_addons_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_billing_addons_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_billing_addons_execute(builder)
 }
 
@@ -7931,14 +7856,13 @@ pub fn patch_v1_projects_ref_billing_addons(
 
 pub fn delete_v1_projects_ref_billing_addons_addon_variant_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    addon_variant: String,
+    ref_rs: &String,
+    addon_variant: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons/{}",
-        ref_rs.as_str(),
-        addon_variant.as_str(),
+        ref_rs, addon_variant,
     );
 
     // Build request
@@ -8079,8 +8003,8 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant(
 > {
     let builder = delete_v1_projects_ref_billing_addons_addon_variant_builder(
         client,
-        args.ref_rs.clone(),
-        args.addon_variant.clone(),
+        &args.ref_rs,
+        &args.addon_variant,
     )?;
     delete_v1_projects_ref_billing_addons_addon_variant_execute(builder)
 }
@@ -8093,13 +8017,10 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant(
 
 pub fn get_v1_projects_ref_branches_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -8235,7 +8156,7 @@ pub fn get_v1_projects_ref_branches(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_branches_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_branches_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_branches_execute(builder)
 }
 
@@ -8247,14 +8168,11 @@ pub fn get_v1_projects_ref_branches(
 
 pub fn post_v1_projects_ref_branches_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -8401,7 +8319,7 @@ pub fn post_v1_projects_ref_branches(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_branches_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_branches_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_branches_execute(builder)
 }
 
@@ -8413,13 +8331,10 @@ pub fn post_v1_projects_ref_branches(
 
 pub fn delete_v1_projects_ref_branches_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -8555,7 +8470,7 @@ pub fn delete_v1_projects_ref_branches(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_branches_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_branches_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_branches_execute(builder)
 }
 
@@ -8567,14 +8482,13 @@ pub fn delete_v1_projects_ref_branches(
 
 pub fn get_v1_projects_ref_branches_name_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    name: String,
+    ref_rs: &String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/branches/{}",
-        ref_rs.as_str(),
-        name.as_str(),
+        ref_rs, name,
     );
 
     // Build request
@@ -8720,8 +8634,7 @@ pub fn get_v1_projects_ref_branches_name(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_branches_name_builder(client, args.ref_rs.clone(), args.name.clone())?;
+    let builder = get_v1_projects_ref_branches_name_builder(client, &args.ref_rs, &args.name)?;
     get_v1_projects_ref_branches_name_execute(builder)
 }
 
@@ -8733,12 +8646,12 @@ pub fn get_v1_projects_ref_branches_name(
 
 pub fn get_v1_projects_ref_claim_token_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -8882,7 +8795,7 @@ pub fn get_v1_projects_ref_claim_token(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_claim_token_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -8894,12 +8807,12 @@ pub fn get_v1_projects_ref_claim_token(
 
 pub fn post_v1_projects_ref_claim_token_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9047,7 +8960,7 @@ pub fn post_v1_projects_ref_claim_token(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_claim_token_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -9059,12 +8972,12 @@ pub fn post_v1_projects_ref_claim_token(
 
 pub fn delete_v1_projects_ref_claim_token_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9201,7 +9114,7 @@ pub fn delete_v1_projects_ref_claim_token(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_claim_token_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -9213,13 +9126,13 @@ pub fn delete_v1_projects_ref_claim_token(
 
 pub fn post_v1_projects_ref_cli_login_role_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/cli/login-role",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9367,8 +9280,7 @@ pub fn post_v1_projects_ref_cli_login_role(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_cli_login_role_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_cli_login_role_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_cli_login_role_execute(builder)
 }
 
@@ -9380,12 +9292,12 @@ pub fn post_v1_projects_ref_cli_login_role(
 
 pub fn delete_v1_projects_ref_cli_login_role_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/cli/login-role",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9529,7 +9441,7 @@ pub fn delete_v1_projects_ref_cli_login_role(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_cli_login_role_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_cli_login_role_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_cli_login_role_execute(builder)
 }
 
@@ -9541,12 +9453,12 @@ pub fn delete_v1_projects_ref_cli_login_role(
 
 pub fn get_v1_projects_ref_config_auth_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9690,7 +9602,7 @@ pub fn get_v1_projects_ref_config_auth(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_auth_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_execute(builder)
 }
 
@@ -9702,13 +9614,13 @@ pub fn get_v1_projects_ref_config_auth(
 
 pub fn patch_v1_projects_ref_config_auth_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -9856,8 +9768,7 @@ pub fn patch_v1_projects_ref_config_auth(
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_config_auth_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_config_auth_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_auth_execute(builder)
 }
 
@@ -9869,12 +9780,12 @@ pub fn patch_v1_projects_ref_config_auth(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -10018,8 +9929,7 @@ pub fn get_v1_projects_ref_config_auth_signing_keys(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_auth_signing_keys_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_auth_signing_keys_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_execute(builder)
 }
 
@@ -10031,13 +9941,13 @@ pub fn get_v1_projects_ref_config_auth_signing_keys(
 
 pub fn post_v1_projects_ref_config_auth_signing_keys_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -10185,11 +10095,8 @@ pub fn post_v1_projects_ref_config_auth_signing_keys(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_signing_keys_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_config_auth_signing_keys_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_auth_signing_keys_execute(builder)
 }
 
@@ -10201,12 +10108,12 @@ pub fn post_v1_projects_ref_config_auth_signing_keys(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys_legacy_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -10351,7 +10258,7 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy(
     ApiError,
 > {
     let builder =
-        get_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, args.ref_rs.clone())?;
+        get_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_legacy_execute(builder)
 }
 
@@ -10363,12 +10270,12 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy(
 
 pub fn post_v1_projects_ref_config_auth_signing_keys_legacy_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -10513,7 +10420,7 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy(
     ApiError,
 > {
     let builder =
-        post_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, args.ref_rs.clone())?;
+        post_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_config_auth_signing_keys_legacy_execute(builder)
 }
 
@@ -10525,14 +10432,13 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    ref_rs: String,
+    id: &String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
@@ -10678,11 +10584,8 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_signing_keys_id_builder(
-        client,
-        args.id.clone(),
-        args.ref_rs.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_config_auth_signing_keys_id_builder(client, &args.id, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
 }
 
@@ -10694,15 +10597,14 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id(
 
 pub fn patch_v1_projects_ref_config_auth_signing_keys_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    ref_rs: String,
+    id: &String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
@@ -10854,8 +10756,8 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id(
 > {
     let builder = patch_v1_projects_ref_config_auth_signing_keys_id_builder(
         client,
-        args.id.clone(),
-        args.ref_rs.clone(),
+        &args.id,
+        &args.ref_rs,
         &args.body,
     )?;
     patch_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
@@ -10869,14 +10771,13 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id(
 
 pub fn delete_v1_projects_ref_config_auth_signing_keys_id_builder(
     client: &SimpleHttpClient,
-    id: String,
-    ref_rs: String,
+    id: &String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs.as_str(),
-        id.as_str(),
+        ref_rs, id,
     );
 
     // Build request
@@ -11022,11 +10923,8 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id(
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_config_auth_signing_keys_id_builder(
-        client,
-        args.id.clone(),
-        args.ref_rs.clone(),
-    )?;
+    let builder =
+        delete_v1_projects_ref_config_auth_signing_keys_id_builder(client, &args.id, &args.ref_rs)?;
     delete_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
 }
 
@@ -11038,12 +10936,12 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id(
 
 pub fn get_v1_projects_ref_config_auth_sso_providers_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -11187,8 +11085,7 @@ pub fn get_v1_projects_ref_config_auth_sso_providers(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_auth_sso_providers_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_auth_sso_providers_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_sso_providers_execute(builder)
 }
 
@@ -11200,13 +11097,13 @@ pub fn get_v1_projects_ref_config_auth_sso_providers(
 
 pub fn post_v1_projects_ref_config_auth_sso_providers_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -11354,11 +11251,8 @@ pub fn post_v1_projects_ref_config_auth_sso_providers(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_sso_providers_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_config_auth_sso_providers_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_auth_sso_providers_execute(builder)
 }
 
@@ -11370,14 +11264,13 @@ pub fn post_v1_projects_ref_config_auth_sso_providers(
 
 pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    provider_id: String,
+    ref_rs: &String,
+    provider_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs.as_str(),
-        provider_id.as_str(),
+        ref_rs, provider_id,
     );
 
     // Build request
@@ -11525,8 +11418,8 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = get_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.provider_id.clone(),
+        &args.ref_rs,
+        &args.provider_id,
     )?;
     get_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
 }
@@ -11539,15 +11432,14 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id(
 
 pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    provider_id: String,
+    ref_rs: &String,
+    provider_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs.as_str(),
-        provider_id.as_str(),
+        ref_rs, provider_id,
     );
 
     // Build request
@@ -11699,8 +11591,8 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = put_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.provider_id.clone(),
+        &args.ref_rs,
+        &args.provider_id,
         &args.body,
     )?;
     put_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
@@ -11714,14 +11606,13 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id(
 
 pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    provider_id: String,
+    ref_rs: &String,
+    provider_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs.as_str(),
-        provider_id.as_str(),
+        ref_rs, provider_id,
     );
 
     // Build request
@@ -11869,8 +11760,8 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = delete_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.provider_id.clone(),
+        &args.ref_rs,
+        &args.provider_id,
     )?;
     delete_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
 }
@@ -11883,12 +11774,12 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id(
 
 pub fn get_v1_projects_ref_config_auth_third_party_auth_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -12025,8 +11916,7 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_auth_third_party_auth_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_auth_third_party_auth_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_third_party_auth_execute(builder)
 }
 
@@ -12038,13 +11928,13 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth(
 
 pub fn post_v1_projects_ref_config_auth_third_party_auth_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -12194,7 +12084,7 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth(
 > {
     let builder = post_v1_projects_ref_config_auth_third_party_auth_builder(
         client,
-        args.ref_rs.clone(),
+        &args.ref_rs,
         &args.body,
     )?;
     post_v1_projects_ref_config_auth_third_party_auth_execute(builder)
@@ -12208,14 +12098,13 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth(
 
 pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    tpa_id: String,
+    ref_rs: &String,
+    tpa_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
-        ref_rs.as_str(),
-        tpa_id.as_str(),
+        ref_rs, tpa_id,
     );
 
     // Build request
@@ -12363,8 +12252,8 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id(
 > {
     let builder = get_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.tpa_id.clone(),
+        &args.ref_rs,
+        &args.tpa_id,
     )?;
     get_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(builder)
 }
@@ -12377,14 +12266,13 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id(
 
 pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    tpa_id: String,
+    ref_rs: &String,
+    tpa_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
-        ref_rs.as_str(),
-        tpa_id.as_str(),
+        ref_rs, tpa_id,
     );
 
     // Build request
@@ -12532,8 +12420,8 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id(
 > {
     let builder = delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
         client,
-        args.ref_rs.clone(),
-        args.tpa_id.clone(),
+        &args.ref_rs,
+        &args.tpa_id,
     )?;
     delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(builder)
 }
@@ -12546,12 +12434,12 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id(
 
 pub fn get_v1_projects_ref_config_database_pgbouncer_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pgbouncer",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -12695,8 +12583,7 @@ pub fn get_v1_projects_ref_config_database_pgbouncer(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_database_pgbouncer_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_database_pgbouncer_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_pgbouncer_execute(builder)
 }
 
@@ -12708,12 +12595,12 @@ pub fn get_v1_projects_ref_config_database_pgbouncer(
 
 pub fn get_v1_projects_ref_config_database_pooler_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pooler",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -12850,7 +12737,7 @@ pub fn get_v1_projects_ref_config_database_pooler(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_database_pooler_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_database_pooler_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_pooler_execute(builder)
 }
 
@@ -12862,13 +12749,13 @@ pub fn get_v1_projects_ref_config_database_pooler(
 
 pub fn patch_v1_projects_ref_config_database_pooler_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pooler",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13020,11 +12907,8 @@ pub fn patch_v1_projects_ref_config_database_pooler(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_config_database_pooler_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        patch_v1_projects_ref_config_database_pooler_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_database_pooler_execute(builder)
 }
 
@@ -13036,12 +12920,12 @@ pub fn patch_v1_projects_ref_config_database_pooler(
 
 pub fn get_v1_projects_ref_config_database_postgres_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/postgres",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13185,8 +13069,7 @@ pub fn get_v1_projects_ref_config_database_postgres(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_database_postgres_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_database_postgres_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_postgres_execute(builder)
 }
 
@@ -13198,13 +13081,13 @@ pub fn get_v1_projects_ref_config_database_postgres(
 
 pub fn put_v1_projects_ref_config_database_postgres_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/postgres",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13352,11 +13235,8 @@ pub fn put_v1_projects_ref_config_database_postgres(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_config_database_postgres_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        put_v1_projects_ref_config_database_postgres_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_config_database_postgres_execute(builder)
 }
 
@@ -13368,12 +13248,12 @@ pub fn put_v1_projects_ref_config_database_postgres(
 
 pub fn get_v1_projects_ref_config_disk_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13517,7 +13397,7 @@ pub fn get_v1_projects_ref_config_disk(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_disk_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_execute(builder)
 }
 
@@ -13529,13 +13409,13 @@ pub fn get_v1_projects_ref_config_disk(
 
 pub fn post_v1_projects_ref_config_disk_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13676,8 +13556,7 @@ pub fn post_v1_projects_ref_config_disk(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_config_disk_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_config_disk_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_disk_execute(builder)
 }
 
@@ -13689,12 +13568,12 @@ pub fn post_v1_projects_ref_config_disk(
 
 pub fn get_v1_projects_ref_config_disk_autoscale_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk/autoscale",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13838,7 +13717,7 @@ pub fn get_v1_projects_ref_config_disk_autoscale(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_autoscale_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_disk_autoscale_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_autoscale_execute(builder)
 }
 
@@ -13850,12 +13729,12 @@ pub fn get_v1_projects_ref_config_disk_autoscale(
 
 pub fn get_v1_projects_ref_config_disk_util_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk/util",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -13999,7 +13878,7 @@ pub fn get_v1_projects_ref_config_disk_util(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_util_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_disk_util_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_util_execute(builder)
 }
 
@@ -14011,12 +13890,12 @@ pub fn get_v1_projects_ref_config_disk_util(
 
 pub fn get_v1_projects_ref_config_realtime_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14160,7 +14039,7 @@ pub fn get_v1_projects_ref_config_realtime(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_realtime_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_realtime_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_realtime_execute(builder)
 }
 
@@ -14172,13 +14051,13 @@ pub fn get_v1_projects_ref_config_realtime(
 
 pub fn patch_v1_projects_ref_config_realtime_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14319,8 +14198,7 @@ pub fn patch_v1_projects_ref_config_realtime(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_config_realtime_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_config_realtime_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_realtime_execute(builder)
 }
 
@@ -14332,12 +14210,12 @@ pub fn patch_v1_projects_ref_config_realtime(
 
 pub fn post_v1_projects_ref_config_realtime_shutdown_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime/shutdown",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14474,8 +14352,7 @@ pub fn post_v1_projects_ref_config_realtime_shutdown(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_config_realtime_shutdown_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_config_realtime_shutdown_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_config_realtime_shutdown_execute(builder)
 }
 
@@ -14487,12 +14364,12 @@ pub fn post_v1_projects_ref_config_realtime_shutdown(
 
 pub fn get_v1_projects_ref_config_storage_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/storage",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14636,7 +14513,7 @@ pub fn get_v1_projects_ref_config_storage(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_storage_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_config_storage_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_storage_execute(builder)
 }
 
@@ -14648,13 +14525,13 @@ pub fn get_v1_projects_ref_config_storage(
 
 pub fn patch_v1_projects_ref_config_storage_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/storage",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14795,8 +14672,7 @@ pub fn patch_v1_projects_ref_config_storage(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_config_storage_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_config_storage_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_storage_execute(builder)
 }
 
@@ -14808,12 +14684,12 @@ pub fn patch_v1_projects_ref_config_storage(
 
 pub fn get_v1_projects_ref_custom_hostname_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -14961,7 +14837,7 @@ pub fn get_v1_projects_ref_custom_hostname(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_custom_hostname_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_custom_hostname_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_custom_hostname_execute(builder)
 }
 
@@ -14973,12 +14849,12 @@ pub fn get_v1_projects_ref_custom_hostname(
 
 pub fn delete_v1_projects_ref_custom_hostname_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15115,7 +14991,7 @@ pub fn delete_v1_projects_ref_custom_hostname(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_custom_hostname_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_custom_hostname_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_custom_hostname_execute(builder)
 }
 
@@ -15127,12 +15003,12 @@ pub fn delete_v1_projects_ref_custom_hostname(
 
 pub fn post_v1_projects_ref_custom_hostname_activate_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/activate",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15280,8 +15156,7 @@ pub fn post_v1_projects_ref_custom_hostname_activate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_custom_hostname_activate_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_custom_hostname_activate_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_custom_hostname_activate_execute(builder)
 }
 
@@ -15293,13 +15168,13 @@ pub fn post_v1_projects_ref_custom_hostname_activate(
 
 pub fn post_v1_projects_ref_custom_hostname_initialize_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/initialize",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15451,11 +15326,8 @@ pub fn post_v1_projects_ref_custom_hostname_initialize(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_custom_hostname_initialize_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_custom_hostname_initialize_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_custom_hostname_initialize_execute(builder)
 }
 
@@ -15467,12 +15339,12 @@ pub fn post_v1_projects_ref_custom_hostname_initialize(
 
 pub fn post_v1_projects_ref_custom_hostname_reverify_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/reverify",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15620,8 +15492,7 @@ pub fn post_v1_projects_ref_custom_hostname_reverify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_custom_hostname_reverify_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_custom_hostname_reverify_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_custom_hostname_reverify_execute(builder)
 }
 
@@ -15633,12 +15504,12 @@ pub fn post_v1_projects_ref_custom_hostname_reverify(
 
 pub fn get_v1_projects_ref_database_backups_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15782,7 +15653,7 @@ pub fn get_v1_projects_ref_database_backups(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_backups_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_database_backups_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_backups_execute(builder)
 }
 
@@ -15794,13 +15665,13 @@ pub fn get_v1_projects_ref_database_backups(
 
 pub fn post_v1_projects_ref_database_backups_restore_pitr_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-pitr",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -15943,7 +15814,7 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr(
 > {
     let builder = post_v1_projects_ref_database_backups_restore_pitr_builder(
         client,
-        args.ref_rs.clone(),
+        &args.ref_rs,
         &args.body,
     )?;
     post_v1_projects_ref_database_backups_restore_pitr_execute(builder)
@@ -15957,18 +15828,18 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr(
 
 pub fn get_v1_projects_ref_database_backups_restore_point_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    name: Option<String>,
+    ref_rs: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -16122,8 +15993,8 @@ pub fn get_v1_projects_ref_database_backups_restore_point(
 > {
     let builder = get_v1_projects_ref_database_backups_restore_point_builder(
         client,
-        args.ref_rs.clone(),
-        args.name.clone(),
+        &args.ref_rs,
+        &args.name,
     )?;
     get_v1_projects_ref_database_backups_restore_point_execute(builder)
 }
@@ -16136,13 +16007,13 @@ pub fn get_v1_projects_ref_database_backups_restore_point(
 
 pub fn post_v1_projects_ref_database_backups_restore_point_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -16292,7 +16163,7 @@ pub fn post_v1_projects_ref_database_backups_restore_point(
 > {
     let builder = post_v1_projects_ref_database_backups_restore_point_builder(
         client,
-        args.ref_rs.clone(),
+        &args.ref_rs,
         &args.body,
     )?;
     post_v1_projects_ref_database_backups_restore_point_execute(builder)
@@ -16306,13 +16177,13 @@ pub fn post_v1_projects_ref_database_backups_restore_point(
 
 pub fn post_v1_projects_ref_database_backups_undo_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/undo",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -16453,11 +16324,8 @@ pub fn post_v1_projects_ref_database_backups_undo(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_backups_undo_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_database_backups_undo_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_backups_undo_execute(builder)
 }
 
@@ -16469,12 +16337,12 @@ pub fn post_v1_projects_ref_database_backups_undo(
 
 pub fn get_v1_projects_ref_database_context_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/context",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -16622,7 +16490,7 @@ pub fn get_v1_projects_ref_database_context(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_context_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_database_context_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_context_execute(builder)
 }
 
@@ -16634,12 +16502,12 @@ pub fn get_v1_projects_ref_database_context(
 
 pub fn get_v1_projects_ref_database_jit_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -16783,7 +16651,7 @@ pub fn get_v1_projects_ref_database_jit(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_jit_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_database_jit_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -16795,13 +16663,13 @@ pub fn get_v1_projects_ref_database_jit(
 
 pub fn post_v1_projects_ref_database_jit_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -16953,8 +16821,7 @@ pub fn post_v1_projects_ref_database_jit(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_database_jit_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_database_jit_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -16966,13 +16833,13 @@ pub fn post_v1_projects_ref_database_jit(
 
 pub fn put_v1_projects_ref_database_jit_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -17120,8 +16987,7 @@ pub fn put_v1_projects_ref_database_jit(
         + 'static,
     ApiError,
 > {
-    let builder =
-        put_v1_projects_ref_database_jit_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = put_v1_projects_ref_database_jit_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -17133,12 +16999,12 @@ pub fn put_v1_projects_ref_database_jit(
 
 pub fn get_v1_projects_ref_database_jit_list_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit/list",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -17282,7 +17148,7 @@ pub fn get_v1_projects_ref_database_jit_list(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_jit_list_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_database_jit_list_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_jit_list_execute(builder)
 }
 
@@ -17294,14 +17160,13 @@ pub fn get_v1_projects_ref_database_jit_list(
 
 pub fn delete_v1_projects_ref_database_jit_user_id_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    user_id: String,
+    ref_rs: &String,
+    user_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit/{}",
-        ref_rs.as_str(),
-        user_id.as_str(),
+        ref_rs, user_id,
     );
 
     // Build request
@@ -17440,11 +17305,8 @@ pub fn delete_v1_projects_ref_database_jit_user_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_database_jit_user_id_builder(
-        client,
-        args.ref_rs.clone(),
-        args.user_id.clone(),
-    )?;
+    let builder =
+        delete_v1_projects_ref_database_jit_user_id_builder(client, &args.ref_rs, &args.user_id)?;
     delete_v1_projects_ref_database_jit_user_id_execute(builder)
 }
 
@@ -17456,12 +17318,12 @@ pub fn delete_v1_projects_ref_database_jit_user_id(
 
 pub fn get_v1_projects_ref_database_migrations_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -17605,7 +17467,7 @@ pub fn get_v1_projects_ref_database_migrations(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_migrations_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_database_migrations_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -17617,13 +17479,13 @@ pub fn get_v1_projects_ref_database_migrations(
 
 pub fn post_v1_projects_ref_database_migrations_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -17765,7 +17627,7 @@ pub fn post_v1_projects_ref_database_migrations(
     ApiError,
 > {
     let builder =
-        post_v1_projects_ref_database_migrations_builder(client, args.ref_rs.clone(), &args.body)?;
+        post_v1_projects_ref_database_migrations_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -17777,13 +17639,13 @@ pub fn post_v1_projects_ref_database_migrations(
 
 pub fn put_v1_projects_ref_database_migrations_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -17925,7 +17787,7 @@ pub fn put_v1_projects_ref_database_migrations(
     ApiError,
 > {
     let builder =
-        put_v1_projects_ref_database_migrations_builder(client, args.ref_rs.clone(), &args.body)?;
+        put_v1_projects_ref_database_migrations_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -17937,18 +17799,18 @@ pub fn put_v1_projects_ref_database_migrations(
 
 pub fn delete_v1_projects_ref_database_migrations_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    gte: Option<String>,
+    ref_rs: &String,
+    gte: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = gte {
+    if let Some(val) = gte.as_ref() {
         query_parts.push(format!("gte={}", val));
     }
 
@@ -18093,11 +17955,8 @@ pub fn delete_v1_projects_ref_database_migrations(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_database_migrations_builder(
-        client,
-        args.ref_rs.clone(),
-        args.gte.clone(),
-    )?;
+    let builder =
+        delete_v1_projects_ref_database_migrations_builder(client, &args.ref_rs, &args.gte)?;
     delete_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -18109,14 +17968,13 @@ pub fn delete_v1_projects_ref_database_migrations(
 
 pub fn get_v1_projects_ref_database_migrations_version_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    version: String,
+    ref_rs: &String,
+    version: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
-        ref_rs.as_str(),
-        version.as_str(),
+        ref_rs, version,
     );
 
     // Build request
@@ -18264,8 +18122,8 @@ pub fn get_v1_projects_ref_database_migrations_version(
 > {
     let builder = get_v1_projects_ref_database_migrations_version_builder(
         client,
-        args.ref_rs.clone(),
-        args.version.clone(),
+        &args.ref_rs,
+        &args.version,
     )?;
     get_v1_projects_ref_database_migrations_version_execute(builder)
 }
@@ -18278,15 +18136,14 @@ pub fn get_v1_projects_ref_database_migrations_version(
 
 pub fn patch_v1_projects_ref_database_migrations_version_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    version: String,
+    ref_rs: &String,
+    version: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
-        ref_rs.as_str(),
-        version.as_str(),
+        ref_rs, version,
     );
 
     // Build request
@@ -18431,8 +18288,8 @@ pub fn patch_v1_projects_ref_database_migrations_version(
 > {
     let builder = patch_v1_projects_ref_database_migrations_version_builder(
         client,
-        args.ref_rs.clone(),
-        args.version.clone(),
+        &args.ref_rs,
+        &args.version,
         &args.body,
     )?;
     patch_v1_projects_ref_database_migrations_version_execute(builder)
@@ -18446,18 +18303,18 @@ pub fn patch_v1_projects_ref_database_migrations_version(
 
 pub fn get_v1_projects_ref_database_openapi_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    schema: Option<String>,
+    ref_rs: &String,
+    schema: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/openapi",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = schema {
+    if let Some(val) = schema.as_ref() {
         query_parts.push(format!("schema={}", val));
     }
 
@@ -18602,11 +18459,7 @@ pub fn get_v1_projects_ref_database_openapi(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_openapi_builder(
-        client,
-        args.ref_rs.clone(),
-        args.schema.clone(),
-    )?;
+    let builder = get_v1_projects_ref_database_openapi_builder(client, &args.ref_rs, &args.schema)?;
     get_v1_projects_ref_database_openapi_execute(builder)
 }
 
@@ -18618,13 +18471,13 @@ pub fn get_v1_projects_ref_database_openapi(
 
 pub fn patch_v1_projects_ref_database_password_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/password",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -18773,7 +18626,7 @@ pub fn patch_v1_projects_ref_database_password(
     ApiError,
 > {
     let builder =
-        patch_v1_projects_ref_database_password_builder(client, args.ref_rs.clone(), &args.body)?;
+        patch_v1_projects_ref_database_password_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_database_password_execute(builder)
 }
 
@@ -18785,13 +18638,13 @@ pub fn patch_v1_projects_ref_database_password(
 
 pub fn post_v1_projects_ref_database_query_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/query",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -18932,8 +18785,7 @@ pub fn post_v1_projects_ref_database_query(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_database_query_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_database_query_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_query_execute(builder)
 }
 
@@ -18945,13 +18797,13 @@ pub fn post_v1_projects_ref_database_query(
 
 pub fn post_v1_projects_ref_database_query_read_only_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/query/read-only",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -19092,11 +18944,8 @@ pub fn post_v1_projects_ref_database_query_read_only(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_query_read_only_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_database_query_read_only_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_query_read_only_execute(builder)
 }
 
@@ -19108,12 +18957,12 @@ pub fn post_v1_projects_ref_database_query_read_only(
 
 pub fn post_v1_projects_ref_database_webhooks_enable_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/webhooks/enable",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -19250,8 +19099,7 @@ pub fn post_v1_projects_ref_database_webhooks_enable(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_database_webhooks_enable_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_database_webhooks_enable_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_database_webhooks_enable_execute(builder)
 }
 
@@ -19263,13 +19111,10 @@ pub fn post_v1_projects_ref_database_webhooks_enable(
 
 pub fn get_v1_projects_ref_functions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let builder = client
@@ -19405,7 +19250,7 @@ pub fn get_v1_projects_ref_functions(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_functions_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_functions_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_functions_execute(builder)
 }
 
@@ -19417,43 +19262,40 @@ pub fn get_v1_projects_ref_functions(
 
 pub fn post_v1_projects_ref_functions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    slug: Option<String>,
-    name: Option<String>,
-    verify_jwt: Option<bool>,
-    import_map: Option<bool>,
-    entrypoint_path: Option<String>,
-    import_map_path: Option<String>,
-    ezbr_sha256: Option<String>,
+    ref_rs: &String,
+    slug: &Option<String>,
+    name: &Option<String>,
+    verify_jwt: &Option<bool>,
+    import_map: &Option<bool>,
+    entrypoint_path: &Option<String>,
+    import_map_path: &Option<String>,
+    ezbr_sha256: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = slug {
+    if let Some(val) = slug.as_ref() {
         query_parts.push(format!("slug={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = verify_jwt {
+    if let Some(val) = verify_jwt.as_ref() {
         query_parts.push(format!("verify_jwt={}", val));
     }
-    if let Some(val) = import_map {
+    if let Some(val) = import_map.as_ref() {
         query_parts.push(format!("import_map={}", val));
     }
-    if let Some(val) = entrypoint_path {
+    if let Some(val) = entrypoint_path.as_ref() {
         query_parts.push(format!("entrypoint_path={}", val));
     }
-    if let Some(val) = import_map_path {
+    if let Some(val) = import_map_path.as_ref() {
         query_parts.push(format!("import_map_path={}", val));
     }
-    if let Some(val) = ezbr_sha256 {
+    if let Some(val) = ezbr_sha256.as_ref() {
         query_parts.push(format!("ezbr_sha256={}", val));
     }
 
@@ -19623,14 +19465,14 @@ pub fn post_v1_projects_ref_functions(
 > {
     let builder = post_v1_projects_ref_functions_builder(
         client,
-        args.ref_rs.clone(),
-        args.slug.clone(),
-        args.name.clone(),
-        args.verify_jwt.clone(),
-        args.import_map.clone(),
-        args.entrypoint_path.clone(),
-        args.import_map_path.clone(),
-        args.ezbr_sha256.clone(),
+        &args.ref_rs,
+        &args.slug,
+        &args.name,
+        &args.verify_jwt,
+        &args.import_map,
+        &args.entrypoint_path,
+        &args.import_map_path,
+        &args.ezbr_sha256,
         &args.body,
     )?;
     post_v1_projects_ref_functions_execute(builder)
@@ -19644,14 +19486,11 @@ pub fn post_v1_projects_ref_functions(
 
 pub fn put_v1_projects_ref_functions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let builder = client
@@ -19802,7 +19641,7 @@ pub fn put_v1_projects_ref_functions(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_functions_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = put_v1_projects_ref_functions_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_functions_execute(builder)
 }
 
@@ -19814,22 +19653,22 @@ pub fn put_v1_projects_ref_functions(
 
 pub fn post_v1_projects_ref_functions_deploy_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    slug: Option<String>,
-    bundleOnly: Option<bool>,
+    ref_rs: &String,
+    slug: &Option<String>,
+    bundleOnly: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/deploy",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = slug {
+    if let Some(val) = slug.as_ref() {
         query_parts.push(format!("slug={}", val));
     }
-    if let Some(val) = bundleOnly {
+    if let Some(val) = bundleOnly.as_ref() {
         query_parts.push(format!("bundleOnly={}", val));
     }
 
@@ -19985,9 +19824,9 @@ pub fn post_v1_projects_ref_functions_deploy(
 > {
     let builder = post_v1_projects_ref_functions_deploy_builder(
         client,
-        args.ref_rs.clone(),
-        args.slug.clone(),
-        args.bundleOnly.clone(),
+        &args.ref_rs,
+        &args.slug,
+        &args.bundleOnly,
     )?;
     post_v1_projects_ref_functions_deploy_execute(builder)
 }
@@ -20000,14 +19839,13 @@ pub fn post_v1_projects_ref_functions_deploy(
 
 pub fn get_v1_projects_ref_functions_function_slug_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    function_slug: String,
+    ref_rs: &String,
+    function_slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs.as_str(),
-        function_slug.as_str(),
+        ref_rs, function_slug,
     );
 
     // Build request
@@ -20155,8 +19993,8 @@ pub fn get_v1_projects_ref_functions_function_slug(
 > {
     let builder = get_v1_projects_ref_functions_function_slug_builder(
         client,
-        args.ref_rs.clone(),
-        args.function_slug.clone(),
+        &args.ref_rs,
+        &args.function_slug,
     )?;
     get_v1_projects_ref_functions_function_slug_execute(builder)
 }
@@ -20169,45 +20007,44 @@ pub fn get_v1_projects_ref_functions_function_slug(
 
 pub fn patch_v1_projects_ref_functions_function_slug_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    function_slug: String,
-    slug: Option<String>,
-    name: Option<String>,
-    verify_jwt: Option<bool>,
-    import_map: Option<bool>,
-    entrypoint_path: Option<String>,
-    import_map_path: Option<String>,
-    ezbr_sha256: Option<String>,
+    ref_rs: &String,
+    function_slug: &String,
+    slug: &Option<String>,
+    name: &Option<String>,
+    verify_jwt: &Option<bool>,
+    import_map: &Option<bool>,
+    entrypoint_path: &Option<String>,
+    import_map_path: &Option<String>,
+    ezbr_sha256: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs.as_str(),
-        function_slug.as_str(),
+        ref_rs, function_slug,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = slug {
+    if let Some(val) = slug.as_ref() {
         query_parts.push(format!("slug={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = verify_jwt {
+    if let Some(val) = verify_jwt.as_ref() {
         query_parts.push(format!("verify_jwt={}", val));
     }
-    if let Some(val) = import_map {
+    if let Some(val) = import_map.as_ref() {
         query_parts.push(format!("import_map={}", val));
     }
-    if let Some(val) = entrypoint_path {
+    if let Some(val) = entrypoint_path.as_ref() {
         query_parts.push(format!("entrypoint_path={}", val));
     }
-    if let Some(val) = import_map_path {
+    if let Some(val) = import_map_path.as_ref() {
         query_parts.push(format!("import_map_path={}", val));
     }
-    if let Some(val) = ezbr_sha256 {
+    if let Some(val) = ezbr_sha256.as_ref() {
         query_parts.push(format!("ezbr_sha256={}", val));
     }
 
@@ -20379,15 +20216,15 @@ pub fn patch_v1_projects_ref_functions_function_slug(
 > {
     let builder = patch_v1_projects_ref_functions_function_slug_builder(
         client,
-        args.ref_rs.clone(),
-        args.function_slug.clone(),
-        args.slug.clone(),
-        args.name.clone(),
-        args.verify_jwt.clone(),
-        args.import_map.clone(),
-        args.entrypoint_path.clone(),
-        args.import_map_path.clone(),
-        args.ezbr_sha256.clone(),
+        &args.ref_rs,
+        &args.function_slug,
+        &args.slug,
+        &args.name,
+        &args.verify_jwt,
+        &args.import_map,
+        &args.entrypoint_path,
+        &args.import_map_path,
+        &args.ezbr_sha256,
         &args.body,
     )?;
     patch_v1_projects_ref_functions_function_slug_execute(builder)
@@ -20401,14 +20238,13 @@ pub fn patch_v1_projects_ref_functions_function_slug(
 
 pub fn delete_v1_projects_ref_functions_function_slug_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    function_slug: String,
+    ref_rs: &String,
+    function_slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs.as_str(),
-        function_slug.as_str(),
+        ref_rs, function_slug,
     );
 
     // Build request
@@ -20549,8 +20385,8 @@ pub fn delete_v1_projects_ref_functions_function_slug(
 > {
     let builder = delete_v1_projects_ref_functions_function_slug_builder(
         client,
-        args.ref_rs.clone(),
-        args.function_slug.clone(),
+        &args.ref_rs,
+        &args.function_slug,
     )?;
     delete_v1_projects_ref_functions_function_slug_execute(builder)
 }
@@ -20563,14 +20399,13 @@ pub fn delete_v1_projects_ref_functions_function_slug(
 
 pub fn get_v1_projects_ref_functions_function_slug_body_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    function_slug: String,
+    ref_rs: &String,
+    function_slug: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}/body",
-        ref_rs.as_str(),
-        function_slug.as_str(),
+        ref_rs, function_slug,
     );
 
     // Build request
@@ -20718,8 +20553,8 @@ pub fn get_v1_projects_ref_functions_function_slug_body(
 > {
     let builder = get_v1_projects_ref_functions_function_slug_body_builder(
         client,
-        args.ref_rs.clone(),
-        args.function_slug.clone(),
+        &args.ref_rs,
+        &args.function_slug,
     )?;
     get_v1_projects_ref_functions_function_slug_body_execute(builder)
 }
@@ -20732,24 +20567,21 @@ pub fn get_v1_projects_ref_functions_function_slug_body(
 
 pub fn get_v1_projects_ref_health_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    services: Option<Vec<String>>,
-    timeout_ms: Option<i32>,
+    ref_rs: &String,
+    services: &Option<Vec<String>>,
+    timeout_ms: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/health",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/health", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(vals) = services {
+    if let Some(vals) = services.as_ref() {
         for val in vals {
             query_parts.push(format!("services={}", val));
         }
     }
-    if let Some(val) = timeout_ms {
+    if let Some(val) = timeout_ms.as_ref() {
         query_parts.push(format!("timeout_ms={}", val));
     }
 
@@ -20896,12 +20728,8 @@ pub fn get_v1_projects_ref_health(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_health_builder(
-        client,
-        args.ref_rs.clone(),
-        args.services.clone(),
-        args.timeout_ms.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_health_builder(client, &args.ref_rs, &args.services, &args.timeout_ms)?;
     get_v1_projects_ref_health_execute(builder)
 }
 
@@ -20913,13 +20741,10 @@ pub fn get_v1_projects_ref_health(
 
 pub fn get_v1_projects_ref_jit_access_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/jit-access",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
     let builder = client
@@ -21062,7 +20887,7 @@ pub fn get_v1_projects_ref_jit_access(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_jit_access_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_jit_access_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_jit_access_execute(builder)
 }
 
@@ -21074,14 +20899,11 @@ pub fn get_v1_projects_ref_jit_access(
 
 pub fn put_v1_projects_ref_jit_access_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/jit-access",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
     let builder = client
@@ -21228,7 +21050,7 @@ pub fn put_v1_projects_ref_jit_access(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_jit_access_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = put_v1_projects_ref_jit_access_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_jit_access_execute(builder)
 }
 
@@ -21240,13 +21062,13 @@ pub fn put_v1_projects_ref_jit_access(
 
 pub fn delete_v1_projects_ref_network_bans_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -21387,8 +21209,7 @@ pub fn delete_v1_projects_ref_network_bans(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_projects_ref_network_bans_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = delete_v1_projects_ref_network_bans_builder(client, &args.ref_rs, &args.body)?;
     delete_v1_projects_ref_network_bans_execute(builder)
 }
 
@@ -21400,12 +21221,12 @@ pub fn delete_v1_projects_ref_network_bans(
 
 pub fn post_v1_projects_ref_network_bans_retrieve_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans/retrieve",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -21549,7 +21370,7 @@ pub fn post_v1_projects_ref_network_bans_retrieve(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_network_bans_retrieve_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_network_bans_retrieve_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_network_bans_retrieve_execute(builder)
 }
 
@@ -21561,12 +21382,12 @@ pub fn post_v1_projects_ref_network_bans_retrieve(
 
 pub fn post_v1_projects_ref_network_bans_retrieve_enriched_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans/retrieve/enriched",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -21715,7 +21536,7 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched(
     ApiError,
 > {
     let builder =
-        post_v1_projects_ref_network_bans_retrieve_enriched_builder(client, args.ref_rs.clone())?;
+        post_v1_projects_ref_network_bans_retrieve_enriched_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_network_bans_retrieve_enriched_execute(builder)
 }
 
@@ -21727,12 +21548,12 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched(
 
 pub fn get_v1_projects_ref_network_restrictions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -21880,7 +21701,7 @@ pub fn get_v1_projects_ref_network_restrictions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_network_restrictions_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_network_restrictions_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_network_restrictions_execute(builder)
 }
 
@@ -21892,13 +21713,13 @@ pub fn get_v1_projects_ref_network_restrictions(
 
 pub fn patch_v1_projects_ref_network_restrictions_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -22050,11 +21871,8 @@ pub fn patch_v1_projects_ref_network_restrictions(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_network_restrictions_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        patch_v1_projects_ref_network_restrictions_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_network_restrictions_execute(builder)
 }
 
@@ -22066,13 +21884,13 @@ pub fn patch_v1_projects_ref_network_restrictions(
 
 pub fn post_v1_projects_ref_network_restrictions_apply_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions/apply",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -22224,11 +22042,8 @@ pub fn post_v1_projects_ref_network_restrictions_apply(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_network_restrictions_apply_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_network_restrictions_apply_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_network_restrictions_apply_execute(builder)
 }
 
@@ -22240,13 +22055,10 @@ pub fn post_v1_projects_ref_network_restrictions_apply(
 
 pub fn post_v1_projects_ref_pause_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pause",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pause", ref_rs,);
 
     // Build request
     let builder = client
@@ -22382,7 +22194,7 @@ pub fn post_v1_projects_ref_pause(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_pause_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_pause_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_pause_execute(builder)
 }
 
@@ -22394,13 +22206,10 @@ pub fn post_v1_projects_ref_pause(
 
 pub fn get_v1_projects_ref_pgsodium_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pgsodium",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
     let builder = client
@@ -22543,7 +22352,7 @@ pub fn get_v1_projects_ref_pgsodium(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_pgsodium_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_pgsodium_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_pgsodium_execute(builder)
 }
 
@@ -22555,14 +22364,11 @@ pub fn get_v1_projects_ref_pgsodium(
 
 pub fn put_v1_projects_ref_pgsodium_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pgsodium",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
     let builder = client
@@ -22709,7 +22515,7 @@ pub fn put_v1_projects_ref_pgsodium(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_pgsodium_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = put_v1_projects_ref_pgsodium_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_pgsodium_execute(builder)
 }
 
@@ -22721,13 +22527,10 @@ pub fn put_v1_projects_ref_pgsodium(
 
 pub fn get_v1_projects_ref_postgrest_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/postgrest",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
     let builder = client
@@ -22874,7 +22677,7 @@ pub fn get_v1_projects_ref_postgrest(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_postgrest_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_postgrest_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_postgrest_execute(builder)
 }
 
@@ -22886,14 +22689,11 @@ pub fn get_v1_projects_ref_postgrest(
 
 pub fn patch_v1_projects_ref_postgrest_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/postgrest",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
     let builder = client
@@ -23040,7 +22840,7 @@ pub fn patch_v1_projects_ref_postgrest(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_postgrest_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = patch_v1_projects_ref_postgrest_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_postgrest_execute(builder)
 }
 
@@ -23052,13 +22852,13 @@ pub fn patch_v1_projects_ref_postgrest(
 
 pub fn post_v1_projects_ref_read_replicas_remove_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/read-replicas/remove",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -23200,7 +23000,7 @@ pub fn post_v1_projects_ref_read_replicas_remove(
     ApiError,
 > {
     let builder =
-        post_v1_projects_ref_read_replicas_remove_builder(client, args.ref_rs.clone(), &args.body)?;
+        post_v1_projects_ref_read_replicas_remove_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_read_replicas_remove_execute(builder)
 }
 
@@ -23212,13 +23012,13 @@ pub fn post_v1_projects_ref_read_replicas_remove(
 
 pub fn post_v1_projects_ref_read_replicas_setup_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/read-replicas/setup",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -23360,7 +23160,7 @@ pub fn post_v1_projects_ref_read_replicas_setup(
     ApiError,
 > {
     let builder =
-        post_v1_projects_ref_read_replicas_setup_builder(client, args.ref_rs.clone(), &args.body)?;
+        post_v1_projects_ref_read_replicas_setup_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_read_replicas_setup_execute(builder)
 }
 
@@ -23372,13 +23172,10 @@ pub fn post_v1_projects_ref_read_replicas_setup(
 
 pub fn get_v1_projects_ref_readonly_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/readonly",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/readonly", ref_rs,);
 
     // Build request
     let builder = client
@@ -23521,7 +23318,7 @@ pub fn get_v1_projects_ref_readonly(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_readonly_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_readonly_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_readonly_execute(builder)
 }
 
@@ -23533,12 +23330,12 @@ pub fn get_v1_projects_ref_readonly(
 
 pub fn post_v1_projects_ref_readonly_temporary_disable_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/readonly/temporary-disable",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -23675,8 +23472,7 @@ pub fn post_v1_projects_ref_readonly_temporary_disable(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_readonly_temporary_disable_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_readonly_temporary_disable_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_readonly_temporary_disable_execute(builder)
 }
 
@@ -23688,13 +23484,10 @@ pub fn post_v1_projects_ref_readonly_temporary_disable(
 
 pub fn get_v1_projects_ref_restore_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/restore",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
     let builder = client
@@ -23842,7 +23635,7 @@ pub fn get_v1_projects_ref_restore(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_restore_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_restore_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_restore_execute(builder)
 }
 
@@ -23854,13 +23647,10 @@ pub fn get_v1_projects_ref_restore(
 
 pub fn post_v1_projects_ref_restore_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/restore",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
     let builder = client
@@ -23996,7 +23786,7 @@ pub fn post_v1_projects_ref_restore(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_restore_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_restore_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_restore_execute(builder)
 }
 
@@ -24008,12 +23798,12 @@ pub fn post_v1_projects_ref_restore(
 
 pub fn post_v1_projects_ref_restore_cancel_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/restore/cancel",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -24150,7 +23940,7 @@ pub fn post_v1_projects_ref_restore_cancel(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_restore_cancel_builder(client, args.ref_rs.clone())?;
+    let builder = post_v1_projects_ref_restore_cancel_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_restore_cancel_execute(builder)
 }
 
@@ -24162,13 +23952,10 @@ pub fn post_v1_projects_ref_restore_cancel(
 
 pub fn get_v1_projects_ref_secrets_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -24304,7 +24091,7 @@ pub fn get_v1_projects_ref_secrets(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_secrets_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_secrets_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -24316,14 +24103,11 @@ pub fn get_v1_projects_ref_secrets(
 
 pub fn post_v1_projects_ref_secrets_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -24463,7 +24247,7 @@ pub fn post_v1_projects_ref_secrets(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_secrets_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_secrets_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -24475,14 +24259,11 @@ pub fn post_v1_projects_ref_secrets(
 
 pub fn delete_v1_projects_ref_secrets_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -24622,7 +24403,7 @@ pub fn delete_v1_projects_ref_secrets(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_secrets_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = delete_v1_projects_ref_secrets_builder(client, &args.ref_rs, &args.body)?;
     delete_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -24634,12 +24415,12 @@ pub fn delete_v1_projects_ref_secrets(
 
 pub fn get_v1_projects_ref_ssl_enforcement_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -24783,7 +24564,7 @@ pub fn get_v1_projects_ref_ssl_enforcement(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_ssl_enforcement_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_ssl_enforcement_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_ssl_enforcement_execute(builder)
 }
 
@@ -24795,13 +24576,13 @@ pub fn get_v1_projects_ref_ssl_enforcement(
 
 pub fn put_v1_projects_ref_ssl_enforcement_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -24949,8 +24730,7 @@ pub fn put_v1_projects_ref_ssl_enforcement(
         + 'static,
     ApiError,
 > {
-    let builder =
-        put_v1_projects_ref_ssl_enforcement_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = put_v1_projects_ref_ssl_enforcement_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_ssl_enforcement_execute(builder)
 }
 
@@ -24962,12 +24742,12 @@ pub fn put_v1_projects_ref_ssl_enforcement(
 
 pub fn get_v1_projects_ref_storage_buckets_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/storage/buckets",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -25104,7 +24884,7 @@ pub fn get_v1_projects_ref_storage_buckets(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_storage_buckets_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_storage_buckets_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_storage_buckets_execute(builder)
 }
 
@@ -25116,18 +24896,18 @@ pub fn get_v1_projects_ref_storage_buckets(
 
 pub fn get_v1_projects_ref_types_typescript_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    included_schemas: Option<String>,
+    ref_rs: &String,
+    included_schemas: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/types/typescript",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = included_schemas {
+    if let Some(val) = included_schemas.as_ref() {
         query_parts.push(format!("included_schemas={}", val));
     }
 
@@ -25279,11 +25059,8 @@ pub fn get_v1_projects_ref_types_typescript(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_types_typescript_builder(
-        client,
-        args.ref_rs.clone(),
-        args.included_schemas.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_types_typescript_builder(client, &args.ref_rs, &args.included_schemas)?;
     get_v1_projects_ref_types_typescript_execute(builder)
 }
 
@@ -25295,14 +25072,11 @@ pub fn get_v1_projects_ref_types_typescript(
 
 pub fn post_v1_projects_ref_upgrade_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/upgrade",
-        ref_rs.as_str(),
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/upgrade", ref_rs,);
 
     // Build request
     let builder = client
@@ -25453,7 +25227,7 @@ pub fn post_v1_projects_ref_upgrade(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_upgrade_builder(client, args.ref_rs.clone(), &args.body)?;
+    let builder = post_v1_projects_ref_upgrade_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_upgrade_execute(builder)
 }
 
@@ -25465,12 +25239,12 @@ pub fn post_v1_projects_ref_upgrade(
 
 pub fn get_v1_projects_ref_upgrade_eligibility_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/upgrade/eligibility",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -25618,7 +25392,7 @@ pub fn get_v1_projects_ref_upgrade_eligibility(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_upgrade_eligibility_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_upgrade_eligibility_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_upgrade_eligibility_execute(builder)
 }
 
@@ -25630,18 +25404,18 @@ pub fn get_v1_projects_ref_upgrade_eligibility(
 
 pub fn get_v1_projects_ref_upgrade_status_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
-    tracking_id: Option<String>,
+    ref_rs: &String,
+    tracking_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/upgrade/status",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = tracking_id {
+    if let Some(val) = tracking_id.as_ref() {
         query_parts.push(format!("tracking_id={}", val));
     }
 
@@ -25797,11 +25571,8 @@ pub fn get_v1_projects_ref_upgrade_status(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_upgrade_status_builder(
-        client,
-        args.ref_rs.clone(),
-        args.tracking_id.clone(),
-    )?;
+    let builder =
+        get_v1_projects_ref_upgrade_status_builder(client, &args.ref_rs, &args.tracking_id)?;
     get_v1_projects_ref_upgrade_status_execute(builder)
 }
 
@@ -25813,12 +25584,12 @@ pub fn get_v1_projects_ref_upgrade_status(
 
 pub fn get_v1_projects_ref_vanity_subdomain_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -25966,7 +25737,7 @@ pub fn get_v1_projects_ref_vanity_subdomain(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_vanity_subdomain_builder(client, args.ref_rs.clone())?;
+    let builder = get_v1_projects_ref_vanity_subdomain_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_vanity_subdomain_execute(builder)
 }
 
@@ -25978,12 +25749,12 @@ pub fn get_v1_projects_ref_vanity_subdomain(
 
 pub fn delete_v1_projects_ref_vanity_subdomain_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -26120,7 +25891,7 @@ pub fn delete_v1_projects_ref_vanity_subdomain(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_vanity_subdomain_builder(client, args.ref_rs.clone())?;
+    let builder = delete_v1_projects_ref_vanity_subdomain_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_vanity_subdomain_execute(builder)
 }
 
@@ -26132,13 +25903,13 @@ pub fn delete_v1_projects_ref_vanity_subdomain(
 
 pub fn post_v1_projects_ref_vanity_subdomain_activate_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain/activate",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -26290,11 +26061,8 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_vanity_subdomain_activate_builder(
-        client,
-        args.ref_rs.clone(),
-        &args.body,
-    )?;
+    let builder =
+        post_v1_projects_ref_vanity_subdomain_activate_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_vanity_subdomain_activate_execute(builder)
 }
 
@@ -26306,13 +26074,13 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate(
 
 pub fn post_v1_projects_ref_vanity_subdomain_check_availability_builder(
     client: &SimpleHttpClient,
-    ref_rs: String,
+    ref_rs: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain/check-availability",
-        ref_rs.as_str(),
+        ref_rs,
     );
 
     // Build request
@@ -26466,7 +26234,7 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability(
 > {
     let builder = post_v1_projects_ref_vanity_subdomain_check_availability_builder(
         client,
-        args.ref_rs.clone(),
+        &args.ref_rs,
         &args.body,
     )?;
     post_v1_projects_ref_vanity_subdomain_check_availability_execute(builder)
@@ -26480,30 +26248,30 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability(
 
 pub fn get_v1_snippets_builder(
     client: &SimpleHttpClient,
-    project_ref: Option<String>,
-    cursor: Option<String>,
-    limit: Option<String>,
-    sort_by: Option<String>,
-    sort_order: Option<String>,
+    project_ref: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    sort_by: &Option<String>,
+    sort_order: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.supabase.com/v1/snippets",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = project_ref {
+    if let Some(val) = project_ref.as_ref() {
         query_parts.push(format!("project_ref={}", val));
     }
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
-    if let Some(val) = sort_by {
+    if let Some(val) = sort_by.as_ref() {
         query_parts.push(format!("sort_by={}", val));
     }
-    if let Some(val) = sort_order {
+    if let Some(val) = sort_order.as_ref() {
         query_parts.push(format!("sort_order={}", val));
     }
 
@@ -26659,11 +26427,11 @@ pub fn get_v1_snippets(
 > {
     let builder = get_v1_snippets_builder(
         client,
-        args.project_ref.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
-        args.sort_by.clone(),
-        args.sort_order.clone(),
+        &args.project_ref,
+        &args.cursor,
+        &args.limit,
+        &args.sort_by,
+        &args.sort_order,
     )?;
     get_v1_snippets_execute(builder)
 }
@@ -26676,10 +26444,10 @@ pub fn get_v1_snippets(
 
 pub fn get_v1_snippets_id_builder(
     client: &SimpleHttpClient,
-    id: String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.supabase.com/v1/snippets/{}", id.as_str(),);
+    let endpoint_url = format!("https://api.supabase.com/v1/snippets/{}", id,);
 
     // Build request
     let builder = client
@@ -26822,6 +26590,6 @@ pub fn get_v1_snippets_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_snippets_id_builder(client, args.id.clone())?;
+    let builder = get_v1_snippets_id_builder(client, &args.id)?;
     get_v1_snippets_id_execute(builder)
 }

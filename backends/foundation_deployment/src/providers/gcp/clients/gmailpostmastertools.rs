@@ -194,7 +194,7 @@ pub fn gmailpostmastertools_domain_stats_batch_query(
 
 pub fn gmailpostmastertools_domains_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains/{}",);
@@ -336,7 +336,7 @@ pub fn gmailpostmastertools_domains_get(
     impl StreamIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_get_builder(client, args.name.clone())?;
+    let builder = gmailpostmastertools_domains_get_builder(client, &args.name)?;
     gmailpostmastertools_domains_get_execute(builder)
 }
 
@@ -348,7 +348,7 @@ pub fn gmailpostmastertools_domains_get(
 
 pub fn gmailpostmastertools_domains_get_compliance_status_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -495,8 +495,7 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmailpostmastertools_domains_get_compliance_status_builder(client, args.name.clone())?;
+    let builder = gmailpostmastertools_domains_get_compliance_status_builder(client, &args.name)?;
     gmailpostmastertools_domains_get_compliance_status_execute(builder)
 }
 
@@ -508,18 +507,18 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
 
 pub fn gmailpostmastertools_domains_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://gmailpostmastertools.googleapis.com/v2/domains",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -671,11 +670,8 @@ pub fn gmailpostmastertools_domains_list(
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        gmailpostmastertools_domains_list_builder(client, &args.pageSize, &args.pageToken)?;
     gmailpostmastertools_domains_list_execute(builder)
 }
 
@@ -687,7 +683,7 @@ pub fn gmailpostmastertools_domains_list(
 
 pub fn gmailpostmastertools_domains_domain_stats_query_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &QueryDomainStatsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -839,10 +835,7 @@ pub fn gmailpostmastertools_domains_domain_stats_query(
         + 'static,
     ApiError,
 > {
-    let builder = gmailpostmastertools_domains_domain_stats_query_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent, &args.body)?;
     gmailpostmastertools_domains_domain_stats_query_execute(builder)
 }

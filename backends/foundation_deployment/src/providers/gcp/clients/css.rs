@@ -29,15 +29,15 @@ use serde::Serialize;
 
 pub fn css_accounts_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    parent: Option<String>,
+    name: &String,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -185,7 +185,7 @@ pub fn css_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_get_builder(client, args.name.clone(), args.parent.clone())?;
+    let builder = css_accounts_get_builder(client, &args.name, &args.parent)?;
     css_accounts_get_execute(builder)
 }
 
@@ -197,27 +197,27 @@ pub fn css_accounts_get(
 
 pub fn css_accounts_list_child_accounts_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    fullName: Option<String>,
-    labelId: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    fullName: &Option<String>,
+    labelId: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}:listChildAccounts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fullName {
+    if let Some(val) = fullName.as_ref() {
         query_parts.push(format!("fullName={}", val));
     }
-    if let Some(val) = labelId {
+    if let Some(val) = labelId.as_ref() {
         query_parts.push(format!("labelId={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -377,11 +377,11 @@ pub fn css_accounts_list_child_accounts(
 > {
     let builder = css_accounts_list_child_accounts_builder(
         client,
-        args.parent.clone(),
-        args.fullName.clone(),
-        args.labelId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.fullName,
+        &args.labelId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     css_accounts_list_child_accounts_execute(builder)
 }
@@ -394,7 +394,7 @@ pub fn css_accounts_list_child_accounts(
 
 pub fn css_accounts_update_labels_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &UpdateAccountLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -541,7 +541,7 @@ pub fn css_accounts_update_labels(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_update_labels_builder(client, args.name.clone(), &args.body)?;
+    let builder = css_accounts_update_labels_builder(client, &args.name, &args.body)?;
     css_accounts_update_labels_execute(builder)
 }
 
@@ -553,8 +553,8 @@ pub fn css_accounts_update_labels(
 
 pub fn css_accounts_css_product_inputs_insert_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    feedId: Option<String>,
+    parent: &String,
+    feedId: &Option<String>,
     body: &CssProductInput,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -563,7 +563,7 @@ pub fn css_accounts_css_product_inputs_insert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = feedId {
+    if let Some(val) = feedId.as_ref() {
         query_parts.push(format!("feedId={}", val));
     }
 
@@ -721,8 +721,8 @@ pub fn css_accounts_css_product_inputs_insert(
 > {
     let builder = css_accounts_css_product_inputs_insert_builder(
         client,
-        args.parent.clone(),
-        args.feedId.clone(),
+        &args.parent,
+        &args.feedId,
         &args.body,
     )?;
     css_accounts_css_product_inputs_insert_execute(builder)
@@ -736,19 +736,19 @@ pub fn css_accounts_css_product_inputs_insert(
 
 pub fn css_accounts_css_products_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/cssProducts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -904,9 +904,9 @@ pub fn css_accounts_css_products_list(
 > {
     let builder = css_accounts_css_products_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     css_accounts_css_products_list_execute(builder)
 }
@@ -919,7 +919,7 @@ pub fn css_accounts_css_products_list(
 
 pub fn css_accounts_labels_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AccountLabel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1070,7 +1070,7 @@ pub fn css_accounts_labels_create(
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = css_accounts_labels_create_builder(client, &args.parent, &args.body)?;
     css_accounts_labels_create_execute(builder)
 }
 
@@ -1082,19 +1082,19 @@ pub fn css_accounts_labels_create(
 
 pub fn css_accounts_quotas_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://css.googleapis.com/v1/accounts/{}/quotas",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1248,11 +1248,7 @@ pub fn css_accounts_quotas_list(
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_quotas_list_builder(
-        client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        css_accounts_quotas_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     css_accounts_quotas_list_execute(builder)
 }

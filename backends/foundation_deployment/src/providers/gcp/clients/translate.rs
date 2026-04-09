@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn translate_projects_detect_language_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &DetectLanguageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -180,8 +180,7 @@ pub fn translate_projects_detect_language(
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_detect_language_builder(client, args.parent.clone(), &args.body)?;
+    let builder = translate_projects_detect_language_builder(client, &args.parent, &args.body)?;
     translate_projects_detect_language_execute(builder)
 }
 
@@ -193,9 +192,9 @@ pub fn translate_projects_detect_language(
 
 pub fn translate_projects_get_supported_languages_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    displayLanguageCode: Option<String>,
-    model: Option<String>,
+    parent: &String,
+    displayLanguageCode: &Option<String>,
+    model: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -203,10 +202,10 @@ pub fn translate_projects_get_supported_languages_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = displayLanguageCode {
+    if let Some(val) = displayLanguageCode.as_ref() {
         query_parts.push(format!("displayLanguageCode={}", val));
     }
-    if let Some(val) = model {
+    if let Some(val) = model.as_ref() {
         query_parts.push(format!("model={}", val));
     }
 
@@ -362,9 +361,9 @@ pub fn translate_projects_get_supported_languages(
 > {
     let builder = translate_projects_get_supported_languages_builder(
         client,
-        args.parent.clone(),
-        args.displayLanguageCode.clone(),
-        args.model.clone(),
+        &args.parent,
+        &args.displayLanguageCode,
+        &args.model,
     )?;
     translate_projects_get_supported_languages_execute(builder)
 }
@@ -377,7 +376,7 @@ pub fn translate_projects_get_supported_languages(
 
 pub fn translate_projects_romanize_text_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &RomanizeTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -528,8 +527,7 @@ pub fn translate_projects_romanize_text(
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_romanize_text_builder(client, args.parent.clone(), &args.body)?;
+    let builder = translate_projects_romanize_text_builder(client, &args.parent, &args.body)?;
     translate_projects_romanize_text_execute(builder)
 }
 
@@ -541,7 +539,7 @@ pub fn translate_projects_romanize_text(
 
 pub fn translate_projects_translate_text_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &TranslateTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -692,8 +690,7 @@ pub fn translate_projects_translate_text(
         + 'static,
     ApiError,
 > {
-    let builder =
-        translate_projects_translate_text_builder(client, args.parent.clone(), &args.body)?;
+    let builder = translate_projects_translate_text_builder(client, &args.parent, &args.body)?;
     translate_projects_translate_text_execute(builder)
 }
 
@@ -705,27 +702,27 @@ pub fn translate_projects_translate_text(
 
 pub fn translate_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://translation.googleapis.com/v3/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -885,11 +882,11 @@ pub fn translate_projects_locations_list(
 > {
     let builder = translate_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     translate_projects_locations_list_execute(builder)
 }

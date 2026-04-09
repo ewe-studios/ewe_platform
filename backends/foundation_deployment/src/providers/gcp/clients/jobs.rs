@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn jobs_projects_tenants_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Tenant,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,6 +176,6 @@ pub fn jobs_projects_tenants_create(
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = jobs_projects_tenants_create_builder(client, &args.parent, &args.body)?;
     jobs_projects_tenants_create_execute(builder)
 }

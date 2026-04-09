@@ -29,10 +29,10 @@ use serde::Serialize;
 
 pub fn container_projects_aggregated_usable_subnetworks_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -40,13 +40,13 @@ pub fn container_projects_aggregated_usable_subnetworks_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -208,10 +208,10 @@ pub fn container_projects_aggregated_usable_subnetworks_list(
 > {
     let builder = container_projects_aggregated_usable_subnetworks_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     container_projects_aggregated_usable_subnetworks_list_execute(builder)
 }
@@ -224,20 +224,19 @@ pub fn container_projects_aggregated_usable_subnetworks_list(
 
 pub fn container_projects_zones_get_serverconfig_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    name: Option<String>,
+    projectId: &String,
+    zone: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/serverconfig",
-        projectId.as_str(),
-        zone.as_str(),
+        projectId, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -393,9 +392,9 @@ pub fn container_projects_zones_get_serverconfig(
 > {
     let builder = container_projects_zones_get_serverconfig_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.name.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.name,
     )?;
     container_projects_zones_get_serverconfig_execute(builder)
 }
@@ -408,17 +407,15 @@ pub fn container_projects_zones_get_serverconfig(
 
 pub fn container_projects_zones_clusters_addons_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetAddonsConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/addons",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -568,9 +565,9 @@ pub fn container_projects_zones_clusters_addons(
 > {
     let builder = container_projects_zones_clusters_addons_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_addons_execute(builder)
@@ -584,17 +581,15 @@ pub fn container_projects_zones_clusters_addons(
 
 pub fn container_projects_zones_clusters_complete_ip_rotation_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &CompleteIPRotationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:completeIpRotation",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -744,9 +739,9 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 > {
     let builder = container_projects_zones_clusters_complete_ip_rotation_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_complete_ip_rotation_execute(builder)
@@ -760,15 +755,14 @@ pub fn container_projects_zones_clusters_complete_ip_rotation(
 
 pub fn container_projects_zones_clusters_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
+    projectId: &String,
+    zone: &String,
     body: &CreateClusterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters",
-        projectId.as_str(),
-        zone.as_str(),
+        projectId, zone,
     );
 
     // Build request
@@ -916,8 +910,8 @@ pub fn container_projects_zones_clusters_create(
 > {
     let builder = container_projects_zones_clusters_create_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
+        &args.projectId,
+        &args.zone,
         &args.body,
     )?;
     container_projects_zones_clusters_create_execute(builder)
@@ -931,22 +925,20 @@ pub fn container_projects_zones_clusters_create(
 
 pub fn container_projects_zones_clusters_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    name: Option<String>,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -1100,10 +1092,10 @@ pub fn container_projects_zones_clusters_delete(
 > {
     let builder = container_projects_zones_clusters_delete_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.name.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.name,
     )?;
     container_projects_zones_clusters_delete_execute(builder)
 }
@@ -1116,17 +1108,15 @@ pub fn container_projects_zones_clusters_delete(
 
 pub fn container_projects_zones_clusters_legacy_abac_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetLegacyAbacRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/legacyAbac",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -1276,9 +1266,9 @@ pub fn container_projects_zones_clusters_legacy_abac(
 > {
     let builder = container_projects_zones_clusters_legacy_abac_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_legacy_abac_execute(builder)
@@ -1292,17 +1282,15 @@ pub fn container_projects_zones_clusters_legacy_abac(
 
 pub fn container_projects_zones_clusters_locations_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetLocationsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/locations",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -1452,9 +1440,9 @@ pub fn container_projects_zones_clusters_locations(
 > {
     let builder = container_projects_zones_clusters_locations_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_locations_execute(builder)
@@ -1468,17 +1456,15 @@ pub fn container_projects_zones_clusters_locations(
 
 pub fn container_projects_zones_clusters_logging_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetLoggingServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/logging",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -1628,9 +1614,9 @@ pub fn container_projects_zones_clusters_logging(
 > {
     let builder = container_projects_zones_clusters_logging_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_logging_execute(builder)
@@ -1644,17 +1630,15 @@ pub fn container_projects_zones_clusters_logging(
 
 pub fn container_projects_zones_clusters_master_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &UpdateMasterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/master",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -1804,9 +1788,9 @@ pub fn container_projects_zones_clusters_master(
 > {
     let builder = container_projects_zones_clusters_master_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_master_execute(builder)
@@ -1820,17 +1804,15 @@ pub fn container_projects_zones_clusters_master(
 
 pub fn container_projects_zones_clusters_monitoring_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetMonitoringServiceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/monitoring",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -1980,9 +1962,9 @@ pub fn container_projects_zones_clusters_monitoring(
 > {
     let builder = container_projects_zones_clusters_monitoring_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_monitoring_execute(builder)
@@ -1996,17 +1978,15 @@ pub fn container_projects_zones_clusters_monitoring(
 
 pub fn container_projects_zones_clusters_resource_labels_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/resourceLabels",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -2156,9 +2136,9 @@ pub fn container_projects_zones_clusters_resource_labels(
 > {
     let builder = container_projects_zones_clusters_resource_labels_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_resource_labels_execute(builder)
@@ -2172,17 +2152,15 @@ pub fn container_projects_zones_clusters_resource_labels(
 
 pub fn container_projects_zones_clusters_set_maintenance_policy_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetMaintenancePolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMaintenancePolicy",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -2332,9 +2310,9 @@ pub fn container_projects_zones_clusters_set_maintenance_policy(
 > {
     let builder = container_projects_zones_clusters_set_maintenance_policy_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_set_maintenance_policy_execute(builder)
@@ -2348,17 +2326,15 @@ pub fn container_projects_zones_clusters_set_maintenance_policy(
 
 pub fn container_projects_zones_clusters_set_master_auth_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetMasterAuthRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setMasterAuth",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -2508,9 +2484,9 @@ pub fn container_projects_zones_clusters_set_master_auth(
 > {
     let builder = container_projects_zones_clusters_set_master_auth_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_set_master_auth_execute(builder)
@@ -2524,17 +2500,15 @@ pub fn container_projects_zones_clusters_set_master_auth(
 
 pub fn container_projects_zones_clusters_set_network_policy_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &SetNetworkPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:setNetworkPolicy",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -2684,9 +2658,9 @@ pub fn container_projects_zones_clusters_set_network_policy(
 > {
     let builder = container_projects_zones_clusters_set_network_policy_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_set_network_policy_execute(builder)
@@ -2700,17 +2674,15 @@ pub fn container_projects_zones_clusters_set_network_policy(
 
 pub fn container_projects_zones_clusters_start_ip_rotation_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &StartIPRotationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}:startIpRotation",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -2860,9 +2832,9 @@ pub fn container_projects_zones_clusters_start_ip_rotation(
 > {
     let builder = container_projects_zones_clusters_start_ip_rotation_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_start_ip_rotation_execute(builder)
@@ -2876,19 +2848,19 @@ pub fn container_projects_zones_clusters_start_ip_rotation(
 
 pub fn container_projects_zones_clusters_node_pools_autoscaling_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
     body: &SetNodePoolAutoscalingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/autoscaling",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId,
+        zone,
+        clusterId,
+        nodePoolId,
     );
 
     // Build request
@@ -3040,10 +3012,10 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling(
 > {
     let builder = container_projects_zones_clusters_node_pools_autoscaling_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_autoscaling_execute(builder)
@@ -3057,17 +3029,15 @@ pub fn container_projects_zones_clusters_node_pools_autoscaling(
 
 pub fn container_projects_zones_clusters_node_pools_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
     body: &CreateNodePoolRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
+        projectId, zone, clusterId,
     );
 
     // Build request
@@ -3217,9 +3187,9 @@ pub fn container_projects_zones_clusters_node_pools_create(
 > {
     let builder = container_projects_zones_clusters_node_pools_create_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_create_execute(builder)
@@ -3233,24 +3203,21 @@ pub fn container_projects_zones_clusters_node_pools_create(
 
 pub fn container_projects_zones_clusters_node_pools_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
-    name: Option<String>,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId, zone, clusterId, nodePoolId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -3406,11 +3373,11 @@ pub fn container_projects_zones_clusters_node_pools_delete(
 > {
     let builder = container_projects_zones_clusters_node_pools_delete_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
-        args.name.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
+        &args.name,
     )?;
     container_projects_zones_clusters_node_pools_delete_execute(builder)
 }
@@ -3423,19 +3390,19 @@ pub fn container_projects_zones_clusters_node_pools_delete(
 
 pub fn container_projects_zones_clusters_node_pools_rollback_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
     body: &RollbackNodePoolUpgradeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}:rollback",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId,
+        zone,
+        clusterId,
+        nodePoolId,
     );
 
     // Build request
@@ -3587,10 +3554,10 @@ pub fn container_projects_zones_clusters_node_pools_rollback(
 > {
     let builder = container_projects_zones_clusters_node_pools_rollback_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_rollback_execute(builder)
@@ -3604,19 +3571,19 @@ pub fn container_projects_zones_clusters_node_pools_rollback(
 
 pub fn container_projects_zones_clusters_node_pools_set_management_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
     body: &SetNodePoolManagementRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setManagement",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId,
+        zone,
+        clusterId,
+        nodePoolId,
     );
 
     // Build request
@@ -3768,10 +3735,10 @@ pub fn container_projects_zones_clusters_node_pools_set_management(
 > {
     let builder = container_projects_zones_clusters_node_pools_set_management_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_set_management_execute(builder)
@@ -3785,19 +3752,16 @@ pub fn container_projects_zones_clusters_node_pools_set_management(
 
 pub fn container_projects_zones_clusters_node_pools_set_size_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
     body: &SetNodePoolSizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/setSize",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId, zone, clusterId, nodePoolId,
     );
 
     // Build request
@@ -3949,10 +3913,10 @@ pub fn container_projects_zones_clusters_node_pools_set_size(
 > {
     let builder = container_projects_zones_clusters_node_pools_set_size_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_set_size_execute(builder)
@@ -3966,19 +3930,16 @@ pub fn container_projects_zones_clusters_node_pools_set_size(
 
 pub fn container_projects_zones_clusters_node_pools_update_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    clusterId: String,
-    nodePoolId: String,
+    projectId: &String,
+    zone: &String,
+    clusterId: &String,
+    nodePoolId: &String,
     body: &UpdateNodePoolRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}/nodePools/{}/update",
-        projectId.as_str(),
-        zone.as_str(),
-        clusterId.as_str(),
-        nodePoolId.as_str(),
+        projectId, zone, clusterId, nodePoolId,
     );
 
     // Build request
@@ -4130,10 +4091,10 @@ pub fn container_projects_zones_clusters_node_pools_update(
 > {
     let builder = container_projects_zones_clusters_node_pools_update_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.clusterId.clone(),
-        args.nodePoolId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.clusterId,
+        &args.nodePoolId,
         &args.body,
     )?;
     container_projects_zones_clusters_node_pools_update_execute(builder)
@@ -4147,17 +4108,15 @@ pub fn container_projects_zones_clusters_node_pools_update(
 
 pub fn container_projects_zones_operations_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    operationId: String,
+    projectId: &String,
+    zone: &String,
+    operationId: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}:cancel",
-        projectId.as_str(),
-        zone.as_str(),
-        operationId.as_str(),
+        projectId, zone, operationId,
     );
 
     // Build request
@@ -4307,9 +4266,9 @@ pub fn container_projects_zones_operations_cancel(
 > {
     let builder = container_projects_zones_operations_cancel_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.operationId.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.operationId,
         &args.body,
     )?;
     container_projects_zones_operations_cancel_execute(builder)
@@ -4323,22 +4282,20 @@ pub fn container_projects_zones_operations_cancel(
 
 pub fn container_projects_zones_operations_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    operationId: String,
-    name: Option<String>,
+    projectId: &String,
+    zone: &String,
+    operationId: &String,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations/{}",
-        projectId.as_str(),
-        zone.as_str(),
-        operationId.as_str(),
+        projectId, zone, operationId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
 
@@ -4492,10 +4449,10 @@ pub fn container_projects_zones_operations_get(
 > {
     let builder = container_projects_zones_operations_get_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.operationId.clone(),
-        args.name.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.operationId,
+        &args.name,
     )?;
     container_projects_zones_operations_get_execute(builder)
 }
@@ -4508,20 +4465,19 @@ pub fn container_projects_zones_operations_get(
 
 pub fn container_projects_zones_operations_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    zone: String,
-    parent: Option<String>,
+    projectId: &String,
+    zone: &String,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://container.googleapis.com/v1/projects/{}/zones/{}/operations",
-        projectId.as_str(),
-        zone.as_str(),
+        projectId, zone,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -4677,9 +4633,9 @@ pub fn container_projects_zones_operations_list(
 > {
     let builder = container_projects_zones_operations_list_builder(
         client,
-        args.projectId.clone(),
-        args.zone.clone(),
-        args.parent.clone(),
+        &args.projectId,
+        &args.zone,
+        &args.parent,
     )?;
     container_projects_zones_operations_list_execute(builder)
 }

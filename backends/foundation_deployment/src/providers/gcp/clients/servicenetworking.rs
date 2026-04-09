@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn servicenetworking_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,8 +176,7 @@ pub fn servicenetworking_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = servicenetworking_operations_cancel_builder(client, &args.name, &args.body)?;
     servicenetworking_operations_cancel_execute(builder)
 }
 
@@ -189,7 +188,7 @@ pub fn servicenetworking_operations_cancel(
 
 pub fn servicenetworking_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://servicenetworking.googleapis.com/v1/operations/{}",);
@@ -331,7 +330,7 @@ pub fn servicenetworking_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_delete_builder(client, args.name.clone())?;
+    let builder = servicenetworking_operations_delete_builder(client, &args.name)?;
     servicenetworking_operations_delete_execute(builder)
 }
 
@@ -343,7 +342,7 @@ pub fn servicenetworking_operations_delete(
 
 pub fn servicenetworking_services_disable_vpc_service_controls_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &DisableVpcServiceControlsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -494,7 +493,7 @@ pub fn servicenetworking_services_disable_vpc_service_controls(
 > {
     let builder = servicenetworking_services_disable_vpc_service_controls_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     servicenetworking_services_disable_vpc_service_controls_execute(builder)
@@ -508,7 +507,7 @@ pub fn servicenetworking_services_disable_vpc_service_controls(
 
 pub fn servicenetworking_services_enable_vpc_service_controls_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &EnableVpcServiceControlsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -659,7 +658,7 @@ pub fn servicenetworking_services_enable_vpc_service_controls(
 > {
     let builder = servicenetworking_services_enable_vpc_service_controls_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     servicenetworking_services_enable_vpc_service_controls_execute(builder)
@@ -673,7 +672,7 @@ pub fn servicenetworking_services_enable_vpc_service_controls(
 
 pub fn servicenetworking_services_search_range_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SearchRangeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -822,7 +821,7 @@ pub fn servicenetworking_services_search_range(
     ApiError,
 > {
     let builder =
-        servicenetworking_services_search_range_builder(client, args.parent.clone(), &args.body)?;
+        servicenetworking_services_search_range_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_search_range_execute(builder)
 }
 
@@ -834,7 +833,7 @@ pub fn servicenetworking_services_search_range(
 
 pub fn servicenetworking_services_validate_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &ValidateConsumerConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -989,8 +988,7 @@ pub fn servicenetworking_services_validate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_validate_builder(client, args.parent.clone(), &args.body)?;
+    let builder = servicenetworking_services_validate_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_validate_execute(builder)
 }
 
@@ -1002,7 +1000,7 @@ pub fn servicenetworking_services_validate(
 
 pub fn servicenetworking_services_connections_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Connection,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1150,11 +1148,8 @@ pub fn servicenetworking_services_connections_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_connections_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicenetworking_services_connections_create_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_connections_create_execute(builder)
 }
 
@@ -1166,7 +1161,7 @@ pub fn servicenetworking_services_connections_create(
 
 pub fn servicenetworking_services_dns_record_sets_add_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AddDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1314,11 +1309,8 @@ pub fn servicenetworking_services_dns_record_sets_add(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_record_sets_add_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicenetworking_services_dns_record_sets_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_record_sets_add_execute(builder)
 }
 
@@ -1330,11 +1322,11 @@ pub fn servicenetworking_services_dns_record_sets_add(
 
 pub fn servicenetworking_services_dns_record_sets_get_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    consumerNetwork: Option<String>,
-    domain: Option<String>,
-    type_rs: Option<String>,
-    zone: Option<String>,
+    parent: &String,
+    consumerNetwork: &Option<String>,
+    domain: &Option<String>,
+    type_rs: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1342,16 +1334,16 @@ pub fn servicenetworking_services_dns_record_sets_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = consumerNetwork {
+    if let Some(val) = consumerNetwork.as_ref() {
         query_parts.push(format!("consumerNetwork={}", val));
     }
-    if let Some(val) = domain {
+    if let Some(val) = domain.as_ref() {
         query_parts.push(format!("domain={}", val));
     }
-    if let Some(val) = type_rs {
+    if let Some(val) = type_rs.as_ref() {
         query_parts.push(format!("type={}", val));
     }
-    if let Some(val) = zone {
+    if let Some(val) = zone.as_ref() {
         query_parts.push(format!("zone={}", val));
     }
 
@@ -1511,11 +1503,11 @@ pub fn servicenetworking_services_dns_record_sets_get(
 > {
     let builder = servicenetworking_services_dns_record_sets_get_builder(
         client,
-        args.parent.clone(),
-        args.consumerNetwork.clone(),
-        args.domain.clone(),
-        args.type_rs.clone(),
-        args.zone.clone(),
+        &args.parent,
+        &args.consumerNetwork,
+        &args.domain,
+        &args.type_rs,
+        &args.zone,
     )?;
     servicenetworking_services_dns_record_sets_get_execute(builder)
 }
@@ -1528,9 +1520,9 @@ pub fn servicenetworking_services_dns_record_sets_get(
 
 pub fn servicenetworking_services_dns_record_sets_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    consumerNetwork: Option<String>,
-    zone: Option<String>,
+    parent: &String,
+    consumerNetwork: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1538,10 +1530,10 @@ pub fn servicenetworking_services_dns_record_sets_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = consumerNetwork {
+    if let Some(val) = consumerNetwork.as_ref() {
         query_parts.push(format!("consumerNetwork={}", val));
     }
-    if let Some(val) = zone {
+    if let Some(val) = zone.as_ref() {
         query_parts.push(format!("zone={}", val));
     }
 
@@ -1697,9 +1689,9 @@ pub fn servicenetworking_services_dns_record_sets_list(
 > {
     let builder = servicenetworking_services_dns_record_sets_list_builder(
         client,
-        args.parent.clone(),
-        args.consumerNetwork.clone(),
-        args.zone.clone(),
+        &args.parent,
+        &args.consumerNetwork,
+        &args.zone,
     )?;
     servicenetworking_services_dns_record_sets_list_execute(builder)
 }
@@ -1712,7 +1704,7 @@ pub fn servicenetworking_services_dns_record_sets_list(
 
 pub fn servicenetworking_services_dns_record_sets_remove_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &RemoveDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1862,7 +1854,7 @@ pub fn servicenetworking_services_dns_record_sets_remove(
 > {
     let builder = servicenetworking_services_dns_record_sets_remove_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     servicenetworking_services_dns_record_sets_remove_execute(builder)
@@ -1876,7 +1868,7 @@ pub fn servicenetworking_services_dns_record_sets_remove(
 
 pub fn servicenetworking_services_dns_record_sets_update_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &UpdateDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2026,7 +2018,7 @@ pub fn servicenetworking_services_dns_record_sets_update(
 > {
     let builder = servicenetworking_services_dns_record_sets_update_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     servicenetworking_services_dns_record_sets_update_execute(builder)
@@ -2040,7 +2032,7 @@ pub fn servicenetworking_services_dns_record_sets_update(
 
 pub fn servicenetworking_services_dns_zones_add_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AddDnsZoneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2189,7 +2181,7 @@ pub fn servicenetworking_services_dns_zones_add(
     ApiError,
 > {
     let builder =
-        servicenetworking_services_dns_zones_add_builder(client, args.parent.clone(), &args.body)?;
+        servicenetworking_services_dns_zones_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_zones_add_execute(builder)
 }
 
@@ -2201,7 +2193,7 @@ pub fn servicenetworking_services_dns_zones_add(
 
 pub fn servicenetworking_services_dns_zones_remove_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &RemoveDnsZoneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2349,11 +2341,8 @@ pub fn servicenetworking_services_dns_zones_remove(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_dns_zones_remove_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        servicenetworking_services_dns_zones_remove_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_dns_zones_remove_execute(builder)
 }
 
@@ -2365,7 +2354,7 @@ pub fn servicenetworking_services_dns_zones_remove(
 
 pub fn servicenetworking_services_roles_add_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &AddRolesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2513,7 +2502,6 @@ pub fn servicenetworking_services_roles_add(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_roles_add_builder(client, args.parent.clone(), &args.body)?;
+    let builder = servicenetworking_services_roles_add_builder(client, &args.parent, &args.body)?;
     servicenetworking_services_roles_add_execute(builder)
 }

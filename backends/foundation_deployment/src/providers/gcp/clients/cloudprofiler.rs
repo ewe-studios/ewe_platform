@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudprofiler_projects_profiles_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CreateProfileRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,8 +176,7 @@ pub fn cloudprofiler_projects_profiles_create(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudprofiler_projects_profiles_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = cloudprofiler_projects_profiles_create_builder(client, &args.parent, &args.body)?;
     cloudprofiler_projects_profiles_create_execute(builder)
 }
 
@@ -189,7 +188,7 @@ pub fn cloudprofiler_projects_profiles_create(
 
 pub fn cloudprofiler_projects_profiles_create_offline_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Profile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -337,10 +336,7 @@ pub fn cloudprofiler_projects_profiles_create_offline(
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudprofiler_projects_profiles_create_offline_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudprofiler_projects_profiles_create_offline_builder(client, &args.parent, &args.body)?;
     cloudprofiler_projects_profiles_create_offline_execute(builder)
 }

@@ -29,14 +29,13 @@ use serde::Serialize;
 
 pub fn storage_anywhere_caches_disable_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    anywhereCacheId: String,
+    bucket: &String,
+    anywhereCacheId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/disable",
-        bucket.as_str(),
-        anywhereCacheId.as_str(),
+        bucket, anywhereCacheId,
     );
 
     // Build request
@@ -182,11 +181,8 @@ pub fn storage_anywhere_caches_disable(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_disable_builder(
-        client,
-        args.bucket.clone(),
-        args.anywhereCacheId.clone(),
-    )?;
+    let builder =
+        storage_anywhere_caches_disable_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_disable_execute(builder)
 }
 
@@ -198,14 +194,13 @@ pub fn storage_anywhere_caches_disable(
 
 pub fn storage_anywhere_caches_get_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    anywhereCacheId: String,
+    bucket: &String,
+    anywhereCacheId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}",
-        bucket.as_str(),
-        anywhereCacheId.as_str(),
+        bucket, anywhereCacheId,
     );
 
     // Build request
@@ -351,11 +346,7 @@ pub fn storage_anywhere_caches_get(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_get_builder(
-        client,
-        args.bucket.clone(),
-        args.anywhereCacheId.clone(),
-    )?;
+    let builder = storage_anywhere_caches_get_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_get_execute(builder)
 }
 
@@ -367,13 +358,13 @@ pub fn storage_anywhere_caches_get(
 
 pub fn storage_anywhere_caches_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
+    bucket: &String,
     body: &AnywhereCache,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
@@ -525,7 +516,7 @@ pub fn storage_anywhere_caches_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_insert_builder(client, args.bucket.clone(), &args.body)?;
+    let builder = storage_anywhere_caches_insert_builder(client, &args.bucket, &args.body)?;
     storage_anywhere_caches_insert_execute(builder)
 }
 
@@ -537,14 +528,13 @@ pub fn storage_anywhere_caches_insert(
 
 pub fn storage_anywhere_caches_pause_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    anywhereCacheId: String,
+    bucket: &String,
+    anywhereCacheId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/pause",
-        bucket.as_str(),
-        anywhereCacheId.as_str(),
+        bucket, anywhereCacheId,
     );
 
     // Build request
@@ -690,11 +680,8 @@ pub fn storage_anywhere_caches_pause(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_pause_builder(
-        client,
-        args.bucket.clone(),
-        args.anywhereCacheId.clone(),
-    )?;
+    let builder =
+        storage_anywhere_caches_pause_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_pause_execute(builder)
 }
 
@@ -706,14 +693,13 @@ pub fn storage_anywhere_caches_pause(
 
 pub fn storage_anywhere_caches_resume_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    anywhereCacheId: String,
+    bucket: &String,
+    anywhereCacheId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/anywhereCaches/{}/resume",
-        bucket.as_str(),
-        anywhereCacheId.as_str(),
+        bucket, anywhereCacheId,
     );
 
     // Build request
@@ -859,11 +845,8 @@ pub fn storage_anywhere_caches_resume(
         + 'static,
     ApiError,
 > {
-    let builder = storage_anywhere_caches_resume_builder(
-        client,
-        args.bucket.clone(),
-        args.anywhereCacheId.clone(),
-    )?;
+    let builder =
+        storage_anywhere_caches_resume_builder(client, &args.bucket, &args.anywhereCacheId)?;
     storage_anywhere_caches_resume_execute(builder)
 }
 
@@ -875,20 +858,19 @@ pub fn storage_anywhere_caches_resume(
 
 pub fn storage_bucket_access_controls_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    entity: String,
-    userProject: Option<String>,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/acl/{}",
-        bucket.as_str(),
-        entity.as_str(),
+        bucket, entity,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -1037,9 +1019,9 @@ pub fn storage_bucket_access_controls_delete(
 > {
     let builder = storage_bucket_access_controls_delete_builder(
         client,
-        args.bucket.clone(),
-        args.entity.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
     )?;
     storage_bucket_access_controls_delete_execute(builder)
 }
@@ -1052,19 +1034,16 @@ pub fn storage_bucket_access_controls_delete(
 
 pub fn storage_bucket_access_controls_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    userProject: Option<String>,
+    bucket: &String,
+    userProject: &Option<String>,
     body: &BucketAccessControl,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://storage.googleapis.com/storage/v1/b/{}/acl",
-        bucket.as_str(),
-    );
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/acl", bucket,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -1222,8 +1201,8 @@ pub fn storage_bucket_access_controls_insert(
 > {
     let builder = storage_bucket_access_controls_insert_builder(
         client,
-        args.bucket.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.userProject,
         &args.body,
     )?;
     storage_bucket_access_controls_insert_execute(builder)
@@ -1237,26 +1216,23 @@ pub fn storage_bucket_access_controls_insert(
 
 pub fn storage_buckets_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://storage.googleapis.com/storage/v1/b/{}",
-        bucket.as_str(),
-    );
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}", bucket,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -1407,10 +1383,10 @@ pub fn storage_buckets_delete(
 > {
     let builder = storage_buckets_delete_builder(
         client,
-        args.bucket.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.userProject,
     )?;
     storage_buckets_delete_execute(builder)
 }
@@ -1423,22 +1399,19 @@ pub fn storage_buckets_delete(
 
 pub fn storage_buckets_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    optionsRequestedPolicyVersion: Option<i32>,
-    userProject: Option<String>,
+    bucket: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://storage.googleapis.com/storage/v1/b/{}/iam",
-        bucket.as_str(),
-    );
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/iam", bucket,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -1590,9 +1563,9 @@ pub fn storage_buckets_get_iam_policy(
 > {
     let builder = storage_buckets_get_iam_policy_builder(
         client,
-        args.bucket.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.optionsRequestedPolicyVersion,
+        &args.userProject,
     )?;
     storage_buckets_get_iam_policy_execute(builder)
 }
@@ -1605,18 +1578,18 @@ pub fn storage_buckets_get_iam_policy(
 
 pub fn storage_buckets_get_storage_layout_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    prefix: Option<String>,
+    bucket: &String,
+    prefix: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/storageLayout",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = prefix {
+    if let Some(val) = prefix.as_ref() {
         query_parts.push(format!("prefix={}", val));
     }
 
@@ -1768,11 +1741,7 @@ pub fn storage_buckets_get_storage_layout(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_get_storage_layout_builder(
-        client,
-        args.bucket.clone(),
-        args.prefix.clone(),
-    )?;
+    let builder = storage_buckets_get_storage_layout_builder(client, &args.bucket, &args.prefix)?;
     storage_buckets_get_storage_layout_execute(builder)
 }
 
@@ -1784,13 +1753,13 @@ pub fn storage_buckets_get_storage_layout(
 
 pub fn storage_buckets_relocate_builder(
     client: &SimpleHttpClient,
-    bucket: String,
+    bucket: &String,
     body: &RelocateBucketRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/relocate",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
@@ -1942,7 +1911,7 @@ pub fn storage_buckets_relocate(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_relocate_builder(client, args.bucket.clone(), &args.body)?;
+    let builder = storage_buckets_relocate_builder(client, &args.bucket, &args.body)?;
     storage_buckets_relocate_execute(builder)
 }
 
@@ -2107,20 +2076,19 @@ pub fn storage_channels_stop(
 
 pub fn storage_default_object_access_controls_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    entity: String,
-    userProject: Option<String>,
+    bucket: &String,
+    entity: &String,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl/{}",
-        bucket.as_str(),
-        entity.as_str(),
+        bucket, entity,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -2269,9 +2237,9 @@ pub fn storage_default_object_access_controls_delete(
 > {
     let builder = storage_default_object_access_controls_delete_builder(
         client,
-        args.bucket.clone(),
-        args.entity.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.entity,
+        &args.userProject,
     )?;
     storage_default_object_access_controls_delete_execute(builder)
 }
@@ -2284,19 +2252,19 @@ pub fn storage_default_object_access_controls_delete(
 
 pub fn storage_default_object_access_controls_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    userProject: Option<String>,
+    bucket: &String,
+    userProject: &Option<String>,
     body: &ObjectAccessControl,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/defaultObjectAcl",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -2454,8 +2422,8 @@ pub fn storage_default_object_access_controls_insert(
 > {
     let builder = storage_default_object_access_controls_insert_builder(
         client,
-        args.bucket.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.userProject,
         &args.body,
     )?;
     storage_default_object_access_controls_insert_execute(builder)
@@ -2469,24 +2437,23 @@ pub fn storage_default_object_access_controls_insert(
 
 pub fn storage_folders_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    folder: String,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
+    bucket: &String,
+    folder: &String,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}",
-        bucket.as_str(),
-        folder.as_str(),
+        bucket, folder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
 
@@ -2637,10 +2604,10 @@ pub fn storage_folders_delete(
 > {
     let builder = storage_folders_delete_builder(
         client,
-        args.bucket.clone(),
-        args.folder.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
+        &args.bucket,
+        &args.folder,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
     )?;
     storage_folders_delete_execute(builder)
 }
@@ -2653,24 +2620,23 @@ pub fn storage_folders_delete(
 
 pub fn storage_folders_delete_recursive_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    folder: String,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
+    bucket: &String,
+    folder: &String,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}/deleteRecursive",
-        bucket.as_str(),
-        folder.as_str(),
+        bucket, folder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
 
@@ -2832,10 +2798,10 @@ pub fn storage_folders_delete_recursive(
 > {
     let builder = storage_folders_delete_recursive_builder(
         client,
-        args.bucket.clone(),
-        args.folder.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
+        &args.bucket,
+        &args.folder,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
     )?;
     storage_folders_delete_recursive_execute(builder)
 }
@@ -2848,19 +2814,19 @@ pub fn storage_folders_delete_recursive(
 
 pub fn storage_folders_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    recursive: Option<bool>,
+    bucket: &String,
+    recursive: &Option<bool>,
     body: &Folder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = recursive {
+    if let Some(val) = recursive.as_ref() {
         query_parts.push(format!("recursive={}", val));
     }
 
@@ -3012,12 +2978,8 @@ pub fn storage_folders_insert(
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_folders_insert_builder(
-        client,
-        args.bucket.clone(),
-        args.recursive.clone(),
-        &args.body,
-    )?;
+    let builder =
+        storage_folders_insert_builder(client, &args.bucket, &args.recursive, &args.body)?;
     storage_folders_insert_execute(builder)
 }
 
@@ -3029,26 +2991,24 @@ pub fn storage_folders_insert(
 
 pub fn storage_folders_rename_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    sourceFolder: String,
-    destinationFolder: String,
-    ifSourceMetagenerationMatch: Option<String>,
-    ifSourceMetagenerationNotMatch: Option<String>,
+    bucket: &String,
+    sourceFolder: &String,
+    destinationFolder: &String,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/folders/{}/renameTo/folders/{}",
-        bucket.as_str(),
-        sourceFolder.as_str(),
-        destinationFolder.as_str(),
+        bucket, sourceFolder, destinationFolder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ifSourceMetagenerationMatch {
+    if let Some(val) = ifSourceMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationNotMatch {
+    if let Some(val) = ifSourceMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationNotMatch={}", val));
     }
 
@@ -3212,11 +3172,11 @@ pub fn storage_folders_rename(
 > {
     let builder = storage_folders_rename_builder(
         client,
-        args.bucket.clone(),
-        args.sourceFolder.clone(),
-        args.destinationFolder.clone(),
-        args.ifSourceMetagenerationMatch.clone(),
-        args.ifSourceMetagenerationNotMatch.clone(),
+        &args.bucket,
+        &args.sourceFolder,
+        &args.destinationFolder,
+        &args.ifSourceMetagenerationMatch,
+        &args.ifSourceMetagenerationNotMatch,
     )?;
     storage_folders_rename_execute(builder)
 }
@@ -3229,28 +3189,27 @@ pub fn storage_folders_rename(
 
 pub fn storage_managed_folders_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    managedFolder: String,
-    allowNonEmpty: Option<bool>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
+    bucket: &String,
+    managedFolder: &String,
+    allowNonEmpty: &Option<bool>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}",
-        bucket.as_str(),
-        managedFolder.as_str(),
+        bucket, managedFolder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowNonEmpty {
+    if let Some(val) = allowNonEmpty.as_ref() {
         query_parts.push(format!("allowNonEmpty={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
 
@@ -3403,11 +3362,11 @@ pub fn storage_managed_folders_delete(
 > {
     let builder = storage_managed_folders_delete_builder(
         client,
-        args.bucket.clone(),
-        args.managedFolder.clone(),
-        args.allowNonEmpty.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
+        &args.bucket,
+        &args.managedFolder,
+        &args.allowNonEmpty,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
     )?;
     storage_managed_folders_delete_execute(builder)
 }
@@ -3420,24 +3379,23 @@ pub fn storage_managed_folders_delete(
 
 pub fn storage_managed_folders_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    managedFolder: String,
-    optionsRequestedPolicyVersion: Option<i32>,
-    userProject: Option<String>,
+    bucket: &String,
+    managedFolder: &String,
+    optionsRequestedPolicyVersion: &Option<i32>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders/{}/iam",
-        bucket.as_str(),
-        managedFolder.as_str(),
+        bucket, managedFolder,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = optionsRequestedPolicyVersion {
+    if let Some(val) = optionsRequestedPolicyVersion.as_ref() {
         query_parts.push(format!("optionsRequestedPolicyVersion={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -3591,10 +3549,10 @@ pub fn storage_managed_folders_get_iam_policy(
 > {
     let builder = storage_managed_folders_get_iam_policy_builder(
         client,
-        args.bucket.clone(),
-        args.managedFolder.clone(),
-        args.optionsRequestedPolicyVersion.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.managedFolder,
+        &args.optionsRequestedPolicyVersion,
+        &args.userProject,
     )?;
     storage_managed_folders_get_iam_policy_execute(builder)
 }
@@ -3607,13 +3565,13 @@ pub fn storage_managed_folders_get_iam_policy(
 
 pub fn storage_managed_folders_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
+    bucket: &String,
     body: &ManagedFolder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/managedFolders",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
@@ -3761,7 +3719,7 @@ pub fn storage_managed_folders_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_managed_folders_insert_builder(client, args.bucket.clone(), &args.body)?;
+    let builder = storage_managed_folders_insert_builder(client, &args.bucket, &args.body)?;
     storage_managed_folders_insert_execute(builder)
 }
 
@@ -3773,20 +3731,19 @@ pub fn storage_managed_folders_insert(
 
 pub fn storage_notifications_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    notification: String,
-    userProject: Option<String>,
+    bucket: &String,
+    notification: &String,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs/{}",
-        bucket.as_str(),
-        notification.as_str(),
+        bucket, notification,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -3935,9 +3892,9 @@ pub fn storage_notifications_delete(
 > {
     let builder = storage_notifications_delete_builder(
         client,
-        args.bucket.clone(),
-        args.notification.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.notification,
+        &args.userProject,
     )?;
     storage_notifications_delete_execute(builder)
 }
@@ -3950,19 +3907,19 @@ pub fn storage_notifications_delete(
 
 pub fn storage_notifications_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    userProject: Option<String>,
+    bucket: &String,
+    userProject: &Option<String>,
     body: &Notification,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/notificationConfigs",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -4118,12 +4075,8 @@ pub fn storage_notifications_insert(
         + 'static,
     ApiError,
 > {
-    let builder = storage_notifications_insert_builder(
-        client,
-        args.bucket.clone(),
-        args.userProject.clone(),
-        &args.body,
-    )?;
+    let builder =
+        storage_notifications_insert_builder(client, &args.bucket, &args.userProject, &args.body)?;
     storage_notifications_insert_execute(builder)
 }
 
@@ -4135,26 +4088,24 @@ pub fn storage_notifications_insert(
 
 pub fn storage_object_access_controls_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    object: String,
-    entity: String,
-    generation: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    object: &String,
+    entity: &String,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl/{}",
-        bucket.as_str(),
-        object.as_str(),
-        entity.as_str(),
+        bucket, object, entity,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = generation {
+    if let Some(val) = generation.as_ref() {
         query_parts.push(format!("generation={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -4307,11 +4258,11 @@ pub fn storage_object_access_controls_delete(
 > {
     let builder = storage_object_access_controls_delete_builder(
         client,
-        args.bucket.clone(),
-        args.object.clone(),
-        args.entity.clone(),
-        args.generation.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.object,
+        &args.entity,
+        &args.generation,
+        &args.userProject,
     )?;
     storage_object_access_controls_delete_execute(builder)
 }
@@ -4324,25 +4275,24 @@ pub fn storage_object_access_controls_delete(
 
 pub fn storage_object_access_controls_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    object: String,
-    generation: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    object: &String,
+    generation: &Option<String>,
+    userProject: &Option<String>,
     body: &ObjectAccessControl,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/acl",
-        bucket.as_str(),
-        object.as_str(),
+        bucket, object,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = generation {
+    if let Some(val) = generation.as_ref() {
         query_parts.push(format!("generation={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -4504,10 +4454,10 @@ pub fn storage_object_access_controls_insert(
 > {
     let builder = storage_object_access_controls_insert_builder(
         client,
-        args.bucket.clone(),
-        args.object.clone(),
-        args.generation.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.userProject,
         &args.body,
     )?;
     storage_object_access_controls_insert_execute(builder)
@@ -4521,13 +4471,13 @@ pub fn storage_object_access_controls_insert(
 
 pub fn storage_objects_bulk_restore_builder(
     client: &SimpleHttpClient,
-    bucket: String,
+    bucket: &String,
     body: &BulkRestoreObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/bulkRestore",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
@@ -4679,7 +4629,7 @@ pub fn storage_objects_bulk_restore(
         + 'static,
     ApiError,
 > {
-    let builder = storage_objects_bulk_restore_builder(client, args.bucket.clone(), &args.body)?;
+    let builder = storage_objects_bulk_restore_builder(client, &args.bucket, &args.body)?;
     storage_objects_bulk_restore_execute(builder)
 }
 
@@ -4691,41 +4641,40 @@ pub fn storage_objects_bulk_restore(
 
 pub fn storage_objects_compose_builder(
     client: &SimpleHttpClient,
-    destinationBucket: String,
-    destinationObject: String,
-    destinationPredefinedAcl: Option<String>,
-    dropContextGroups: Option<String>,
-    ifGenerationMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    kmsKeyName: Option<String>,
-    userProject: Option<String>,
+    destinationBucket: &String,
+    destinationObject: &String,
+    destinationPredefinedAcl: &Option<String>,
+    dropContextGroups: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    kmsKeyName: &Option<String>,
+    userProject: &Option<String>,
     body: &ComposeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/compose",
-        destinationBucket.as_str(),
-        destinationObject.as_str(),
+        destinationBucket, destinationObject,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinationPredefinedAcl {
+    if let Some(val) = destinationPredefinedAcl.as_ref() {
         query_parts.push(format!("destinationPredefinedAcl={}", val));
     }
-    if let Some(val) = dropContextGroups {
+    if let Some(val) = dropContextGroups.as_ref() {
         query_parts.push(format!("dropContextGroups={}", val));
     }
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = kmsKeyName {
+    if let Some(val) = kmsKeyName.as_ref() {
         query_parts.push(format!("kmsKeyName={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -4891,14 +4840,14 @@ pub fn storage_objects_compose(
 > {
     let builder = storage_objects_compose_builder(
         client,
-        args.destinationBucket.clone(),
-        args.destinationObject.clone(),
-        args.destinationPredefinedAcl.clone(),
-        args.dropContextGroups.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.kmsKeyName.clone(),
-        args.userProject.clone(),
+        &args.destinationBucket,
+        &args.destinationObject,
+        &args.destinationPredefinedAcl,
+        &args.dropContextGroups,
+        &args.ifGenerationMatch,
+        &args.ifMetagenerationMatch,
+        &args.kmsKeyName,
+        &args.userProject,
         &args.body,
     )?;
     storage_objects_compose_execute(builder)
@@ -4912,73 +4861,70 @@ pub fn storage_objects_compose(
 
 pub fn storage_objects_copy_builder(
     client: &SimpleHttpClient,
-    sourceBucket: String,
-    sourceObject: String,
-    destinationBucket: String,
-    destinationObject: String,
-    destinationKmsKeyName: Option<String>,
-    destinationPredefinedAcl: Option<String>,
-    ifGenerationMatch: Option<String>,
-    ifGenerationNotMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    ifSourceGenerationMatch: Option<String>,
-    ifSourceGenerationNotMatch: Option<String>,
-    ifSourceMetagenerationMatch: Option<String>,
-    ifSourceMetagenerationNotMatch: Option<String>,
-    projection: Option<String>,
-    sourceGeneration: Option<String>,
-    userProject: Option<String>,
+    sourceBucket: &String,
+    sourceObject: &String,
+    destinationBucket: &String,
+    destinationObject: &String,
+    destinationKmsKeyName: &Option<String>,
+    destinationPredefinedAcl: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    sourceGeneration: &Option<String>,
+    userProject: &Option<String>,
     body: &Object,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/copyTo/b/{}/o/{}",
-        sourceBucket.as_str(),
-        sourceObject.as_str(),
-        destinationBucket.as_str(),
-        destinationObject.as_str(),
+        sourceBucket, sourceObject, destinationBucket, destinationObject,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinationKmsKeyName {
+    if let Some(val) = destinationKmsKeyName.as_ref() {
         query_parts.push(format!("destinationKmsKeyName={}", val));
     }
-    if let Some(val) = destinationPredefinedAcl {
+    if let Some(val) = destinationPredefinedAcl.as_ref() {
         query_parts.push(format!("destinationPredefinedAcl={}", val));
     }
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifGenerationNotMatch {
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationMatch {
+    if let Some(val) = ifSourceGenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationNotMatch {
+    if let Some(val) = ifSourceGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationMatch {
+    if let Some(val) = ifSourceMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationNotMatch {
+    if let Some(val) = ifSourceMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = sourceGeneration {
+    if let Some(val) = sourceGeneration.as_ref() {
         query_parts.push(format!("sourceGeneration={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -5162,23 +5108,23 @@ pub fn storage_objects_copy(
 > {
     let builder = storage_objects_copy_builder(
         client,
-        args.sourceBucket.clone(),
-        args.sourceObject.clone(),
-        args.destinationBucket.clone(),
-        args.destinationObject.clone(),
-        args.destinationKmsKeyName.clone(),
-        args.destinationPredefinedAcl.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifGenerationNotMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.ifSourceGenerationMatch.clone(),
-        args.ifSourceGenerationNotMatch.clone(),
-        args.ifSourceMetagenerationMatch.clone(),
-        args.ifSourceMetagenerationNotMatch.clone(),
-        args.projection.clone(),
-        args.sourceGeneration.clone(),
-        args.userProject.clone(),
+        &args.sourceBucket,
+        &args.sourceObject,
+        &args.destinationBucket,
+        &args.destinationObject,
+        &args.destinationKmsKeyName,
+        &args.destinationPredefinedAcl,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.ifSourceGenerationMatch,
+        &args.ifSourceGenerationNotMatch,
+        &args.ifSourceMetagenerationMatch,
+        &args.ifSourceMetagenerationNotMatch,
+        &args.projection,
+        &args.sourceGeneration,
+        &args.userProject,
         &args.body,
     )?;
     storage_objects_copy_execute(builder)
@@ -5192,40 +5138,39 @@ pub fn storage_objects_copy(
 
 pub fn storage_objects_delete_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    object: String,
-    generation: Option<String>,
-    ifGenerationMatch: Option<String>,
-    ifGenerationNotMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    object: &String,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}",
-        bucket.as_str(),
-        object.as_str(),
+        bucket, object,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = generation {
+    if let Some(val) = generation.as_ref() {
         query_parts.push(format!("generation={}", val));
     }
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifGenerationNotMatch {
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -5384,14 +5329,14 @@ pub fn storage_objects_delete(
 > {
     let builder = storage_objects_delete_builder(
         client,
-        args.bucket.clone(),
-        args.object.clone(),
-        args.generation.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifGenerationNotMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.userProject,
     )?;
     storage_objects_delete_execute(builder)
 }
@@ -5404,24 +5349,23 @@ pub fn storage_objects_delete(
 
 pub fn storage_objects_get_iam_policy_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    object: String,
-    generation: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    object: &String,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/iam",
-        bucket.as_str(),
-        object.as_str(),
+        bucket, object,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = generation {
+    if let Some(val) = generation.as_ref() {
         query_parts.push(format!("generation={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -5575,10 +5519,10 @@ pub fn storage_objects_get_iam_policy(
 > {
     let builder = storage_objects_get_iam_policy_builder(
         client,
-        args.bucket.clone(),
-        args.object.clone(),
-        args.generation.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.object,
+        &args.generation,
+        &args.userProject,
     )?;
     storage_objects_get_iam_policy_execute(builder)
 }
@@ -5591,55 +5535,52 @@ pub fn storage_objects_get_iam_policy(
 
 pub fn storage_objects_insert_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    contentEncoding: Option<String>,
-    ifGenerationMatch: Option<String>,
-    ifGenerationNotMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    kmsKeyName: Option<String>,
-    name: Option<String>,
-    predefinedAcl: Option<String>,
-    projection: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    contentEncoding: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    kmsKeyName: &Option<String>,
+    name: &Option<String>,
+    predefinedAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
     body: &Object,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://storage.googleapis.com/storage/v1/b/{}/o",
-        bucket.as_str(),
-    );
+    let endpoint_url = format!("https://storage.googleapis.com/storage/v1/b/{}/o", bucket,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = contentEncoding {
+    if let Some(val) = contentEncoding.as_ref() {
         query_parts.push(format!("contentEncoding={}", val));
     }
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifGenerationNotMatch {
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = kmsKeyName {
+    if let Some(val) = kmsKeyName.as_ref() {
         query_parts.push(format!("kmsKeyName={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = predefinedAcl {
+    if let Some(val) = predefinedAcl.as_ref() {
         query_parts.push(format!("predefinedAcl={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -5811,17 +5752,17 @@ pub fn storage_objects_insert(
 > {
     let builder = storage_objects_insert_builder(
         client,
-        args.bucket.clone(),
-        args.contentEncoding.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifGenerationNotMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.kmsKeyName.clone(),
-        args.name.clone(),
-        args.predefinedAcl.clone(),
-        args.projection.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.contentEncoding,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.kmsKeyName,
+        &args.name,
+        &args.predefinedAcl,
+        &args.projection,
+        &args.userProject,
         &args.body,
     )?;
     storage_objects_insert_execute(builder)
@@ -5835,58 +5776,56 @@ pub fn storage_objects_insert(
 
 pub fn storage_objects_move_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    sourceObject: String,
-    destinationObject: String,
-    ifGenerationMatch: Option<String>,
-    ifGenerationNotMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    ifSourceGenerationMatch: Option<String>,
-    ifSourceGenerationNotMatch: Option<String>,
-    ifSourceMetagenerationMatch: Option<String>,
-    ifSourceMetagenerationNotMatch: Option<String>,
-    projection: Option<String>,
-    userProject: Option<String>,
+    bucket: &String,
+    sourceObject: &String,
+    destinationObject: &String,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/moveTo/o/{}",
-        bucket.as_str(),
-        sourceObject.as_str(),
-        destinationObject.as_str(),
+        bucket, sourceObject, destinationObject,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifGenerationNotMatch {
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationMatch {
+    if let Some(val) = ifSourceGenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationNotMatch {
+    if let Some(val) = ifSourceGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationMatch {
+    if let Some(val) = ifSourceMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationNotMatch {
+    if let Some(val) = ifSourceMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -6058,19 +5997,19 @@ pub fn storage_objects_move(
 > {
     let builder = storage_objects_move_builder(
         client,
-        args.bucket.clone(),
-        args.sourceObject.clone(),
-        args.destinationObject.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifGenerationNotMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.ifSourceGenerationMatch.clone(),
-        args.ifSourceGenerationNotMatch.clone(),
-        args.ifSourceMetagenerationMatch.clone(),
-        args.ifSourceMetagenerationNotMatch.clone(),
-        args.projection.clone(),
-        args.userProject.clone(),
+        &args.bucket,
+        &args.sourceObject,
+        &args.destinationObject,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.ifSourceGenerationMatch,
+        &args.ifSourceGenerationNotMatch,
+        &args.ifSourceMetagenerationMatch,
+        &args.ifSourceMetagenerationNotMatch,
+        &args.projection,
+        &args.userProject,
     )?;
     storage_objects_move_execute(builder)
 }
@@ -6083,85 +6022,82 @@ pub fn storage_objects_move(
 
 pub fn storage_objects_rewrite_builder(
     client: &SimpleHttpClient,
-    sourceBucket: String,
-    sourceObject: String,
-    destinationBucket: String,
-    destinationObject: String,
-    destinationKmsKeyName: Option<String>,
-    destinationPredefinedAcl: Option<String>,
-    dropContextGroups: Option<String>,
-    ifGenerationMatch: Option<String>,
-    ifGenerationNotMatch: Option<String>,
-    ifMetagenerationMatch: Option<String>,
-    ifMetagenerationNotMatch: Option<String>,
-    ifSourceGenerationMatch: Option<String>,
-    ifSourceGenerationNotMatch: Option<String>,
-    ifSourceMetagenerationMatch: Option<String>,
-    ifSourceMetagenerationNotMatch: Option<String>,
-    maxBytesRewrittenPerCall: Option<String>,
-    projection: Option<String>,
-    rewriteToken: Option<String>,
-    sourceGeneration: Option<String>,
-    userProject: Option<String>,
+    sourceBucket: &String,
+    sourceObject: &String,
+    destinationBucket: &String,
+    destinationObject: &String,
+    destinationKmsKeyName: &Option<String>,
+    destinationPredefinedAcl: &Option<String>,
+    dropContextGroups: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    maxBytesRewrittenPerCall: &Option<String>,
+    projection: &Option<String>,
+    rewriteToken: &Option<String>,
+    sourceGeneration: &Option<String>,
+    userProject: &Option<String>,
     body: &Object,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/{}/rewriteTo/b/{}/o/{}",
-        sourceBucket.as_str(),
-        sourceObject.as_str(),
-        destinationBucket.as_str(),
-        destinationObject.as_str(),
+        sourceBucket, sourceObject, destinationBucket, destinationObject,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinationKmsKeyName {
+    if let Some(val) = destinationKmsKeyName.as_ref() {
         query_parts.push(format!("destinationKmsKeyName={}", val));
     }
-    if let Some(val) = destinationPredefinedAcl {
+    if let Some(val) = destinationPredefinedAcl.as_ref() {
         query_parts.push(format!("destinationPredefinedAcl={}", val));
     }
-    if let Some(val) = dropContextGroups {
+    if let Some(val) = dropContextGroups.as_ref() {
         query_parts.push(format!("dropContextGroups={}", val));
     }
-    if let Some(val) = ifGenerationMatch {
+    if let Some(val) = ifGenerationMatch.as_ref() {
         query_parts.push(format!("ifGenerationMatch={}", val));
     }
-    if let Some(val) = ifGenerationNotMatch {
+    if let Some(val) = ifGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationMatch {
+    if let Some(val) = ifMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifMetagenerationNotMatch {
+    if let Some(val) = ifMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationMatch {
+    if let Some(val) = ifSourceGenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceGenerationNotMatch {
+    if let Some(val) = ifSourceGenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceGenerationNotMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationMatch {
+    if let Some(val) = ifSourceMetagenerationMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationMatch={}", val));
     }
-    if let Some(val) = ifSourceMetagenerationNotMatch {
+    if let Some(val) = ifSourceMetagenerationNotMatch.as_ref() {
         query_parts.push(format!("ifSourceMetagenerationNotMatch={}", val));
     }
-    if let Some(val) = maxBytesRewrittenPerCall {
+    if let Some(val) = maxBytesRewrittenPerCall.as_ref() {
         query_parts.push(format!("maxBytesRewrittenPerCall={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = rewriteToken {
+    if let Some(val) = rewriteToken.as_ref() {
         query_parts.push(format!("rewriteToken={}", val));
     }
-    if let Some(val) = sourceGeneration {
+    if let Some(val) = sourceGeneration.as_ref() {
         query_parts.push(format!("sourceGeneration={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -6355,26 +6291,26 @@ pub fn storage_objects_rewrite(
 > {
     let builder = storage_objects_rewrite_builder(
         client,
-        args.sourceBucket.clone(),
-        args.sourceObject.clone(),
-        args.destinationBucket.clone(),
-        args.destinationObject.clone(),
-        args.destinationKmsKeyName.clone(),
-        args.destinationPredefinedAcl.clone(),
-        args.dropContextGroups.clone(),
-        args.ifGenerationMatch.clone(),
-        args.ifGenerationNotMatch.clone(),
-        args.ifMetagenerationMatch.clone(),
-        args.ifMetagenerationNotMatch.clone(),
-        args.ifSourceGenerationMatch.clone(),
-        args.ifSourceGenerationNotMatch.clone(),
-        args.ifSourceMetagenerationMatch.clone(),
-        args.ifSourceMetagenerationNotMatch.clone(),
-        args.maxBytesRewrittenPerCall.clone(),
-        args.projection.clone(),
-        args.rewriteToken.clone(),
-        args.sourceGeneration.clone(),
-        args.userProject.clone(),
+        &args.sourceBucket,
+        &args.sourceObject,
+        &args.destinationBucket,
+        &args.destinationObject,
+        &args.destinationKmsKeyName,
+        &args.destinationPredefinedAcl,
+        &args.dropContextGroups,
+        &args.ifGenerationMatch,
+        &args.ifGenerationNotMatch,
+        &args.ifMetagenerationMatch,
+        &args.ifMetagenerationNotMatch,
+        &args.ifSourceGenerationMatch,
+        &args.ifSourceGenerationNotMatch,
+        &args.ifSourceMetagenerationMatch,
+        &args.ifSourceMetagenerationNotMatch,
+        &args.maxBytesRewrittenPerCall,
+        &args.projection,
+        &args.rewriteToken,
+        &args.sourceGeneration,
+        &args.userProject,
         &args.body,
     )?;
     storage_objects_rewrite_execute(builder)
@@ -6388,55 +6324,55 @@ pub fn storage_objects_rewrite(
 
 pub fn storage_objects_watch_all_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    delimiter: Option<String>,
-    endOffset: Option<String>,
-    includeTrailingDelimiter: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    prefix: Option<String>,
-    projection: Option<String>,
-    startOffset: Option<String>,
-    userProject: Option<String>,
-    versions: Option<bool>,
+    bucket: &String,
+    delimiter: &Option<String>,
+    endOffset: &Option<String>,
+    includeTrailingDelimiter: &Option<bool>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
+    projection: &Option<String>,
+    startOffset: &Option<String>,
+    userProject: &Option<String>,
+    versions: &Option<bool>,
     body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/o/watch",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = delimiter {
+    if let Some(val) = delimiter.as_ref() {
         query_parts.push(format!("delimiter={}", val));
     }
-    if let Some(val) = endOffset {
+    if let Some(val) = endOffset.as_ref() {
         query_parts.push(format!("endOffset={}", val));
     }
-    if let Some(val) = includeTrailingDelimiter {
+    if let Some(val) = includeTrailingDelimiter.as_ref() {
         query_parts.push(format!("includeTrailingDelimiter={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = prefix {
+    if let Some(val) = prefix.as_ref() {
         query_parts.push(format!("prefix={}", val));
     }
-    if let Some(val) = projection {
+    if let Some(val) = projection.as_ref() {
         query_parts.push(format!("projection={}", val));
     }
-    if let Some(val) = startOffset {
+    if let Some(val) = startOffset.as_ref() {
         query_parts.push(format!("startOffset={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
-    if let Some(val) = versions {
+    if let Some(val) = versions.as_ref() {
         query_parts.push(format!("versions={}", val));
     }
 
@@ -6608,17 +6544,17 @@ pub fn storage_objects_watch_all(
 > {
     let builder = storage_objects_watch_all_builder(
         client,
-        args.bucket.clone(),
-        args.delimiter.clone(),
-        args.endOffset.clone(),
-        args.includeTrailingDelimiter.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.prefix.clone(),
-        args.projection.clone(),
-        args.startOffset.clone(),
-        args.userProject.clone(),
-        args.versions.clone(),
+        &args.bucket,
+        &args.delimiter,
+        &args.endOffset,
+        &args.includeTrailingDelimiter,
+        &args.maxResults,
+        &args.pageToken,
+        &args.prefix,
+        &args.projection,
+        &args.startOffset,
+        &args.userProject,
+        &args.versions,
         &args.body,
     )?;
     storage_objects_watch_all_execute(builder)
@@ -6632,15 +6568,14 @@ pub fn storage_objects_watch_all(
 
 pub fn storage_buckets_operations_advance_relocate_bucket_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    operationId: String,
+    bucket: &String,
+    operationId: &String,
     body: &AdvanceRelocateBucketOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}/advanceRelocateBucket",
-        bucket.as_str(),
-        operationId.as_str(),
+        bucket, operationId,
     );
 
     // Build request
@@ -6785,8 +6720,8 @@ pub fn storage_buckets_operations_advance_relocate_bucket(
 > {
     let builder = storage_buckets_operations_advance_relocate_bucket_builder(
         client,
-        args.bucket.clone(),
-        args.operationId.clone(),
+        &args.bucket,
+        &args.operationId,
         &args.body,
     )?;
     storage_buckets_operations_advance_relocate_bucket_execute(builder)
@@ -6800,14 +6735,13 @@ pub fn storage_buckets_operations_advance_relocate_bucket(
 
 pub fn storage_buckets_operations_cancel_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    operationId: String,
+    bucket: &String,
+    operationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}/cancel",
-        bucket.as_str(),
-        operationId.as_str(),
+        bucket, operationId,
     );
 
     // Build request
@@ -6946,11 +6880,8 @@ pub fn storage_buckets_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_operations_cancel_builder(
-        client,
-        args.bucket.clone(),
-        args.operationId.clone(),
-    )?;
+    let builder =
+        storage_buckets_operations_cancel_builder(client, &args.bucket, &args.operationId)?;
     storage_buckets_operations_cancel_execute(builder)
 }
 
@@ -6962,14 +6893,13 @@ pub fn storage_buckets_operations_cancel(
 
 pub fn storage_buckets_operations_get_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    operationId: String,
+    bucket: &String,
+    operationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations/{}",
-        bucket.as_str(),
-        operationId.as_str(),
+        bucket, operationId,
     );
 
     // Build request
@@ -7119,11 +7049,7 @@ pub fn storage_buckets_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = storage_buckets_operations_get_builder(
-        client,
-        args.bucket.clone(),
-        args.operationId.clone(),
-    )?;
+    let builder = storage_buckets_operations_get_builder(client, &args.bucket, &args.operationId)?;
     storage_buckets_operations_get_execute(builder)
 }
 
@@ -7135,26 +7061,26 @@ pub fn storage_buckets_operations_get(
 
 pub fn storage_buckets_operations_list_builder(
     client: &SimpleHttpClient,
-    bucket: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    bucket: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/b/{}/operations",
-        bucket.as_str(),
+        bucket,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -7317,10 +7243,10 @@ pub fn storage_buckets_operations_list(
 > {
     let builder = storage_buckets_operations_list_builder(
         client,
-        args.bucket.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.bucket,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     storage_buckets_operations_list_execute(builder)
 }
@@ -7333,20 +7259,19 @@ pub fn storage_buckets_operations_list(
 
 pub fn storage_projects_hmac_keys_delete_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    accessId: String,
-    userProject: Option<String>,
+    projectId: &String,
+    accessId: &String,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys/{}",
-        projectId.as_str(),
-        accessId.as_str(),
+        projectId, accessId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -7495,9 +7420,9 @@ pub fn storage_projects_hmac_keys_delete(
 > {
     let builder = storage_projects_hmac_keys_delete_builder(
         client,
-        args.projectId.clone(),
-        args.accessId.clone(),
-        args.userProject.clone(),
+        &args.projectId,
+        &args.accessId,
+        &args.userProject,
     )?;
     storage_projects_hmac_keys_delete_execute(builder)
 }
@@ -7510,34 +7435,34 @@ pub fn storage_projects_hmac_keys_delete(
 
 pub fn storage_projects_hmac_keys_list_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    serviceAccountEmail: Option<String>,
-    showDeletedKeys: Option<bool>,
-    userProject: Option<String>,
+    projectId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    serviceAccountEmail: &Option<String>,
+    showDeletedKeys: &Option<bool>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/hmacKeys",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = serviceAccountEmail {
+    if let Some(val) = serviceAccountEmail.as_ref() {
         query_parts.push(format!("serviceAccountEmail={}", val));
     }
-    if let Some(val) = showDeletedKeys {
+    if let Some(val) = showDeletedKeys.as_ref() {
         query_parts.push(format!("showDeletedKeys={}", val));
     }
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -7699,12 +7624,12 @@ pub fn storage_projects_hmac_keys_list(
 > {
     let builder = storage_projects_hmac_keys_list_builder(
         client,
-        args.projectId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.serviceAccountEmail.clone(),
-        args.showDeletedKeys.clone(),
-        args.userProject.clone(),
+        &args.projectId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.serviceAccountEmail,
+        &args.showDeletedKeys,
+        &args.userProject,
     )?;
     storage_projects_hmac_keys_list_execute(builder)
 }
@@ -7717,18 +7642,18 @@ pub fn storage_projects_hmac_keys_list(
 
 pub fn storage_projects_service_account_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    userProject: Option<String>,
+    projectId: &String,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://storage.googleapis.com/storage/v1/projects/{}/serviceAccount",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = userProject {
+    if let Some(val) = userProject.as_ref() {
         query_parts.push(format!("userProject={}", val));
     }
 
@@ -7880,10 +7805,7 @@ pub fn storage_projects_service_account_get(
         + 'static,
     ApiError,
 > {
-    let builder = storage_projects_service_account_get_builder(
-        client,
-        args.projectId.clone(),
-        args.userProject.clone(),
-    )?;
+    let builder =
+        storage_projects_service_account_get_builder(client, &args.projectId, &args.userProject)?;
     storage_projects_service_account_get_execute(builder)
 }

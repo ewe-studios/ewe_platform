@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn serviceconsumermanagement_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -178,7 +178,7 @@ pub fn serviceconsumermanagement_operations_cancel(
     ApiError,
 > {
     let builder =
-        serviceconsumermanagement_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+        serviceconsumermanagement_operations_cancel_builder(client, &args.name, &args.body)?;
     serviceconsumermanagement_operations_cancel_execute(builder)
 }
 
@@ -190,7 +190,7 @@ pub fn serviceconsumermanagement_operations_cancel(
 
 pub fn serviceconsumermanagement_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -333,7 +333,7 @@ pub fn serviceconsumermanagement_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceconsumermanagement_operations_delete_builder(client, args.name.clone())?;
+    let builder = serviceconsumermanagement_operations_delete_builder(client, &args.name)?;
     serviceconsumermanagement_operations_delete_execute(builder)
 }
 
@@ -345,10 +345,10 @@ pub fn serviceconsumermanagement_operations_delete(
 
 pub fn serviceconsumermanagement_services_search_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -356,13 +356,13 @@ pub fn serviceconsumermanagement_services_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -524,10 +524,10 @@ pub fn serviceconsumermanagement_services_search(
 > {
     let builder = serviceconsumermanagement_services_search_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     serviceconsumermanagement_services_search_execute(builder)
 }

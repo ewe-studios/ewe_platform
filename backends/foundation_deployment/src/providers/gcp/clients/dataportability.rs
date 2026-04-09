@@ -189,7 +189,7 @@ pub fn dataportability_access_type_check(
 
 pub fn dataportability_archive_jobs_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -344,8 +344,7 @@ pub fn dataportability_archive_jobs_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataportability_archive_jobs_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = dataportability_archive_jobs_cancel_builder(client, &args.name, &args.body)?;
     dataportability_archive_jobs_cancel_execute(builder)
 }
 
@@ -357,7 +356,7 @@ pub fn dataportability_archive_jobs_cancel(
 
 pub fn dataportability_archive_jobs_get_portability_archive_state_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -505,10 +504,8 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_get_portability_archive_state_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        dataportability_archive_jobs_get_portability_archive_state_builder(client, &args.name)?;
     dataportability_archive_jobs_get_portability_archive_state_execute(builder)
 }
 
@@ -520,7 +517,7 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
 
 pub fn dataportability_archive_jobs_retry_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &RetryPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -675,8 +672,7 @@ pub fn dataportability_archive_jobs_retry(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataportability_archive_jobs_retry_builder(client, args.name.clone(), &args.body)?;
+    let builder = dataportability_archive_jobs_retry_builder(client, &args.name, &args.body)?;
     dataportability_archive_jobs_retry_execute(builder)
 }
 

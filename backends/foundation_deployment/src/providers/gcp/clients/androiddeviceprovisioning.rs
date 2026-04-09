@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn androiddeviceprovisioning_customers_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://androiddeviceprovisioning.googleapis.com/v1/customers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -196,11 +196,8 @@ pub fn androiddeviceprovisioning_customers_list(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_list_builder(
-        client,
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        androiddeviceprovisioning_customers_list_builder(client, &args.pageSize, &args.pageToken)?;
     androiddeviceprovisioning_customers_list_execute(builder)
 }
 
@@ -212,7 +209,7 @@ pub fn androiddeviceprovisioning_customers_list(
 
 pub fn androiddeviceprovisioning_customers_configurations_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &Configuration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -366,7 +363,7 @@ pub fn androiddeviceprovisioning_customers_configurations_create(
 > {
     let builder = androiddeviceprovisioning_customers_configurations_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androiddeviceprovisioning_customers_configurations_create_execute(builder)
@@ -380,7 +377,7 @@ pub fn androiddeviceprovisioning_customers_configurations_create(
 
 pub fn androiddeviceprovisioning_customers_devices_apply_configuration_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CustomerApplyConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -531,7 +528,7 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
 > {
     let builder = androiddeviceprovisioning_customers_devices_apply_configuration_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_apply_configuration_execute(builder)
@@ -545,9 +542,9 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
 
 pub fn androiddeviceprovisioning_customers_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<String>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -555,10 +552,10 @@ pub fn androiddeviceprovisioning_customers_devices_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -718,9 +715,9 @@ pub fn androiddeviceprovisioning_customers_devices_list(
 > {
     let builder = androiddeviceprovisioning_customers_devices_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     androiddeviceprovisioning_customers_devices_list_execute(builder)
 }
@@ -733,7 +730,7 @@ pub fn androiddeviceprovisioning_customers_devices_list(
 
 pub fn androiddeviceprovisioning_customers_devices_remove_configuration_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CustomerRemoveConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -884,7 +881,7 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
 > {
     let builder = androiddeviceprovisioning_customers_devices_remove_configuration_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_remove_configuration_execute(builder)
@@ -898,7 +895,7 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
 
 pub fn androiddeviceprovisioning_customers_devices_unclaim_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CustomerUnclaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1049,7 +1046,7 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim(
 > {
     let builder = androiddeviceprovisioning_customers_devices_unclaim_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_unclaim_execute(builder)
@@ -1063,7 +1060,7 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim(
 
 pub fn androiddeviceprovisioning_customers_dpcs_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1210,8 +1207,7 @@ pub fn androiddeviceprovisioning_customers_dpcs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_customers_dpcs_list_builder(client, args.parent.clone())?;
+    let builder = androiddeviceprovisioning_customers_dpcs_list_builder(client, &args.parent)?;
     androiddeviceprovisioning_customers_dpcs_list_execute(builder)
 }
 
@@ -1223,7 +1219,7 @@ pub fn androiddeviceprovisioning_customers_dpcs_list(
 
 pub fn androiddeviceprovisioning_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1366,7 +1362,7 @@ pub fn androiddeviceprovisioning_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_operations_get_builder(client, args.name.clone())?;
+    let builder = androiddeviceprovisioning_operations_get_builder(client, &args.name)?;
     androiddeviceprovisioning_operations_get_execute(builder)
 }
 
@@ -1378,7 +1374,7 @@ pub fn androiddeviceprovisioning_operations_get(
 
 pub fn androiddeviceprovisioning_partners_customers_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &CreateCustomerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1528,7 +1524,7 @@ pub fn androiddeviceprovisioning_partners_customers_create(
 > {
     let builder = androiddeviceprovisioning_partners_customers_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_customers_create_execute(builder)
@@ -1542,7 +1538,7 @@ pub fn androiddeviceprovisioning_partners_customers_create(
 
 pub fn androiddeviceprovisioning_partners_devices_claim_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &ClaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1696,7 +1692,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim(
 > {
     let builder = androiddeviceprovisioning_partners_devices_claim_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_claim_execute(builder)
@@ -1710,7 +1706,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim(
 
 pub fn androiddeviceprovisioning_partners_devices_claim_async_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &ClaimDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1861,7 +1857,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async(
 > {
     let builder = androiddeviceprovisioning_partners_devices_claim_async_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_claim_async_execute(builder)
@@ -1875,7 +1871,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async(
 
 pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &FindDevicesByDeviceIdentifierRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2034,7 +2030,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
 > {
     let builder = androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_find_by_identifier_execute(builder)
@@ -2048,7 +2044,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
 
 pub fn androiddeviceprovisioning_partners_devices_find_by_owner_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &FindDevicesByOwnerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2207,7 +2203,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
 > {
     let builder = androiddeviceprovisioning_partners_devices_find_by_owner_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_find_by_owner_execute(builder)
@@ -2221,7 +2217,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
 
 pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &GetDeviceSimLockStateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2380,7 +2376,7 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
 > {
     let builder = androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(builder)
@@ -2394,8 +2390,8 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
 
 pub fn androiddeviceprovisioning_partners_devices_metadata_builder(
     client: &SimpleHttpClient,
-    metadataOwnerId: String,
-    deviceId: String,
+    metadataOwnerId: &String,
+    deviceId: &String,
     body: &UpdateDeviceMetadataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2552,8 +2548,8 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
 > {
     let builder = androiddeviceprovisioning_partners_devices_metadata_builder(
         client,
-        args.metadataOwnerId.clone(),
-        args.deviceId.clone(),
+        &args.metadataOwnerId,
+        &args.deviceId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_metadata_execute(builder)
@@ -2567,7 +2563,7 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
 
 pub fn androiddeviceprovisioning_partners_devices_unclaim_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &UnclaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2717,7 +2713,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim(
 > {
     let builder = androiddeviceprovisioning_partners_devices_unclaim_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_unclaim_execute(builder)
@@ -2731,7 +2727,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim(
 
 pub fn androiddeviceprovisioning_partners_devices_unclaim_async_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &UnclaimDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2882,7 +2878,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
 > {
     let builder = androiddeviceprovisioning_partners_devices_unclaim_async_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_unclaim_async_execute(builder)
@@ -2896,7 +2892,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
 
 pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
     client: &SimpleHttpClient,
-    partnerId: String,
+    partnerId: &String,
     body: &UpdateDeviceMetadataInBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3047,7 +3043,7 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
 > {
     let builder = androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
         client,
-        args.partnerId.clone(),
+        &args.partnerId,
         &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_update_metadata_async_execute(builder)
@@ -3061,9 +3057,9 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
 
 pub fn androiddeviceprovisioning_partners_vendors_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3071,10 +3067,10 @@ pub fn androiddeviceprovisioning_partners_vendors_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3230,9 +3226,9 @@ pub fn androiddeviceprovisioning_partners_vendors_list(
 > {
     let builder = androiddeviceprovisioning_partners_vendors_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     androiddeviceprovisioning_partners_vendors_list_execute(builder)
 }

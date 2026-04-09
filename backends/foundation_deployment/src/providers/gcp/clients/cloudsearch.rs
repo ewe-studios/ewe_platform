@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudsearch_debug_datasources_items_search_by_view_url_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &SearchItemsByViewUrlRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -187,9 +187,7 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
     ApiError,
 > {
     let builder = cloudsearch_debug_datasources_items_search_by_view_url_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     cloudsearch_debug_datasources_items_search_by_view_url_execute(builder)
 }
@@ -202,12 +200,12 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
 
 pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    debugOptions_enableDebugging: Option<bool>,
-    groupResourceName: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    userResourceName: Option<String>,
+    parent: &String,
+    debugOptions_enableDebugging: &Option<bool>,
+    groupResourceName: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    userResourceName: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -216,19 +214,19 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
-    if let Some(val) = groupResourceName {
+    if let Some(val) = groupResourceName.as_ref() {
         query_parts.push(format!("groupResourceName={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = userResourceName {
+    if let Some(val) = userResourceName.as_ref() {
         query_parts.push(format!("userResourceName={}", val));
     }
 
@@ -394,12 +392,12 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity(
 > {
     let builder = cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder(
         client,
-        args.parent.clone(),
-        args.debugOptions_enableDebugging.clone(),
-        args.groupResourceName.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.userResourceName.clone(),
+        &args.parent,
+        &args.debugOptions_enableDebugging,
+        &args.groupResourceName,
+        &args.pageSize,
+        &args.pageToken,
+        &args.userResourceName,
     )?;
     cloudsearch_debug_identitysources_items_list_forunmappedidentity_execute(builder)
 }
@@ -412,11 +410,11 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity(
 
 pub fn cloudsearch_debug_identitysources_unmappedids_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    debugOptions_enableDebugging: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    resolutionStatusCode: Option<String>,
+    parent: &String,
+    debugOptions_enableDebugging: &Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    resolutionStatusCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -424,16 +422,16 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = resolutionStatusCode {
+    if let Some(val) = resolutionStatusCode.as_ref() {
         query_parts.push(format!("resolutionStatusCode={}", val));
     }
 
@@ -597,11 +595,11 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
 > {
     let builder = cloudsearch_debug_identitysources_unmappedids_list_builder(
         client,
-        args.parent.clone(),
-        args.debugOptions_enableDebugging.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.resolutionStatusCode.clone(),
+        &args.parent,
+        &args.debugOptions_enableDebugging,
+        &args.pageSize,
+        &args.pageToken,
+        &args.resolutionStatusCode,
     )?;
     cloudsearch_debug_identitysources_unmappedids_list_execute(builder)
 }
@@ -614,8 +612,8 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
 
 pub fn cloudsearch_indexing_datasources_delete_schema_builder(
     client: &SimpleHttpClient,
-    name: String,
-    debugOptions_enableDebugging: Option<bool>,
+    name: &String,
+    debugOptions_enableDebugging: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -623,7 +621,7 @@ pub fn cloudsearch_indexing_datasources_delete_schema_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
 
@@ -773,8 +771,8 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
 > {
     let builder = cloudsearch_indexing_datasources_delete_schema_builder(
         client,
-        args.name.clone(),
-        args.debugOptions_enableDebugging.clone(),
+        &args.name,
+        &args.debugOptions_enableDebugging,
     )?;
     cloudsearch_indexing_datasources_delete_schema_execute(builder)
 }
@@ -787,7 +785,7 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
 
 pub fn cloudsearch_indexing_datasources_items_delete_queue_items_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &DeleteQueueItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -937,9 +935,7 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
     ApiError,
 > {
     let builder = cloudsearch_indexing_datasources_items_delete_queue_items_builder(
-        client,
-        args.name.clone(),
-        &args.body,
+        client, &args.name, &args.body,
     )?;
     cloudsearch_indexing_datasources_items_delete_queue_items_execute(builder)
 }
@@ -952,12 +948,12 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
 
 pub fn cloudsearch_indexing_datasources_items_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    brief: Option<bool>,
-    connectorName: Option<String>,
-    debugOptions_enableDebugging: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    brief: &Option<bool>,
+    connectorName: &Option<String>,
+    debugOptions_enableDebugging: &Option<bool>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -965,19 +961,19 @@ pub fn cloudsearch_indexing_datasources_items_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = brief {
+    if let Some(val) = brief.as_ref() {
         query_parts.push(format!("brief={}", val));
     }
-    if let Some(val) = connectorName {
+    if let Some(val) = connectorName.as_ref() {
         query_parts.push(format!("connectorName={}", val));
     }
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1139,12 +1135,12 @@ pub fn cloudsearch_indexing_datasources_items_list(
 > {
     let builder = cloudsearch_indexing_datasources_items_list_builder(
         client,
-        args.name.clone(),
-        args.brief.clone(),
-        args.connectorName.clone(),
-        args.debugOptions_enableDebugging.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.brief,
+        &args.connectorName,
+        &args.debugOptions_enableDebugging,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudsearch_indexing_datasources_items_list_execute(builder)
 }
@@ -1157,7 +1153,7 @@ pub fn cloudsearch_indexing_datasources_items_list(
 
 pub fn cloudsearch_indexing_datasources_items_poll_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &PollItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1310,7 +1306,7 @@ pub fn cloudsearch_indexing_datasources_items_poll(
     ApiError,
 > {
     let builder =
-        cloudsearch_indexing_datasources_items_poll_builder(client, args.name.clone(), &args.body)?;
+        cloudsearch_indexing_datasources_items_poll_builder(client, &args.name, &args.body)?;
     cloudsearch_indexing_datasources_items_poll_execute(builder)
 }
 
@@ -1322,7 +1318,7 @@ pub fn cloudsearch_indexing_datasources_items_poll(
 
 pub fn cloudsearch_indexing_datasources_items_unreserve_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &UnreserveItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1470,11 +1466,8 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_indexing_datasources_items_unreserve_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudsearch_indexing_datasources_items_unreserve_builder(client, &args.name, &args.body)?;
     cloudsearch_indexing_datasources_items_unreserve_execute(builder)
 }
 
@@ -1486,7 +1479,7 @@ pub fn cloudsearch_indexing_datasources_items_unreserve(
 
 pub fn cloudsearch_media_upload_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
     body: &Media,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1633,7 +1626,7 @@ pub fn cloudsearch_media_upload(
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_media_upload_builder(client, args.resourceName.clone(), &args.body)?;
+    let builder = cloudsearch_media_upload_builder(client, &args.resourceName, &args.body)?;
     cloudsearch_media_upload_execute(builder)
 }
 
@@ -1645,7 +1638,7 @@ pub fn cloudsearch_media_upload(
 
 pub fn cloudsearch_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}",);
@@ -1787,7 +1780,7 @@ pub fn cloudsearch_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_operations_get_builder(client, args.name.clone())?;
+    let builder = cloudsearch_operations_get_builder(client, &args.name)?;
     cloudsearch_operations_get_execute(builder)
 }
 
@@ -1799,27 +1792,27 @@ pub fn cloudsearch_operations_get(
 
 pub fn cloudsearch_operations_lro_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/operations/{}/lro",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -1979,11 +1972,11 @@ pub fn cloudsearch_operations_lro_list(
 > {
     let builder = cloudsearch_operations_lro_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     cloudsearch_operations_lro_list_execute(builder)
 }
@@ -2476,33 +2469,33 @@ pub fn cloudsearch_query_suggest(
 
 pub fn cloudsearch_query_sources_list_builder(
     client: &SimpleHttpClient,
-    pageToken: Option<String>,
-    requestOptions_debugOptions_enableDebugging: Option<bool>,
-    requestOptions_languageCode: Option<String>,
-    requestOptions_searchApplicationId: Option<String>,
-    requestOptions_timeZone: Option<String>,
+    pageToken: &Option<String>,
+    requestOptions_debugOptions_enableDebugging: &Option<bool>,
+    requestOptions_languageCode: &Option<String>,
+    requestOptions_searchApplicationId: &Option<String>,
+    requestOptions_timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/query/sources",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = requestOptions_debugOptions_enableDebugging {
+    if let Some(val) = requestOptions_debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!(
             "requestOptions.debugOptions.enableDebugging={}",
             val
         ));
     }
-    if let Some(val) = requestOptions_languageCode {
+    if let Some(val) = requestOptions_languageCode.as_ref() {
         query_parts.push(format!("requestOptions.languageCode={}", val));
     }
-    if let Some(val) = requestOptions_searchApplicationId {
+    if let Some(val) = requestOptions_searchApplicationId.as_ref() {
         query_parts.push(format!("requestOptions.searchApplicationId={}", val));
     }
-    if let Some(val) = requestOptions_timeZone {
+    if let Some(val) = requestOptions_timeZone.as_ref() {
         query_parts.push(format!("requestOptions.timeZone={}", val));
     }
 
@@ -2662,11 +2655,11 @@ pub fn cloudsearch_query_sources_list(
 > {
     let builder = cloudsearch_query_sources_list_builder(
         client,
-        args.pageToken.clone(),
-        args.requestOptions_debugOptions_enableDebugging.clone(),
-        args.requestOptions_languageCode.clone(),
-        args.requestOptions_searchApplicationId.clone(),
-        args.requestOptions_timeZone.clone(),
+        &args.pageToken,
+        &args.requestOptions_debugOptions_enableDebugging,
+        &args.requestOptions_languageCode,
+        &args.requestOptions_searchApplicationId,
+        &args.requestOptions_timeZone,
     )?;
     cloudsearch_query_sources_list_execute(builder)
 }
@@ -2984,15 +2977,15 @@ pub fn cloudsearch_settings_datasources_create(
 
 pub fn cloudsearch_settings_datasources_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    debugOptions_enableDebugging: Option<bool>,
+    name: &String,
+    debugOptions_enableDebugging: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/settings/datasources/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
 
@@ -3142,8 +3135,8 @@ pub fn cloudsearch_settings_datasources_delete(
 > {
     let builder = cloudsearch_settings_datasources_delete_builder(
         client,
-        args.name.clone(),
-        args.debugOptions_enableDebugging.clone(),
+        &args.name,
+        &args.debugOptions_enableDebugging,
     )?;
     cloudsearch_settings_datasources_delete_execute(builder)
 }
@@ -3313,8 +3306,8 @@ pub fn cloudsearch_settings_searchapplications_create(
 
 pub fn cloudsearch_settings_searchapplications_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    debugOptions_enableDebugging: Option<bool>,
+    name: &String,
+    debugOptions_enableDebugging: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3322,7 +3315,7 @@ pub fn cloudsearch_settings_searchapplications_delete_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = debugOptions_enableDebugging {
+    if let Some(val) = debugOptions_enableDebugging.as_ref() {
         query_parts.push(format!("debugOptions.enableDebugging={}", val));
     }
 
@@ -3472,8 +3465,8 @@ pub fn cloudsearch_settings_searchapplications_delete(
 > {
     let builder = cloudsearch_settings_searchapplications_delete_builder(
         client,
-        args.name.clone(),
-        args.debugOptions_enableDebugging.clone(),
+        &args.name,
+        &args.debugOptions_enableDebugging,
     )?;
     cloudsearch_settings_searchapplications_delete_execute(builder)
 }
@@ -3486,7 +3479,7 @@ pub fn cloudsearch_settings_searchapplications_delete(
 
 pub fn cloudsearch_settings_searchapplications_reset_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &ResetSearchApplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3634,11 +3627,8 @@ pub fn cloudsearch_settings_searchapplications_reset(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsearch_settings_searchapplications_reset_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudsearch_settings_searchapplications_reset_builder(client, &args.name, &args.body)?;
     cloudsearch_settings_searchapplications_reset_execute(builder)
 }
 
@@ -3650,34 +3640,34 @@ pub fn cloudsearch_settings_searchapplications_reset(
 
 pub fn cloudsearch_stats_get_index_builder(
     client: &SimpleHttpClient,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/index",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -3843,12 +3833,12 @@ pub fn cloudsearch_stats_get_index(
 > {
     let builder = cloudsearch_stats_get_index_builder(
         client,
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_get_index_execute(builder)
 }
@@ -3861,34 +3851,34 @@ pub fn cloudsearch_stats_get_index(
 
 pub fn cloudsearch_stats_get_query_builder(
     client: &SimpleHttpClient,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/query",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -4054,12 +4044,12 @@ pub fn cloudsearch_stats_get_query(
 > {
     let builder = cloudsearch_stats_get_query_builder(
         client,
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_get_query_execute(builder)
 }
@@ -4072,34 +4062,34 @@ pub fn cloudsearch_stats_get_query(
 
 pub fn cloudsearch_stats_get_searchapplication_builder(
     client: &SimpleHttpClient,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    endDate_day: &Option<i32>,
+    endDate_month: &Option<i32>,
+    endDate_year: &Option<i32>,
+    startDate_day: &Option<i32>,
+    startDate_month: &Option<i32>,
+    startDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/searchapplication",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = endDate_day {
+    if let Some(val) = endDate_day.as_ref() {
         query_parts.push(format!("endDate.day={}", val));
     }
-    if let Some(val) = endDate_month {
+    if let Some(val) = endDate_month.as_ref() {
         query_parts.push(format!("endDate.month={}", val));
     }
-    if let Some(val) = endDate_year {
+    if let Some(val) = endDate_year.as_ref() {
         query_parts.push(format!("endDate.year={}", val));
     }
-    if let Some(val) = startDate_day {
+    if let Some(val) = startDate_day.as_ref() {
         query_parts.push(format!("startDate.day={}", val));
     }
-    if let Some(val) = startDate_month {
+    if let Some(val) = startDate_month.as_ref() {
         query_parts.push(format!("startDate.month={}", val));
     }
-    if let Some(val) = startDate_year {
+    if let Some(val) = startDate_year.as_ref() {
         query_parts.push(format!("startDate.year={}", val));
     }
 
@@ -4265,12 +4255,12 @@ pub fn cloudsearch_stats_get_searchapplication(
 > {
     let builder = cloudsearch_stats_get_searchapplication_builder(
         client,
-        args.endDate_day.clone(),
-        args.endDate_month.clone(),
-        args.endDate_year.clone(),
-        args.startDate_day.clone(),
-        args.startDate_month.clone(),
-        args.startDate_year.clone(),
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
     )?;
     cloudsearch_stats_get_searchapplication_execute(builder)
 }
@@ -4283,34 +4273,34 @@ pub fn cloudsearch_stats_get_searchapplication(
 
 pub fn cloudsearch_stats_get_session_builder(
     client: &SimpleHttpClient,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/session",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -4476,12 +4466,12 @@ pub fn cloudsearch_stats_get_session(
 > {
     let builder = cloudsearch_stats_get_session_builder(
         client,
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_get_session_execute(builder)
 }
@@ -4494,34 +4484,34 @@ pub fn cloudsearch_stats_get_session(
 
 pub fn cloudsearch_stats_get_user_builder(
     client: &SimpleHttpClient,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/user",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -4687,12 +4677,12 @@ pub fn cloudsearch_stats_get_user(
 > {
     let builder = cloudsearch_stats_get_user_builder(
         client,
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_get_user_execute(builder)
 }
@@ -4705,35 +4695,35 @@ pub fn cloudsearch_stats_get_user(
 
 pub fn cloudsearch_stats_index_datasources_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    name: &String,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudsearch.googleapis.com/v1/stats/index/datasources/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -4901,13 +4891,13 @@ pub fn cloudsearch_stats_index_datasources_get(
 > {
     let builder = cloudsearch_stats_index_datasources_get_builder(
         client,
-        args.name.clone(),
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.name,
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_index_datasources_get_execute(builder)
 }
@@ -4920,13 +4910,13 @@ pub fn cloudsearch_stats_index_datasources_get(
 
 pub fn cloudsearch_stats_query_searchapplications_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    name: &String,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4934,22 +4924,22 @@ pub fn cloudsearch_stats_query_searchapplications_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -5117,13 +5107,13 @@ pub fn cloudsearch_stats_query_searchapplications_get(
 > {
     let builder = cloudsearch_stats_query_searchapplications_get_builder(
         client,
-        args.name.clone(),
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.name,
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_query_searchapplications_get_execute(builder)
 }
@@ -5136,13 +5126,13 @@ pub fn cloudsearch_stats_query_searchapplications_get(
 
 pub fn cloudsearch_stats_session_searchapplications_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    name: &String,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5150,22 +5140,22 @@ pub fn cloudsearch_stats_session_searchapplications_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -5333,13 +5323,13 @@ pub fn cloudsearch_stats_session_searchapplications_get(
 > {
     let builder = cloudsearch_stats_session_searchapplications_get_builder(
         client,
-        args.name.clone(),
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.name,
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_session_searchapplications_get_execute(builder)
 }
@@ -5352,13 +5342,13 @@ pub fn cloudsearch_stats_session_searchapplications_get(
 
 pub fn cloudsearch_stats_user_searchapplications_get_builder(
     client: &SimpleHttpClient,
-    name: String,
-    fromDate_day: Option<i32>,
-    fromDate_month: Option<i32>,
-    fromDate_year: Option<i32>,
-    toDate_day: Option<i32>,
-    toDate_month: Option<i32>,
-    toDate_year: Option<i32>,
+    name: &String,
+    fromDate_day: &Option<i32>,
+    fromDate_month: &Option<i32>,
+    fromDate_year: &Option<i32>,
+    toDate_day: &Option<i32>,
+    toDate_month: &Option<i32>,
+    toDate_year: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5366,22 +5356,22 @@ pub fn cloudsearch_stats_user_searchapplications_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = fromDate_day {
+    if let Some(val) = fromDate_day.as_ref() {
         query_parts.push(format!("fromDate.day={}", val));
     }
-    if let Some(val) = fromDate_month {
+    if let Some(val) = fromDate_month.as_ref() {
         query_parts.push(format!("fromDate.month={}", val));
     }
-    if let Some(val) = fromDate_year {
+    if let Some(val) = fromDate_year.as_ref() {
         query_parts.push(format!("fromDate.year={}", val));
     }
-    if let Some(val) = toDate_day {
+    if let Some(val) = toDate_day.as_ref() {
         query_parts.push(format!("toDate.day={}", val));
     }
-    if let Some(val) = toDate_month {
+    if let Some(val) = toDate_month.as_ref() {
         query_parts.push(format!("toDate.month={}", val));
     }
-    if let Some(val) = toDate_year {
+    if let Some(val) = toDate_year.as_ref() {
         query_parts.push(format!("toDate.year={}", val));
     }
 
@@ -5549,13 +5539,13 @@ pub fn cloudsearch_stats_user_searchapplications_get(
 > {
     let builder = cloudsearch_stats_user_searchapplications_get_builder(
         client,
-        args.name.clone(),
-        args.fromDate_day.clone(),
-        args.fromDate_month.clone(),
-        args.fromDate_year.clone(),
-        args.toDate_day.clone(),
-        args.toDate_month.clone(),
-        args.toDate_year.clone(),
+        &args.name,
+        &args.fromDate_day,
+        &args.fromDate_month,
+        &args.fromDate_year,
+        &args.toDate_day,
+        &args.toDate_month,
+        &args.toDate_year,
     )?;
     cloudsearch_stats_user_searchapplications_get_execute(builder)
 }

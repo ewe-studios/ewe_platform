@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn sasportal_customers_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers/{}",);
@@ -175,7 +175,7 @@ pub fn sasportal_customers_get(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_get_builder(client, args.name.clone())?;
+    let builder = sasportal_customers_get_builder(client, &args.name)?;
     sasportal_customers_get_execute(builder)
 }
 
@@ -187,18 +187,18 @@ pub fn sasportal_customers_get(
 
 pub fn sasportal_customers_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -354,8 +354,7 @@ pub fn sasportal_customers_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_customers_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = sasportal_customers_list_builder(client, &args.pageSize, &args.pageToken)?;
     sasportal_customers_list_execute(builder)
 }
 
@@ -1163,7 +1162,7 @@ pub fn sasportal_customers_setup_sas_analytics(
 
 pub fn sasportal_customers_deployments_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalDeployment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1315,8 +1314,7 @@ pub fn sasportal_customers_deployments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_customers_deployments_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_customers_deployments_create_builder(client, &args.parent, &args.body)?;
     sasportal_customers_deployments_create_execute(builder)
 }
 
@@ -1328,7 +1326,7 @@ pub fn sasportal_customers_deployments_create(
 
 pub fn sasportal_customers_devices_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalDevice,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1479,8 +1477,7 @@ pub fn sasportal_customers_devices_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_customers_devices_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_customers_devices_create_builder(client, &args.parent, &args.body)?;
     sasportal_customers_devices_create_execute(builder)
 }
 
@@ -1492,7 +1489,7 @@ pub fn sasportal_customers_devices_create(
 
 pub fn sasportal_customers_devices_create_signed_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalCreateSignedDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1645,7 +1642,7 @@ pub fn sasportal_customers_devices_create_signed(
     ApiError,
 > {
     let builder =
-        sasportal_customers_devices_create_signed_builder(client, args.parent.clone(), &args.body)?;
+        sasportal_customers_devices_create_signed_builder(client, &args.parent, &args.body)?;
     sasportal_customers_devices_create_signed_execute(builder)
 }
 
@@ -1657,7 +1654,7 @@ pub fn sasportal_customers_devices_create_signed(
 
 pub fn sasportal_customers_nodes_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalNode,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1808,8 +1805,7 @@ pub fn sasportal_customers_nodes_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_customers_nodes_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_customers_nodes_create_builder(client, &args.parent, &args.body)?;
     sasportal_customers_nodes_create_execute(builder)
 }
 
@@ -1821,7 +1817,7 @@ pub fn sasportal_customers_nodes_create(
 
 pub fn sasportal_deployments_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/deployments/{}",);
@@ -1967,7 +1963,7 @@ pub fn sasportal_deployments_get(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_deployments_get_builder(client, args.name.clone())?;
+    let builder = sasportal_deployments_get_builder(client, &args.name)?;
     sasportal_deployments_get_execute(builder)
 }
 
@@ -2308,7 +2304,7 @@ pub fn sasportal_installer_validate(
 
 pub fn sasportal_nodes_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}",);
@@ -2454,7 +2450,7 @@ pub fn sasportal_nodes_get(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_get_builder(client, args.name.clone())?;
+    let builder = sasportal_nodes_get_builder(client, &args.name)?;
     sasportal_nodes_get_execute(builder)
 }
 
@@ -2466,23 +2462,23 @@ pub fn sasportal_nodes_get(
 
 pub fn sasportal_nodes_deployments_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2644,10 +2640,10 @@ pub fn sasportal_nodes_deployments_list(
 > {
     let builder = sasportal_nodes_deployments_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     sasportal_nodes_deployments_list_execute(builder)
 }
@@ -2660,7 +2656,7 @@ pub fn sasportal_nodes_deployments_list(
 
 pub fn sasportal_nodes_devices_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalDevice,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2811,7 +2807,7 @@ pub fn sasportal_nodes_devices_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_devices_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_nodes_devices_create_builder(client, &args.parent, &args.body)?;
     sasportal_nodes_devices_create_execute(builder)
 }
 
@@ -2823,7 +2819,7 @@ pub fn sasportal_nodes_devices_create(
 
 pub fn sasportal_nodes_devices_create_signed_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalCreateSignedDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2975,8 +2971,7 @@ pub fn sasportal_nodes_devices_create_signed(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_nodes_devices_create_signed_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_nodes_devices_create_signed_builder(client, &args.parent, &args.body)?;
     sasportal_nodes_devices_create_signed_execute(builder)
 }
 
@@ -2988,7 +2983,7 @@ pub fn sasportal_nodes_devices_create_signed(
 
 pub fn sasportal_nodes_nodes_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &SasPortalNode,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3139,7 +3134,7 @@ pub fn sasportal_nodes_nodes_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_nodes_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = sasportal_nodes_nodes_create_builder(client, &args.parent, &args.body)?;
     sasportal_nodes_nodes_create_execute(builder)
 }
 

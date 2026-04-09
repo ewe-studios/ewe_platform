@@ -179,20 +179,19 @@ pub fn content_accounts_authinfo(
 
 pub fn content_accounts_claimwebsite_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    overwrite: Option<bool>,
+    merchantId: &String,
+    accountId: &String,
+    overwrite: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/claimwebsite",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = overwrite {
+    if let Some(val) = overwrite.as_ref() {
         query_parts.push(format!("overwrite={}", val));
     }
 
@@ -352,9 +351,9 @@ pub fn content_accounts_claimwebsite(
 > {
     let builder = content_accounts_claimwebsite_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.overwrite.clone(),
+        &args.merchantId,
+        &args.accountId,
+        &args.overwrite,
     )?;
     content_accounts_claimwebsite_execute(builder)
 }
@@ -532,20 +531,19 @@ pub fn content_accounts_custombatch(
 
 pub fn content_accounts_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    force: Option<bool>,
+    merchantId: &String,
+    accountId: &String,
+    force: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = force {
+    if let Some(val) = force.as_ref() {
         query_parts.push(format!("force={}", val));
     }
 
@@ -692,12 +690,8 @@ pub fn content_accounts_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_delete_builder(
-        client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.force.clone(),
-    )?;
+    let builder =
+        content_accounts_delete_builder(client, &args.merchantId, &args.accountId, &args.force)?;
     content_accounts_delete_execute(builder)
 }
 
@@ -709,13 +703,13 @@ pub fn content_accounts_delete(
 
 pub fn content_accounts_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &Account,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -859,7 +853,7 @@ pub fn content_accounts_insert(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_insert_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_accounts_insert_builder(client, &args.merchantId, &args.body)?;
     content_accounts_insert_execute(builder)
 }
 
@@ -871,15 +865,14 @@ pub fn content_accounts_insert(
 
 pub fn content_accounts_link_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
     body: &AccountsLinkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/link",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -1029,12 +1022,8 @@ pub fn content_accounts_link(
         + 'static,
     ApiError,
 > {
-    let builder = content_accounts_link_builder(
-        client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_accounts_link_builder(client, &args.merchantId, &args.accountId, &args.body)?;
     content_accounts_link_execute(builder)
 }
 
@@ -1046,24 +1035,23 @@ pub fn content_accounts_link(
 
 pub fn content_accounts_listlinks_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    accountId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/listlinks",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1221,10 +1209,10 @@ pub fn content_accounts_listlinks(
 > {
     let builder = content_accounts_listlinks_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.accountId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_accounts_listlinks_execute(builder)
 }
@@ -1237,15 +1225,15 @@ pub fn content_accounts_listlinks(
 
 pub fn content_accounts_requestphoneverification_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
     body: &RequestPhoneVerificationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/requestphoneverification",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId,
+        accountId,
     );
 
     // Build request
@@ -1401,8 +1389,8 @@ pub fn content_accounts_requestphoneverification(
 > {
     let builder = content_accounts_requestphoneverification_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
+        &args.merchantId,
+        &args.accountId,
         &args.body,
     )?;
     content_accounts_requestphoneverification_execute(builder)
@@ -1416,15 +1404,14 @@ pub fn content_accounts_requestphoneverification(
 
 pub fn content_accounts_updatelabels_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
     body: &AccountsUpdateLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/updatelabels",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -1580,8 +1567,8 @@ pub fn content_accounts_updatelabels(
 > {
     let builder = content_accounts_updatelabels_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
+        &args.merchantId,
+        &args.accountId,
         &args.body,
     )?;
     content_accounts_updatelabels_execute(builder)
@@ -1595,15 +1582,14 @@ pub fn content_accounts_updatelabels(
 
 pub fn content_accounts_verifyphonenumber_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
     body: &VerifyPhoneNumberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounts/{}/verifyphonenumber",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -1755,8 +1741,8 @@ pub fn content_accounts_verifyphonenumber(
 > {
     let builder = content_accounts_verifyphonenumber_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
+        &args.merchantId,
+        &args.accountId,
         &args.body,
     )?;
     content_accounts_verifyphonenumber_execute(builder)
@@ -1770,13 +1756,13 @@ pub fn content_accounts_verifyphonenumber(
 
 pub fn content_accounts_credentials_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &AccountCredentials,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/credentials",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -1924,8 +1910,7 @@ pub fn content_accounts_credentials_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_credentials_create_builder(client, args.accountId.clone(), &args.body)?;
+    let builder = content_accounts_credentials_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_credentials_create_execute(builder)
 }
 
@@ -1937,13 +1922,13 @@ pub fn content_accounts_credentials_create(
 
 pub fn content_accounts_labels_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &AccountLabel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -2091,8 +2076,7 @@ pub fn content_accounts_labels_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounts_labels_create_builder(client, args.accountId.clone(), &args.body)?;
+    let builder = content_accounts_labels_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_labels_create_execute(builder)
 }
 
@@ -2104,14 +2088,13 @@ pub fn content_accounts_labels_create(
 
 pub fn content_accounts_labels_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    labelId: String,
+    accountId: &String,
+    labelId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/labels/{}",
-        accountId.as_str(),
-        labelId.as_str(),
+        accountId, labelId,
     );
 
     // Build request
@@ -2250,11 +2233,7 @@ pub fn content_accounts_labels_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_accounts_labels_delete_builder(
-        client,
-        args.accountId.clone(),
-        args.labelId.clone(),
-    )?;
+    let builder = content_accounts_labels_delete_builder(client, &args.accountId, &args.labelId)?;
     content_accounts_labels_delete_execute(builder)
 }
 
@@ -2266,13 +2245,13 @@ pub fn content_accounts_labels_delete(
 
 pub fn content_accounts_returncarrier_create_builder(
     client: &SimpleHttpClient,
-    accountId: String,
+    accountId: &String,
     body: &AccountReturnCarrier,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier",
-        accountId.as_str(),
+        accountId,
     );
 
     // Build request
@@ -2421,7 +2400,7 @@ pub fn content_accounts_returncarrier_create(
     ApiError,
 > {
     let builder =
-        content_accounts_returncarrier_create_builder(client, args.accountId.clone(), &args.body)?;
+        content_accounts_returncarrier_create_builder(client, &args.accountId, &args.body)?;
     content_accounts_returncarrier_create_execute(builder)
 }
 
@@ -2433,14 +2412,13 @@ pub fn content_accounts_returncarrier_create(
 
 pub fn content_accounts_returncarrier_delete_builder(
     client: &SimpleHttpClient,
-    accountId: String,
-    carrierAccountId: String,
+    accountId: &String,
+    carrierAccountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/accounts/{}/returncarrier/{}",
-        accountId.as_str(),
-        carrierAccountId.as_str(),
+        accountId, carrierAccountId,
     );
 
     // Build request
@@ -2581,8 +2559,8 @@ pub fn content_accounts_returncarrier_delete(
 > {
     let builder = content_accounts_returncarrier_delete_builder(
         client,
-        args.accountId.clone(),
-        args.carrierAccountId.clone(),
+        &args.accountId,
+        &args.carrierAccountId,
     )?;
     content_accounts_returncarrier_delete_execute(builder)
 }
@@ -2760,20 +2738,19 @@ pub fn content_accountstatuses_custombatch(
 
 pub fn content_accountstatuses_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    destinations: Option<String>,
+    merchantId: &String,
+    accountId: &String,
+    destinations: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accountstatuses/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinations {
+    if let Some(val) = destinations.as_ref() {
         query_parts.push(format!("destinations={}", val));
     }
 
@@ -2929,9 +2906,9 @@ pub fn content_accountstatuses_get(
 > {
     let builder = content_accountstatuses_get_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.destinations.clone(),
+        &args.merchantId,
+        &args.accountId,
+        &args.destinations,
     )?;
     content_accountstatuses_get_execute(builder)
 }
@@ -2944,30 +2921,30 @@ pub fn content_accountstatuses_get(
 
 pub fn content_accountstatuses_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    destinations: Option<String>,
-    maxResults: Option<i32>,
-    name: Option<String>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    destinations: &Option<String>,
+    maxResults: &Option<i32>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accountstatuses",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinations {
+    if let Some(val) = destinations.as_ref() {
         query_parts.push(format!("destinations={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3131,11 +3108,11 @@ pub fn content_accountstatuses_list(
 > {
     let builder = content_accountstatuses_list_builder(
         client,
-        args.merchantId.clone(),
-        args.destinations.clone(),
-        args.maxResults.clone(),
-        args.name.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.destinations,
+        &args.maxResults,
+        &args.name,
+        &args.pageToken,
     )?;
     content_accountstatuses_list_execute(builder)
 }
@@ -3313,14 +3290,13 @@ pub fn content_accounttax_custombatch(
 
 pub fn content_accounttax_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -3462,8 +3438,7 @@ pub fn content_accounttax_get(
     impl StreamIterator<D = Result<ApiResponse<AccountTax>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_accounttax_get_builder(client, args.merchantId.clone(), args.accountId.clone())?;
+    let builder = content_accounttax_get_builder(client, &args.merchantId, &args.accountId)?;
     content_accounttax_get_execute(builder)
 }
 
@@ -3475,22 +3450,22 @@ pub fn content_accounttax_get(
 
 pub fn content_accounttax_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/accounttax",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3646,9 +3621,9 @@ pub fn content_accounttax_list(
 > {
     let builder = content_accounttax_list_builder(
         client,
-        args.merchantId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_accounttax_list_execute(builder)
 }
@@ -3661,13 +3636,13 @@ pub fn content_accounttax_list(
 
 pub fn content_collections_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &Collection,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -3811,7 +3786,7 @@ pub fn content_collections_create(
     impl StreamIterator<D = Result<ApiResponse<Collection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_create_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_collections_create_builder(client, &args.merchantId, &args.body)?;
     content_collections_create_execute(builder)
 }
 
@@ -3823,14 +3798,13 @@ pub fn content_collections_create(
 
 pub fn content_collections_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    collectionId: String,
+    merchantId: &String,
+    collectionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collections/{}",
-        merchantId.as_str(),
-        collectionId.as_str(),
+        merchantId, collectionId,
     );
 
     // Build request
@@ -3969,11 +3943,7 @@ pub fn content_collections_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_collections_delete_builder(
-        client,
-        args.merchantId.clone(),
-        args.collectionId.clone(),
-    )?;
+    let builder = content_collections_delete_builder(client, &args.merchantId, &args.collectionId)?;
     content_collections_delete_execute(builder)
 }
 
@@ -3985,14 +3955,13 @@ pub fn content_collections_delete(
 
 pub fn content_collectionstatuses_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    collectionId: String,
+    merchantId: &String,
+    collectionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collectionstatuses/{}",
-        merchantId.as_str(),
-        collectionId.as_str(),
+        merchantId, collectionId,
     );
 
     // Build request
@@ -4138,11 +4107,8 @@ pub fn content_collectionstatuses_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_collectionstatuses_get_builder(
-        client,
-        args.merchantId.clone(),
-        args.collectionId.clone(),
-    )?;
+    let builder =
+        content_collectionstatuses_get_builder(client, &args.merchantId, &args.collectionId)?;
     content_collectionstatuses_get_execute(builder)
 }
 
@@ -4154,22 +4120,22 @@ pub fn content_collectionstatuses_get(
 
 pub fn content_collectionstatuses_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/collectionstatuses",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4329,9 +4295,9 @@ pub fn content_collectionstatuses_list(
 > {
     let builder = content_collectionstatuses_list_builder(
         client,
-        args.merchantId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     content_collectionstatuses_list_execute(builder)
 }
@@ -4344,13 +4310,13 @@ pub fn content_collectionstatuses_list(
 
 pub fn content_conversionsources_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &ConversionSource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -4498,8 +4464,7 @@ pub fn content_conversionsources_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_conversionsources_create_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_conversionsources_create_builder(client, &args.merchantId, &args.body)?;
     content_conversionsources_create_execute(builder)
 }
 
@@ -4511,14 +4476,13 @@ pub fn content_conversionsources_create(
 
 pub fn content_conversionsources_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    conversionSourceId: String,
+    merchantId: &String,
+    conversionSourceId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}",
-        merchantId.as_str(),
-        conversionSourceId.as_str(),
+        merchantId, conversionSourceId,
     );
 
     // Build request
@@ -4659,8 +4623,8 @@ pub fn content_conversionsources_delete(
 > {
     let builder = content_conversionsources_delete_builder(
         client,
-        args.merchantId.clone(),
-        args.conversionSourceId.clone(),
+        &args.merchantId,
+        &args.conversionSourceId,
     )?;
     content_conversionsources_delete_execute(builder)
 }
@@ -4673,15 +4637,14 @@ pub fn content_conversionsources_delete(
 
 pub fn content_conversionsources_undelete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    conversionSourceId: String,
+    merchantId: &String,
+    conversionSourceId: &String,
     body: &UndeleteConversionSourceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/conversionsources/{}:undelete",
-        merchantId.as_str(),
-        conversionSourceId.as_str(),
+        merchantId, conversionSourceId,
     );
 
     // Build request
@@ -4826,8 +4789,8 @@ pub fn content_conversionsources_undelete(
 > {
     let builder = content_conversionsources_undelete_builder(
         client,
-        args.merchantId.clone(),
-        args.conversionSourceId.clone(),
+        &args.merchantId,
+        &args.conversionSourceId,
         &args.body,
     )?;
     content_conversionsources_undelete_execute(builder)
@@ -4841,14 +4804,13 @@ pub fn content_conversionsources_undelete(
 
 pub fn content_csses_get_builder(
     client: &SimpleHttpClient,
-    cssGroupId: String,
-    cssDomainId: String,
+    cssGroupId: &String,
+    cssDomainId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses/{}",
-        cssGroupId.as_str(),
-        cssDomainId.as_str(),
+        cssGroupId, cssDomainId,
     );
 
     // Build request
@@ -4990,8 +4952,7 @@ pub fn content_csses_get(
     impl StreamIterator<D = Result<ApiResponse<Css>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_csses_get_builder(client, args.cssGroupId.clone(), args.cssDomainId.clone())?;
+    let builder = content_csses_get_builder(client, &args.cssGroupId, &args.cssDomainId)?;
     content_csses_get_execute(builder)
 }
 
@@ -5003,22 +4964,22 @@ pub fn content_csses_get(
 
 pub fn content_csses_list_builder(
     client: &SimpleHttpClient,
-    cssGroupId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    cssGroupId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses",
-        cssGroupId.as_str(),
+        cssGroupId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -5172,12 +5133,8 @@ pub fn content_csses_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_csses_list_builder(
-        client,
-        args.cssGroupId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        content_csses_list_builder(client, &args.cssGroupId, &args.pageSize, &args.pageToken)?;
     content_csses_list_execute(builder)
 }
 
@@ -5189,15 +5146,14 @@ pub fn content_csses_list(
 
 pub fn content_csses_updatelabels_builder(
     client: &SimpleHttpClient,
-    cssGroupId: String,
-    cssDomainId: String,
+    cssGroupId: &String,
+    cssDomainId: &String,
     body: &LabelIds,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/csses/{}/updatelabels",
-        cssGroupId.as_str(),
-        cssDomainId.as_str(),
+        cssGroupId, cssDomainId,
     );
 
     // Build request
@@ -5345,8 +5301,8 @@ pub fn content_csses_updatelabels(
 > {
     let builder = content_csses_updatelabels_builder(
         client,
-        args.cssGroupId.clone(),
-        args.cssDomainId.clone(),
+        &args.cssGroupId,
+        &args.cssDomainId,
         &args.body,
     )?;
     content_csses_updatelabels_execute(builder)
@@ -5525,14 +5481,13 @@ pub fn content_datafeeds_custombatch(
 
 pub fn content_datafeeds_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    datafeedId: String,
+    merchantId: &String,
+    datafeedId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}",
-        merchantId.as_str(),
-        datafeedId.as_str(),
+        merchantId, datafeedId,
     );
 
     // Build request
@@ -5671,8 +5626,7 @@ pub fn content_datafeeds_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_datafeeds_delete_builder(client, args.merchantId.clone(), args.datafeedId.clone())?;
+    let builder = content_datafeeds_delete_builder(client, &args.merchantId, &args.datafeedId)?;
     content_datafeeds_delete_execute(builder)
 }
 
@@ -5684,14 +5638,13 @@ pub fn content_datafeeds_delete(
 
 pub fn content_datafeeds_fetchnow_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    datafeedId: String,
+    merchantId: &String,
+    datafeedId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds/{}/fetchNow",
-        merchantId.as_str(),
-        datafeedId.as_str(),
+        merchantId, datafeedId,
     );
 
     // Build request
@@ -5837,11 +5790,7 @@ pub fn content_datafeeds_fetchnow(
         + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_fetchnow_builder(
-        client,
-        args.merchantId.clone(),
-        args.datafeedId.clone(),
-    )?;
+    let builder = content_datafeeds_fetchnow_builder(client, &args.merchantId, &args.datafeedId)?;
     content_datafeeds_fetchnow_execute(builder)
 }
 
@@ -5853,13 +5802,13 @@ pub fn content_datafeeds_fetchnow(
 
 pub fn content_datafeeds_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &Datafeed,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeeds",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -6003,7 +5952,7 @@ pub fn content_datafeeds_insert(
     impl StreamIterator<D = Result<ApiResponse<Datafeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_datafeeds_insert_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_datafeeds_insert_builder(client, &args.merchantId, &args.body)?;
     content_datafeeds_insert_execute(builder)
 }
 
@@ -6180,28 +6129,27 @@ pub fn content_datafeedstatuses_custombatch(
 
 pub fn content_datafeedstatuses_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    datafeedId: String,
-    country: Option<String>,
-    feedLabel: Option<String>,
-    language: Option<String>,
+    merchantId: &String,
+    datafeedId: &String,
+    country: &Option<String>,
+    feedLabel: &Option<String>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeedstatuses/{}",
-        merchantId.as_str(),
-        datafeedId.as_str(),
+        merchantId, datafeedId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = feedLabel {
+    if let Some(val) = feedLabel.as_ref() {
         query_parts.push(format!("feedLabel={}", val));
     }
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -6361,11 +6309,11 @@ pub fn content_datafeedstatuses_get(
 > {
     let builder = content_datafeedstatuses_get_builder(
         client,
-        args.merchantId.clone(),
-        args.datafeedId.clone(),
-        args.country.clone(),
-        args.feedLabel.clone(),
-        args.language.clone(),
+        &args.merchantId,
+        &args.datafeedId,
+        &args.country,
+        &args.feedLabel,
+        &args.language,
     )?;
     content_datafeedstatuses_get_execute(builder)
 }
@@ -6378,22 +6326,22 @@ pub fn content_datafeedstatuses_get(
 
 pub fn content_datafeedstatuses_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/datafeedstatuses",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6553,9 +6501,9 @@ pub fn content_datafeedstatuses_list(
 > {
     let builder = content_datafeedstatuses_list_builder(
         client,
-        args.merchantId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_datafeedstatuses_list_execute(builder)
 }
@@ -6568,12 +6516,12 @@ pub fn content_datafeedstatuses_list(
 
 pub fn content_freelistingsprogram_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -6717,7 +6665,7 @@ pub fn content_freelistingsprogram_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_get_builder(client, args.merchantId.clone())?;
+    let builder = content_freelistingsprogram_get_builder(client, &args.merchantId)?;
     content_freelistingsprogram_get_execute(builder)
 }
 
@@ -6729,13 +6677,13 @@ pub fn content_freelistingsprogram_get(
 
 pub fn content_freelistingsprogram_requestreview_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &RequestReviewFreeListingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/requestreview",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -6876,11 +6824,8 @@ pub fn content_freelistingsprogram_requestreview(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_requestreview_builder(
-        client,
-        args.merchantId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_freelistingsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
     content_freelistingsprogram_requestreview_execute(builder)
 }
 
@@ -6892,12 +6837,12 @@ pub fn content_freelistingsprogram_requestreview(
 
 pub fn content_freelistingsprogram_checkoutsettings_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/freelistingsprogram/checkoutsettings",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -7034,10 +6979,8 @@ pub fn content_freelistingsprogram_checkoutsettings_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_freelistingsprogram_checkoutsettings_delete_builder(
-        client,
-        args.merchantId.clone(),
-    )?;
+    let builder =
+        content_freelistingsprogram_checkoutsettings_delete_builder(client, &args.merchantId)?;
     content_freelistingsprogram_checkoutsettings_delete_execute(builder)
 }
 
@@ -7214,14 +7157,13 @@ pub fn content_liasettings_custombatch(
 
 pub fn content_liasettings_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -7363,8 +7305,7 @@ pub fn content_liasettings_get(
     impl StreamIterator<D = Result<ApiResponse<LiaSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_liasettings_get_builder(client, args.merchantId.clone(), args.accountId.clone())?;
+    let builder = content_liasettings_get_builder(client, &args.merchantId, &args.accountId)?;
     content_liasettings_get_execute(builder)
 }
 
@@ -7376,14 +7317,14 @@ pub fn content_liasettings_get(
 
 pub fn content_liasettings_getaccessiblegmbaccounts_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/accessiblegmbaccounts",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId,
+        accountId,
     );
 
     // Build request
@@ -7536,8 +7477,8 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
 > {
     let builder = content_liasettings_getaccessiblegmbaccounts_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
+        &args.merchantId,
+        &args.accountId,
     )?;
     content_liasettings_getaccessiblegmbaccounts_execute(builder)
 }
@@ -7550,22 +7491,22 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
 
 pub fn content_liasettings_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -7721,9 +7662,9 @@ pub fn content_liasettings_list(
 > {
     let builder = content_liasettings_list_builder(
         client,
-        args.merchantId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_liasettings_list_execute(builder)
 }
@@ -7892,16 +7833,16 @@ pub fn content_liasettings_listposdataproviders(
 
 pub fn content_liasettings_requestinventoryverification_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    country: String,
+    merchantId: &String,
+    accountId: &String,
+    country: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/requestinventoryverification/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
-        country.as_str(),
+        merchantId,
+        accountId,
+        country,
     );
 
     // Build request
@@ -8056,9 +7997,9 @@ pub fn content_liasettings_requestinventoryverification(
 > {
     let builder = content_liasettings_requestinventoryverification_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.country.clone(),
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
     )?;
     content_liasettings_requestinventoryverification_execute(builder)
 }
@@ -8071,28 +8012,28 @@ pub fn content_liasettings_requestinventoryverification(
 
 pub fn content_liasettings_setomnichannelexperience_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
-    country: Option<String>,
-    lsfType: Option<String>,
-    pickupTypes: Option<String>,
+    merchantId: &String,
+    accountId: &String,
+    country: &Option<String>,
+    lsfType: &Option<String>,
+    pickupTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/liasettings/{}/setomnichannelexperience",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId,
+        accountId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = country {
+    if let Some(val) = country.as_ref() {
         query_parts.push(format!("country={}", val));
     }
-    if let Some(val) = lsfType {
+    if let Some(val) = lsfType.as_ref() {
         query_parts.push(format!("lsfType={}", val));
     }
-    if let Some(val) = pickupTypes {
+    if let Some(val) = pickupTypes.as_ref() {
         query_parts.push(format!("pickupTypes={}", val));
     }
 
@@ -8252,11 +8193,11 @@ pub fn content_liasettings_setomnichannelexperience(
 > {
     let builder = content_liasettings_setomnichannelexperience_builder(
         client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-        args.country.clone(),
-        args.lsfType.clone(),
-        args.pickupTypes.clone(),
+        &args.merchantId,
+        &args.accountId,
+        &args.country,
+        &args.lsfType,
+        &args.pickupTypes,
     )?;
     content_liasettings_setomnichannelexperience_execute(builder)
 }
@@ -8434,15 +8375,14 @@ pub fn content_localinventory_custombatch(
 
 pub fn content_localinventory_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
+    merchantId: &String,
+    productId: &String,
     body: &LocalInventory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}/localinventory",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId, productId,
     );
 
     // Build request
@@ -8594,8 +8534,8 @@ pub fn content_localinventory_insert(
 > {
     let builder = content_localinventory_insert_builder(
         client,
-        args.merchantId.clone(),
-        args.productId.clone(),
+        &args.merchantId,
+        &args.productId,
         &args.body,
     )?;
     content_localinventory_insert_execute(builder)
@@ -8609,23 +8549,23 @@ pub fn content_localinventory_insert(
 
 pub fn content_merchantsupport_renderaccountissues_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    languageCode: Option<String>,
-    timeZone: Option<String>,
+    merchantId: &String,
+    languageCode: &Option<String>,
+    timeZone: &Option<String>,
     body: &RenderAccountIssuesRequestPayload,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/renderaccountissues",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = timeZone {
+    if let Some(val) = timeZone.as_ref() {
         query_parts.push(format!("timeZone={}", val));
     }
 
@@ -8789,9 +8729,9 @@ pub fn content_merchantsupport_renderaccountissues(
 > {
     let builder = content_merchantsupport_renderaccountissues_builder(
         client,
-        args.merchantId.clone(),
-        args.languageCode.clone(),
-        args.timeZone.clone(),
+        &args.merchantId,
+        &args.languageCode,
+        &args.timeZone,
         &args.body,
     )?;
     content_merchantsupport_renderaccountissues_execute(builder)
@@ -8805,25 +8745,25 @@ pub fn content_merchantsupport_renderaccountissues(
 
 pub fn content_merchantsupport_renderproductissues_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
-    languageCode: Option<String>,
-    timeZone: Option<String>,
+    merchantId: &String,
+    productId: &String,
+    languageCode: &Option<String>,
+    timeZone: &Option<String>,
     body: &RenderProductIssuesRequestPayload,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/renderproductissues/{}",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId,
+        productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = timeZone {
+    if let Some(val) = timeZone.as_ref() {
         query_parts.push(format!("timeZone={}", val));
     }
 
@@ -8989,10 +8929,10 @@ pub fn content_merchantsupport_renderproductissues(
 > {
     let builder = content_merchantsupport_renderproductissues_builder(
         client,
-        args.merchantId.clone(),
-        args.productId.clone(),
-        args.languageCode.clone(),
-        args.timeZone.clone(),
+        &args.merchantId,
+        &args.productId,
+        &args.languageCode,
+        &args.timeZone,
         &args.body,
     )?;
     content_merchantsupport_renderproductissues_execute(builder)
@@ -9006,19 +8946,19 @@ pub fn content_merchantsupport_renderproductissues(
 
 pub fn content_merchantsupport_triggeraction_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    languageCode: Option<String>,
+    merchantId: &String,
+    languageCode: &Option<String>,
     body: &TriggerActionPayload,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/merchantsupport/triggeraction",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -9176,8 +9116,8 @@ pub fn content_merchantsupport_triggeraction(
 > {
     let builder = content_merchantsupport_triggeraction_builder(
         client,
-        args.merchantId.clone(),
-        args.languageCode.clone(),
+        &args.merchantId,
+        &args.languageCode,
         &args.body,
     )?;
     content_merchantsupport_triggeraction_execute(builder)
@@ -9191,13 +9131,13 @@ pub fn content_merchantsupport_triggeraction(
 
 pub fn content_ordertrackingsignals_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &OrderTrackingSignal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/ordertrackingsignals",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -9346,7 +9286,7 @@ pub fn content_ordertrackingsignals_create(
     ApiError,
 > {
     let builder =
-        content_ordertrackingsignals_create_builder(client, args.merchantId.clone(), &args.body)?;
+        content_ordertrackingsignals_create_builder(client, &args.merchantId, &args.body)?;
     content_ordertrackingsignals_create_execute(builder)
 }
 
@@ -9518,16 +9458,14 @@ pub fn content_pos_custombatch(
 
 pub fn content_pos_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    targetMerchantId: String,
-    storeCode: String,
+    merchantId: &String,
+    targetMerchantId: &String,
+    storeCode: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store/{}",
-        merchantId.as_str(),
-        targetMerchantId.as_str(),
-        storeCode.as_str(),
+        merchantId, targetMerchantId, storeCode,
     );
 
     // Build request
@@ -9670,9 +9608,9 @@ pub fn content_pos_delete(
 > {
     let builder = content_pos_delete_builder(
         client,
-        args.merchantId.clone(),
-        args.targetMerchantId.clone(),
-        args.storeCode.clone(),
+        &args.merchantId,
+        &args.targetMerchantId,
+        &args.storeCode,
     )?;
     content_pos_delete_execute(builder)
 }
@@ -9685,15 +9623,14 @@ pub fn content_pos_delete(
 
 pub fn content_pos_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    targetMerchantId: String,
+    merchantId: &String,
+    targetMerchantId: &String,
     body: &PosStore,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/store",
-        merchantId.as_str(),
-        targetMerchantId.as_str(),
+        merchantId, targetMerchantId,
     );
 
     // Build request
@@ -9839,12 +9776,8 @@ pub fn content_pos_insert(
     impl StreamIterator<D = Result<ApiResponse<PosStore>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_pos_insert_builder(
-        client,
-        args.merchantId.clone(),
-        args.targetMerchantId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_pos_insert_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
     content_pos_insert_execute(builder)
 }
 
@@ -9856,15 +9789,14 @@ pub fn content_pos_insert(
 
 pub fn content_pos_inventory_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    targetMerchantId: String,
+    merchantId: &String,
+    targetMerchantId: &String,
     body: &PosInventoryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/inventory",
-        merchantId.as_str(),
-        targetMerchantId.as_str(),
+        merchantId, targetMerchantId,
     );
 
     // Build request
@@ -10016,8 +9948,8 @@ pub fn content_pos_inventory(
 > {
     let builder = content_pos_inventory_builder(
         client,
-        args.merchantId.clone(),
-        args.targetMerchantId.clone(),
+        &args.merchantId,
+        &args.targetMerchantId,
         &args.body,
     )?;
     content_pos_inventory_execute(builder)
@@ -10031,15 +9963,14 @@ pub fn content_pos_inventory(
 
 pub fn content_pos_sale_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    targetMerchantId: String,
+    merchantId: &String,
+    targetMerchantId: &String,
     body: &PosSaleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pos/{}/sale",
-        merchantId.as_str(),
-        targetMerchantId.as_str(),
+        merchantId, targetMerchantId,
     );
 
     // Build request
@@ -10189,12 +10120,8 @@ pub fn content_pos_sale(
         + 'static,
     ApiError,
 > {
-    let builder = content_pos_sale_builder(
-        client,
-        args.merchantId.clone(),
-        args.targetMerchantId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_pos_sale_builder(client, &args.merchantId, &args.targetMerchantId, &args.body)?;
     content_pos_sale_execute(builder)
 }
 
@@ -10206,13 +10133,13 @@ pub fn content_pos_sale(
 
 pub fn content_productdeliverytime_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &ProductDeliveryTime,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -10360,8 +10287,7 @@ pub fn content_productdeliverytime_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_productdeliverytime_create_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_productdeliverytime_create_builder(client, &args.merchantId, &args.body)?;
     content_productdeliverytime_create_execute(builder)
 }
 
@@ -10373,14 +10299,13 @@ pub fn content_productdeliverytime_create(
 
 pub fn content_productdeliverytime_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
+    merchantId: &String,
+    productId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productdeliverytime/{}",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId, productId,
     );
 
     // Build request
@@ -10519,11 +10444,8 @@ pub fn content_productdeliverytime_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_productdeliverytime_delete_builder(
-        client,
-        args.merchantId.clone(),
-        args.productId.clone(),
-    )?;
+    let builder =
+        content_productdeliverytime_delete_builder(client, &args.merchantId, &args.productId)?;
     content_productdeliverytime_delete_execute(builder)
 }
 
@@ -10700,20 +10622,19 @@ pub fn content_products_custombatch(
 
 pub fn content_products_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
-    feedId: Option<String>,
+    merchantId: &String,
+    productId: &String,
+    feedId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId, productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = feedId {
+    if let Some(val) = feedId.as_ref() {
         query_parts.push(format!("feedId={}", val));
     }
 
@@ -10860,12 +10781,8 @@ pub fn content_products_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_delete_builder(
-        client,
-        args.merchantId.clone(),
-        args.productId.clone(),
-        args.feedId.clone(),
-    )?;
+    let builder =
+        content_products_delete_builder(client, &args.merchantId, &args.productId, &args.feedId)?;
     content_products_delete_execute(builder)
 }
 
@@ -10877,19 +10794,19 @@ pub fn content_products_delete(
 
 pub fn content_products_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    feedId: Option<String>,
+    merchantId: &String,
+    feedId: &Option<String>,
     body: &Product,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = feedId {
+    if let Some(val) = feedId.as_ref() {
         query_parts.push(format!("feedId={}", val));
     }
 
@@ -11041,12 +10958,8 @@ pub fn content_products_insert(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_products_insert_builder(
-        client,
-        args.merchantId.clone(),
-        args.feedId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_products_insert_builder(client, &args.merchantId, &args.feedId, &args.body)?;
     content_products_insert_execute(builder)
 }
 
@@ -11223,20 +11136,19 @@ pub fn content_productstatuses_custombatch(
 
 pub fn content_productstatuses_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
-    destinations: Option<String>,
+    merchantId: &String,
+    productId: &String,
+    destinations: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productstatuses/{}",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId, productId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinations {
+    if let Some(val) = destinations.as_ref() {
         query_parts.push(format!("destinations={}", val));
     }
 
@@ -11392,9 +11304,9 @@ pub fn content_productstatuses_get(
 > {
     let builder = content_productstatuses_get_builder(
         client,
-        args.merchantId.clone(),
-        args.productId.clone(),
-        args.destinations.clone(),
+        &args.merchantId,
+        &args.productId,
+        &args.destinations,
     )?;
     content_productstatuses_get_execute(builder)
 }
@@ -11407,26 +11319,26 @@ pub fn content_productstatuses_get(
 
 pub fn content_productstatuses_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    destinations: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    destinations: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/productstatuses",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = destinations {
+    if let Some(val) = destinations.as_ref() {
         query_parts.push(format!("destinations={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -11588,10 +11500,10 @@ pub fn content_productstatuses_list(
 > {
     let builder = content_productstatuses_list_builder(
         client,
-        args.merchantId.clone(),
-        args.destinations.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.destinations,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_productstatuses_list_execute(builder)
 }
@@ -11604,13 +11516,13 @@ pub fn content_productstatuses_list(
 
 pub fn content_promotions_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &Promotion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -11754,7 +11666,7 @@ pub fn content_promotions_create(
     impl StreamIterator<D = Result<ApiResponse<Promotion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_promotions_create_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_promotions_create_builder(client, &args.merchantId, &args.body)?;
     content_promotions_create_execute(builder)
 }
 
@@ -11766,14 +11678,13 @@ pub fn content_promotions_create(
 
 pub fn content_promotions_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    id: String,
+    merchantId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/promotions/{}",
-        merchantId.as_str(),
-        id.as_str(),
+        merchantId, id,
     );
 
     // Build request
@@ -11915,7 +11826,7 @@ pub fn content_promotions_get(
     impl StreamIterator<D = Result<ApiResponse<Promotion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_promotions_get_builder(client, args.merchantId.clone(), args.id.clone())?;
+    let builder = content_promotions_get_builder(client, &args.merchantId, &args.id)?;
     content_promotions_get_execute(builder)
 }
 
@@ -11927,12 +11838,12 @@ pub fn content_promotions_get(
 
 pub fn content_pubsubnotificationsettings_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/pubsubnotificationsettings",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -12080,7 +11991,7 @@ pub fn content_pubsubnotificationsettings_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_pubsubnotificationsettings_get_builder(client, args.merchantId.clone())?;
+    let builder = content_pubsubnotificationsettings_get_builder(client, &args.merchantId)?;
     content_pubsubnotificationsettings_get_execute(builder)
 }
 
@@ -12092,22 +12003,22 @@ pub fn content_pubsubnotificationsettings_get(
 
 pub fn content_quotas_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/quotas",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -12261,12 +12172,8 @@ pub fn content_quotas_list(
         + 'static,
     ApiError,
 > {
-    let builder = content_quotas_list_builder(
-        client,
-        args.merchantId.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        content_quotas_list_builder(client, &args.merchantId, &args.pageSize, &args.pageToken)?;
     content_quotas_list_execute(builder)
 }
 
@@ -12278,22 +12185,22 @@ pub fn content_quotas_list(
 
 pub fn content_recommendations_generate_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    allowedTag: Option<String>,
-    languageCode: Option<String>,
+    merchantId: &String,
+    allowedTag: &Option<String>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/recommendations/generate",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = allowedTag {
+    if let Some(val) = allowedTag.as_ref() {
         query_parts.push(format!("allowedTag={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -12453,9 +12360,9 @@ pub fn content_recommendations_generate(
 > {
     let builder = content_recommendations_generate_builder(
         client,
-        args.merchantId.clone(),
-        args.allowedTag.clone(),
-        args.languageCode.clone(),
+        &args.merchantId,
+        &args.allowedTag,
+        &args.languageCode,
     )?;
     content_recommendations_generate_execute(builder)
 }
@@ -12468,13 +12375,13 @@ pub fn content_recommendations_generate(
 
 pub fn content_recommendations_report_interaction_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &ReportInteractionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/recommendations/reportInteraction",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -12615,11 +12522,8 @@ pub fn content_recommendations_report_interaction(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_recommendations_report_interaction_builder(
-        client,
-        args.merchantId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_recommendations_report_interaction_builder(client, &args.merchantId, &args.body)?;
     content_recommendations_report_interaction_execute(builder)
 }
 
@@ -12796,15 +12700,14 @@ pub fn content_regionalinventory_custombatch(
 
 pub fn content_regionalinventory_insert_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    productId: String,
+    merchantId: &String,
+    productId: &String,
     body: &RegionalInventory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/products/{}/regionalinventory",
-        merchantId.as_str(),
-        productId.as_str(),
+        merchantId, productId,
     );
 
     // Build request
@@ -12956,8 +12859,8 @@ pub fn content_regionalinventory_insert(
 > {
     let builder = content_regionalinventory_insert_builder(
         client,
-        args.merchantId.clone(),
-        args.productId.clone(),
+        &args.merchantId,
+        &args.productId,
         &args.body,
     )?;
     content_regionalinventory_insert_execute(builder)
@@ -12971,19 +12874,19 @@ pub fn content_regionalinventory_insert(
 
 pub fn content_regions_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    regionId: Option<String>,
+    merchantId: &String,
+    regionId: &Option<String>,
     body: &Region,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = regionId {
+    if let Some(val) = regionId.as_ref() {
         query_parts.push(format!("regionId={}", val));
     }
 
@@ -13135,12 +13038,8 @@ pub fn content_regions_create(
     impl StreamIterator<D = Result<ApiResponse<Region>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_regions_create_builder(
-        client,
-        args.merchantId.clone(),
-        args.regionId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_regions_create_builder(client, &args.merchantId, &args.regionId, &args.body)?;
     content_regions_create_execute(builder)
 }
 
@@ -13152,14 +13051,13 @@ pub fn content_regions_create(
 
 pub fn content_regions_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    regionId: String,
+    merchantId: &String,
+    regionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/regions/{}",
-        merchantId.as_str(),
-        regionId.as_str(),
+        merchantId, regionId,
     );
 
     // Build request
@@ -13298,8 +13196,7 @@ pub fn content_regions_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        content_regions_delete_builder(client, args.merchantId.clone(), args.regionId.clone())?;
+    let builder = content_regions_delete_builder(client, &args.merchantId, &args.regionId)?;
     content_regions_delete_execute(builder)
 }
 
@@ -13311,13 +13208,13 @@ pub fn content_regions_delete(
 
 pub fn content_reports_search_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &SearchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/reports/search",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -13465,7 +13362,7 @@ pub fn content_reports_search(
         + 'static,
     ApiError,
 > {
-    let builder = content_reports_search_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_reports_search_builder(client, &args.merchantId, &args.body)?;
     content_reports_search_execute(builder)
 }
 
@@ -13477,13 +13374,13 @@ pub fn content_reports_search(
 
 pub fn content_returnpolicyonline_create_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &ReturnPolicyOnline,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -13631,8 +13528,7 @@ pub fn content_returnpolicyonline_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_returnpolicyonline_create_builder(client, args.merchantId.clone(), &args.body)?;
+    let builder = content_returnpolicyonline_create_builder(client, &args.merchantId, &args.body)?;
     content_returnpolicyonline_create_execute(builder)
 }
 
@@ -13644,14 +13540,13 @@ pub fn content_returnpolicyonline_create(
 
 pub fn content_returnpolicyonline_delete_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    returnPolicyId: String,
+    merchantId: &String,
+    returnPolicyId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/returnpolicyonline/{}",
-        merchantId.as_str(),
-        returnPolicyId.as_str(),
+        merchantId, returnPolicyId,
     );
 
     // Build request
@@ -13790,11 +13685,8 @@ pub fn content_returnpolicyonline_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_returnpolicyonline_delete_builder(
-        client,
-        args.merchantId.clone(),
-        args.returnPolicyId.clone(),
-    )?;
+    let builder =
+        content_returnpolicyonline_delete_builder(client, &args.merchantId, &args.returnPolicyId)?;
     content_returnpolicyonline_delete_execute(builder)
 }
 
@@ -13971,14 +13863,13 @@ pub fn content_shippingsettings_custombatch(
 
 pub fn content_shippingsettings_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    accountId: String,
+    merchantId: &String,
+    accountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings/{}",
-        merchantId.as_str(),
-        accountId.as_str(),
+        merchantId, accountId,
     );
 
     // Build request
@@ -14124,11 +14015,7 @@ pub fn content_shippingsettings_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_get_builder(
-        client,
-        args.merchantId.clone(),
-        args.accountId.clone(),
-    )?;
+    let builder = content_shippingsettings_get_builder(client, &args.merchantId, &args.accountId)?;
     content_shippingsettings_get_execute(builder)
 }
 
@@ -14140,12 +14027,12 @@ pub fn content_shippingsettings_get(
 
 pub fn content_shippingsettings_getsupportedcarriers_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedCarriers",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -14294,8 +14181,7 @@ pub fn content_shippingsettings_getsupportedcarriers(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_shippingsettings_getsupportedcarriers_builder(client, args.merchantId.clone())?;
+    let builder = content_shippingsettings_getsupportedcarriers_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedcarriers_execute(builder)
 }
 
@@ -14307,12 +14193,12 @@ pub fn content_shippingsettings_getsupportedcarriers(
 
 pub fn content_shippingsettings_getsupportedholidays_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedHolidays",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -14461,8 +14347,7 @@ pub fn content_shippingsettings_getsupportedholidays(
         + 'static,
     ApiError,
 > {
-    let builder =
-        content_shippingsettings_getsupportedholidays_builder(client, args.merchantId.clone())?;
+    let builder = content_shippingsettings_getsupportedholidays_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedholidays_execute(builder)
 }
 
@@ -14474,12 +14359,12 @@ pub fn content_shippingsettings_getsupportedholidays(
 
 pub fn content_shippingsettings_getsupportedpickupservices_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/supportedPickupServices",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -14631,10 +14516,8 @@ pub fn content_shippingsettings_getsupportedpickupservices(
         + 'static,
     ApiError,
 > {
-    let builder = content_shippingsettings_getsupportedpickupservices_builder(
-        client,
-        args.merchantId.clone(),
-    )?;
+    let builder =
+        content_shippingsettings_getsupportedpickupservices_builder(client, &args.merchantId)?;
     content_shippingsettings_getsupportedpickupservices_execute(builder)
 }
 
@@ -14646,22 +14529,22 @@ pub fn content_shippingsettings_getsupportedpickupservices(
 
 pub fn content_shippingsettings_list_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    merchantId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shippingsettings",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -14821,9 +14704,9 @@ pub fn content_shippingsettings_list(
 > {
     let builder = content_shippingsettings_list_builder(
         client,
-        args.merchantId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.merchantId,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     content_shippingsettings_list_execute(builder)
 }
@@ -14836,12 +14719,12 @@ pub fn content_shippingsettings_list(
 
 pub fn content_shoppingadsprogram_get_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shoppingadsprogram",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -14985,7 +14868,7 @@ pub fn content_shoppingadsprogram_get(
         + 'static,
     ApiError,
 > {
-    let builder = content_shoppingadsprogram_get_builder(client, args.merchantId.clone())?;
+    let builder = content_shoppingadsprogram_get_builder(client, &args.merchantId)?;
     content_shoppingadsprogram_get_execute(builder)
 }
 
@@ -14997,13 +14880,13 @@ pub fn content_shoppingadsprogram_get(
 
 pub fn content_shoppingadsprogram_requestreview_builder(
     client: &SimpleHttpClient,
-    merchantId: String,
+    merchantId: &String,
     body: &RequestReviewShoppingAdsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://shoppingcontent.googleapis.com/content/v2.1/{}/shoppingadsprogram/requestreview",
-        merchantId.as_str(),
+        merchantId,
     );
 
     // Build request
@@ -15144,10 +15027,7 @@ pub fn content_shoppingadsprogram_requestreview(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = content_shoppingadsprogram_requestreview_builder(
-        client,
-        args.merchantId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        content_shoppingadsprogram_requestreview_builder(client, &args.merchantId, &args.body)?;
     content_shoppingadsprogram_requestreview_execute(builder)
 }

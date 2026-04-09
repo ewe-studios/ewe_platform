@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn abusiveexperiencereport_sites_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://abusiveexperiencereport.googleapis.com/v1/sites/{}",);
@@ -175,7 +175,7 @@ pub fn abusiveexperiencereport_sites_get(
         + 'static,
     ApiError,
 > {
-    let builder = abusiveexperiencereport_sites_get_builder(client, args.name.clone())?;
+    let builder = abusiveexperiencereport_sites_get_builder(client, &args.name)?;
     abusiveexperiencereport_sites_get_execute(builder)
 }
 

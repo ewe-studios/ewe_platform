@@ -1001,8 +1001,8 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
 
 pub fn identitytoolkit_relyingparty_get_project_config_builder(
     client: &SimpleHttpClient,
-    delegatedProjectNumber: Option<String>,
-    projectNumber: Option<String>,
+    delegatedProjectNumber: &Option<String>,
+    projectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1010,10 +1010,10 @@ pub fn identitytoolkit_relyingparty_get_project_config_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = delegatedProjectNumber {
+    if let Some(val) = delegatedProjectNumber.as_ref() {
         query_parts.push(format!("delegatedProjectNumber={}", val));
     }
-    if let Some(val) = projectNumber {
+    if let Some(val) = projectNumber.as_ref() {
         query_parts.push(format!("projectNumber={}", val));
     }
 
@@ -1175,8 +1175,8 @@ pub fn identitytoolkit_relyingparty_get_project_config(
 > {
     let builder = identitytoolkit_relyingparty_get_project_config_builder(
         client,
-        args.delegatedProjectNumber.clone(),
-        args.projectNumber.clone(),
+        &args.delegatedProjectNumber,
+        &args.projectNumber,
     )?;
     identitytoolkit_relyingparty_get_project_config_execute(builder)
 }

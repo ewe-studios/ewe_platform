@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn playcustomapp_accounts_custom_apps_create_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
     body: &CustomApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://playcustomapp.googleapis.com/playcustomapp/v1/accounts/{}/customApps",
-        account.as_str(),
+        account,
     );
 
     // Build request
@@ -179,10 +179,7 @@ pub fn playcustomapp_accounts_custom_apps_create(
     impl StreamIterator<D = Result<ApiResponse<CustomApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = playcustomapp_accounts_custom_apps_create_builder(
-        client,
-        args.account.clone(),
-        &args.body,
-    )?;
+    let builder =
+        playcustomapp_accounts_custom_apps_create_builder(client, &args.account, &args.body)?;
     playcustomapp_accounts_custom_apps_create_execute(builder)
 }

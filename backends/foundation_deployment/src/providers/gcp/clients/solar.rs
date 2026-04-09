@@ -29,30 +29,30 @@ use serde::Serialize;
 
 pub fn solar_building_insights_find_closest_builder(
     client: &SimpleHttpClient,
-    exactQualityRequired: Option<bool>,
-    experiments: Option<String>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    requiredQuality: Option<String>,
+    exactQualityRequired: &Option<bool>,
+    experiments: &Option<String>,
+    location_latitude: &Option<f64>,
+    location_longitude: &Option<f64>,
+    requiredQuality: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/buildingInsights:findClosest",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = exactQualityRequired {
+    if let Some(val) = exactQualityRequired.as_ref() {
         query_parts.push(format!("exactQualityRequired={}", val));
     }
-    if let Some(val) = experiments {
+    if let Some(val) = experiments.as_ref() {
         query_parts.push(format!("experiments={}", val));
     }
-    if let Some(val) = location_latitude {
+    if let Some(val) = location_latitude.as_ref() {
         query_parts.push(format!("location.latitude={}", val));
     }
-    if let Some(val) = location_longitude {
+    if let Some(val) = location_longitude.as_ref() {
         query_parts.push(format!("location.longitude={}", val));
     }
-    if let Some(val) = requiredQuality {
+    if let Some(val) = requiredQuality.as_ref() {
         query_parts.push(format!("requiredQuality={}", val));
     }
 
@@ -212,11 +212,11 @@ pub fn solar_building_insights_find_closest(
 > {
     let builder = solar_building_insights_find_closest_builder(
         client,
-        args.exactQualityRequired.clone(),
-        args.experiments.clone(),
-        args.location_latitude.clone(),
-        args.location_longitude.clone(),
-        args.requiredQuality.clone(),
+        &args.exactQualityRequired,
+        &args.experiments,
+        &args.location_latitude,
+        &args.location_longitude,
+        &args.requiredQuality,
     )?;
     solar_building_insights_find_closest_execute(builder)
 }
@@ -229,42 +229,42 @@ pub fn solar_building_insights_find_closest(
 
 pub fn solar_data_layers_get_builder(
     client: &SimpleHttpClient,
-    exactQualityRequired: Option<bool>,
-    experiments: Option<String>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    pixelSizeMeters: Option<f32>,
-    radiusMeters: Option<f32>,
-    requiredQuality: Option<String>,
-    view: Option<String>,
+    exactQualityRequired: &Option<bool>,
+    experiments: &Option<String>,
+    location_latitude: &Option<f64>,
+    location_longitude: &Option<f64>,
+    pixelSizeMeters: &Option<f32>,
+    radiusMeters: &Option<f32>,
+    requiredQuality: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/dataLayers:get",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = exactQualityRequired {
+    if let Some(val) = exactQualityRequired.as_ref() {
         query_parts.push(format!("exactQualityRequired={}", val));
     }
-    if let Some(val) = experiments {
+    if let Some(val) = experiments.as_ref() {
         query_parts.push(format!("experiments={}", val));
     }
-    if let Some(val) = location_latitude {
+    if let Some(val) = location_latitude.as_ref() {
         query_parts.push(format!("location.latitude={}", val));
     }
-    if let Some(val) = location_longitude {
+    if let Some(val) = location_longitude.as_ref() {
         query_parts.push(format!("location.longitude={}", val));
     }
-    if let Some(val) = pixelSizeMeters {
+    if let Some(val) = pixelSizeMeters.as_ref() {
         query_parts.push(format!("pixelSizeMeters={}", val));
     }
-    if let Some(val) = radiusMeters {
+    if let Some(val) = radiusMeters.as_ref() {
         query_parts.push(format!("radiusMeters={}", val));
     }
-    if let Some(val) = requiredQuality {
+    if let Some(val) = requiredQuality.as_ref() {
         query_parts.push(format!("requiredQuality={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -426,14 +426,14 @@ pub fn solar_data_layers_get(
 > {
     let builder = solar_data_layers_get_builder(
         client,
-        args.exactQualityRequired.clone(),
-        args.experiments.clone(),
-        args.location_latitude.clone(),
-        args.location_longitude.clone(),
-        args.pixelSizeMeters.clone(),
-        args.radiusMeters.clone(),
-        args.requiredQuality.clone(),
-        args.view.clone(),
+        &args.exactQualityRequired,
+        &args.experiments,
+        &args.location_latitude,
+        &args.location_longitude,
+        &args.pixelSizeMeters,
+        &args.radiusMeters,
+        &args.requiredQuality,
+        &args.view,
     )?;
     solar_data_layers_get_execute(builder)
 }
@@ -446,14 +446,14 @@ pub fn solar_data_layers_get(
 
 pub fn solar_geo_tiff_get_builder(
     client: &SimpleHttpClient,
-    id: Option<String>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://solar.googleapis.com/v1/geoTiff:get",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = id {
+    if let Some(val) = id.as_ref() {
         query_parts.push(format!("id={}", val));
     }
 
@@ -599,6 +599,6 @@ pub fn solar_geo_tiff_get(
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = solar_geo_tiff_get_builder(client, args.id.clone())?;
+    let builder = solar_geo_tiff_get_builder(client, &args.id)?;
     solar_geo_tiff_get_execute(builder)
 }

@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn mybusinessplaceactions_locations_place_action_links_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &PlaceActionLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -183,7 +183,7 @@ pub fn mybusinessplaceactions_locations_place_action_links_create(
 > {
     let builder = mybusinessplaceactions_locations_place_action_links_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     mybusinessplaceactions_locations_place_action_links_create_execute(builder)
@@ -197,10 +197,10 @@ pub fn mybusinessplaceactions_locations_place_action_links_create(
 
 pub fn mybusinessplaceactions_place_action_type_metadata_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -208,16 +208,16 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -379,10 +379,10 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list(
 > {
     let builder = mybusinessplaceactions_place_action_type_metadata_list_builder(
         client,
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.filter,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     mybusinessplaceactions_place_action_type_metadata_list_execute(builder)
 }

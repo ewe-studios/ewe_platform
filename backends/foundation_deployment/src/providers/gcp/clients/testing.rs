@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn testing_application_detail_service_get_apk_details_builder(
     client: &SimpleHttpClient,
-    bundleLocation_gcsPath: Option<String>,
+    bundleLocation_gcsPath: &Option<String>,
     body: &FileReference,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -38,7 +38,7 @@ pub fn testing_application_detail_service_get_apk_details_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = bundleLocation_gcsPath {
+    if let Some(val) = bundleLocation_gcsPath.as_ref() {
         query_parts.push(format!("bundleLocation.gcsPath={}", val));
     }
 
@@ -194,7 +194,7 @@ pub fn testing_application_detail_service_get_apk_details(
 > {
     let builder = testing_application_detail_service_get_apk_details_builder(
         client,
-        args.bundleLocation_gcsPath.clone(),
+        &args.bundleLocation_gcsPath,
         &args.body,
     )?;
     testing_application_detail_service_get_apk_details_execute(builder)
@@ -208,7 +208,7 @@ pub fn testing_application_detail_service_get_apk_details(
 
 pub fn testing_projects_device_sessions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &DeviceSession,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -360,7 +360,7 @@ pub fn testing_projects_device_sessions_create(
     ApiError,
 > {
     let builder =
-        testing_projects_device_sessions_create_builder(client, args.parent.clone(), &args.body)?;
+        testing_projects_device_sessions_create_builder(client, &args.parent, &args.body)?;
     testing_projects_device_sessions_create_execute(builder)
 }
 
@@ -372,14 +372,13 @@ pub fn testing_projects_device_sessions_create(
 
 pub fn testing_projects_test_matrices_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    testMatrixId: String,
+    projectId: &String,
+    testMatrixId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}:cancel",
-        projectId.as_str(),
-        testMatrixId.as_str(),
+        projectId, testMatrixId,
     );
 
     // Build request
@@ -525,11 +524,8 @@ pub fn testing_projects_test_matrices_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = testing_projects_test_matrices_cancel_builder(
-        client,
-        args.projectId.clone(),
-        args.testMatrixId.clone(),
-    )?;
+    let builder =
+        testing_projects_test_matrices_cancel_builder(client, &args.projectId, &args.testMatrixId)?;
     testing_projects_test_matrices_cancel_execute(builder)
 }
 
@@ -541,19 +537,19 @@ pub fn testing_projects_test_matrices_cancel(
 
 pub fn testing_projects_test_matrices_create_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    requestId: Option<String>,
+    projectId: &String,
+    requestId: &Option<String>,
     body: &TestMatrix,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices",
-        projectId.as_str(),
+        projectId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -707,8 +703,8 @@ pub fn testing_projects_test_matrices_create(
 > {
     let builder = testing_projects_test_matrices_create_builder(
         client,
-        args.projectId.clone(),
-        args.requestId.clone(),
+        &args.projectId,
+        &args.requestId,
         &args.body,
     )?;
     testing_projects_test_matrices_create_execute(builder)
@@ -722,14 +718,13 @@ pub fn testing_projects_test_matrices_create(
 
 pub fn testing_projects_test_matrices_get_builder(
     client: &SimpleHttpClient,
-    projectId: String,
-    testMatrixId: String,
+    projectId: &String,
+    testMatrixId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/projects/{}/testMatrices/{}",
-        projectId.as_str(),
-        testMatrixId.as_str(),
+        projectId, testMatrixId,
     );
 
     // Build request
@@ -871,11 +866,8 @@ pub fn testing_projects_test_matrices_get(
     impl StreamIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = testing_projects_test_matrices_get_builder(
-        client,
-        args.projectId.clone(),
-        args.testMatrixId.clone(),
-    )?;
+    let builder =
+        testing_projects_test_matrices_get_builder(client, &args.projectId, &args.testMatrixId)?;
     testing_projects_test_matrices_get_execute(builder)
 }
 
@@ -887,22 +879,22 @@ pub fn testing_projects_test_matrices_get(
 
 pub fn testing_test_environment_catalog_get_builder(
     client: &SimpleHttpClient,
-    environmentType: String,
-    includeViewableModels: Option<bool>,
-    projectId: Option<String>,
+    environmentType: &String,
+    includeViewableModels: &Option<bool>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://testing.googleapis.com/v1/testEnvironmentCatalog/{}",
-        environmentType.as_str(),
+        environmentType,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeViewableModels {
+    if let Some(val) = includeViewableModels.as_ref() {
         query_parts.push(format!("includeViewableModels={}", val));
     }
-    if let Some(val) = projectId {
+    if let Some(val) = projectId.as_ref() {
         query_parts.push(format!("projectId={}", val));
     }
 
@@ -1058,9 +1050,9 @@ pub fn testing_test_environment_catalog_get(
 > {
     let builder = testing_test_environment_catalog_get_builder(
         client,
-        args.environmentType.clone(),
-        args.includeViewableModels.clone(),
-        args.projectId.clone(),
+        &args.environmentType,
+        &args.includeViewableModels,
+        &args.projectId,
     )?;
     testing_test_environment_catalog_get_execute(builder)
 }

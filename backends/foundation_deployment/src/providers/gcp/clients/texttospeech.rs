@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn texttospeech_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,7 +176,7 @@ pub fn texttospeech_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = texttospeech_operations_cancel_builder(client, &args.name, &args.body)?;
     texttospeech_operations_cancel_execute(builder)
 }
 
@@ -188,7 +188,7 @@ pub fn texttospeech_operations_cancel(
 
 pub fn texttospeech_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/operations/{}",);
@@ -330,7 +330,7 @@ pub fn texttospeech_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_operations_delete_builder(client, args.name.clone())?;
+    let builder = texttospeech_operations_delete_builder(client, &args.name)?;
     texttospeech_operations_delete_execute(builder)
 }
 
@@ -502,14 +502,14 @@ pub fn texttospeech_text_synthesize(
 
 pub fn texttospeech_voices_list_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<String>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/voices",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
 
@@ -659,6 +659,6 @@ pub fn texttospeech_voices_list(
         + 'static,
     ApiError,
 > {
-    let builder = texttospeech_voices_list_builder(client, args.languageCode.clone())?;
+    let builder = texttospeech_voices_list_builder(client, &args.languageCode)?;
     texttospeech_voices_list_execute(builder)
 }

@@ -29,30 +29,30 @@ use serde::Serialize;
 
 pub fn webfonts_webfonts_list_builder(
     client: &SimpleHttpClient,
-    capability: Option<String>,
-    category: Option<String>,
-    family: Option<String>,
-    sort: Option<String>,
-    subset: Option<String>,
+    capability: &Option<String>,
+    category: &Option<String>,
+    family: &Option<String>,
+    sort: &Option<String>,
+    subset: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://webfonts.googleapis.com/v1/webfonts",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = capability {
+    if let Some(val) = capability.as_ref() {
         query_parts.push(format!("capability={}", val));
     }
-    if let Some(val) = category {
+    if let Some(val) = category.as_ref() {
         query_parts.push(format!("category={}", val));
     }
-    if let Some(val) = family {
+    if let Some(val) = family.as_ref() {
         query_parts.push(format!("family={}", val));
     }
-    if let Some(val) = sort {
+    if let Some(val) = sort.as_ref() {
         query_parts.push(format!("sort={}", val));
     }
-    if let Some(val) = subset {
+    if let Some(val) = subset.as_ref() {
         query_parts.push(format!("subset={}", val));
     }
 
@@ -208,11 +208,11 @@ pub fn webfonts_webfonts_list(
 > {
     let builder = webfonts_webfonts_list_builder(
         client,
-        args.capability.clone(),
-        args.category.clone(),
-        args.family.clone(),
-        args.sort.clone(),
-        args.subset.clone(),
+        &args.capability,
+        &args.category,
+        &args.family,
+        &args.sort,
+        &args.subset,
     )?;
     webfonts_webfonts_list_execute(builder)
 }

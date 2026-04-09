@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn forms_forms_batch_update_builder(
     client: &SimpleHttpClient,
-    formId: String,
+    formId: &String,
     body: &BatchUpdateFormRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:batchUpdate",
-        formId.as_str(),
+        formId,
     );
 
     // Build request
@@ -183,7 +183,7 @@ pub fn forms_forms_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_batch_update_builder(client, args.formId.clone(), &args.body)?;
+    let builder = forms_forms_batch_update_builder(client, &args.formId, &args.body)?;
     forms_forms_batch_update_execute(builder)
 }
 
@@ -195,7 +195,7 @@ pub fn forms_forms_batch_update(
 
 pub fn forms_forms_create_builder(
     client: &SimpleHttpClient,
-    unpublished: Option<bool>,
+    unpublished: &Option<bool>,
     body: &Form,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -203,7 +203,7 @@ pub fn forms_forms_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = unpublished {
+    if let Some(val) = unpublished.as_ref() {
         query_parts.push(format!("unpublished={}", val));
     }
 
@@ -353,7 +353,7 @@ pub fn forms_forms_create(
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_create_builder(client, args.unpublished.clone(), &args.body)?;
+    let builder = forms_forms_create_builder(client, &args.unpublished, &args.body)?;
     forms_forms_create_execute(builder)
 }
 
@@ -365,10 +365,10 @@ pub fn forms_forms_create(
 
 pub fn forms_forms_get_builder(
     client: &SimpleHttpClient,
-    formId: String,
+    formId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}", formId.as_str(),);
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}", formId,);
 
     // Build request
     let builder = client
@@ -507,7 +507,7 @@ pub fn forms_forms_get(
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_get_builder(client, args.formId.clone())?;
+    let builder = forms_forms_get_builder(client, &args.formId)?;
     forms_forms_get_execute(builder)
 }
 
@@ -519,13 +519,13 @@ pub fn forms_forms_get(
 
 pub fn forms_forms_set_publish_settings_builder(
     client: &SimpleHttpClient,
-    formId: String,
+    formId: &String,
     body: &SetPublishSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:setPublishSettings",
-        formId.as_str(),
+        formId,
     );
 
     // Build request
@@ -677,8 +677,7 @@ pub fn forms_forms_set_publish_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        forms_forms_set_publish_settings_builder(client, args.formId.clone(), &args.body)?;
+    let builder = forms_forms_set_publish_settings_builder(client, &args.formId, &args.body)?;
     forms_forms_set_publish_settings_execute(builder)
 }
 
@@ -690,14 +689,13 @@ pub fn forms_forms_set_publish_settings(
 
 pub fn forms_forms_responses_get_builder(
     client: &SimpleHttpClient,
-    formId: String,
-    responseId: String,
+    formId: &String,
+    responseId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/responses/{}",
-        formId.as_str(),
-        responseId.as_str(),
+        formId, responseId,
     );
 
     // Build request
@@ -843,8 +841,7 @@ pub fn forms_forms_responses_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        forms_forms_responses_get_builder(client, args.formId.clone(), args.responseId.clone())?;
+    let builder = forms_forms_responses_get_builder(client, &args.formId, &args.responseId)?;
     forms_forms_responses_get_execute(builder)
 }
 
@@ -856,26 +853,23 @@ pub fn forms_forms_responses_get(
 
 pub fn forms_forms_responses_list_builder(
     client: &SimpleHttpClient,
-    formId: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    formId: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://forms.googleapis.com/v1/forms/{}/responses",
-        formId.as_str(),
-    );
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/responses", formId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1033,10 +1027,10 @@ pub fn forms_forms_responses_list(
 > {
     let builder = forms_forms_responses_list_builder(
         client,
-        args.formId.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.formId,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     forms_forms_responses_list_execute(builder)
 }
@@ -1049,14 +1043,11 @@ pub fn forms_forms_responses_list(
 
 pub fn forms_forms_watches_create_builder(
     client: &SimpleHttpClient,
-    formId: String,
+    formId: &String,
     body: &CreateWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://forms.googleapis.com/v1/forms/{}/watches",
-        formId.as_str(),
-    );
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
 
     // Build request
     let builder = client
@@ -1199,7 +1190,7 @@ pub fn forms_forms_watches_create(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_create_builder(client, args.formId.clone(), &args.body)?;
+    let builder = forms_forms_watches_create_builder(client, &args.formId, &args.body)?;
     forms_forms_watches_create_execute(builder)
 }
 
@@ -1211,14 +1202,13 @@ pub fn forms_forms_watches_create(
 
 pub fn forms_forms_watches_delete_builder(
     client: &SimpleHttpClient,
-    formId: String,
-    watchId: String,
+    formId: &String,
+    watchId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}",
-        formId.as_str(),
-        watchId.as_str(),
+        formId, watchId,
     );
 
     // Build request
@@ -1360,8 +1350,7 @@ pub fn forms_forms_watches_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        forms_forms_watches_delete_builder(client, args.formId.clone(), args.watchId.clone())?;
+    let builder = forms_forms_watches_delete_builder(client, &args.formId, &args.watchId)?;
     forms_forms_watches_delete_execute(builder)
 }
 
@@ -1373,15 +1362,14 @@ pub fn forms_forms_watches_delete(
 
 pub fn forms_forms_watches_renew_builder(
     client: &SimpleHttpClient,
-    formId: String,
-    watchId: String,
+    formId: &String,
+    watchId: &String,
     body: &RenewWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}:renew",
-        formId.as_str(),
-        watchId.as_str(),
+        formId, watchId,
     );
 
     // Build request
@@ -1527,11 +1515,7 @@ pub fn forms_forms_watches_renew(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_renew_builder(
-        client,
-        args.formId.clone(),
-        args.watchId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        forms_forms_watches_renew_builder(client, &args.formId, &args.watchId, &args.body)?;
     forms_forms_watches_renew_execute(builder)
 }

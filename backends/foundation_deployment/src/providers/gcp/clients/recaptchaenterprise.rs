@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn recaptchaenterprise_projects_assessments_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudRecaptchaenterpriseV1Assessment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -186,11 +186,8 @@ pub fn recaptchaenterprise_projects_assessments_create(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_assessments_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        recaptchaenterprise_projects_assessments_create_builder(client, &args.parent, &args.body)?;
     recaptchaenterprise_projects_assessments_create_execute(builder)
 }
 
@@ -202,7 +199,7 @@ pub fn recaptchaenterprise_projects_assessments_create(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -361,7 +358,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
 > {
     let builder = recaptchaenterprise_projects_firewallpolicies_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     recaptchaenterprise_projects_firewallpolicies_create_execute(builder)
@@ -375,7 +372,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_reorder_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -544,7 +541,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
 > {
     let builder = recaptchaenterprise_projects_firewallpolicies_reorder_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     recaptchaenterprise_projects_firewallpolicies_reorder_execute(builder)
@@ -558,7 +555,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
 
 pub fn recaptchaenterprise_projects_keys_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudRecaptchaenterpriseV1Key,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -714,7 +711,7 @@ pub fn recaptchaenterprise_projects_keys_create(
     ApiError,
 > {
     let builder =
-        recaptchaenterprise_projects_keys_create_builder(client, args.parent.clone(), &args.body)?;
+        recaptchaenterprise_projects_keys_create_builder(client, &args.parent, &args.body)?;
     recaptchaenterprise_projects_keys_create_execute(builder)
 }
 
@@ -726,7 +723,7 @@ pub fn recaptchaenterprise_projects_keys_create(
 
 pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
     client: &SimpleHttpClient,
-    project: String,
+    project: &String,
     body: &GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -895,7 +892,7 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
 > {
     let builder = recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
         client,
-        args.project.clone(),
+        &args.project,
         &args.body,
     )?;
     recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execute(builder)
@@ -909,9 +906,9 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
 
 pub fn recaptchaenterprise_projects_relatedaccountgroups_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -919,10 +916,10 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1092,9 +1089,9 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
 > {
     let builder = recaptchaenterprise_projects_relatedaccountgroups_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     recaptchaenterprise_projects_relatedaccountgroups_list_execute(builder)
 }

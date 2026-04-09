@@ -29,38 +29,38 @@ use serde::Serialize;
 
 pub fn pollen_forecast_lookup_builder(
     client: &SimpleHttpClient,
-    days: Option<i32>,
-    languageCode: Option<String>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    plantsDescription: Option<bool>,
+    days: &Option<i32>,
+    languageCode: &Option<String>,
+    location_latitude: &Option<f64>,
+    location_longitude: &Option<f64>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    plantsDescription: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://pollen.googleapis.com/v1/forecast:lookup",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = days {
+    if let Some(val) = days.as_ref() {
         query_parts.push(format!("days={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = location_latitude {
+    if let Some(val) = location_latitude.as_ref() {
         query_parts.push(format!("location.latitude={}", val));
     }
-    if let Some(val) = location_longitude {
+    if let Some(val) = location_longitude.as_ref() {
         query_parts.push(format!("location.longitude={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = plantsDescription {
+    if let Some(val) = plantsDescription.as_ref() {
         query_parts.push(format!("plantsDescription={}", val));
     }
 
@@ -224,13 +224,13 @@ pub fn pollen_forecast_lookup(
 > {
     let builder = pollen_forecast_lookup_builder(
         client,
-        args.days.clone(),
-        args.languageCode.clone(),
-        args.location_latitude.clone(),
-        args.location_longitude.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.plantsDescription.clone(),
+        &args.days,
+        &args.languageCode,
+        &args.location_latitude,
+        &args.location_longitude,
+        &args.pageSize,
+        &args.pageToken,
+        &args.plantsDescription,
     )?;
     pollen_forecast_lookup_execute(builder)
 }
@@ -243,18 +243,15 @@ pub fn pollen_forecast_lookup(
 
 pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
     client: &SimpleHttpClient,
-    mapType: String,
-    zoom: String,
-    x: String,
-    y: String,
+    mapType: &String,
+    zoom: &i32,
+    x: &i32,
+    y: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://pollen.googleapis.com/v1/mapTypes/{}/heatmapTiles/{}/{}/{}",
-        mapType.as_str(),
-        zoom.as_str(),
-        x.as_str(),
-        y.as_str(),
+        mapType, zoom, x, y,
     );
 
     // Build request
@@ -375,11 +372,11 @@ pub struct PollenMapTypesHeatmapTilesLookupHeatmapTileArgs {
     /// Path parameter: mapType
     pub mapType: String,
     /// Path parameter: zoom
-    pub zoom: String,
+    pub zoom: i32,
     /// Path parameter: x
-    pub x: String,
+    pub x: i32,
     /// Path parameter: y
-    pub y: String,
+    pub y: i32,
 }
 
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
@@ -402,10 +399,10 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile(
 > {
     let builder = pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
         client,
-        args.mapType.clone(),
-        args.zoom.clone(),
-        args.x.clone(),
-        args.y.clone(),
+        &args.mapType,
+        &args.zoom,
+        &args.x,
+        &args.y,
     )?;
     pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
 }

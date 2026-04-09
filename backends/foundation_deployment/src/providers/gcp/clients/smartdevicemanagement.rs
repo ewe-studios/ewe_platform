@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn smartdevicemanagement_enterprises_devices_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -38,7 +38,7 @@ pub fn smartdevicemanagement_enterprises_devices_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
 
@@ -195,11 +195,8 @@ pub fn smartdevicemanagement_enterprises_devices_list(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_devices_list_builder(
-        client,
-        args.parent.clone(),
-        args.filter.clone(),
-    )?;
+    let builder =
+        smartdevicemanagement_enterprises_devices_list_builder(client, &args.parent, &args.filter)?;
     smartdevicemanagement_enterprises_devices_list_execute(builder)
 }
 
@@ -211,8 +208,8 @@ pub fn smartdevicemanagement_enterprises_devices_list(
 
 pub fn smartdevicemanagement_enterprises_structures_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -220,7 +217,7 @@ pub fn smartdevicemanagement_enterprises_structures_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
 
@@ -379,8 +376,8 @@ pub fn smartdevicemanagement_enterprises_structures_list(
 > {
     let builder = smartdevicemanagement_enterprises_structures_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
+        &args.parent,
+        &args.filter,
     )?;
     smartdevicemanagement_enterprises_structures_list_execute(builder)
 }

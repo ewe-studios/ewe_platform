@@ -29,15 +29,15 @@ use serde::Serialize;
 
 pub fn homegraph_agent_users_delete_builder(
     client: &SimpleHttpClient,
-    agentUserId: String,
-    requestId: Option<String>,
+    agentUserId: &String,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/agentUsers/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -185,11 +185,7 @@ pub fn homegraph_agent_users_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = homegraph_agent_users_delete_builder(
-        client,
-        args.agentUserId.clone(),
-        args.requestId.clone(),
-    )?;
+    let builder = homegraph_agent_users_delete_builder(client, &args.agentUserId, &args.requestId)?;
     homegraph_agent_users_delete_execute(builder)
 }
 

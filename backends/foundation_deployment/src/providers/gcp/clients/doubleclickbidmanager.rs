@@ -185,12 +185,12 @@ pub fn doubleclickbidmanager_queries_create(
 
 pub fn doubleclickbidmanager_queries_delete_builder(
     client: &SimpleHttpClient,
-    queryId: String,
+    queryId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}",
-        queryId.as_str(),
+        queryId,
     );
 
     // Build request
@@ -327,7 +327,7 @@ pub fn doubleclickbidmanager_queries_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_delete_builder(client, args.queryId.clone())?;
+    let builder = doubleclickbidmanager_queries_delete_builder(client, &args.queryId)?;
     doubleclickbidmanager_queries_delete_execute(builder)
 }
 
@@ -339,19 +339,19 @@ pub fn doubleclickbidmanager_queries_delete(
 
 pub fn doubleclickbidmanager_queries_run_builder(
     client: &SimpleHttpClient,
-    queryId: String,
-    synchronous: Option<bool>,
+    queryId: &String,
+    synchronous: &Option<bool>,
     body: &RunQueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}:run",
-        queryId.as_str(),
+        queryId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = synchronous {
+    if let Some(val) = synchronous.as_ref() {
         query_parts.push(format!("synchronous={}", val));
     }
 
@@ -505,8 +505,8 @@ pub fn doubleclickbidmanager_queries_run(
 > {
     let builder = doubleclickbidmanager_queries_run_builder(
         client,
-        args.queryId.clone(),
-        args.synchronous.clone(),
+        &args.queryId,
+        &args.synchronous,
         &args.body,
     )?;
     doubleclickbidmanager_queries_run_execute(builder)
@@ -520,14 +520,13 @@ pub fn doubleclickbidmanager_queries_run(
 
 pub fn doubleclickbidmanager_queries_reports_get_builder(
     client: &SimpleHttpClient,
-    queryId: String,
-    reportId: String,
+    queryId: &String,
+    reportId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports/{}",
-        queryId.as_str(),
-        reportId.as_str(),
+        queryId, reportId,
     );
 
     // Build request
@@ -669,11 +668,8 @@ pub fn doubleclickbidmanager_queries_reports_get(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclickbidmanager_queries_reports_get_builder(
-        client,
-        args.queryId.clone(),
-        args.reportId.clone(),
-    )?;
+    let builder =
+        doubleclickbidmanager_queries_reports_get_builder(client, &args.queryId, &args.reportId)?;
     doubleclickbidmanager_queries_reports_get_execute(builder)
 }
 
@@ -685,26 +681,26 @@ pub fn doubleclickbidmanager_queries_reports_get(
 
 pub fn doubleclickbidmanager_queries_reports_list_builder(
     client: &SimpleHttpClient,
-    queryId: String,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    queryId: &String,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclickbidmanager.googleapis.com/v2/queries/{}/reports",
-        queryId.as_str(),
+        queryId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -862,10 +858,10 @@ pub fn doubleclickbidmanager_queries_reports_list(
 > {
     let builder = doubleclickbidmanager_queries_reports_list_builder(
         client,
-        args.queryId.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.queryId,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     doubleclickbidmanager_queries_reports_list_execute(builder)
 }

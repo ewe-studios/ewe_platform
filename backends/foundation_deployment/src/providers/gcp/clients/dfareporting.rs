@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn dfareporting_account_active_ad_summaries_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    summaryAccountId: String,
+    profileId: &String,
+    summaryAccountId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -182,8 +182,8 @@ pub fn dfareporting_account_active_ad_summaries_get(
 > {
     let builder = dfareporting_account_active_ad_summaries_get_builder(
         client,
-        args.profileId.clone(),
-        args.summaryAccountId.clone(),
+        &args.profileId,
+        &args.summaryAccountId,
     )?;
     dfareporting_account_active_ad_summaries_get_execute(builder)
 }
@@ -196,8 +196,8 @@ pub fn dfareporting_account_active_ad_summaries_get(
 
 pub fn dfareporting_account_permission_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -347,11 +347,8 @@ pub fn dfareporting_account_permission_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permission_groups_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_account_permission_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_permission_groups_get_execute(builder)
 }
 
@@ -363,7 +360,7 @@ pub fn dfareporting_account_permission_groups_get(
 
 pub fn dfareporting_account_permission_groups_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -515,8 +512,7 @@ pub fn dfareporting_account_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_account_permission_groups_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_account_permission_groups_list_builder(client, &args.profileId)?;
     dfareporting_account_permission_groups_list_execute(builder)
 }
 
@@ -528,8 +524,8 @@ pub fn dfareporting_account_permission_groups_list(
 
 pub fn dfareporting_account_permissions_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -679,11 +675,7 @@ pub fn dfareporting_account_permissions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = dfareporting_account_permissions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_permissions_get_execute(builder)
 }
 
@@ -695,7 +687,7 @@ pub fn dfareporting_account_permissions_get(
 
 pub fn dfareporting_account_permissions_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -847,7 +839,7 @@ pub fn dfareporting_account_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_account_permissions_list_builder(client, &args.profileId)?;
     dfareporting_account_permissions_list_execute(builder)
 }
 
@@ -859,13 +851,13 @@ pub fn dfareporting_account_permissions_list(
 
 pub fn dfareporting_account_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/accountUserProfiles/{}",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -1011,11 +1003,8 @@ pub fn dfareporting_account_user_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_account_user_profiles_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_user_profiles_get_execute(builder)
 }
 
@@ -1027,7 +1016,7 @@ pub fn dfareporting_account_user_profiles_get(
 
 pub fn dfareporting_account_user_profiles_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &AccountUserProfile,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1180,11 +1169,8 @@ pub fn dfareporting_account_user_profiles_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_account_user_profiles_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_account_user_profiles_insert_execute(builder)
 }
 
@@ -1196,8 +1182,8 @@ pub fn dfareporting_account_user_profiles_insert(
 
 pub fn dfareporting_accounts_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1342,8 +1328,7 @@ pub fn dfareporting_accounts_get(
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_accounts_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_accounts_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_accounts_get_execute(builder)
 }
 
@@ -1355,14 +1340,14 @@ pub fn dfareporting_accounts_get(
 
 pub fn dfareporting_accounts_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    active: Option<bool>,
-    ids: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    searchString: Option<String>,
-    sortField: Option<String>,
-    sortOrder: Option<String>,
+    profileId: &String,
+    active: &Option<bool>,
+    ids: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1370,25 +1355,25 @@ pub fn dfareporting_accounts_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = active {
+    if let Some(val) = active.as_ref() {
         query_parts.push(format!("active={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = searchString {
+    if let Some(val) = searchString.as_ref() {
         query_parts.push(format!("searchString={}", val));
     }
-    if let Some(val) = sortField {
+    if let Some(val) = sortField.as_ref() {
         query_parts.push(format!("sortField={}", val));
     }
-    if let Some(val) = sortOrder {
+    if let Some(val) = sortOrder.as_ref() {
         query_parts.push(format!("sortOrder={}", val));
     }
 
@@ -1554,14 +1539,14 @@ pub fn dfareporting_accounts_list(
 > {
     let builder = dfareporting_accounts_list_builder(
         client,
-        args.profileId.clone(),
-        args.active.clone(),
-        args.ids.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.searchString.clone(),
-        args.sortField.clone(),
-        args.sortOrder.clone(),
+        &args.profileId,
+        &args.active,
+        &args.ids,
+        &args.maxResults,
+        &args.pageToken,
+        &args.searchString,
+        &args.sortField,
+        &args.sortOrder,
     )?;
     dfareporting_accounts_list_execute(builder)
 }
@@ -1574,8 +1559,8 @@ pub fn dfareporting_accounts_list(
 
 pub fn dfareporting_ads_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1720,7 +1705,7 @@ pub fn dfareporting_ads_get(
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_ads_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_ads_get_execute(builder)
 }
 
@@ -1732,7 +1717,7 @@ pub fn dfareporting_ads_get(
 
 pub fn dfareporting_ads_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Ad,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1880,7 +1865,7 @@ pub fn dfareporting_ads_insert(
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_ads_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_ads_insert_execute(builder)
 }
 
@@ -1892,8 +1877,8 @@ pub fn dfareporting_ads_insert(
 
 pub fn dfareporting_advertiser_groups_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2036,11 +2021,7 @@ pub fn dfareporting_advertiser_groups_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_delete_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = dfareporting_advertiser_groups_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertiser_groups_delete_execute(builder)
 }
 
@@ -2052,7 +2033,7 @@ pub fn dfareporting_advertiser_groups_delete(
 
 pub fn dfareporting_advertiser_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &AdvertiserGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2206,7 +2187,7 @@ pub fn dfareporting_advertiser_groups_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_advertiser_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_advertiser_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_groups_insert_execute(builder)
 }
 
@@ -2218,11 +2199,11 @@ pub fn dfareporting_advertiser_groups_insert(
 
 pub fn dfareporting_advertiser_invoices_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    advertiserId: String,
-    issueMonth: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    profileId: &String,
+    advertiserId: &String,
+    issueMonth: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2231,13 +2212,13 @@ pub fn dfareporting_advertiser_invoices_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = issueMonth {
+    if let Some(val) = issueMonth.as_ref() {
         query_parts.push(format!("issueMonth={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2401,11 +2382,11 @@ pub fn dfareporting_advertiser_invoices_list(
 > {
     let builder = dfareporting_advertiser_invoices_list_builder(
         client,
-        args.profileId.clone(),
-        args.advertiserId.clone(),
-        args.issueMonth.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.profileId,
+        &args.advertiserId,
+        &args.issueMonth,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     dfareporting_advertiser_invoices_list_execute(builder)
 }
@@ -2418,8 +2399,8 @@ pub fn dfareporting_advertiser_invoices_list(
 
 pub fn dfareporting_advertiser_landing_pages_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2565,11 +2546,8 @@ pub fn dfareporting_advertiser_landing_pages_get(
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_advertiser_landing_pages_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertiser_landing_pages_get_execute(builder)
 }
 
@@ -2581,7 +2559,7 @@ pub fn dfareporting_advertiser_landing_pages_get(
 
 pub fn dfareporting_advertiser_landing_pages_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &LandingPage,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2730,11 +2708,8 @@ pub fn dfareporting_advertiser_landing_pages_insert(
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_advertiser_landing_pages_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_landing_pages_insert_execute(builder)
 }
 
@@ -2746,8 +2721,8 @@ pub fn dfareporting_advertiser_landing_pages_insert(
 
 pub fn dfareporting_advertisers_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2893,8 +2868,7 @@ pub fn dfareporting_advertisers_get(
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_advertisers_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_advertisers_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertisers_get_execute(builder)
 }
 
@@ -2906,7 +2880,7 @@ pub fn dfareporting_advertisers_get(
 
 pub fn dfareporting_advertisers_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Advertiser,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3054,8 +3028,7 @@ pub fn dfareporting_advertisers_insert(
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_advertisers_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_advertisers_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertisers_insert_execute(builder)
 }
 
@@ -3067,8 +3040,8 @@ pub fn dfareporting_advertisers_insert(
 
 pub fn dfareporting_billing_assignments_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    billingProfileId: String,
+    profileId: &String,
+    billingProfileId: &String,
     body: &BillingAssignment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3225,8 +3198,8 @@ pub fn dfareporting_billing_assignments_insert(
 > {
     let builder = dfareporting_billing_assignments_insert_builder(
         client,
-        args.profileId.clone(),
-        args.billingProfileId.clone(),
+        &args.profileId,
+        &args.billingProfileId,
         &args.body,
     )?;
     dfareporting_billing_assignments_insert_execute(builder)
@@ -3240,8 +3213,8 @@ pub fn dfareporting_billing_assignments_insert(
 
 pub fn dfareporting_billing_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3391,8 +3364,7 @@ pub fn dfareporting_billing_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_billing_profiles_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_billing_profiles_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_billing_profiles_get_execute(builder)
 }
 
@@ -3404,17 +3376,17 @@ pub fn dfareporting_billing_profiles_get(
 
 pub fn dfareporting_billing_profiles_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    currency_code: Option<String>,
-    ids: Option<String>,
-    maxResults: Option<i32>,
-    name: Option<String>,
-    onlySuggestion: Option<bool>,
-    pageToken: Option<String>,
-    sortField: Option<String>,
-    sortOrder: Option<String>,
-    status: Option<String>,
-    subaccountIds: Option<String>,
+    profileId: &String,
+    currency_code: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<i32>,
+    name: &Option<String>,
+    onlySuggestion: &Option<bool>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    status: &Option<String>,
+    subaccountIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3423,34 +3395,34 @@ pub fn dfareporting_billing_profiles_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = currency_code {
+    if let Some(val) = currency_code.as_ref() {
         query_parts.push(format!("currency_code={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = onlySuggestion {
+    if let Some(val) = onlySuggestion.as_ref() {
         query_parts.push(format!("onlySuggestion={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = sortField {
+    if let Some(val) = sortField.as_ref() {
         query_parts.push(format!("sortField={}", val));
     }
-    if let Some(val) = sortOrder {
+    if let Some(val) = sortOrder.as_ref() {
         query_parts.push(format!("sortOrder={}", val));
     }
-    if let Some(val) = status {
+    if let Some(val) = status.as_ref() {
         query_parts.push(format!("status={}", val));
     }
-    if let Some(val) = subaccountIds {
+    if let Some(val) = subaccountIds.as_ref() {
         query_parts.push(format!("subaccountIds={}", val));
     }
 
@@ -3626,17 +3598,17 @@ pub fn dfareporting_billing_profiles_list(
 > {
     let builder = dfareporting_billing_profiles_list_builder(
         client,
-        args.profileId.clone(),
-        args.currency_code.clone(),
-        args.ids.clone(),
-        args.maxResults.clone(),
-        args.name.clone(),
-        args.onlySuggestion.clone(),
-        args.pageToken.clone(),
-        args.sortField.clone(),
-        args.sortOrder.clone(),
-        args.status.clone(),
-        args.subaccountIds.clone(),
+        &args.profileId,
+        &args.currency_code,
+        &args.ids,
+        &args.maxResults,
+        &args.name,
+        &args.onlySuggestion,
+        &args.pageToken,
+        &args.sortField,
+        &args.sortOrder,
+        &args.status,
+        &args.subaccountIds,
     )?;
     dfareporting_billing_profiles_list_execute(builder)
 }
@@ -3649,8 +3621,8 @@ pub fn dfareporting_billing_profiles_list(
 
 pub fn dfareporting_billing_rates_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    billingProfileId: String,
+    profileId: &String,
+    billingProfileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3800,11 +3772,8 @@ pub fn dfareporting_billing_rates_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_billing_rates_list_builder(
-        client,
-        args.profileId.clone(),
-        args.billingProfileId.clone(),
-    )?;
+    let builder =
+        dfareporting_billing_rates_list_builder(client, &args.profileId, &args.billingProfileId)?;
     dfareporting_billing_rates_list_execute(builder)
 }
 
@@ -3816,7 +3785,7 @@ pub fn dfareporting_billing_rates_list(
 
 pub fn dfareporting_browsers_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3963,7 +3932,7 @@ pub fn dfareporting_browsers_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_browsers_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_browsers_list_builder(client, &args.profileId)?;
     dfareporting_browsers_list_execute(builder)
 }
 
@@ -3975,8 +3944,8 @@ pub fn dfareporting_browsers_list(
 
 pub fn dfareporting_campaign_creative_associations_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    campaignId: String,
+    profileId: &String,
+    campaignId: &String,
     body: &CampaignCreativeAssociation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4137,8 +4106,8 @@ pub fn dfareporting_campaign_creative_associations_insert(
 > {
     let builder = dfareporting_campaign_creative_associations_insert_builder(
         client,
-        args.profileId.clone(),
-        args.campaignId.clone(),
+        &args.profileId,
+        &args.campaignId,
         &args.body,
     )?;
     dfareporting_campaign_creative_associations_insert_execute(builder)
@@ -4152,8 +4121,8 @@ pub fn dfareporting_campaign_creative_associations_insert(
 
 pub fn dfareporting_campaigns_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4299,8 +4268,7 @@ pub fn dfareporting_campaigns_get(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_campaigns_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_campaigns_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_campaigns_get_execute(builder)
 }
 
@@ -4312,7 +4280,7 @@ pub fn dfareporting_campaigns_get(
 
 pub fn dfareporting_campaigns_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Campaign,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4460,8 +4428,7 @@ pub fn dfareporting_campaigns_insert(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_campaigns_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_campaigns_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_campaigns_insert_execute(builder)
 }
 
@@ -4473,8 +4440,8 @@ pub fn dfareporting_campaigns_insert(
 
 pub fn dfareporting_change_logs_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4620,8 +4587,7 @@ pub fn dfareporting_change_logs_get(
     impl StreamIterator<D = Result<ApiResponse<ChangeLog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_change_logs_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_change_logs_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_change_logs_get_execute(builder)
 }
 
@@ -4633,17 +4599,17 @@ pub fn dfareporting_change_logs_get(
 
 pub fn dfareporting_change_logs_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    action: Option<String>,
-    ids: Option<String>,
-    maxChangeTime: Option<String>,
-    maxResults: Option<i32>,
-    minChangeTime: Option<String>,
-    objectIds: Option<String>,
-    objectType: Option<String>,
-    pageToken: Option<String>,
-    searchString: Option<String>,
-    userProfileIds: Option<String>,
+    profileId: &String,
+    action: &Option<String>,
+    ids: &Option<String>,
+    maxChangeTime: &Option<String>,
+    maxResults: &Option<i32>,
+    minChangeTime: &Option<String>,
+    objectIds: &Option<String>,
+    objectType: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    userProfileIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4651,34 +4617,34 @@ pub fn dfareporting_change_logs_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = action {
+    if let Some(val) = action.as_ref() {
         query_parts.push(format!("action={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = maxChangeTime {
+    if let Some(val) = maxChangeTime.as_ref() {
         query_parts.push(format!("maxChangeTime={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = minChangeTime {
+    if let Some(val) = minChangeTime.as_ref() {
         query_parts.push(format!("minChangeTime={}", val));
     }
-    if let Some(val) = objectIds {
+    if let Some(val) = objectIds.as_ref() {
         query_parts.push(format!("objectIds={}", val));
     }
-    if let Some(val) = objectType {
+    if let Some(val) = objectType.as_ref() {
         query_parts.push(format!("objectType={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = searchString {
+    if let Some(val) = searchString.as_ref() {
         query_parts.push(format!("searchString={}", val));
     }
-    if let Some(val) = userProfileIds {
+    if let Some(val) = userProfileIds.as_ref() {
         query_parts.push(format!("userProfileIds={}", val));
     }
 
@@ -4850,17 +4816,17 @@ pub fn dfareporting_change_logs_list(
 > {
     let builder = dfareporting_change_logs_list_builder(
         client,
-        args.profileId.clone(),
-        args.action.clone(),
-        args.ids.clone(),
-        args.maxChangeTime.clone(),
-        args.maxResults.clone(),
-        args.minChangeTime.clone(),
-        args.objectIds.clone(),
-        args.objectType.clone(),
-        args.pageToken.clone(),
-        args.searchString.clone(),
-        args.userProfileIds.clone(),
+        &args.profileId,
+        &args.action,
+        &args.ids,
+        &args.maxChangeTime,
+        &args.maxResults,
+        &args.minChangeTime,
+        &args.objectIds,
+        &args.objectType,
+        &args.pageToken,
+        &args.searchString,
+        &args.userProfileIds,
     )?;
     dfareporting_change_logs_list_execute(builder)
 }
@@ -4873,11 +4839,11 @@ pub fn dfareporting_change_logs_list(
 
 pub fn dfareporting_cities_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    countryDartIds: Option<String>,
-    dartIds: Option<String>,
-    namePrefix: Option<String>,
-    regionDartIds: Option<String>,
+    profileId: &String,
+    countryDartIds: &Option<String>,
+    dartIds: &Option<String>,
+    namePrefix: &Option<String>,
+    regionDartIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4885,16 +4851,16 @@ pub fn dfareporting_cities_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = countryDartIds {
+    if let Some(val) = countryDartIds.as_ref() {
         query_parts.push(format!("countryDartIds={}", val));
     }
-    if let Some(val) = dartIds {
+    if let Some(val) = dartIds.as_ref() {
         query_parts.push(format!("dartIds={}", val));
     }
-    if let Some(val) = namePrefix {
+    if let Some(val) = namePrefix.as_ref() {
         query_parts.push(format!("namePrefix={}", val));
     }
-    if let Some(val) = regionDartIds {
+    if let Some(val) = regionDartIds.as_ref() {
         query_parts.push(format!("regionDartIds={}", val));
     }
 
@@ -5054,11 +5020,11 @@ pub fn dfareporting_cities_list(
 > {
     let builder = dfareporting_cities_list_builder(
         client,
-        args.profileId.clone(),
-        args.countryDartIds.clone(),
-        args.dartIds.clone(),
-        args.namePrefix.clone(),
-        args.regionDartIds.clone(),
+        &args.profileId,
+        &args.countryDartIds,
+        &args.dartIds,
+        &args.namePrefix,
+        &args.regionDartIds,
     )?;
     dfareporting_cities_list_execute(builder)
 }
@@ -5071,8 +5037,8 @@ pub fn dfareporting_cities_list(
 
 pub fn dfareporting_connection_types_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5222,8 +5188,7 @@ pub fn dfareporting_connection_types_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_connection_types_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_connection_types_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_connection_types_get_execute(builder)
 }
 
@@ -5235,7 +5200,7 @@ pub fn dfareporting_connection_types_get(
 
 pub fn dfareporting_connection_types_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5387,7 +5352,7 @@ pub fn dfareporting_connection_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_connection_types_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_connection_types_list_builder(client, &args.profileId)?;
     dfareporting_connection_types_list_execute(builder)
 }
 
@@ -5399,8 +5364,8 @@ pub fn dfareporting_connection_types_list(
 
 pub fn dfareporting_content_categories_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5543,11 +5508,8 @@ pub fn dfareporting_content_categories_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_delete_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_content_categories_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_content_categories_delete_execute(builder)
 }
 
@@ -5559,7 +5521,7 @@ pub fn dfareporting_content_categories_delete(
 
 pub fn dfareporting_content_categories_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &ContentCategory,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -5713,7 +5675,7 @@ pub fn dfareporting_content_categories_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_content_categories_insert_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_content_categories_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_content_categories_insert_execute(builder)
 }
 
@@ -5725,13 +5687,13 @@ pub fn dfareporting_content_categories_insert(
 
 pub fn dfareporting_conversions_batchinsert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &ConversionsBatchInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchinsert",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -5884,7 +5846,7 @@ pub fn dfareporting_conversions_batchinsert(
     ApiError,
 > {
     let builder =
-        dfareporting_conversions_batchinsert_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_conversions_batchinsert_builder(client, &args.profileId, &args.body)?;
     dfareporting_conversions_batchinsert_execute(builder)
 }
 
@@ -5896,13 +5858,13 @@ pub fn dfareporting_conversions_batchinsert(
 
 pub fn dfareporting_conversions_batchupdate_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &ConversionsBatchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/conversions/batchupdate",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -6055,7 +6017,7 @@ pub fn dfareporting_conversions_batchupdate(
     ApiError,
 > {
     let builder =
-        dfareporting_conversions_batchupdate_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_conversions_batchupdate_builder(client, &args.profileId, &args.body)?;
     dfareporting_conversions_batchupdate_execute(builder)
 }
 
@@ -6067,8 +6029,8 @@ pub fn dfareporting_conversions_batchupdate(
 
 pub fn dfareporting_countries_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    dartId: String,
+    profileId: &String,
+    dartId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6214,8 +6176,7 @@ pub fn dfareporting_countries_get(
     impl StreamIterator<D = Result<ApiResponse<Country>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_countries_get_builder(client, args.profileId.clone(), args.dartId.clone())?;
+    let builder = dfareporting_countries_get_builder(client, &args.profileId, &args.dartId)?;
     dfareporting_countries_get_execute(builder)
 }
 
@@ -6227,7 +6188,7 @@ pub fn dfareporting_countries_get(
 
 pub fn dfareporting_countries_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6374,7 +6335,7 @@ pub fn dfareporting_countries_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_countries_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_countries_list_builder(client, &args.profileId)?;
     dfareporting_countries_list_execute(builder)
 }
 
@@ -6386,8 +6347,8 @@ pub fn dfareporting_countries_list(
 
 pub fn dfareporting_creative_assets_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    advertiserId: String,
+    profileId: &String,
+    advertiserId: &String,
     body: &CreativeAssetMetadata,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6544,8 +6505,8 @@ pub fn dfareporting_creative_assets_insert(
 > {
     let builder = dfareporting_creative_assets_insert_builder(
         client,
-        args.profileId.clone(),
-        args.advertiserId.clone(),
+        &args.profileId,
+        &args.advertiserId,
         &args.body,
     )?;
     dfareporting_creative_assets_insert_execute(builder)
@@ -6559,9 +6520,9 @@ pub fn dfareporting_creative_assets_insert(
 
 pub fn dfareporting_creative_field_values_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    creativeFieldId: String,
-    id: String,
+    profileId: &String,
+    creativeFieldId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6708,9 +6669,9 @@ pub fn dfareporting_creative_field_values_delete(
 > {
     let builder = dfareporting_creative_field_values_delete_builder(
         client,
-        args.profileId.clone(),
-        args.creativeFieldId.clone(),
-        args.id.clone(),
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.id,
     )?;
     dfareporting_creative_field_values_delete_execute(builder)
 }
@@ -6723,8 +6684,8 @@ pub fn dfareporting_creative_field_values_delete(
 
 pub fn dfareporting_creative_field_values_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    creativeFieldId: String,
+    profileId: &String,
+    creativeFieldId: &String,
     body: &CreativeFieldValue,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -6881,8 +6842,8 @@ pub fn dfareporting_creative_field_values_insert(
 > {
     let builder = dfareporting_creative_field_values_insert_builder(
         client,
-        args.profileId.clone(),
-        args.creativeFieldId.clone(),
+        &args.profileId,
+        &args.creativeFieldId,
         &args.body,
     )?;
     dfareporting_creative_field_values_insert_execute(builder)
@@ -6896,8 +6857,8 @@ pub fn dfareporting_creative_field_values_insert(
 
 pub fn dfareporting_creative_fields_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7040,11 +7001,7 @@ pub fn dfareporting_creative_fields_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_delete_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = dfareporting_creative_fields_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_creative_fields_delete_execute(builder)
 }
 
@@ -7056,7 +7013,7 @@ pub fn dfareporting_creative_fields_delete(
 
 pub fn dfareporting_creative_fields_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &CreativeField,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7209,8 +7166,7 @@ pub fn dfareporting_creative_fields_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_fields_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_creative_fields_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_fields_insert_execute(builder)
 }
 
@@ -7222,8 +7178,8 @@ pub fn dfareporting_creative_fields_insert(
 
 pub fn dfareporting_creative_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7373,8 +7329,7 @@ pub fn dfareporting_creative_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_groups_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_creative_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_creative_groups_get_execute(builder)
 }
 
@@ -7386,7 +7341,7 @@ pub fn dfareporting_creative_groups_get(
 
 pub fn dfareporting_creative_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &CreativeGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7539,8 +7494,7 @@ pub fn dfareporting_creative_groups_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_creative_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_groups_insert_execute(builder)
 }
 
@@ -7552,8 +7506,8 @@ pub fn dfareporting_creative_groups_insert(
 
 pub fn dfareporting_creatives_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7699,8 +7653,7 @@ pub fn dfareporting_creatives_get(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creatives_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_creatives_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_creatives_get_execute(builder)
 }
 
@@ -7712,7 +7665,7 @@ pub fn dfareporting_creatives_get(
 
 pub fn dfareporting_creatives_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7860,8 +7813,7 @@ pub fn dfareporting_creatives_insert(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creatives_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_creatives_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creatives_insert_execute(builder)
 }
 
@@ -7873,23 +7825,23 @@ pub fn dfareporting_creatives_insert(
 
 pub fn dfareporting_dimension_values_query_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    profileId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
     body: &DimensionValueRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/dimensionvalues/query",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -8049,9 +8001,9 @@ pub fn dfareporting_dimension_values_query(
 > {
     let builder = dfareporting_dimension_values_query_builder(
         client,
-        args.profileId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.profileId,
+        &args.maxResults,
+        &args.pageToken,
         &args.body,
     )?;
     dfareporting_dimension_values_query_execute(builder)
@@ -8065,8 +8017,8 @@ pub fn dfareporting_dimension_values_query(
 
 pub fn dfareporting_directory_sites_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8216,8 +8168,7 @@ pub fn dfareporting_directory_sites_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_directory_sites_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_directory_sites_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_directory_sites_get_execute(builder)
 }
 
@@ -8229,7 +8180,7 @@ pub fn dfareporting_directory_sites_get(
 
 pub fn dfareporting_directory_sites_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &DirectorySite,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8382,8 +8333,7 @@ pub fn dfareporting_directory_sites_insert(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_directory_sites_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_directory_sites_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_directory_sites_insert_execute(builder)
 }
 
@@ -8395,7 +8345,7 @@ pub fn dfareporting_directory_sites_insert(
 
 pub fn dfareporting_dynamic_feeds_get_builder(
     client: &SimpleHttpClient,
-    dynamicFeedId: String,
+    dynamicFeedId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -8538,7 +8488,7 @@ pub fn dfareporting_dynamic_feeds_get(
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_get_builder(client, args.dynamicFeedId.clone())?;
+    let builder = dfareporting_dynamic_feeds_get_builder(client, &args.dynamicFeedId)?;
     dfareporting_dynamic_feeds_get_execute(builder)
 }
 
@@ -8707,7 +8657,7 @@ pub fn dfareporting_dynamic_feeds_insert(
 
 pub fn dfareporting_dynamic_feeds_retransform_builder(
     client: &SimpleHttpClient,
-    dynamicFeedId: String,
+    dynamicFeedId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8851,8 +8801,7 @@ pub fn dfareporting_dynamic_feeds_retransform(
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_dynamic_feeds_retransform_builder(client, args.dynamicFeedId.clone())?;
+    let builder = dfareporting_dynamic_feeds_retransform_builder(client, &args.dynamicFeedId)?;
     dfareporting_dynamic_feeds_retransform_execute(builder)
 }
 
@@ -8864,7 +8813,7 @@ pub fn dfareporting_dynamic_feeds_retransform(
 
 pub fn dfareporting_dynamic_profiles_generate_code_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: String,
+    dynamicProfileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9017,7 +8966,7 @@ pub fn dfareporting_dynamic_profiles_generate_code(
     ApiError,
 > {
     let builder =
-        dfareporting_dynamic_profiles_generate_code_builder(client, args.dynamicProfileId.clone())?;
+        dfareporting_dynamic_profiles_generate_code_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_generate_code_execute(builder)
 }
 
@@ -9029,7 +8978,7 @@ pub fn dfareporting_dynamic_profiles_generate_code(
 
 pub fn dfareporting_dynamic_profiles_get_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: String,
+    dynamicProfileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -9176,7 +9125,7 @@ pub fn dfareporting_dynamic_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_get_builder(client, args.dynamicProfileId.clone())?;
+    let builder = dfareporting_dynamic_profiles_get_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_get_execute(builder)
 }
 
@@ -9349,7 +9298,7 @@ pub fn dfareporting_dynamic_profiles_insert(
 
 pub fn dfareporting_dynamic_profiles_publish_builder(
     client: &SimpleHttpClient,
-    dynamicProfileId: String,
+    dynamicProfileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9490,8 +9439,7 @@ pub fn dfareporting_dynamic_profiles_publish(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_dynamic_profiles_publish_builder(client, args.dynamicProfileId.clone())?;
+    let builder = dfareporting_dynamic_profiles_publish_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_publish_execute(builder)
 }
 
@@ -9503,7 +9451,7 @@ pub fn dfareporting_dynamic_profiles_publish(
 
 pub fn dfareporting_dynamic_targeting_keys_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &DynamicTargetingKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -9656,11 +9604,8 @@ pub fn dfareporting_dynamic_targeting_keys_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_targeting_keys_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_dynamic_targeting_keys_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_dynamic_targeting_keys_insert_execute(builder)
 }
 
@@ -9672,8 +9617,8 @@ pub fn dfareporting_dynamic_targeting_keys_insert(
 
 pub fn dfareporting_event_tags_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9816,8 +9761,7 @@ pub fn dfareporting_event_tags_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_event_tags_delete_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_event_tags_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_event_tags_delete_execute(builder)
 }
 
@@ -9829,7 +9773,7 @@ pub fn dfareporting_event_tags_delete(
 
 pub fn dfareporting_event_tags_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &EventTag,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -9977,8 +9921,7 @@ pub fn dfareporting_event_tags_insert(
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_event_tags_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_event_tags_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_event_tags_insert_execute(builder)
 }
 
@@ -9990,14 +9933,13 @@ pub fn dfareporting_event_tags_insert(
 
 pub fn dfareporting_files_get_builder(
     client: &SimpleHttpClient,
-    reportId: String,
-    fileId: String,
+    reportId: &String,
+    fileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/reports/{}/files/{}",
-        reportId.as_str(),
-        fileId.as_str(),
+        reportId, fileId,
     );
 
     // Build request
@@ -10139,8 +10081,7 @@ pub fn dfareporting_files_get(
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_files_get_builder(client, args.reportId.clone(), args.fileId.clone())?;
+    let builder = dfareporting_files_get_builder(client, &args.reportId, &args.fileId)?;
     dfareporting_files_get_execute(builder)
 }
 
@@ -10152,34 +10093,34 @@ pub fn dfareporting_files_get(
 
 pub fn dfareporting_files_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    scope: Option<String>,
-    sortField: Option<String>,
-    sortOrder: Option<String>,
+    profileId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    scope: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/files",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = scope {
+    if let Some(val) = scope.as_ref() {
         query_parts.push(format!("scope={}", val));
     }
-    if let Some(val) = sortField {
+    if let Some(val) = sortField.as_ref() {
         query_parts.push(format!("sortField={}", val));
     }
-    if let Some(val) = sortOrder {
+    if let Some(val) = sortOrder.as_ref() {
         query_parts.push(format!("sortOrder={}", val));
     }
 
@@ -10337,12 +10278,12 @@ pub fn dfareporting_files_list(
 > {
     let builder = dfareporting_files_list_builder(
         client,
-        args.profileId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.scope.clone(),
-        args.sortField.clone(),
-        args.sortOrder.clone(),
+        &args.profileId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.scope,
+        &args.sortField,
+        &args.sortOrder,
     )?;
     dfareporting_files_list_execute(builder)
 }
@@ -10355,8 +10296,8 @@ pub fn dfareporting_files_list(
 
 pub fn dfareporting_floodlight_activities_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10499,11 +10440,8 @@ pub fn dfareporting_floodlight_activities_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_delete_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_floodlight_activities_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_activities_delete_execute(builder)
 }
 
@@ -10515,8 +10453,8 @@ pub fn dfareporting_floodlight_activities_delete(
 
 pub fn dfareporting_floodlight_activities_generatetag_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    floodlightActivityId: Option<String>,
+    profileId: &String,
+    floodlightActivityId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -10525,7 +10463,7 @@ pub fn dfareporting_floodlight_activities_generatetag_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = floodlightActivityId {
+    if let Some(val) = floodlightActivityId.as_ref() {
         query_parts.push(format!("floodlightActivityId={}", val));
     }
 
@@ -10684,8 +10622,8 @@ pub fn dfareporting_floodlight_activities_generatetag(
 > {
     let builder = dfareporting_floodlight_activities_generatetag_builder(
         client,
-        args.profileId.clone(),
-        args.floodlightActivityId.clone(),
+        &args.profileId,
+        &args.floodlightActivityId,
     )?;
     dfareporting_floodlight_activities_generatetag_execute(builder)
 }
@@ -10698,7 +10636,7 @@ pub fn dfareporting_floodlight_activities_generatetag(
 
 pub fn dfareporting_floodlight_activities_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &FloodlightActivity,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -10851,11 +10789,8 @@ pub fn dfareporting_floodlight_activities_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_floodlight_activities_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_floodlight_activities_insert_execute(builder)
 }
 
@@ -10867,8 +10802,8 @@ pub fn dfareporting_floodlight_activities_insert(
 
 pub fn dfareporting_floodlight_activity_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11018,11 +10953,8 @@ pub fn dfareporting_floodlight_activity_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activity_groups_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_floodlight_activity_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_activity_groups_get_execute(builder)
 }
 
@@ -11034,7 +10966,7 @@ pub fn dfareporting_floodlight_activity_groups_get(
 
 pub fn dfareporting_floodlight_activity_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &FloodlightActivityGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -11189,7 +11121,7 @@ pub fn dfareporting_floodlight_activity_groups_insert(
 > {
     let builder = dfareporting_floodlight_activity_groups_insert_builder(
         client,
-        args.profileId.clone(),
+        &args.profileId,
         &args.body,
     )?;
     dfareporting_floodlight_activity_groups_insert_execute(builder)
@@ -11203,8 +11135,8 @@ pub fn dfareporting_floodlight_activity_groups_insert(
 
 pub fn dfareporting_floodlight_configurations_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11354,11 +11286,8 @@ pub fn dfareporting_floodlight_configurations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_configurations_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_floodlight_configurations_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_configurations_get_execute(builder)
 }
 
@@ -11370,8 +11299,8 @@ pub fn dfareporting_floodlight_configurations_get(
 
 pub fn dfareporting_floodlight_configurations_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    ids: Option<String>,
+    profileId: &String,
+    ids: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -11380,7 +11309,7 @@ pub fn dfareporting_floodlight_configurations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
 
@@ -11536,11 +11465,8 @@ pub fn dfareporting_floodlight_configurations_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_configurations_list_builder(
-        client,
-        args.profileId.clone(),
-        args.ids.clone(),
-    )?;
+    let builder =
+        dfareporting_floodlight_configurations_list_builder(client, &args.profileId, &args.ids)?;
     dfareporting_floodlight_configurations_list_execute(builder)
 }
 
@@ -11552,7 +11478,7 @@ pub fn dfareporting_floodlight_configurations_list(
 
 pub fn dfareporting_languages_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -11699,7 +11625,7 @@ pub fn dfareporting_languages_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_languages_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_languages_list_builder(client, &args.profileId)?;
     dfareporting_languages_list_execute(builder)
 }
 
@@ -11711,7 +11637,7 @@ pub fn dfareporting_languages_list(
 
 pub fn dfareporting_metros_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -11858,7 +11784,7 @@ pub fn dfareporting_metros_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_metros_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_metros_list_builder(client, &args.profileId)?;
     dfareporting_metros_list_execute(builder)
 }
 
@@ -11870,8 +11796,8 @@ pub fn dfareporting_metros_list(
 
 pub fn dfareporting_mobile_apps_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12017,8 +11943,7 @@ pub fn dfareporting_mobile_apps_get(
     impl StreamIterator<D = Result<ApiResponse<MobileApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_mobile_apps_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_mobile_apps_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_mobile_apps_get_execute(builder)
 }
 
@@ -12030,12 +11955,12 @@ pub fn dfareporting_mobile_apps_get(
 
 pub fn dfareporting_mobile_apps_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    directories: Option<String>,
-    ids: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    searchString: Option<String>,
+    profileId: &String,
+    directories: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -12043,19 +11968,19 @@ pub fn dfareporting_mobile_apps_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = directories {
+    if let Some(val) = directories.as_ref() {
         query_parts.push(format!("directories={}", val));
     }
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = searchString {
+    if let Some(val) = searchString.as_ref() {
         query_parts.push(format!("searchString={}", val));
     }
 
@@ -12217,12 +12142,12 @@ pub fn dfareporting_mobile_apps_list(
 > {
     let builder = dfareporting_mobile_apps_list_builder(
         client,
-        args.profileId.clone(),
-        args.directories.clone(),
-        args.ids.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.searchString.clone(),
+        &args.profileId,
+        &args.directories,
+        &args.ids,
+        &args.maxResults,
+        &args.pageToken,
+        &args.searchString,
     )?;
     dfareporting_mobile_apps_list_execute(builder)
 }
@@ -12235,8 +12160,8 @@ pub fn dfareporting_mobile_apps_list(
 
 pub fn dfareporting_mobile_carriers_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12386,8 +12311,7 @@ pub fn dfareporting_mobile_carriers_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_mobile_carriers_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_mobile_carriers_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_mobile_carriers_get_execute(builder)
 }
 
@@ -12399,7 +12323,7 @@ pub fn dfareporting_mobile_carriers_get(
 
 pub fn dfareporting_mobile_carriers_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12551,7 +12475,7 @@ pub fn dfareporting_mobile_carriers_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_carriers_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_mobile_carriers_list_builder(client, &args.profileId)?;
     dfareporting_mobile_carriers_list_execute(builder)
 }
 
@@ -12563,8 +12487,8 @@ pub fn dfareporting_mobile_carriers_list(
 
 pub fn dfareporting_operating_system_versions_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12714,11 +12638,8 @@ pub fn dfareporting_operating_system_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_system_versions_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_operating_system_versions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_operating_system_versions_get_execute(builder)
 }
 
@@ -12730,7 +12651,7 @@ pub fn dfareporting_operating_system_versions_get(
 
 pub fn dfareporting_operating_system_versions_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -12882,8 +12803,7 @@ pub fn dfareporting_operating_system_versions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_operating_system_versions_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_operating_system_versions_list_builder(client, &args.profileId)?;
     dfareporting_operating_system_versions_list_execute(builder)
 }
 
@@ -12895,8 +12815,8 @@ pub fn dfareporting_operating_system_versions_list(
 
 pub fn dfareporting_operating_systems_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    dartId: String,
+    profileId: &String,
+    dartId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13046,11 +12966,8 @@ pub fn dfareporting_operating_systems_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_systems_get_builder(
-        client,
-        args.profileId.clone(),
-        args.dartId.clone(),
-    )?;
+    let builder =
+        dfareporting_operating_systems_get_builder(client, &args.profileId, &args.dartId)?;
     dfareporting_operating_systems_get_execute(builder)
 }
 
@@ -13062,7 +12979,7 @@ pub fn dfareporting_operating_systems_get(
 
 pub fn dfareporting_operating_systems_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13214,7 +13131,7 @@ pub fn dfareporting_operating_systems_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_systems_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_operating_systems_list_builder(client, &args.profileId)?;
     dfareporting_operating_systems_list_execute(builder)
 }
 
@@ -13226,8 +13143,8 @@ pub fn dfareporting_operating_systems_list(
 
 pub fn dfareporting_placement_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13377,8 +13294,7 @@ pub fn dfareporting_placement_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_placement_groups_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_placement_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_placement_groups_get_execute(builder)
 }
 
@@ -13390,7 +13306,7 @@ pub fn dfareporting_placement_groups_get(
 
 pub fn dfareporting_placement_groups_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &PlacementGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -13544,7 +13460,7 @@ pub fn dfareporting_placement_groups_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_placement_groups_insert_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_placement_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_groups_insert_execute(builder)
 }
 
@@ -13556,8 +13472,8 @@ pub fn dfareporting_placement_groups_insert(
 
 pub fn dfareporting_placement_strategies_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13700,11 +13616,8 @@ pub fn dfareporting_placement_strategies_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_delete_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_placement_strategies_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_placement_strategies_delete_execute(builder)
 }
 
@@ -13716,7 +13629,7 @@ pub fn dfareporting_placement_strategies_delete(
 
 pub fn dfareporting_placement_strategies_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &PlacementStrategy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -13869,11 +13782,8 @@ pub fn dfareporting_placement_strategies_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_placement_strategies_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_strategies_insert_execute(builder)
 }
 
@@ -13885,13 +13795,13 @@ pub fn dfareporting_placement_strategies_insert(
 
 pub fn dfareporting_placements_generatetags_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    campaignId: Option<String>,
-    placementIds: Option<String>,
-    tagFormats: Option<String>,
-    tagProperties_dcDbmMacroIncluded: Option<bool>,
-    tagProperties_gppMacrosIncluded: Option<bool>,
-    tagProperties_tcfGdprMacrosIncluded: Option<bool>,
+    profileId: &String,
+    campaignId: &Option<String>,
+    placementIds: &Option<String>,
+    tagFormats: &Option<String>,
+    tagProperties_dcDbmMacroIncluded: &Option<bool>,
+    tagProperties_gppMacrosIncluded: &Option<bool>,
+    tagProperties_tcfGdprMacrosIncluded: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13900,22 +13810,22 @@ pub fn dfareporting_placements_generatetags_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = campaignId {
+    if let Some(val) = campaignId.as_ref() {
         query_parts.push(format!("campaignId={}", val));
     }
-    if let Some(val) = placementIds {
+    if let Some(val) = placementIds.as_ref() {
         query_parts.push(format!("placementIds={}", val));
     }
-    if let Some(val) = tagFormats {
+    if let Some(val) = tagFormats.as_ref() {
         query_parts.push(format!("tagFormats={}", val));
     }
-    if let Some(val) = tagProperties_dcDbmMacroIncluded {
+    if let Some(val) = tagProperties_dcDbmMacroIncluded.as_ref() {
         query_parts.push(format!("tagProperties.dcDbmMacroIncluded={}", val));
     }
-    if let Some(val) = tagProperties_gppMacrosIncluded {
+    if let Some(val) = tagProperties_gppMacrosIncluded.as_ref() {
         query_parts.push(format!("tagProperties.gppMacrosIncluded={}", val));
     }
-    if let Some(val) = tagProperties_tcfGdprMacrosIncluded {
+    if let Some(val) = tagProperties_tcfGdprMacrosIncluded.as_ref() {
         query_parts.push(format!("tagProperties.tcfGdprMacrosIncluded={}", val));
     }
 
@@ -14083,13 +13993,13 @@ pub fn dfareporting_placements_generatetags(
 > {
     let builder = dfareporting_placements_generatetags_builder(
         client,
-        args.profileId.clone(),
-        args.campaignId.clone(),
-        args.placementIds.clone(),
-        args.tagFormats.clone(),
-        args.tagProperties_dcDbmMacroIncluded.clone(),
-        args.tagProperties_gppMacrosIncluded.clone(),
-        args.tagProperties_tcfGdprMacrosIncluded.clone(),
+        &args.profileId,
+        &args.campaignId,
+        &args.placementIds,
+        &args.tagFormats,
+        &args.tagProperties_dcDbmMacroIncluded,
+        &args.tagProperties_gppMacrosIncluded,
+        &args.tagProperties_tcfGdprMacrosIncluded,
     )?;
     dfareporting_placements_generatetags_execute(builder)
 }
@@ -14102,8 +14012,8 @@ pub fn dfareporting_placements_generatetags(
 
 pub fn dfareporting_placements_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14249,8 +14159,7 @@ pub fn dfareporting_placements_get(
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_placements_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_placements_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_placements_get_execute(builder)
 }
 
@@ -14262,7 +14171,7 @@ pub fn dfareporting_placements_get(
 
 pub fn dfareporting_placements_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Placement,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -14410,8 +14319,7 @@ pub fn dfareporting_placements_insert(
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_placements_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_placements_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placements_insert_execute(builder)
 }
 
@@ -14423,8 +14331,8 @@ pub fn dfareporting_placements_insert(
 
 pub fn dfareporting_platform_types_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14574,8 +14482,7 @@ pub fn dfareporting_platform_types_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_platform_types_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_platform_types_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_platform_types_get_execute(builder)
 }
 
@@ -14587,7 +14494,7 @@ pub fn dfareporting_platform_types_get(
 
 pub fn dfareporting_platform_types_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14735,7 +14642,7 @@ pub fn dfareporting_platform_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_platform_types_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_platform_types_list_builder(client, &args.profileId)?;
     dfareporting_platform_types_list_execute(builder)
 }
 
@@ -14747,8 +14654,8 @@ pub fn dfareporting_platform_types_list(
 
 pub fn dfareporting_postal_codes_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    code: String,
+    profileId: &String,
+    code: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -14894,8 +14801,7 @@ pub fn dfareporting_postal_codes_get(
     impl StreamIterator<D = Result<ApiResponse<PostalCode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_postal_codes_get_builder(client, args.profileId.clone(), args.code.clone())?;
+    let builder = dfareporting_postal_codes_get_builder(client, &args.profileId, &args.code)?;
     dfareporting_postal_codes_get_execute(builder)
 }
 
@@ -14907,7 +14813,7 @@ pub fn dfareporting_postal_codes_get(
 
 pub fn dfareporting_postal_codes_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -15054,7 +14960,7 @@ pub fn dfareporting_postal_codes_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_postal_codes_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_postal_codes_list_builder(client, &args.profileId)?;
     dfareporting_postal_codes_list_execute(builder)
 }
 
@@ -15066,7 +14972,7 @@ pub fn dfareporting_postal_codes_list(
 
 pub fn dfareporting_regions_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -15213,7 +15119,7 @@ pub fn dfareporting_regions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_regions_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_regions_list_builder(client, &args.profileId)?;
     dfareporting_regions_list_execute(builder)
 }
 
@@ -15225,8 +15131,8 @@ pub fn dfareporting_regions_list(
 
 pub fn dfareporting_remarketing_list_shares_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    remarketingListId: String,
+    profileId: &String,
+    remarketingListId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15378,8 +15284,8 @@ pub fn dfareporting_remarketing_list_shares_get(
 > {
     let builder = dfareporting_remarketing_list_shares_get_builder(
         client,
-        args.profileId.clone(),
-        args.remarketingListId.clone(),
+        &args.profileId,
+        &args.remarketingListId,
     )?;
     dfareporting_remarketing_list_shares_get_execute(builder)
 }
@@ -15392,7 +15298,7 @@ pub fn dfareporting_remarketing_list_shares_get(
 
 pub fn dfareporting_remarketing_list_shares_update_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &RemarketingListShare,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -15545,11 +15451,8 @@ pub fn dfareporting_remarketing_list_shares_update(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_list_shares_update_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_remarketing_list_shares_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_remarketing_list_shares_update_execute(builder)
 }
 
@@ -15561,8 +15464,8 @@ pub fn dfareporting_remarketing_list_shares_update(
 
 pub fn dfareporting_remarketing_lists_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15712,11 +15615,7 @@ pub fn dfareporting_remarketing_lists_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = dfareporting_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_remarketing_lists_get_execute(builder)
 }
 
@@ -15728,7 +15627,7 @@ pub fn dfareporting_remarketing_lists_get(
 
 pub fn dfareporting_remarketing_lists_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &RemarketingList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -15882,7 +15781,7 @@ pub fn dfareporting_remarketing_lists_insert(
     ApiError,
 > {
     let builder =
-        dfareporting_remarketing_lists_insert_builder(client, args.profileId.clone(), &args.body)?;
+        dfareporting_remarketing_lists_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_remarketing_lists_insert_execute(builder)
 }
 
@@ -15894,14 +15793,13 @@ pub fn dfareporting_remarketing_lists_insert(
 
 pub fn dfareporting_reports_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    reportId: String,
+    profileId: &String,
+    reportId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}",
-        profileId.as_str(),
-        reportId.as_str(),
+        profileId, reportId,
     );
 
     // Build request
@@ -16040,8 +15938,7 @@ pub fn dfareporting_reports_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_reports_delete_builder(client, args.profileId.clone(), args.reportId.clone())?;
+    let builder = dfareporting_reports_delete_builder(client, &args.profileId, &args.reportId)?;
     dfareporting_reports_delete_execute(builder)
 }
 
@@ -16053,13 +15950,13 @@ pub fn dfareporting_reports_delete(
 
 pub fn dfareporting_reports_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Report,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -16203,7 +16100,7 @@ pub fn dfareporting_reports_insert(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_reports_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_reports_insert_execute(builder)
 }
 
@@ -16215,20 +16112,19 @@ pub fn dfareporting_reports_insert(
 
 pub fn dfareporting_reports_run_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    reportId: String,
-    synchronous: Option<bool>,
+    profileId: &String,
+    reportId: &String,
+    synchronous: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/run",
-        profileId.as_str(),
-        reportId.as_str(),
+        profileId, reportId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = synchronous {
+    if let Some(val) = synchronous.as_ref() {
         query_parts.push(format!("synchronous={}", val));
     }
 
@@ -16380,9 +16276,9 @@ pub fn dfareporting_reports_run(
 > {
     let builder = dfareporting_reports_run_builder(
         client,
-        args.profileId.clone(),
-        args.reportId.clone(),
-        args.synchronous.clone(),
+        &args.profileId,
+        &args.reportId,
+        &args.synchronous,
     )?;
     dfareporting_reports_run_execute(builder)
 }
@@ -16395,13 +16291,13 @@ pub fn dfareporting_reports_run(
 
 pub fn dfareporting_reports_compatible_fields_query_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Report,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/compatiblefields/query",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -16549,11 +16445,8 @@ pub fn dfareporting_reports_compatible_fields_query(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_compatible_fields_query_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_reports_compatible_fields_query_builder(client, &args.profileId, &args.body)?;
     dfareporting_reports_compatible_fields_query_execute(builder)
 }
 
@@ -16565,16 +16458,14 @@ pub fn dfareporting_reports_compatible_fields_query(
 
 pub fn dfareporting_reports_files_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    reportId: String,
-    fileId: String,
+    profileId: &String,
+    reportId: &String,
+    fileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files/{}",
-        profileId.as_str(),
-        reportId.as_str(),
-        fileId.as_str(),
+        profileId, reportId, fileId,
     );
 
     // Build request
@@ -16720,9 +16611,9 @@ pub fn dfareporting_reports_files_get(
 > {
     let builder = dfareporting_reports_files_get_builder(
         client,
-        args.profileId.clone(),
-        args.reportId.clone(),
-        args.fileId.clone(),
+        &args.profileId,
+        &args.reportId,
+        &args.fileId,
     )?;
     dfareporting_reports_files_get_execute(builder)
 }
@@ -16735,32 +16626,31 @@ pub fn dfareporting_reports_files_get(
 
 pub fn dfareporting_reports_files_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    reportId: String,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    sortField: Option<String>,
-    sortOrder: Option<String>,
+    profileId: &String,
+    reportId: &String,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}/reports/{}/files",
-        profileId.as_str(),
-        reportId.as_str(),
+        profileId, reportId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = sortField {
+    if let Some(val) = sortField.as_ref() {
         query_parts.push(format!("sortField={}", val));
     }
-    if let Some(val) = sortOrder {
+    if let Some(val) = sortOrder.as_ref() {
         query_parts.push(format!("sortOrder={}", val));
     }
 
@@ -16918,12 +16808,12 @@ pub fn dfareporting_reports_files_list(
 > {
     let builder = dfareporting_reports_files_list_builder(
         client,
-        args.profileId.clone(),
-        args.reportId.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.sortField.clone(),
-        args.sortOrder.clone(),
+        &args.profileId,
+        &args.reportId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.sortField,
+        &args.sortOrder,
     )?;
     dfareporting_reports_files_list_execute(builder)
 }
@@ -16936,8 +16826,8 @@ pub fn dfareporting_reports_files_list(
 
 pub fn dfareporting_sites_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -17082,7 +16972,7 @@ pub fn dfareporting_sites_get(
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_sites_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_sites_get_execute(builder)
 }
 
@@ -17094,7 +16984,7 @@ pub fn dfareporting_sites_get(
 
 pub fn dfareporting_sites_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Site,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -17242,7 +17132,7 @@ pub fn dfareporting_sites_insert(
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_sites_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_sites_insert_execute(builder)
 }
 
@@ -17254,8 +17144,8 @@ pub fn dfareporting_sites_insert(
 
 pub fn dfareporting_sizes_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -17400,7 +17290,7 @@ pub fn dfareporting_sizes_get(
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_sizes_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_sizes_get_execute(builder)
 }
 
@@ -17412,7 +17302,7 @@ pub fn dfareporting_sizes_get(
 
 pub fn dfareporting_sizes_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Size,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -17560,7 +17450,7 @@ pub fn dfareporting_sizes_insert(
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_sizes_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_sizes_insert_execute(builder)
 }
 
@@ -17737,7 +17627,7 @@ pub fn dfareporting_studio_creative_assets_insert(
 
 pub fn dfareporting_studio_creatives_get_builder(
     client: &SimpleHttpClient,
-    studioCreativeId: String,
+    studioCreativeId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -17884,7 +17774,7 @@ pub fn dfareporting_studio_creatives_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_get_builder(client, args.studioCreativeId.clone())?;
+    let builder = dfareporting_studio_creatives_get_builder(client, &args.studioCreativeId)?;
     dfareporting_studio_creatives_get_execute(builder)
 }
 
@@ -18057,7 +17947,7 @@ pub fn dfareporting_studio_creatives_insert(
 
 pub fn dfareporting_studio_creatives_publish_builder(
     client: &SimpleHttpClient,
-    studioCreativeId: String,
+    studioCreativeId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -18197,8 +18087,7 @@ pub fn dfareporting_studio_creatives_publish(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_studio_creatives_publish_builder(client, args.studioCreativeId.clone())?;
+    let builder = dfareporting_studio_creatives_publish_builder(client, &args.studioCreativeId)?;
     dfareporting_studio_creatives_publish_execute(builder)
 }
 
@@ -18210,8 +18099,8 @@ pub fn dfareporting_studio_creatives_publish(
 
 pub fn dfareporting_subaccounts_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -18357,8 +18246,7 @@ pub fn dfareporting_subaccounts_get(
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_subaccounts_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_subaccounts_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_subaccounts_get_execute(builder)
 }
 
@@ -18370,7 +18258,7 @@ pub fn dfareporting_subaccounts_get(
 
 pub fn dfareporting_subaccounts_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &Subaccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -18518,8 +18406,7 @@ pub fn dfareporting_subaccounts_insert(
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_subaccounts_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_subaccounts_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_subaccounts_insert_execute(builder)
 }
 
@@ -18531,8 +18418,8 @@ pub fn dfareporting_subaccounts_insert(
 
 pub fn dfareporting_targetable_remarketing_lists_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -18682,11 +18569,8 @@ pub fn dfareporting_targetable_remarketing_lists_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targetable_remarketing_lists_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_targetable_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_targetable_remarketing_lists_get_execute(builder)
 }
 
@@ -18698,8 +18582,8 @@ pub fn dfareporting_targetable_remarketing_lists_get(
 
 pub fn dfareporting_targeting_templates_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -18849,11 +18733,7 @@ pub fn dfareporting_targeting_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder = dfareporting_targeting_templates_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_targeting_templates_get_execute(builder)
 }
 
@@ -18865,7 +18745,7 @@ pub fn dfareporting_targeting_templates_get(
 
 pub fn dfareporting_targeting_templates_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &TargetingTemplate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -19018,11 +18898,8 @@ pub fn dfareporting_targeting_templates_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_insert_builder(
-        client,
-        args.profileId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        dfareporting_targeting_templates_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_targeting_templates_insert_execute(builder)
 }
 
@@ -19034,11 +18911,11 @@ pub fn dfareporting_targeting_templates_insert(
 
 pub fn dfareporting_tv_campaign_details_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
-    accountId: Option<String>,
-    countryDartId: Option<String>,
-    tvDataProvider: Option<String>,
+    profileId: &String,
+    id: &String,
+    accountId: &Option<String>,
+    countryDartId: &Option<String>,
+    tvDataProvider: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -19047,13 +18924,13 @@ pub fn dfareporting_tv_campaign_details_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = accountId {
+    if let Some(val) = accountId.as_ref() {
         query_parts.push(format!("accountId={}", val));
     }
-    if let Some(val) = countryDartId {
+    if let Some(val) = countryDartId.as_ref() {
         query_parts.push(format!("countryDartId={}", val));
     }
-    if let Some(val) = tvDataProvider {
+    if let Some(val) = tvDataProvider.as_ref() {
         query_parts.push(format!("tvDataProvider={}", val));
     }
 
@@ -19213,11 +19090,11 @@ pub fn dfareporting_tv_campaign_details_get(
 > {
     let builder = dfareporting_tv_campaign_details_get_builder(
         client,
-        args.profileId.clone(),
-        args.id.clone(),
-        args.accountId.clone(),
-        args.countryDartId.clone(),
-        args.tvDataProvider.clone(),
+        &args.profileId,
+        &args.id,
+        &args.accountId,
+        &args.countryDartId,
+        &args.tvDataProvider,
     )?;
     dfareporting_tv_campaign_details_get_execute(builder)
 }
@@ -19230,11 +19107,11 @@ pub fn dfareporting_tv_campaign_details_get(
 
 pub fn dfareporting_tv_campaign_summaries_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    accountId: Option<String>,
-    countryDartId: Option<String>,
-    name: Option<String>,
-    tvDataProvider: Option<String>,
+    profileId: &String,
+    accountId: &Option<String>,
+    countryDartId: &Option<String>,
+    name: &Option<String>,
+    tvDataProvider: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -19243,16 +19120,16 @@ pub fn dfareporting_tv_campaign_summaries_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = accountId {
+    if let Some(val) = accountId.as_ref() {
         query_parts.push(format!("accountId={}", val));
     }
-    if let Some(val) = countryDartId {
+    if let Some(val) = countryDartId.as_ref() {
         query_parts.push(format!("countryDartId={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = tvDataProvider {
+    if let Some(val) = tvDataProvider.as_ref() {
         query_parts.push(format!("tvDataProvider={}", val));
     }
 
@@ -19416,11 +19293,11 @@ pub fn dfareporting_tv_campaign_summaries_list(
 > {
     let builder = dfareporting_tv_campaign_summaries_list_builder(
         client,
-        args.profileId.clone(),
-        args.accountId.clone(),
-        args.countryDartId.clone(),
-        args.name.clone(),
-        args.tvDataProvider.clone(),
+        &args.profileId,
+        &args.accountId,
+        &args.countryDartId,
+        &args.name,
+        &args.tvDataProvider,
     )?;
     dfareporting_tv_campaign_summaries_list_execute(builder)
 }
@@ -19433,12 +19310,12 @@ pub fn dfareporting_tv_campaign_summaries_list(
 
 pub fn dfareporting_user_profiles_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://dfareporting.googleapis.com/dfareporting/v5/userprofiles/{}",
-        profileId.as_str(),
+        profileId,
     );
 
     // Build request
@@ -19578,7 +19455,7 @@ pub fn dfareporting_user_profiles_get(
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_profiles_get_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_user_profiles_get_builder(client, &args.profileId)?;
     dfareporting_user_profiles_get_execute(builder)
 }
 
@@ -19739,8 +19616,8 @@ pub fn dfareporting_user_profiles_list(
 
 pub fn dfareporting_user_role_permission_groups_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -19890,11 +19767,8 @@ pub fn dfareporting_user_role_permission_groups_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permission_groups_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_user_role_permission_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_role_permission_groups_get_execute(builder)
 }
 
@@ -19906,7 +19780,7 @@ pub fn dfareporting_user_role_permission_groups_get(
 
 pub fn dfareporting_user_role_permission_groups_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -20058,8 +19932,7 @@ pub fn dfareporting_user_role_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_user_role_permission_groups_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_user_role_permission_groups_list_builder(client, &args.profileId)?;
     dfareporting_user_role_permission_groups_list_execute(builder)
 }
 
@@ -20071,8 +19944,8 @@ pub fn dfareporting_user_role_permission_groups_list(
 
 pub fn dfareporting_user_role_permissions_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -20222,11 +20095,8 @@ pub fn dfareporting_user_role_permissions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permissions_get_builder(
-        client,
-        args.profileId.clone(),
-        args.id.clone(),
-    )?;
+    let builder =
+        dfareporting_user_role_permissions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_role_permissions_get_execute(builder)
 }
 
@@ -20238,8 +20108,8 @@ pub fn dfareporting_user_role_permissions_get(
 
 pub fn dfareporting_user_role_permissions_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    ids: Option<String>,
+    profileId: &String,
+    ids: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -20248,7 +20118,7 @@ pub fn dfareporting_user_role_permissions_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = ids {
+    if let Some(val) = ids.as_ref() {
         query_parts.push(format!("ids={}", val));
     }
 
@@ -20404,11 +20274,8 @@ pub fn dfareporting_user_role_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permissions_list_builder(
-        client,
-        args.profileId.clone(),
-        args.ids.clone(),
-    )?;
+    let builder =
+        dfareporting_user_role_permissions_list_builder(client, &args.profileId, &args.ids)?;
     dfareporting_user_role_permissions_list_execute(builder)
 }
 
@@ -20420,8 +20287,8 @@ pub fn dfareporting_user_role_permissions_list(
 
 pub fn dfareporting_user_roles_delete_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -20564,8 +20431,7 @@ pub fn dfareporting_user_roles_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_user_roles_delete_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_user_roles_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_roles_delete_execute(builder)
 }
 
@@ -20577,7 +20443,7 @@ pub fn dfareporting_user_roles_delete(
 
 pub fn dfareporting_user_roles_insert_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
     body: &UserRole,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -20725,8 +20591,7 @@ pub fn dfareporting_user_roles_insert(
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_user_roles_insert_builder(client, args.profileId.clone(), &args.body)?;
+    let builder = dfareporting_user_roles_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_user_roles_insert_execute(builder)
 }
 
@@ -20738,8 +20603,8 @@ pub fn dfareporting_user_roles_insert(
 
 pub fn dfareporting_video_formats_get_builder(
     client: &SimpleHttpClient,
-    profileId: String,
-    id: String,
+    profileId: &String,
+    id: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -20864,7 +20729,7 @@ pub struct DfareportingVideoFormatsGetArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Path parameter: id
-    pub id: String,
+    pub id: i32,
 }
 
 /// GET userprofiles/{userprofilesId}/videoFormats/{videoFormatsId}
@@ -20885,8 +20750,7 @@ pub fn dfareporting_video_formats_get(
     impl StreamIterator<D = Result<ApiResponse<VideoFormat>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_video_formats_get_builder(client, args.profileId.clone(), args.id.clone())?;
+    let builder = dfareporting_video_formats_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_video_formats_get_execute(builder)
 }
 
@@ -20898,7 +20762,7 @@ pub fn dfareporting_video_formats_get(
 
 pub fn dfareporting_video_formats_list_builder(
     client: &SimpleHttpClient,
-    profileId: String,
+    profileId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -21046,6 +20910,6 @@ pub fn dfareporting_video_formats_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_video_formats_list_builder(client, args.profileId.clone())?;
+    let builder = dfareporting_video_formats_list_builder(client, &args.profileId)?;
     dfareporting_video_formats_list_execute(builder)
 }

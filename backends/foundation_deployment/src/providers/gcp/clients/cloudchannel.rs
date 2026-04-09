@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -198,7 +198,7 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
 > {
     let builder = cloudchannel_accounts_check_cloud_identity_accounts_exist_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     cloudchannel_accounts_check_cloud_identity_accounts_exist_execute(builder)
@@ -212,10 +212,10 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
 
 pub fn cloudchannel_accounts_list_subscribers_builder(
     client: &SimpleHttpClient,
-    account: String,
-    integrator: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    account: &String,
+    integrator: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -223,13 +223,13 @@ pub fn cloudchannel_accounts_list_subscribers_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = integrator {
+    if let Some(val) = integrator.as_ref() {
         query_parts.push(format!("integrator={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -392,10 +392,10 @@ pub fn cloudchannel_accounts_list_subscribers(
 > {
     let builder = cloudchannel_accounts_list_subscribers_builder(
         client,
-        args.account.clone(),
-        args.integrator.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.account,
+        &args.integrator,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_accounts_list_subscribers_execute(builder)
 }
@@ -408,7 +408,7 @@ pub fn cloudchannel_accounts_list_subscribers(
 
 pub fn cloudchannel_accounts_list_transferable_offers_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1ListTransferableOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -568,11 +568,8 @@ pub fn cloudchannel_accounts_list_transferable_offers(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_list_transferable_offers_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudchannel_accounts_list_transferable_offers_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_list_transferable_offers_execute(builder)
 }
 
@@ -584,7 +581,7 @@ pub fn cloudchannel_accounts_list_transferable_offers(
 
 pub fn cloudchannel_accounts_list_transferable_skus_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1ListTransferableSkusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -741,11 +738,8 @@ pub fn cloudchannel_accounts_list_transferable_skus(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_list_transferable_skus_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudchannel_accounts_list_transferable_skus_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_list_transferable_skus_execute(builder)
 }
 
@@ -757,7 +751,7 @@ pub fn cloudchannel_accounts_list_transferable_skus(
 
 pub fn cloudchannel_accounts_register_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
     body: &GoogleCloudChannelV1RegisterSubscriberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -913,7 +907,7 @@ pub fn cloudchannel_accounts_register(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_register_builder(client, args.account.clone(), &args.body)?;
+    let builder = cloudchannel_accounts_register_builder(client, &args.account, &args.body)?;
     cloudchannel_accounts_register_execute(builder)
 }
 
@@ -925,7 +919,7 @@ pub fn cloudchannel_accounts_register(
 
 pub fn cloudchannel_accounts_unregister_builder(
     client: &SimpleHttpClient,
-    account: String,
+    account: &String,
     body: &GoogleCloudChannelV1UnregisterSubscriberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1081,8 +1075,7 @@ pub fn cloudchannel_accounts_unregister(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_unregister_builder(client, args.account.clone(), &args.body)?;
+    let builder = cloudchannel_accounts_unregister_builder(client, &args.account, &args.body)?;
     cloudchannel_accounts_unregister_execute(builder)
 }
 
@@ -1094,7 +1087,7 @@ pub fn cloudchannel_accounts_unregister(
 
 pub fn cloudchannel_accounts_channel_partner_links_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1ChannelPartnerLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1252,7 +1245,7 @@ pub fn cloudchannel_accounts_channel_partner_links_create(
 > {
     let builder = cloudchannel_accounts_channel_partner_links_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     cloudchannel_accounts_channel_partner_links_create_execute(builder)
@@ -1266,7 +1259,7 @@ pub fn cloudchannel_accounts_channel_partner_links_create(
 
 pub fn cloudchannel_accounts_customers_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1Customer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1421,8 +1414,7 @@ pub fn cloudchannel_accounts_customers_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = cloudchannel_accounts_customers_create_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_customers_create_execute(builder)
 }
 
@@ -1434,7 +1426,7 @@ pub fn cloudchannel_accounts_customers_create(
 
 pub fn cloudchannel_accounts_customers_import_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudChannelV1ImportCustomerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1590,8 +1582,7 @@ pub fn cloudchannel_accounts_customers_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_import_builder(client, args.parent.clone(), &args.body)?;
+    let builder = cloudchannel_accounts_customers_import_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_customers_import_execute(builder)
 }
 
@@ -1603,31 +1594,31 @@ pub fn cloudchannel_accounts_customers_import(
 
 pub fn cloudchannel_accounts_offers_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    showFutureOffers: Option<bool>,
+    parent: &String,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    showFutureOffers: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/accounts/{}/offers",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = showFutureOffers {
+    if let Some(val) = showFutureOffers.as_ref() {
         query_parts.push(format!("showFutureOffers={}", val));
     }
 
@@ -1793,12 +1784,12 @@ pub fn cloudchannel_accounts_offers_list(
 > {
     let builder = cloudchannel_accounts_offers_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.showFutureOffers.clone(),
+        &args.parent,
+        &args.filter,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
+        &args.showFutureOffers,
     )?;
     cloudchannel_accounts_offers_list_execute(builder)
 }
@@ -1811,23 +1802,23 @@ pub fn cloudchannel_accounts_offers_list(
 
 pub fn cloudchannel_accounts_reports_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/accounts/{}/reports",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1990,10 +1981,10 @@ pub fn cloudchannel_accounts_reports_list(
 > {
     let builder = cloudchannel_accounts_reports_list_builder(
         client,
-        args.parent.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_accounts_reports_list_execute(builder)
 }
@@ -2006,19 +1997,19 @@ pub fn cloudchannel_accounts_reports_list(
 
 pub fn cloudchannel_accounts_sku_groups_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/accounts/{}/skuGroups",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2178,9 +2169,9 @@ pub fn cloudchannel_accounts_sku_groups_list(
 > {
     let builder = cloudchannel_accounts_sku_groups_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_accounts_sku_groups_list_execute(builder)
 }
@@ -2193,10 +2184,10 @@ pub fn cloudchannel_accounts_sku_groups_list(
 
 pub fn cloudchannel_integrators_list_subscribers_builder(
     client: &SimpleHttpClient,
-    integrator: String,
-    account: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    integrator: &String,
+    account: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2204,13 +2195,13 @@ pub fn cloudchannel_integrators_list_subscribers_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account {
+    if let Some(val) = account.as_ref() {
         query_parts.push(format!("account={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2373,10 +2364,10 @@ pub fn cloudchannel_integrators_list_subscribers(
 > {
     let builder = cloudchannel_integrators_list_subscribers_builder(
         client,
-        args.integrator.clone(),
-        args.account.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.integrator,
+        &args.account,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_integrators_list_subscribers_execute(builder)
 }
@@ -2389,7 +2380,7 @@ pub fn cloudchannel_integrators_list_subscribers(
 
 pub fn cloudchannel_integrators_register_subscriber_builder(
     client: &SimpleHttpClient,
-    integrator: String,
+    integrator: &String,
     body: &GoogleCloudChannelV1RegisterSubscriberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2546,11 +2537,8 @@ pub fn cloudchannel_integrators_register_subscriber(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_integrators_register_subscriber_builder(
-        client,
-        args.integrator.clone(),
-        &args.body,
-    )?;
+    let builder =
+        cloudchannel_integrators_register_subscriber_builder(client, &args.integrator, &args.body)?;
     cloudchannel_integrators_register_subscriber_execute(builder)
 }
 
@@ -2562,7 +2550,7 @@ pub fn cloudchannel_integrators_register_subscriber(
 
 pub fn cloudchannel_integrators_unregister_subscriber_builder(
     client: &SimpleHttpClient,
-    integrator: String,
+    integrator: &String,
     body: &GoogleCloudChannelV1UnregisterSubscriberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2721,7 +2709,7 @@ pub fn cloudchannel_integrators_unregister_subscriber(
 > {
     let builder = cloudchannel_integrators_unregister_subscriber_builder(
         client,
-        args.integrator.clone(),
+        &args.integrator,
         &args.body,
     )?;
     cloudchannel_integrators_unregister_subscriber_execute(builder)
@@ -2735,7 +2723,7 @@ pub fn cloudchannel_integrators_unregister_subscriber(
 
 pub fn cloudchannel_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleLongrunningCancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2886,7 +2874,7 @@ pub fn cloudchannel_operations_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = cloudchannel_operations_cancel_builder(client, &args.name, &args.body)?;
     cloudchannel_operations_cancel_execute(builder)
 }
 
@@ -2898,7 +2886,7 @@ pub fn cloudchannel_operations_cancel(
 
 pub fn cloudchannel_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/operations/{}",);
@@ -3044,7 +3032,7 @@ pub fn cloudchannel_operations_delete(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_operations_delete_builder(client, args.name.clone())?;
+    let builder = cloudchannel_operations_delete_builder(client, &args.name)?;
     cloudchannel_operations_delete_execute(builder)
 }
 
@@ -3056,26 +3044,26 @@ pub fn cloudchannel_operations_delete(
 
 pub fn cloudchannel_products_list_builder(
     client: &SimpleHttpClient,
-    account: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    account: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/products",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account {
+    if let Some(val) = account.as_ref() {
         query_parts.push(format!("account={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3237,10 +3225,10 @@ pub fn cloudchannel_products_list(
 > {
     let builder = cloudchannel_products_list_builder(
         client,
-        args.account.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.account,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_products_list_execute(builder)
 }
@@ -3253,27 +3241,27 @@ pub fn cloudchannel_products_list(
 
 pub fn cloudchannel_products_skus_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    account: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    account: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudchannel.googleapis.com/v1/products/{}/skus",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = account {
+    if let Some(val) = account.as_ref() {
         query_parts.push(format!("account={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3437,11 +3425,11 @@ pub fn cloudchannel_products_skus_list(
 > {
     let builder = cloudchannel_products_skus_list_builder(
         client,
-        args.parent.clone(),
-        args.account.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.account,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     cloudchannel_products_skus_list_execute(builder)
 }

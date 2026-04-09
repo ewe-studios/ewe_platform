@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn docs_documents_batch_update_builder(
     client: &SimpleHttpClient,
-    documentId: String,
+    documentId: &String,
     body: &BatchUpdateDocumentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://docs.googleapis.com/v1/documents/{}:batchUpdate",
-        documentId.as_str(),
+        documentId,
     );
 
     // Build request
@@ -187,7 +187,7 @@ pub fn docs_documents_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = docs_documents_batch_update_builder(client, args.documentId.clone(), &args.body)?;
+    let builder = docs_documents_batch_update_builder(client, &args.documentId, &args.body)?;
     docs_documents_batch_update_execute(builder)
 }
 
@@ -355,22 +355,19 @@ pub fn docs_documents_create(
 
 pub fn docs_documents_get_builder(
     client: &SimpleHttpClient,
-    documentId: String,
-    includeTabsContent: Option<bool>,
-    suggestionsViewMode: Option<String>,
+    documentId: &String,
+    includeTabsContent: &Option<bool>,
+    suggestionsViewMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://docs.googleapis.com/v1/documents/{}",
-        documentId.as_str(),
-    );
+    let endpoint_url = format!("https://docs.googleapis.com/v1/documents/{}", documentId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeTabsContent {
+    if let Some(val) = includeTabsContent.as_ref() {
         query_parts.push(format!("includeTabsContent={}", val));
     }
-    if let Some(val) = suggestionsViewMode {
+    if let Some(val) = suggestionsViewMode.as_ref() {
         query_parts.push(format!("suggestionsViewMode={}", val));
     }
 
@@ -522,9 +519,9 @@ pub fn docs_documents_get(
 > {
     let builder = docs_documents_get_builder(
         client,
-        args.documentId.clone(),
-        args.includeTabsContent.clone(),
-        args.suggestionsViewMode.clone(),
+        &args.documentId,
+        &args.includeTabsContent,
+        &args.suggestionsViewMode,
     )?;
     docs_documents_get_execute(builder)
 }

@@ -29,9 +29,9 @@ use serde::Serialize;
 
 pub fn mybusinessbusinessinformation_accounts_locations_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    requestId: Option<String>,
-    validateOnly: Option<bool>,
+    parent: &String,
+    requestId: &Option<String>,
+    validateOnly: &Option<bool>,
     body: &Location,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -40,10 +40,10 @@ pub fn mybusinessbusinessinformation_accounts_locations_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
-    if let Some(val) = validateOnly {
+    if let Some(val) = validateOnly.as_ref() {
         query_parts.push(format!("validateOnly={}", val));
     }
 
@@ -199,9 +199,9 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
 > {
     let builder = mybusinessbusinessinformation_accounts_locations_create_builder(
         client,
-        args.parent.clone(),
-        args.requestId.clone(),
-        args.validateOnly.clone(),
+        &args.parent,
+        &args.requestId,
+        &args.validateOnly,
         &args.body,
     )?;
     mybusinessbusinessinformation_accounts_locations_create_execute(builder)
@@ -215,13 +215,13 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
 
 pub fn mybusinessbusinessinformation_attributes_list_builder(
     client: &SimpleHttpClient,
-    categoryName: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    parent: Option<String>,
-    regionCode: Option<String>,
-    showAll: Option<bool>,
+    categoryName: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    regionCode: &Option<String>,
+    showAll: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -229,25 +229,25 @@ pub fn mybusinessbusinessinformation_attributes_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = categoryName {
+    if let Some(val) = categoryName.as_ref() {
         query_parts.push(format!("categoryName={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
-    if let Some(val) = regionCode {
+    if let Some(val) = regionCode.as_ref() {
         query_parts.push(format!("regionCode={}", val));
     }
-    if let Some(val) = showAll {
+    if let Some(val) = showAll.as_ref() {
         query_parts.push(format!("showAll={}", val));
     }
 
@@ -415,13 +415,13 @@ pub fn mybusinessbusinessinformation_attributes_list(
 > {
     let builder = mybusinessbusinessinformation_attributes_list_builder(
         client,
-        args.categoryName.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.parent.clone(),
-        args.regionCode.clone(),
-        args.showAll.clone(),
+        &args.categoryName,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+        &args.regionCode,
+        &args.showAll,
     )?;
     mybusinessbusinessinformation_attributes_list_execute(builder)
 }
@@ -434,10 +434,10 @@ pub fn mybusinessbusinessinformation_attributes_list(
 
 pub fn mybusinessbusinessinformation_categories_batch_get_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<String>,
-    names: Option<String>,
-    regionCode: Option<String>,
-    view: Option<String>,
+    languageCode: &Option<String>,
+    names: &Option<String>,
+    regionCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -445,16 +445,16 @@ pub fn mybusinessbusinessinformation_categories_batch_get_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = names {
+    if let Some(val) = names.as_ref() {
         query_parts.push(format!("names={}", val));
     }
-    if let Some(val) = regionCode {
+    if let Some(val) = regionCode.as_ref() {
         query_parts.push(format!("regionCode={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -616,10 +616,10 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 > {
     let builder = mybusinessbusinessinformation_categories_batch_get_builder(
         client,
-        args.languageCode.clone(),
-        args.names.clone(),
-        args.regionCode.clone(),
-        args.view.clone(),
+        &args.languageCode,
+        &args.names,
+        &args.regionCode,
+        &args.view,
     )?;
     mybusinessbusinessinformation_categories_batch_get_execute(builder)
 }
@@ -632,12 +632,12 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 
 pub fn mybusinessbusinessinformation_categories_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    languageCode: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    regionCode: Option<String>,
-    view: Option<String>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    regionCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -645,22 +645,22 @@ pub fn mybusinessbusinessinformation_categories_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = regionCode {
+    if let Some(val) = regionCode.as_ref() {
         query_parts.push(format!("regionCode={}", val));
     }
-    if let Some(val) = view {
+    if let Some(val) = view.as_ref() {
         query_parts.push(format!("view={}", val));
     }
 
@@ -822,12 +822,12 @@ pub fn mybusinessbusinessinformation_categories_list(
 > {
     let builder = mybusinessbusinessinformation_categories_list_builder(
         client,
-        args.filter.clone(),
-        args.languageCode.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.regionCode.clone(),
-        args.view.clone(),
+        &args.filter,
+        &args.languageCode,
+        &args.pageSize,
+        &args.pageToken,
+        &args.regionCode,
+        &args.view,
     )?;
     mybusinessbusinessinformation_categories_list_execute(builder)
 }
@@ -840,7 +840,7 @@ pub fn mybusinessbusinessinformation_categories_list(
 
 pub fn mybusinessbusinessinformation_chains_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -983,7 +983,7 @@ pub fn mybusinessbusinessinformation_chains_get(
     impl StreamIterator<D = Result<ApiResponse<Chain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_chains_get_builder(client, args.name.clone())?;
+    let builder = mybusinessbusinessinformation_chains_get_builder(client, &args.name)?;
     mybusinessbusinessinformation_chains_get_execute(builder)
 }
 
@@ -995,8 +995,8 @@ pub fn mybusinessbusinessinformation_chains_get(
 
 pub fn mybusinessbusinessinformation_chains_search_builder(
     client: &SimpleHttpClient,
-    chainName: Option<String>,
-    pageSize: Option<i32>,
+    chainName: &Option<String>,
+    pageSize: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1004,10 +1004,10 @@ pub fn mybusinessbusinessinformation_chains_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = chainName {
+    if let Some(val) = chainName.as_ref() {
         query_parts.push(format!("chainName={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
 
@@ -1161,8 +1161,8 @@ pub fn mybusinessbusinessinformation_chains_search(
 > {
     let builder = mybusinessbusinessinformation_chains_search_builder(
         client,
-        args.chainName.clone(),
-        args.pageSize.clone(),
+        &args.chainName,
+        &args.pageSize,
     )?;
     mybusinessbusinessinformation_chains_search_execute(builder)
 }
@@ -1341,7 +1341,7 @@ pub fn mybusinessbusinessinformation_google_locations_search(
 
 pub fn mybusinessbusinessinformation_locations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1484,8 +1484,7 @@ pub fn mybusinessbusinessinformation_locations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessbusinessinformation_locations_delete_builder(client, args.name.clone())?;
+    let builder = mybusinessbusinessinformation_locations_delete_builder(client, &args.name)?;
     mybusinessbusinessinformation_locations_delete_execute(builder)
 }
 
@@ -1497,7 +1496,7 @@ pub fn mybusinessbusinessinformation_locations_delete(
 
 pub fn mybusinessbusinessinformation_locations_get_attributes_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1641,7 +1640,7 @@ pub fn mybusinessbusinessinformation_locations_get_attributes(
     ApiError,
 > {
     let builder =
-        mybusinessbusinessinformation_locations_get_attributes_builder(client, args.name.clone())?;
+        mybusinessbusinessinformation_locations_get_attributes_builder(client, &args.name)?;
     mybusinessbusinessinformation_locations_get_attributes_execute(builder)
 }
 
@@ -1653,8 +1652,8 @@ pub fn mybusinessbusinessinformation_locations_get_attributes(
 
 pub fn mybusinessbusinessinformation_locations_get_google_updated_builder(
     client: &SimpleHttpClient,
-    name: String,
-    readMask: Option<String>,
+    name: &String,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1663,7 +1662,7 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
+    if let Some(val) = readMask.as_ref() {
         query_parts.push(format!("readMask={}", val));
     }
 
@@ -1817,8 +1816,8 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated(
 > {
     let builder = mybusinessbusinessinformation_locations_get_google_updated_builder(
         client,
-        args.name.clone(),
-        args.readMask.clone(),
+        &args.name,
+        &args.readMask,
     )?;
     mybusinessbusinessinformation_locations_get_google_updated_execute(builder)
 }
@@ -1831,7 +1830,7 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated(
 
 pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1976,8 +1975,7 @@ pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated(
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_locations_attributes_get_google_updated_builder(
-        client,
-        args.name.clone(),
+        client, &args.name,
     )?;
     mybusinessbusinessinformation_locations_attributes_get_google_updated_execute(builder)
 }

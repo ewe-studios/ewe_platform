@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn speech_operations_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/operations/{}",);
@@ -171,7 +171,7 @@ pub fn speech_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = speech_operations_get_builder(client, args.name.clone())?;
+    let builder = speech_operations_get_builder(client, &args.name)?;
     speech_operations_get_execute(builder)
 }
 
@@ -183,30 +183,30 @@ pub fn speech_operations_get(
 
 pub fn speech_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    name: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://speech.googleapis.com/v1/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -366,11 +366,11 @@ pub fn speech_operations_list(
 > {
     let builder = speech_operations_list_builder(
         client,
-        args.filter.clone(),
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.filter,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     speech_operations_list_execute(builder)
 }

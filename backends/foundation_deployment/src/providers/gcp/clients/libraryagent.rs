@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn libraryagent_shelves_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}",);
@@ -179,7 +179,7 @@ pub fn libraryagent_shelves_get(
         + 'static,
     ApiError,
 > {
-    let builder = libraryagent_shelves_get_builder(client, args.name.clone())?;
+    let builder = libraryagent_shelves_get_builder(client, &args.name)?;
     libraryagent_shelves_get_execute(builder)
 }
 
@@ -191,18 +191,18 @@ pub fn libraryagent_shelves_get(
 
 pub fn libraryagent_shelves_list_builder(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -359,8 +359,7 @@ pub fn libraryagent_shelves_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        libraryagent_shelves_list_builder(client, args.pageSize.clone(), args.pageToken.clone())?;
+    let builder = libraryagent_shelves_list_builder(client, &args.pageSize, &args.pageToken)?;
     libraryagent_shelves_list_execute(builder)
 }
 
@@ -372,19 +371,19 @@ pub fn libraryagent_shelves_list(
 
 pub fn libraryagent_shelves_books_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}/books",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -545,9 +544,9 @@ pub fn libraryagent_shelves_books_list(
 > {
     let builder = libraryagent_shelves_books_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     libraryagent_shelves_books_list_execute(builder)
 }

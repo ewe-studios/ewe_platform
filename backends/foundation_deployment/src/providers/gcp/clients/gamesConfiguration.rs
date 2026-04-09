@@ -29,12 +29,12 @@ use serde::Serialize;
 
 pub fn games_configuration_achievement_configurations_delete_builder(
     client: &SimpleHttpClient,
-    achievementId: String,
+    achievementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
-        achievementId.as_str(),
+        achievementId,
     );
 
     // Build request
@@ -171,10 +171,8 @@ pub fn games_configuration_achievement_configurations_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_configuration_achievement_configurations_delete_builder(
-        client,
-        args.achievementId.clone(),
-    )?;
+    let builder =
+        games_configuration_achievement_configurations_delete_builder(client, &args.achievementId)?;
     games_configuration_achievement_configurations_delete_execute(builder)
 }
 
@@ -186,13 +184,13 @@ pub fn games_configuration_achievement_configurations_delete(
 
 pub fn games_configuration_achievement_configurations_insert_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
+    applicationId: &String,
     body: &AchievementConfiguration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/achievements",
-        applicationId.as_str(),
+        applicationId,
     );
 
     // Build request
@@ -342,7 +340,7 @@ pub fn games_configuration_achievement_configurations_insert(
 > {
     let builder = games_configuration_achievement_configurations_insert_builder(
         client,
-        args.applicationId.clone(),
+        &args.applicationId,
         &args.body,
     )?;
     games_configuration_achievement_configurations_insert_execute(builder)
@@ -356,12 +354,12 @@ pub fn games_configuration_achievement_configurations_insert(
 
 pub fn games_configuration_leaderboard_configurations_delete_builder(
     client: &SimpleHttpClient,
-    leaderboardId: String,
+    leaderboardId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",
-        leaderboardId.as_str(),
+        leaderboardId,
     );
 
     // Build request
@@ -498,10 +496,8 @@ pub fn games_configuration_leaderboard_configurations_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_configuration_leaderboard_configurations_delete_builder(
-        client,
-        args.leaderboardId.clone(),
-    )?;
+    let builder =
+        games_configuration_leaderboard_configurations_delete_builder(client, &args.leaderboardId)?;
     games_configuration_leaderboard_configurations_delete_execute(builder)
 }
 
@@ -513,13 +509,13 @@ pub fn games_configuration_leaderboard_configurations_delete(
 
 pub fn games_configuration_leaderboard_configurations_insert_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
+    applicationId: &String,
     body: &LeaderboardConfiguration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/leaderboards",
-        applicationId.as_str(),
+        applicationId,
     );
 
     // Build request
@@ -669,7 +665,7 @@ pub fn games_configuration_leaderboard_configurations_insert(
 > {
     let builder = games_configuration_leaderboard_configurations_insert_builder(
         client,
-        args.applicationId.clone(),
+        &args.applicationId,
         &args.body,
     )?;
     games_configuration_leaderboard_configurations_insert_execute(builder)

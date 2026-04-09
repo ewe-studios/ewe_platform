@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn firebaserules_projects_test_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &TestRulesetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -180,7 +180,7 @@ pub fn firebaserules_projects_test(
         + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_test_builder(client, args.name.clone(), &args.body)?;
+    let builder = firebaserules_projects_test_builder(client, &args.name, &args.body)?;
     firebaserules_projects_test_execute(builder)
 }
 
@@ -192,7 +192,7 @@ pub fn firebaserules_projects_test(
 
 pub fn firebaserules_projects_releases_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &Release,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -339,8 +339,7 @@ pub fn firebaserules_projects_releases_create(
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebaserules_projects_releases_create_builder(client, args.name.clone(), &args.body)?;
+    let builder = firebaserules_projects_releases_create_builder(client, &args.name, &args.body)?;
     firebaserules_projects_releases_create_execute(builder)
 }
 
@@ -352,7 +351,7 @@ pub fn firebaserules_projects_releases_create(
 
 pub fn firebaserules_projects_rulesets_create_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &Ruleset,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -499,7 +498,6 @@ pub fn firebaserules_projects_rulesets_create(
     impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebaserules_projects_rulesets_create_builder(client, args.name.clone(), &args.body)?;
+    let builder = firebaserules_projects_rulesets_create_builder(client, &args.name, &args.body)?;
     firebaserules_projects_rulesets_create_execute(builder)
 }

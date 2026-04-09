@@ -29,13 +29,13 @@ use serde::Serialize;
 
 pub fn servicecontrol_services_check_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
     body: &CheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:check",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -183,8 +183,7 @@ pub fn servicecontrol_services_check(
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicecontrol_services_check_builder(client, args.serviceName.clone(), &args.body)?;
+    let builder = servicecontrol_services_check_builder(client, &args.serviceName, &args.body)?;
     servicecontrol_services_check_execute(builder)
 }
 
@@ -196,13 +195,13 @@ pub fn servicecontrol_services_check(
 
 pub fn servicecontrol_services_report_builder(
     client: &SimpleHttpClient,
-    serviceName: String,
+    serviceName: &String,
     body: &ReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:report",
-        serviceName.as_str(),
+        serviceName,
     );
 
     // Build request
@@ -350,7 +349,6 @@ pub fn servicecontrol_services_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicecontrol_services_report_builder(client, args.serviceName.clone(), &args.body)?;
+    let builder = servicecontrol_services_report_builder(client, &args.serviceName, &args.body)?;
     servicecontrol_services_report_execute(builder)
 }

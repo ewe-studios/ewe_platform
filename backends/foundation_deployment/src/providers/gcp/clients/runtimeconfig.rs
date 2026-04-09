@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn runtimeconfig_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -176,7 +176,7 @@ pub fn runtimeconfig_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = runtimeconfig_operations_cancel_builder(client, args.name.clone(), &args.body)?;
+    let builder = runtimeconfig_operations_cancel_builder(client, &args.name, &args.body)?;
     runtimeconfig_operations_cancel_execute(builder)
 }
 
@@ -188,7 +188,7 @@ pub fn runtimeconfig_operations_cancel(
 
 pub fn runtimeconfig_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://runtimeconfig.googleapis.com/v1/operations/{}",);
@@ -330,6 +330,6 @@ pub fn runtimeconfig_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = runtimeconfig_operations_delete_builder(client, args.name.clone())?;
+    let builder = runtimeconfig_operations_delete_builder(client, &args.name)?;
     runtimeconfig_operations_delete_execute(builder)
 }

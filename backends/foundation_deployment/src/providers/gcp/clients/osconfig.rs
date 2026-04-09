@@ -29,9 +29,9 @@ use serde::Serialize;
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    policyOrchestratorId: Option<String>,
-    requestId: Option<String>,
+    parent: &String,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
     body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -41,10 +41,10 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policyOrchestratorId {
+    if let Some(val) = policyOrchestratorId.as_ref() {
         query_parts.push(format!("policyOrchestratorId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -200,9 +200,9 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
 > {
     let builder = osconfig_folders_locations_global_policy_orchestrators_create_builder(
         client,
-        args.parent.clone(),
-        args.policyOrchestratorId.clone(),
-        args.requestId.clone(),
+        &args.parent,
+        &args.policyOrchestratorId,
+        &args.requestId,
         &args.body,
     )?;
     osconfig_folders_locations_global_policy_orchestrators_create_execute(builder)
@@ -216,9 +216,9 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    policyOrchestratorId: Option<String>,
-    requestId: Option<String>,
+    parent: &String,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
     body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -228,10 +228,10 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create_build
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policyOrchestratorId {
+    if let Some(val) = policyOrchestratorId.as_ref() {
         query_parts.push(format!("policyOrchestratorId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -387,9 +387,9 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
 > {
     let builder = osconfig_organizations_locations_global_policy_orchestrators_create_builder(
         client,
-        args.parent.clone(),
-        args.policyOrchestratorId.clone(),
-        args.requestId.clone(),
+        &args.parent,
+        &args.policyOrchestratorId,
+        &args.requestId,
         &args.body,
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_create_execute(builder)
@@ -403,9 +403,9 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    policyOrchestratorId: Option<String>,
-    requestId: Option<String>,
+    parent: &String,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
     body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -415,10 +415,10 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = policyOrchestratorId {
+    if let Some(val) = policyOrchestratorId.as_ref() {
         query_parts.push(format!("policyOrchestratorId={}", val));
     }
-    if let Some(val) = requestId {
+    if let Some(val) = requestId.as_ref() {
         query_parts.push(format!("requestId={}", val));
     }
 
@@ -574,9 +574,9 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create(
 > {
     let builder = osconfig_projects_locations_global_policy_orchestrators_create_builder(
         client,
-        args.parent.clone(),
-        args.policyOrchestratorId.clone(),
-        args.requestId.clone(),
+        &args.parent,
+        &args.policyOrchestratorId,
+        &args.requestId,
         &args.body,
     )?;
     osconfig_projects_locations_global_policy_orchestrators_create_execute(builder)

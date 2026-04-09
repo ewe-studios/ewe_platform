@@ -29,14 +29,14 @@ use serde::Serialize;
 
 pub fn civicinfo_divisions_query_division_by_address_builder(
     client: &SimpleHttpClient,
-    address: Option<String>,
+    address: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisionsByAddress",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = address {
+    if let Some(val) = address.as_ref() {
         query_parts.push(format!("address={}", val));
     }
 
@@ -191,8 +191,7 @@ pub fn civicinfo_divisions_query_division_by_address(
         + 'static,
     ApiError,
 > {
-    let builder =
-        civicinfo_divisions_query_division_by_address_builder(client, args.address.clone())?;
+    let builder = civicinfo_divisions_query_division_by_address_builder(client, &args.address)?;
     civicinfo_divisions_query_division_by_address_execute(builder)
 }
 
@@ -204,14 +203,14 @@ pub fn civicinfo_divisions_query_division_by_address(
 
 pub fn civicinfo_divisions_search_builder(
     client: &SimpleHttpClient,
-    query: Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/divisions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -366,7 +365,7 @@ pub fn civicinfo_divisions_search(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_divisions_search_builder(client, args.query.clone())?;
+    let builder = civicinfo_divisions_search_builder(client, &args.query)?;
     civicinfo_divisions_search_execute(builder)
 }
 
@@ -378,14 +377,14 @@ pub fn civicinfo_divisions_search(
 
 pub fn civicinfo_elections_election_query_builder(
     client: &SimpleHttpClient,
-    productionDataOnly: Option<bool>,
+    productionDataOnly: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/elections",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = productionDataOnly {
+    if let Some(val) = productionDataOnly.as_ref() {
         query_parts.push(format!("productionDataOnly={}", val));
     }
 
@@ -540,8 +539,7 @@ pub fn civicinfo_elections_election_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        civicinfo_elections_election_query_builder(client, args.productionDataOnly.clone())?;
+    let builder = civicinfo_elections_election_query_builder(client, &args.productionDataOnly)?;
     civicinfo_elections_election_query_execute(builder)
 }
 
@@ -553,30 +551,30 @@ pub fn civicinfo_elections_election_query(
 
 pub fn civicinfo_elections_voter_info_query_builder(
     client: &SimpleHttpClient,
-    address: Option<String>,
-    electionId: Option<String>,
-    officialOnly: Option<bool>,
-    productionDataOnly: Option<bool>,
-    returnAllAvailableData: Option<bool>,
+    address: &Option<String>,
+    electionId: &Option<String>,
+    officialOnly: &Option<bool>,
+    productionDataOnly: &Option<bool>,
+    returnAllAvailableData: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://civicinfo.googleapis.com/civicinfo/v2/voterinfo",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = address {
+    if let Some(val) = address.as_ref() {
         query_parts.push(format!("address={}", val));
     }
-    if let Some(val) = electionId {
+    if let Some(val) = electionId.as_ref() {
         query_parts.push(format!("electionId={}", val));
     }
-    if let Some(val) = officialOnly {
+    if let Some(val) = officialOnly.as_ref() {
         query_parts.push(format!("officialOnly={}", val));
     }
-    if let Some(val) = productionDataOnly {
+    if let Some(val) = productionDataOnly.as_ref() {
         query_parts.push(format!("productionDataOnly={}", val));
     }
-    if let Some(val) = returnAllAvailableData {
+    if let Some(val) = returnAllAvailableData.as_ref() {
         query_parts.push(format!("returnAllAvailableData={}", val));
     }
 
@@ -740,11 +738,11 @@ pub fn civicinfo_elections_voter_info_query(
 > {
     let builder = civicinfo_elections_voter_info_query_builder(
         client,
-        args.address.clone(),
-        args.electionId.clone(),
-        args.officialOnly.clone(),
-        args.productionDataOnly.clone(),
-        args.returnAllAvailableData.clone(),
+        &args.address,
+        &args.electionId,
+        &args.officialOnly,
+        &args.productionDataOnly,
+        &args.returnAllAvailableData,
     )?;
     civicinfo_elections_voter_info_query_execute(builder)
 }

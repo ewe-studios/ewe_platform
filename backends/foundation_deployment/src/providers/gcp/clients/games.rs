@@ -29,8 +29,8 @@ use serde::Serialize;
 
 pub fn games_accesstokens_generate_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: Option<String>,
-    persona: Option<String>,
+    packageName: &Option<String>,
+    persona: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -38,10 +38,10 @@ pub fn games_accesstokens_generate_play_grouping_api_token_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = packageName {
+    if let Some(val) = packageName.as_ref() {
         query_parts.push(format!("packageName={}", val));
     }
-    if let Some(val) = persona {
+    if let Some(val) = persona.as_ref() {
         query_parts.push(format!("persona={}", val));
     }
 
@@ -199,8 +199,8 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 > {
     let builder = games_accesstokens_generate_play_grouping_api_token_builder(
         client,
-        args.packageName.clone(),
-        args.persona.clone(),
+        &args.packageName,
+        &args.persona,
     )?;
     games_accesstokens_generate_play_grouping_api_token_execute(builder)
 }
@@ -213,9 +213,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 
 pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: Option<String>,
-    persona: Option<String>,
-    recallSessionId: Option<String>,
+    packageName: &Option<String>,
+    persona: &Option<String>,
+    recallSessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -224,13 +224,13 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = packageName {
+    if let Some(val) = packageName.as_ref() {
         query_parts.push(format!("packageName={}", val));
     }
-    if let Some(val) = persona {
+    if let Some(val) = persona.as_ref() {
         query_parts.push(format!("persona={}", val));
     }
-    if let Some(val) = recallSessionId {
+    if let Some(val) = recallSessionId.as_ref() {
         query_parts.push(format!("recallSessionId={}", val));
     }
 
@@ -391,9 +391,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 > {
     let builder = games_accesstokens_generate_recall_play_grouping_api_token_builder(
         client,
-        args.packageName.clone(),
-        args.persona.clone(),
-        args.recallSessionId.clone(),
+        &args.packageName,
+        &args.persona,
+        &args.recallSessionId,
     )?;
     games_accesstokens_generate_recall_play_grouping_api_token_execute(builder)
 }
@@ -406,22 +406,22 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 
 pub fn games_achievement_definitions_list_builder(
     client: &SimpleHttpClient,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/achievements",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -581,9 +581,9 @@ pub fn games_achievement_definitions_list(
 > {
     let builder = games_achievement_definitions_list_builder(
         client,
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_achievement_definitions_list_execute(builder)
 }
@@ -596,30 +596,30 @@ pub fn games_achievement_definitions_list(
 
 pub fn games_achievements_list_builder(
     client: &SimpleHttpClient,
-    playerId: String,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
-    state: Option<String>,
+    playerId: &String,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/achievements",
-        playerId.as_str(),
+        playerId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
 
@@ -783,11 +783,11 @@ pub fn games_achievements_list(
 > {
     let builder = games_achievements_list_builder(
         client,
-        args.playerId.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-        args.state.clone(),
+        &args.playerId,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
+        &args.state,
     )?;
     games_achievements_list_execute(builder)
 }
@@ -800,12 +800,12 @@ pub fn games_achievements_list(
 
 pub fn games_achievements_reveal_builder(
     client: &SimpleHttpClient,
-    achievementId: String,
+    achievementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/reveal",
-        achievementId.as_str(),
+        achievementId,
     );
 
     // Build request
@@ -949,7 +949,7 @@ pub fn games_achievements_reveal(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_reveal_builder(client, args.achievementId.clone())?;
+    let builder = games_achievements_reveal_builder(client, &args.achievementId)?;
     games_achievements_reveal_execute(builder)
 }
 
@@ -961,12 +961,12 @@ pub fn games_achievements_reveal(
 
 pub fn games_achievements_unlock_builder(
     client: &SimpleHttpClient,
-    achievementId: String,
+    achievementId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/achievements/{}/unlock",
-        achievementId.as_str(),
+        achievementId,
     );
 
     // Build request
@@ -1110,7 +1110,7 @@ pub fn games_achievements_unlock(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_unlock_builder(client, args.achievementId.clone())?;
+    let builder = games_achievements_unlock_builder(client, &args.achievementId)?;
     games_achievements_unlock_execute(builder)
 }
 
@@ -1287,22 +1287,22 @@ pub fn games_achievements_update_multiple(
 
 pub fn games_applications_get_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
-    language: Option<String>,
-    platformType: Option<String>,
+    applicationId: &String,
+    language: &Option<String>,
+    platformType: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}",
-        applicationId.as_str(),
+        applicationId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = platformType {
+    if let Some(val) = platformType.as_ref() {
         query_parts.push(format!("platformType={}", val));
     }
 
@@ -1454,9 +1454,9 @@ pub fn games_applications_get(
 > {
     let builder = games_applications_get_builder(
         client,
-        args.applicationId.clone(),
-        args.language.clone(),
-        args.platformType.clone(),
+        &args.applicationId,
+        &args.language,
+        &args.platformType,
     )?;
     games_applications_get_execute(builder)
 }
@@ -1469,18 +1469,18 @@ pub fn games_applications_get(
 
 pub fn games_applications_get_end_point_builder(
     client: &SimpleHttpClient,
-    applicationId: Option<String>,
-    endPointType: Option<String>,
+    applicationId: &Option<String>,
+    endPointType: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/getEndPoint",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = applicationId {
+    if let Some(val) = applicationId.as_ref() {
         query_parts.push(format!("applicationId={}", val));
     }
-    if let Some(val) = endPointType {
+    if let Some(val) = endPointType.as_ref() {
         query_parts.push(format!("endPointType={}", val));
     }
 
@@ -1628,11 +1628,8 @@ pub fn games_applications_get_end_point(
     impl StreamIterator<D = Result<ApiResponse<EndPoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_applications_get_end_point_builder(
-        client,
-        args.applicationId.clone(),
-        args.endPointType.clone(),
-    )?;
+    let builder =
+        games_applications_get_end_point_builder(client, &args.applicationId, &args.endPointType)?;
     games_applications_get_end_point_execute(builder)
 }
 
@@ -1786,12 +1783,12 @@ pub fn games_applications_played(
 
 pub fn games_applications_verify_builder(
     client: &SimpleHttpClient,
-    applicationId: String,
+    applicationId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/applications/{}/verify",
-        applicationId.as_str(),
+        applicationId,
     );
 
     // Build request
@@ -1935,7 +1932,7 @@ pub fn games_applications_verify(
         + 'static,
     ApiError,
 > {
-    let builder = games_applications_verify_builder(client, args.applicationId.clone())?;
+    let builder = games_applications_verify_builder(client, &args.applicationId)?;
     games_applications_verify_execute(builder)
 }
 
@@ -1947,22 +1944,22 @@ pub fn games_applications_verify(
 
 pub fn games_events_list_by_player_builder(
     client: &SimpleHttpClient,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2118,9 +2115,9 @@ pub fn games_events_list_by_player(
 > {
     let builder = games_events_list_by_player_builder(
         client,
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_events_list_by_player_execute(builder)
 }
@@ -2133,22 +2130,22 @@ pub fn games_events_list_by_player(
 
 pub fn games_events_list_definitions_builder(
     client: &SimpleHttpClient,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/eventDefinitions",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2308,9 +2305,9 @@ pub fn games_events_list_definitions(
 > {
     let builder = games_events_list_definitions_builder(
         client,
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_events_list_definitions_execute(builder)
 }
@@ -2323,18 +2320,18 @@ pub fn games_events_list_definitions(
 
 pub fn games_leaderboards_get_builder(
     client: &SimpleHttpClient,
-    leaderboardId: String,
-    language: Option<String>,
+    leaderboardId: &String,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/leaderboards/{}",
-        leaderboardId.as_str(),
+        leaderboardId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -2482,8 +2479,7 @@ pub fn games_leaderboards_get(
     impl StreamIterator<D = Result<ApiResponse<Leaderboard>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_leaderboards_get_builder(client, args.leaderboardId.clone(), args.language.clone())?;
+    let builder = games_leaderboards_get_builder(client, &args.leaderboardId, &args.language)?;
     games_leaderboards_get_execute(builder)
 }
 
@@ -2495,22 +2491,22 @@ pub fn games_leaderboards_get(
 
 pub fn games_leaderboards_list_builder(
     client: &SimpleHttpClient,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -2664,12 +2660,8 @@ pub fn games_leaderboards_list(
         + 'static,
     ApiError,
 > {
-    let builder = games_leaderboards_list_builder(
-        client,
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
-    )?;
+    let builder =
+        games_leaderboards_list_builder(client, &args.language, &args.maxResults, &args.pageToken)?;
     games_leaderboards_list_execute(builder)
 }
 
@@ -2830,28 +2822,27 @@ pub fn games_metagame_get_metagame_config(
 
 pub fn games_metagame_list_categories_by_player_builder(
     client: &SimpleHttpClient,
-    playerId: String,
-    collection: String,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    playerId: &String,
+    collection: &String,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/categories/{}",
-        playerId.as_str(),
-        collection.as_str(),
+        playerId, collection,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3011,11 +3002,11 @@ pub fn games_metagame_list_categories_by_player(
 > {
     let builder = games_metagame_list_categories_by_player_builder(
         client,
-        args.playerId.clone(),
-        args.collection.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.playerId,
+        &args.collection,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_metagame_list_categories_by_player_execute(builder)
 }
@@ -3028,22 +3019,19 @@ pub fn games_metagame_list_categories_by_player(
 
 pub fn games_players_get_builder(
     client: &SimpleHttpClient,
-    playerId: String,
-    language: Option<String>,
-    playerIdConsistencyToken: Option<String>,
+    playerId: &String,
+    language: &Option<String>,
+    playerIdConsistencyToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://games.googleapis.com/games/v1/players/{}",
-        playerId.as_str(),
-    );
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/players/{}", playerId,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = playerIdConsistencyToken {
+    if let Some(val) = playerIdConsistencyToken.as_ref() {
         query_parts.push(format!("playerIdConsistencyToken={}", val));
     }
 
@@ -3195,9 +3183,9 @@ pub fn games_players_get(
 > {
     let builder = games_players_get_builder(
         client,
-        args.playerId.clone(),
-        args.language.clone(),
-        args.playerIdConsistencyToken.clone(),
+        &args.playerId,
+        &args.language,
+        &args.playerIdConsistencyToken,
     )?;
     games_players_get_execute(builder)
 }
@@ -3210,7 +3198,7 @@ pub fn games_players_get(
 
 pub fn games_players_get_multiple_application_player_ids_builder(
     client: &SimpleHttpClient,
-    applicationIds: Option<String>,
+    applicationIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3218,7 +3206,7 @@ pub fn games_players_get_multiple_application_player_ids_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = applicationIds {
+    if let Some(val) = applicationIds.as_ref() {
         query_parts.push(format!("applicationIds={}", val));
     }
 
@@ -3373,10 +3361,8 @@ pub fn games_players_get_multiple_application_player_ids(
         + 'static,
     ApiError,
 > {
-    let builder = games_players_get_multiple_application_player_ids_builder(
-        client,
-        args.applicationIds.clone(),
-    )?;
+    let builder =
+        games_players_get_multiple_application_player_ids_builder(client, &args.applicationIds)?;
     games_players_get_multiple_application_player_ids_execute(builder)
 }
 
@@ -3537,26 +3523,26 @@ pub fn games_players_get_scoped_player_ids(
 
 pub fn games_players_list_builder(
     client: &SimpleHttpClient,
-    collection: String,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    collection: &String,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/me/players/{}",
-        collection.as_str(),
+        collection,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -3714,10 +3700,10 @@ pub fn games_players_list(
 > {
     let builder = games_players_list_builder(
         client,
-        args.collection.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.collection,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_players_list_execute(builder)
 }
@@ -3730,18 +3716,18 @@ pub fn games_players_list(
 
 pub fn games_recall_games_player_tokens_builder(
     client: &SimpleHttpClient,
-    sessionId: String,
-    applicationIds: Option<String>,
+    sessionId: &String,
+    applicationIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/gamesPlayerTokens/{}",
-        sessionId.as_str(),
+        sessionId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = applicationIds {
+    if let Some(val) = applicationIds.as_ref() {
         query_parts.push(format!("applicationIds={}", val));
     }
 
@@ -3897,11 +3883,8 @@ pub fn games_recall_games_player_tokens(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_games_player_tokens_builder(
-        client,
-        args.sessionId.clone(),
-        args.applicationIds.clone(),
-    )?;
+    let builder =
+        games_recall_games_player_tokens_builder(client, &args.sessionId, &args.applicationIds)?;
     games_recall_games_player_tokens_execute(builder)
 }
 
@@ -3913,12 +3896,12 @@ pub fn games_recall_games_player_tokens(
 
 pub fn games_recall_last_token_from_all_developer_games_builder(
     client: &SimpleHttpClient,
-    sessionId: String,
+    sessionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/developerGamesLastPlayerToken/{}",
-        sessionId.as_str(),
+        sessionId,
     );
 
     // Build request
@@ -4068,7 +4051,7 @@ pub fn games_recall_last_token_from_all_developer_games(
     ApiError,
 > {
     let builder =
-        games_recall_last_token_from_all_developer_games_builder(client, args.sessionId.clone())?;
+        games_recall_last_token_from_all_developer_games_builder(client, &args.sessionId)?;
     games_recall_last_token_from_all_developer_games_execute(builder)
 }
 
@@ -4400,12 +4383,12 @@ pub fn games_recall_reset_persona(
 
 pub fn games_recall_retrieve_tokens_builder(
     client: &SimpleHttpClient,
-    sessionId: String,
+    sessionId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/recall/tokens/{}",
-        sessionId.as_str(),
+        sessionId,
     );
 
     // Build request
@@ -4553,7 +4536,7 @@ pub fn games_recall_retrieve_tokens(
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_retrieve_tokens_builder(client, args.sessionId.clone())?;
+    let builder = games_recall_retrieve_tokens_builder(client, &args.sessionId)?;
     games_recall_retrieve_tokens_execute(builder)
 }
 
@@ -4725,34 +4708,32 @@ pub fn games_recall_unlink_persona(
 
 pub fn games_scores_get_builder(
     client: &SimpleHttpClient,
-    playerId: String,
-    leaderboardId: String,
-    timeSpan: String,
-    includeRankType: Option<String>,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    playerId: &String,
+    leaderboardId: &String,
+    timeSpan: &String,
+    includeRankType: &Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/leaderboards/{}/scores/{}",
-        playerId.as_str(),
-        leaderboardId.as_str(),
-        timeSpan.as_str(),
+        playerId, leaderboardId, timeSpan,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = includeRankType {
+    if let Some(val) = includeRankType.as_ref() {
         query_parts.push(format!("includeRankType={}", val));
     }
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -4920,13 +4901,13 @@ pub fn games_scores_get(
 > {
     let builder = games_scores_get_builder(
         client,
-        args.playerId.clone(),
-        args.leaderboardId.clone(),
-        args.timeSpan.clone(),
-        args.includeRankType.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.playerId,
+        &args.leaderboardId,
+        &args.timeSpan,
+        &args.includeRankType,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_scores_get_execute(builder)
 }
@@ -4939,7 +4920,7 @@ pub fn games_scores_get(
 
 pub fn games_scores_submit_multiple_builder(
     client: &SimpleHttpClient,
-    language: Option<String>,
+    language: &Option<String>,
     body: &PlayerScoreSubmissionList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -4947,7 +4928,7 @@ pub fn games_scores_submit_multiple_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -5101,7 +5082,7 @@ pub fn games_scores_submit_multiple(
         + 'static,
     ApiError,
 > {
-    let builder = games_scores_submit_multiple_builder(client, args.language.clone(), &args.body)?;
+    let builder = games_scores_submit_multiple_builder(client, &args.language, &args.body)?;
     games_scores_submit_multiple_execute(builder)
 }
 
@@ -5113,18 +5094,18 @@ pub fn games_scores_submit_multiple(
 
 pub fn games_snapshots_get_builder(
     client: &SimpleHttpClient,
-    snapshotId: String,
-    language: Option<String>,
+    snapshotId: &String,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/snapshots/{}",
-        snapshotId.as_str(),
+        snapshotId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
 
@@ -5272,8 +5253,7 @@ pub fn games_snapshots_get(
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_snapshots_get_builder(client, args.snapshotId.clone(), args.language.clone())?;
+    let builder = games_snapshots_get_builder(client, &args.snapshotId, &args.language)?;
     games_snapshots_get_execute(builder)
 }
 
@@ -5285,26 +5265,26 @@ pub fn games_snapshots_get(
 
 pub fn games_snapshots_list_builder(
     client: &SimpleHttpClient,
-    playerId: String,
-    language: Option<String>,
-    maxResults: Option<i32>,
-    pageToken: Option<String>,
+    playerId: &String,
+    language: &Option<String>,
+    maxResults: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://games.googleapis.com/games/v1/players/{}/snapshots",
-        playerId.as_str(),
+        playerId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = language {
+    if let Some(val) = language.as_ref() {
         query_parts.push(format!("language={}", val));
     }
-    if let Some(val) = maxResults {
+    if let Some(val) = maxResults.as_ref() {
         query_parts.push(format!("maxResults={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -5462,10 +5442,10 @@ pub fn games_snapshots_list(
 > {
     let builder = games_snapshots_list_builder(
         client,
-        args.playerId.clone(),
-        args.language.clone(),
-        args.maxResults.clone(),
-        args.pageToken.clone(),
+        &args.playerId,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
     )?;
     games_snapshots_list_execute(builder)
 }

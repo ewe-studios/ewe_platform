@@ -29,16 +29,14 @@ use serde::Serialize;
 
 pub fn licensing_license_assignments_delete_builder(
     client: &SimpleHttpClient,
-    productId: String,
-    skuId: String,
-    userId: String,
+    productId: &String,
+    skuId: &String,
+    userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user/{}",
-        productId.as_str(),
-        skuId.as_str(),
-        userId.as_str(),
+        productId, skuId, userId,
     );
 
     // Build request
@@ -184,9 +182,9 @@ pub fn licensing_license_assignments_delete(
 > {
     let builder = licensing_license_assignments_delete_builder(
         client,
-        args.productId.clone(),
-        args.skuId.clone(),
-        args.userId.clone(),
+        &args.productId,
+        &args.skuId,
+        &args.userId,
     )?;
     licensing_license_assignments_delete_execute(builder)
 }
@@ -199,15 +197,14 @@ pub fn licensing_license_assignments_delete(
 
 pub fn licensing_license_assignments_insert_builder(
     client: &SimpleHttpClient,
-    productId: String,
-    skuId: String,
+    productId: &String,
+    skuId: &String,
     body: &LicenseAssignmentInsert,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://licensing.googleapis.com/apps/licensing/v1/product/{}/sku/{}/user",
-        productId.as_str(),
-        skuId.as_str(),
+        productId, skuId,
     );
 
     // Build request
@@ -359,8 +356,8 @@ pub fn licensing_license_assignments_insert(
 > {
     let builder = licensing_license_assignments_insert_builder(
         client,
-        args.productId.clone(),
-        args.skuId.clone(),
+        &args.productId,
+        &args.skuId,
         &args.body,
     )?;
     licensing_license_assignments_insert_execute(builder)

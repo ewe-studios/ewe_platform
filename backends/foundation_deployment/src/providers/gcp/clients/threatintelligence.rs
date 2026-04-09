@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn threatintelligence_projects_generate_org_profile_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GenerateOrgProfileConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -177,11 +177,8 @@ pub fn threatintelligence_projects_generate_org_profile(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_generate_org_profile_builder(
-        client,
-        args.name.clone(),
-        &args.body,
-    )?;
+    let builder =
+        threatintelligence_projects_generate_org_profile_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_generate_org_profile_execute(builder)
 }
 
@@ -193,8 +190,8 @@ pub fn threatintelligence_projects_generate_org_profile(
 
 pub fn threatintelligence_projects_alerts_enumerate_facets_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -203,7 +200,7 @@ pub fn threatintelligence_projects_alerts_enumerate_facets_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
 
@@ -361,8 +358,8 @@ pub fn threatintelligence_projects_alerts_enumerate_facets(
 > {
     let builder = threatintelligence_projects_alerts_enumerate_facets_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
+        &args.parent,
+        &args.filter,
     )?;
     threatintelligence_projects_alerts_enumerate_facets_execute(builder)
 }
@@ -375,11 +372,11 @@ pub fn threatintelligence_projects_alerts_enumerate_facets(
 
 pub fn threatintelligence_projects_alerts_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -387,16 +384,16 @@ pub fn threatintelligence_projects_alerts_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -556,11 +553,11 @@ pub fn threatintelligence_projects_alerts_list(
 > {
     let builder = threatintelligence_projects_alerts_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     threatintelligence_projects_alerts_list_execute(builder)
 }
@@ -573,11 +570,11 @@ pub fn threatintelligence_projects_alerts_list(
 
 pub fn threatintelligence_projects_configurations_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -585,16 +582,16 @@ pub fn threatintelligence_projects_configurations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -758,11 +755,11 @@ pub fn threatintelligence_projects_configurations_list(
 > {
     let builder = threatintelligence_projects_configurations_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     threatintelligence_projects_configurations_list_execute(builder)
 }
@@ -775,8 +772,8 @@ pub fn threatintelligence_projects_configurations_list(
 
 pub fn threatintelligence_projects_configurations_upsert_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    publishTime: Option<String>,
+    parent: &String,
+    publishTime: &Option<String>,
     body: &Configuration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -786,7 +783,7 @@ pub fn threatintelligence_projects_configurations_upsert_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = publishTime {
+    if let Some(val) = publishTime.as_ref() {
         query_parts.push(format!("publishTime={}", val));
     }
 
@@ -948,8 +945,8 @@ pub fn threatintelligence_projects_configurations_upsert(
 > {
     let builder = threatintelligence_projects_configurations_upsert_builder(
         client,
-        args.parent.clone(),
-        args.publishTime.clone(),
+        &args.parent,
+        &args.publishTime,
         &args.body,
     )?;
     threatintelligence_projects_configurations_upsert_execute(builder)
@@ -963,11 +960,11 @@ pub fn threatintelligence_projects_configurations_upsert(
 
 pub fn threatintelligence_projects_findings_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    filter: Option<String>,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -975,16 +972,16 @@ pub fn threatintelligence_projects_findings_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -1144,11 +1141,11 @@ pub fn threatintelligence_projects_findings_list(
 > {
     let builder = threatintelligence_projects_findings_list_builder(
         client,
-        args.parent.clone(),
-        args.filter.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     threatintelligence_projects_findings_list_execute(builder)
 }
@@ -1161,11 +1158,11 @@ pub fn threatintelligence_projects_findings_list(
 
 pub fn threatintelligence_projects_findings_search_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    orderBy: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
+    parent: &String,
+    orderBy: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1173,16 +1170,16 @@ pub fn threatintelligence_projects_findings_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = orderBy {
+    if let Some(val) = orderBy.as_ref() {
         query_parts.push(format!("orderBy={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
 
@@ -1342,11 +1339,11 @@ pub fn threatintelligence_projects_findings_search(
 > {
     let builder = threatintelligence_projects_findings_search_builder(
         client,
-        args.parent.clone(),
-        args.orderBy.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
+        &args.parent,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
     )?;
     threatintelligence_projects_findings_search_execute(builder)
 }

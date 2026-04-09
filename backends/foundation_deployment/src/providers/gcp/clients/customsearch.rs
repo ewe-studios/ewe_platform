@@ -29,142 +29,142 @@ use serde::Serialize;
 
 pub fn search_cse_list_builder(
     client: &SimpleHttpClient,
-    c2coff: Option<String>,
-    cr: Option<String>,
-    cx: Option<String>,
-    dateRestrict: Option<String>,
-    enableAlternateSearchHandler: Option<bool>,
-    exactTerms: Option<String>,
-    excludeTerms: Option<String>,
-    fileType: Option<String>,
-    filter: Option<String>,
-    gl: Option<String>,
-    googlehost: Option<String>,
-    highRange: Option<String>,
-    hl: Option<String>,
-    hq: Option<String>,
-    imgColorType: Option<String>,
-    imgDominantColor: Option<String>,
-    imgSize: Option<String>,
-    imgType: Option<String>,
-    linkSite: Option<String>,
-    lowRange: Option<String>,
-    lr: Option<String>,
-    num: Option<i32>,
-    orTerms: Option<String>,
-    q: Option<String>,
-    relatedSite: Option<String>,
-    rights: Option<String>,
-    safe: Option<String>,
-    searchType: Option<String>,
-    siteSearch: Option<String>,
-    siteSearchFilter: Option<String>,
-    snippetLength: Option<i32>,
-    sort: Option<String>,
-    start: Option<i32>,
+    c2coff: &Option<String>,
+    cr: &Option<String>,
+    cx: &Option<String>,
+    dateRestrict: &Option<String>,
+    enableAlternateSearchHandler: &Option<bool>,
+    exactTerms: &Option<String>,
+    excludeTerms: &Option<String>,
+    fileType: &Option<String>,
+    filter: &Option<String>,
+    gl: &Option<String>,
+    googlehost: &Option<String>,
+    highRange: &Option<String>,
+    hl: &Option<String>,
+    hq: &Option<String>,
+    imgColorType: &Option<String>,
+    imgDominantColor: &Option<String>,
+    imgSize: &Option<String>,
+    imgType: &Option<String>,
+    linkSite: &Option<String>,
+    lowRange: &Option<String>,
+    lr: &Option<String>,
+    num: &Option<i32>,
+    orTerms: &Option<String>,
+    q: &Option<String>,
+    relatedSite: &Option<String>,
+    rights: &Option<String>,
+    safe: &Option<String>,
+    searchType: &Option<String>,
+    siteSearch: &Option<String>,
+    siteSearchFilter: &Option<String>,
+    snippetLength: &Option<i32>,
+    sort: &Option<String>,
+    start: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = c2coff {
+    if let Some(val) = c2coff.as_ref() {
         query_parts.push(format!("c2coff={}", val));
     }
-    if let Some(val) = cr {
+    if let Some(val) = cr.as_ref() {
         query_parts.push(format!("cr={}", val));
     }
-    if let Some(val) = cx {
+    if let Some(val) = cx.as_ref() {
         query_parts.push(format!("cx={}", val));
     }
-    if let Some(val) = dateRestrict {
+    if let Some(val) = dateRestrict.as_ref() {
         query_parts.push(format!("dateRestrict={}", val));
     }
-    if let Some(val) = enableAlternateSearchHandler {
+    if let Some(val) = enableAlternateSearchHandler.as_ref() {
         query_parts.push(format!("enableAlternateSearchHandler={}", val));
     }
-    if let Some(val) = exactTerms {
+    if let Some(val) = exactTerms.as_ref() {
         query_parts.push(format!("exactTerms={}", val));
     }
-    if let Some(val) = excludeTerms {
+    if let Some(val) = excludeTerms.as_ref() {
         query_parts.push(format!("excludeTerms={}", val));
     }
-    if let Some(val) = fileType {
+    if let Some(val) = fileType.as_ref() {
         query_parts.push(format!("fileType={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = gl {
+    if let Some(val) = gl.as_ref() {
         query_parts.push(format!("gl={}", val));
     }
-    if let Some(val) = googlehost {
+    if let Some(val) = googlehost.as_ref() {
         query_parts.push(format!("googlehost={}", val));
     }
-    if let Some(val) = highRange {
+    if let Some(val) = highRange.as_ref() {
         query_parts.push(format!("highRange={}", val));
     }
-    if let Some(val) = hl {
+    if let Some(val) = hl.as_ref() {
         query_parts.push(format!("hl={}", val));
     }
-    if let Some(val) = hq {
+    if let Some(val) = hq.as_ref() {
         query_parts.push(format!("hq={}", val));
     }
-    if let Some(val) = imgColorType {
+    if let Some(val) = imgColorType.as_ref() {
         query_parts.push(format!("imgColorType={}", val));
     }
-    if let Some(val) = imgDominantColor {
+    if let Some(val) = imgDominantColor.as_ref() {
         query_parts.push(format!("imgDominantColor={}", val));
     }
-    if let Some(val) = imgSize {
+    if let Some(val) = imgSize.as_ref() {
         query_parts.push(format!("imgSize={}", val));
     }
-    if let Some(val) = imgType {
+    if let Some(val) = imgType.as_ref() {
         query_parts.push(format!("imgType={}", val));
     }
-    if let Some(val) = linkSite {
+    if let Some(val) = linkSite.as_ref() {
         query_parts.push(format!("linkSite={}", val));
     }
-    if let Some(val) = lowRange {
+    if let Some(val) = lowRange.as_ref() {
         query_parts.push(format!("lowRange={}", val));
     }
-    if let Some(val) = lr {
+    if let Some(val) = lr.as_ref() {
         query_parts.push(format!("lr={}", val));
     }
-    if let Some(val) = num {
+    if let Some(val) = num.as_ref() {
         query_parts.push(format!("num={}", val));
     }
-    if let Some(val) = orTerms {
+    if let Some(val) = orTerms.as_ref() {
         query_parts.push(format!("orTerms={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = relatedSite {
+    if let Some(val) = relatedSite.as_ref() {
         query_parts.push(format!("relatedSite={}", val));
     }
-    if let Some(val) = rights {
+    if let Some(val) = rights.as_ref() {
         query_parts.push(format!("rights={}", val));
     }
-    if let Some(val) = safe {
+    if let Some(val) = safe.as_ref() {
         query_parts.push(format!("safe={}", val));
     }
-    if let Some(val) = searchType {
+    if let Some(val) = searchType.as_ref() {
         query_parts.push(format!("searchType={}", val));
     }
-    if let Some(val) = siteSearch {
+    if let Some(val) = siteSearch.as_ref() {
         query_parts.push(format!("siteSearch={}", val));
     }
-    if let Some(val) = siteSearchFilter {
+    if let Some(val) = siteSearchFilter.as_ref() {
         query_parts.push(format!("siteSearchFilter={}", val));
     }
-    if let Some(val) = snippetLength {
+    if let Some(val) = snippetLength.as_ref() {
         query_parts.push(format!("snippetLength={}", val));
     }
-    if let Some(val) = sort {
+    if let Some(val) = sort.as_ref() {
         query_parts.push(format!("sort={}", val));
     }
-    if let Some(val) = start {
+    if let Some(val) = start.as_ref() {
         query_parts.push(format!("start={}", val));
     }
 
@@ -376,39 +376,39 @@ pub fn search_cse_list(
 > {
     let builder = search_cse_list_builder(
         client,
-        args.c2coff.clone(),
-        args.cr.clone(),
-        args.cx.clone(),
-        args.dateRestrict.clone(),
-        args.enableAlternateSearchHandler.clone(),
-        args.exactTerms.clone(),
-        args.excludeTerms.clone(),
-        args.fileType.clone(),
-        args.filter.clone(),
-        args.gl.clone(),
-        args.googlehost.clone(),
-        args.highRange.clone(),
-        args.hl.clone(),
-        args.hq.clone(),
-        args.imgColorType.clone(),
-        args.imgDominantColor.clone(),
-        args.imgSize.clone(),
-        args.imgType.clone(),
-        args.linkSite.clone(),
-        args.lowRange.clone(),
-        args.lr.clone(),
-        args.num.clone(),
-        args.orTerms.clone(),
-        args.q.clone(),
-        args.relatedSite.clone(),
-        args.rights.clone(),
-        args.safe.clone(),
-        args.searchType.clone(),
-        args.siteSearch.clone(),
-        args.siteSearchFilter.clone(),
-        args.snippetLength.clone(),
-        args.sort.clone(),
-        args.start.clone(),
+        &args.c2coff,
+        &args.cr,
+        &args.cx,
+        &args.dateRestrict,
+        &args.enableAlternateSearchHandler,
+        &args.exactTerms,
+        &args.excludeTerms,
+        &args.fileType,
+        &args.filter,
+        &args.gl,
+        &args.googlehost,
+        &args.highRange,
+        &args.hl,
+        &args.hq,
+        &args.imgColorType,
+        &args.imgDominantColor,
+        &args.imgSize,
+        &args.imgType,
+        &args.linkSite,
+        &args.lowRange,
+        &args.lr,
+        &args.num,
+        &args.orTerms,
+        &args.q,
+        &args.relatedSite,
+        &args.rights,
+        &args.safe,
+        &args.searchType,
+        &args.siteSearch,
+        &args.siteSearchFilter,
+        &args.snippetLength,
+        &args.sort,
+        &args.start,
     )?;
     search_cse_list_execute(builder)
 }
@@ -421,142 +421,142 @@ pub fn search_cse_list(
 
 pub fn search_cse_siterestrict_list_builder(
     client: &SimpleHttpClient,
-    c2coff: Option<String>,
-    cr: Option<String>,
-    cx: Option<String>,
-    dateRestrict: Option<String>,
-    enableAlternateSearchHandler: Option<bool>,
-    exactTerms: Option<String>,
-    excludeTerms: Option<String>,
-    fileType: Option<String>,
-    filter: Option<String>,
-    gl: Option<String>,
-    googlehost: Option<String>,
-    highRange: Option<String>,
-    hl: Option<String>,
-    hq: Option<String>,
-    imgColorType: Option<String>,
-    imgDominantColor: Option<String>,
-    imgSize: Option<String>,
-    imgType: Option<String>,
-    linkSite: Option<String>,
-    lowRange: Option<String>,
-    lr: Option<String>,
-    num: Option<i32>,
-    orTerms: Option<String>,
-    q: Option<String>,
-    relatedSite: Option<String>,
-    rights: Option<String>,
-    safe: Option<String>,
-    searchType: Option<String>,
-    siteSearch: Option<String>,
-    siteSearchFilter: Option<String>,
-    snippetLength: Option<i32>,
-    sort: Option<String>,
-    start: Option<i32>,
+    c2coff: &Option<String>,
+    cr: &Option<String>,
+    cx: &Option<String>,
+    dateRestrict: &Option<String>,
+    enableAlternateSearchHandler: &Option<bool>,
+    exactTerms: &Option<String>,
+    excludeTerms: &Option<String>,
+    fileType: &Option<String>,
+    filter: &Option<String>,
+    gl: &Option<String>,
+    googlehost: &Option<String>,
+    highRange: &Option<String>,
+    hl: &Option<String>,
+    hq: &Option<String>,
+    imgColorType: &Option<String>,
+    imgDominantColor: &Option<String>,
+    imgSize: &Option<String>,
+    imgType: &Option<String>,
+    linkSite: &Option<String>,
+    lowRange: &Option<String>,
+    lr: &Option<String>,
+    num: &Option<i32>,
+    orTerms: &Option<String>,
+    q: &Option<String>,
+    relatedSite: &Option<String>,
+    rights: &Option<String>,
+    safe: &Option<String>,
+    searchType: &Option<String>,
+    siteSearch: &Option<String>,
+    siteSearchFilter: &Option<String>,
+    snippetLength: &Option<i32>,
+    sort: &Option<String>,
+    start: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1/siterestrict",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = c2coff {
+    if let Some(val) = c2coff.as_ref() {
         query_parts.push(format!("c2coff={}", val));
     }
-    if let Some(val) = cr {
+    if let Some(val) = cr.as_ref() {
         query_parts.push(format!("cr={}", val));
     }
-    if let Some(val) = cx {
+    if let Some(val) = cx.as_ref() {
         query_parts.push(format!("cx={}", val));
     }
-    if let Some(val) = dateRestrict {
+    if let Some(val) = dateRestrict.as_ref() {
         query_parts.push(format!("dateRestrict={}", val));
     }
-    if let Some(val) = enableAlternateSearchHandler {
+    if let Some(val) = enableAlternateSearchHandler.as_ref() {
         query_parts.push(format!("enableAlternateSearchHandler={}", val));
     }
-    if let Some(val) = exactTerms {
+    if let Some(val) = exactTerms.as_ref() {
         query_parts.push(format!("exactTerms={}", val));
     }
-    if let Some(val) = excludeTerms {
+    if let Some(val) = excludeTerms.as_ref() {
         query_parts.push(format!("excludeTerms={}", val));
     }
-    if let Some(val) = fileType {
+    if let Some(val) = fileType.as_ref() {
         query_parts.push(format!("fileType={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = gl {
+    if let Some(val) = gl.as_ref() {
         query_parts.push(format!("gl={}", val));
     }
-    if let Some(val) = googlehost {
+    if let Some(val) = googlehost.as_ref() {
         query_parts.push(format!("googlehost={}", val));
     }
-    if let Some(val) = highRange {
+    if let Some(val) = highRange.as_ref() {
         query_parts.push(format!("highRange={}", val));
     }
-    if let Some(val) = hl {
+    if let Some(val) = hl.as_ref() {
         query_parts.push(format!("hl={}", val));
     }
-    if let Some(val) = hq {
+    if let Some(val) = hq.as_ref() {
         query_parts.push(format!("hq={}", val));
     }
-    if let Some(val) = imgColorType {
+    if let Some(val) = imgColorType.as_ref() {
         query_parts.push(format!("imgColorType={}", val));
     }
-    if let Some(val) = imgDominantColor {
+    if let Some(val) = imgDominantColor.as_ref() {
         query_parts.push(format!("imgDominantColor={}", val));
     }
-    if let Some(val) = imgSize {
+    if let Some(val) = imgSize.as_ref() {
         query_parts.push(format!("imgSize={}", val));
     }
-    if let Some(val) = imgType {
+    if let Some(val) = imgType.as_ref() {
         query_parts.push(format!("imgType={}", val));
     }
-    if let Some(val) = linkSite {
+    if let Some(val) = linkSite.as_ref() {
         query_parts.push(format!("linkSite={}", val));
     }
-    if let Some(val) = lowRange {
+    if let Some(val) = lowRange.as_ref() {
         query_parts.push(format!("lowRange={}", val));
     }
-    if let Some(val) = lr {
+    if let Some(val) = lr.as_ref() {
         query_parts.push(format!("lr={}", val));
     }
-    if let Some(val) = num {
+    if let Some(val) = num.as_ref() {
         query_parts.push(format!("num={}", val));
     }
-    if let Some(val) = orTerms {
+    if let Some(val) = orTerms.as_ref() {
         query_parts.push(format!("orTerms={}", val));
     }
-    if let Some(val) = q {
+    if let Some(val) = q.as_ref() {
         query_parts.push(format!("q={}", val));
     }
-    if let Some(val) = relatedSite {
+    if let Some(val) = relatedSite.as_ref() {
         query_parts.push(format!("relatedSite={}", val));
     }
-    if let Some(val) = rights {
+    if let Some(val) = rights.as_ref() {
         query_parts.push(format!("rights={}", val));
     }
-    if let Some(val) = safe {
+    if let Some(val) = safe.as_ref() {
         query_parts.push(format!("safe={}", val));
     }
-    if let Some(val) = searchType {
+    if let Some(val) = searchType.as_ref() {
         query_parts.push(format!("searchType={}", val));
     }
-    if let Some(val) = siteSearch {
+    if let Some(val) = siteSearch.as_ref() {
         query_parts.push(format!("siteSearch={}", val));
     }
-    if let Some(val) = siteSearchFilter {
+    if let Some(val) = siteSearchFilter.as_ref() {
         query_parts.push(format!("siteSearchFilter={}", val));
     }
-    if let Some(val) = snippetLength {
+    if let Some(val) = snippetLength.as_ref() {
         query_parts.push(format!("snippetLength={}", val));
     }
-    if let Some(val) = sort {
+    if let Some(val) = sort.as_ref() {
         query_parts.push(format!("sort={}", val));
     }
-    if let Some(val) = start {
+    if let Some(val) = start.as_ref() {
         query_parts.push(format!("start={}", val));
     }
 
@@ -768,39 +768,39 @@ pub fn search_cse_siterestrict_list(
 > {
     let builder = search_cse_siterestrict_list_builder(
         client,
-        args.c2coff.clone(),
-        args.cr.clone(),
-        args.cx.clone(),
-        args.dateRestrict.clone(),
-        args.enableAlternateSearchHandler.clone(),
-        args.exactTerms.clone(),
-        args.excludeTerms.clone(),
-        args.fileType.clone(),
-        args.filter.clone(),
-        args.gl.clone(),
-        args.googlehost.clone(),
-        args.highRange.clone(),
-        args.hl.clone(),
-        args.hq.clone(),
-        args.imgColorType.clone(),
-        args.imgDominantColor.clone(),
-        args.imgSize.clone(),
-        args.imgType.clone(),
-        args.linkSite.clone(),
-        args.lowRange.clone(),
-        args.lr.clone(),
-        args.num.clone(),
-        args.orTerms.clone(),
-        args.q.clone(),
-        args.relatedSite.clone(),
-        args.rights.clone(),
-        args.safe.clone(),
-        args.searchType.clone(),
-        args.siteSearch.clone(),
-        args.siteSearchFilter.clone(),
-        args.snippetLength.clone(),
-        args.sort.clone(),
-        args.start.clone(),
+        &args.c2coff,
+        &args.cr,
+        &args.cx,
+        &args.dateRestrict,
+        &args.enableAlternateSearchHandler,
+        &args.exactTerms,
+        &args.excludeTerms,
+        &args.fileType,
+        &args.filter,
+        &args.gl,
+        &args.googlehost,
+        &args.highRange,
+        &args.hl,
+        &args.hq,
+        &args.imgColorType,
+        &args.imgDominantColor,
+        &args.imgSize,
+        &args.imgType,
+        &args.linkSite,
+        &args.lowRange,
+        &args.lr,
+        &args.num,
+        &args.orTerms,
+        &args.q,
+        &args.relatedSite,
+        &args.rights,
+        &args.safe,
+        &args.searchType,
+        &args.siteSearch,
+        &args.siteSearchFilter,
+        &args.snippetLength,
+        &args.sort,
+        &args.start,
     )?;
     search_cse_siterestrict_list_execute(builder)
 }

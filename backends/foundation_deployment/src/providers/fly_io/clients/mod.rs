@@ -29,18 +29,18 @@ use serde::Serialize;
 
 pub fn get_apps_builder(
     client: &SimpleHttpClient,
-    org_slug: Option<String>,
-    app_role: Option<String>,
+    org_slug: &Option<String>,
+    app_role: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://api.machines.dev/v1/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = org_slug {
+    if let Some(val) = org_slug.as_ref() {
         query_parts.push(format!("org_slug={}", val));
     }
-    if let Some(val) = app_role {
+    if let Some(val) = app_role.as_ref() {
         query_parts.push(format!("app_role={}", val));
     }
 
@@ -192,7 +192,7 @@ pub fn get_apps(
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_builder(client, args.org_slug.clone(), args.app_role.clone())?;
+    let builder = get_apps_builder(client, &args.org_slug, &args.app_role)?;
     get_apps_execute(builder)
 }
 
@@ -357,10 +357,10 @@ pub fn post_apps(
 
 pub fn get_apps_app_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name.as_str(),);
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
     // Build request
     let builder = client
@@ -499,7 +499,7 @@ pub fn get_apps_app_name(
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_builder(client, args.app_name.clone())?;
+    let builder = get_apps_app_name_builder(client, &args.app_name)?;
     get_apps_app_name_execute(builder)
 }
 
@@ -511,10 +511,10 @@ pub fn get_apps_app_name(
 
 pub fn delete_apps_app_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name.as_str(),);
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
     // Build request
     let builder = client
@@ -650,7 +650,7 @@ pub fn delete_apps_app_name(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_builder(client, args.app_name.clone())?;
+    let builder = delete_apps_app_name_builder(client, &args.app_name)?;
     delete_apps_app_name_execute(builder)
 }
 
@@ -662,26 +662,23 @@ pub fn delete_apps_app_name(
 
 pub fn get_apps_app_name_certificates_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    filter: Option<String>,
-    cursor: Option<String>,
-    limit: Option<i32>,
+    app_name: &String,
+    filter: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/certificates",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/certificates", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -839,10 +836,10 @@ pub fn get_apps_app_name_certificates(
 > {
     let builder = get_apps_app_name_certificates_builder(
         client,
-        args.app_name.clone(),
-        args.filter.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.app_name,
+        &args.filter,
+        &args.cursor,
+        &args.limit,
     )?;
     get_apps_app_name_certificates_execute(builder)
 }
@@ -855,13 +852,13 @@ pub fn get_apps_app_name_certificates(
 
 pub fn post_apps_app_name_certificates_acme_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/acme",
-        app_name.as_str(),
+        app_name,
     );
 
     // Build request
@@ -1009,8 +1006,7 @@ pub fn post_apps_app_name_certificates_acme(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_certificates_acme_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_certificates_acme_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_certificates_acme_execute(builder)
 }
 
@@ -1022,13 +1018,13 @@ pub fn post_apps_app_name_certificates_acme(
 
 pub fn post_apps_app_name_certificates_custom_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/custom",
-        app_name.as_str(),
+        app_name,
     );
 
     // Build request
@@ -1177,7 +1173,7 @@ pub fn post_apps_app_name_certificates_custom(
     ApiError,
 > {
     let builder =
-        post_apps_app_name_certificates_custom_builder(client, args.app_name.clone(), &args.body)?;
+        post_apps_app_name_certificates_custom_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_certificates_custom_execute(builder)
 }
 
@@ -1189,14 +1185,13 @@ pub fn post_apps_app_name_certificates_custom(
 
 pub fn get_apps_app_name_certificates_hostname_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    hostname: String,
+    app_name: &String,
+    hostname: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}",
-        app_name.as_str(),
-        hostname.as_str(),
+        app_name, hostname,
     );
 
     // Build request
@@ -1342,11 +1337,8 @@ pub fn get_apps_app_name_certificates_hostname(
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_certificates_hostname_builder(
-        client,
-        args.app_name.clone(),
-        args.hostname.clone(),
-    )?;
+    let builder =
+        get_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
     get_apps_app_name_certificates_hostname_execute(builder)
 }
 
@@ -1358,14 +1350,13 @@ pub fn get_apps_app_name_certificates_hostname(
 
 pub fn delete_apps_app_name_certificates_hostname_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    hostname: String,
+    app_name: &String,
+    hostname: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}",
-        app_name.as_str(),
-        hostname.as_str(),
+        app_name, hostname,
     );
 
     // Build request
@@ -1504,11 +1495,8 @@ pub fn delete_apps_app_name_certificates_hostname(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_certificates_hostname_builder(
-        client,
-        args.app_name.clone(),
-        args.hostname.clone(),
-    )?;
+    let builder =
+        delete_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
     delete_apps_app_name_certificates_hostname_execute(builder)
 }
 
@@ -1520,14 +1508,13 @@ pub fn delete_apps_app_name_certificates_hostname(
 
 pub fn delete_apps_app_name_certificates_hostname_acme_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    hostname: String,
+    app_name: &String,
+    hostname: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/acme",
-        app_name.as_str(),
-        hostname.as_str(),
+        app_name, hostname,
     );
 
     // Build request
@@ -1675,8 +1662,8 @@ pub fn delete_apps_app_name_certificates_hostname_acme(
 > {
     let builder = delete_apps_app_name_certificates_hostname_acme_builder(
         client,
-        args.app_name.clone(),
-        args.hostname.clone(),
+        &args.app_name,
+        &args.hostname,
     )?;
     delete_apps_app_name_certificates_hostname_acme_execute(builder)
 }
@@ -1689,14 +1676,13 @@ pub fn delete_apps_app_name_certificates_hostname_acme(
 
 pub fn post_apps_app_name_certificates_hostname_check_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    hostname: String,
+    app_name: &String,
+    hostname: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/check",
-        app_name.as_str(),
-        hostname.as_str(),
+        app_name, hostname,
     );
 
     // Build request
@@ -1844,8 +1830,8 @@ pub fn post_apps_app_name_certificates_hostname_check(
 > {
     let builder = post_apps_app_name_certificates_hostname_check_builder(
         client,
-        args.app_name.clone(),
-        args.hostname.clone(),
+        &args.app_name,
+        &args.hostname,
     )?;
     post_apps_app_name_certificates_hostname_check_execute(builder)
 }
@@ -1858,14 +1844,13 @@ pub fn post_apps_app_name_certificates_hostname_check(
 
 pub fn delete_apps_app_name_certificates_hostname_custom_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    hostname: String,
+    app_name: &String,
+    hostname: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/certificates/{}/custom",
-        app_name.as_str(),
-        hostname.as_str(),
+        app_name, hostname,
     );
 
     // Build request
@@ -2017,8 +2002,8 @@ pub fn delete_apps_app_name_certificates_hostname_custom(
 > {
     let builder = delete_apps_app_name_certificates_hostname_custom_builder(
         client,
-        args.app_name.clone(),
-        args.hostname.clone(),
+        &args.app_name,
+        &args.hostname,
     )?;
     delete_apps_app_name_certificates_hostname_custom_execute(builder)
 }
@@ -2031,14 +2016,11 @@ pub fn delete_apps_app_name_certificates_hostname_custom(
 
 pub fn post_apps_app_name_deploy_token_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/deploy_token",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/deploy_token", app_name,);
 
     // Build request
     let builder = client
@@ -2185,8 +2167,7 @@ pub fn post_apps_app_name_deploy_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_deploy_token_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_deploy_token_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_deploy_token_execute(builder)
 }
 
@@ -2198,12 +2179,12 @@ pub fn post_apps_app_name_deploy_token(
 
 pub fn get_apps_app_name_ip_assignments_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments",
-        app_name.as_str(),
+        app_name,
     );
 
     // Build request
@@ -2347,7 +2328,7 @@ pub fn get_apps_app_name_ip_assignments(
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_ip_assignments_builder(client, args.app_name.clone())?;
+    let builder = get_apps_app_name_ip_assignments_builder(client, &args.app_name)?;
     get_apps_app_name_ip_assignments_execute(builder)
 }
 
@@ -2359,13 +2340,13 @@ pub fn get_apps_app_name_ip_assignments(
 
 pub fn post_apps_app_name_ip_assignments_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments",
-        app_name.as_str(),
+        app_name,
     );
 
     // Build request
@@ -2513,8 +2494,7 @@ pub fn post_apps_app_name_ip_assignments(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_ip_assignments_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_ip_assignments_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_ip_assignments_execute(builder)
 }
 
@@ -2526,14 +2506,13 @@ pub fn post_apps_app_name_ip_assignments(
 
 pub fn delete_apps_app_name_ip_assignments_ip_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    ip: String,
+    app_name: &String,
+    ip: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/ip_assignments/{}",
-        app_name.as_str(),
-        ip.as_str(),
+        app_name, ip,
     );
 
     // Build request
@@ -2672,11 +2651,7 @@ pub fn delete_apps_app_name_ip_assignments_ip(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_ip_assignments_ip_builder(
-        client,
-        args.app_name.clone(),
-        args.ip.clone(),
-    )?;
+    let builder = delete_apps_app_name_ip_assignments_ip_builder(client, &args.app_name, &args.ip)?;
     delete_apps_app_name_ip_assignments_ip_execute(builder)
 }
 
@@ -2688,30 +2663,27 @@ pub fn delete_apps_app_name_ip_assignments_ip(
 
 pub fn get_apps_app_name_machines_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    include_deleted: Option<bool>,
-    region: Option<String>,
-    state: Option<String>,
-    summary: Option<bool>,
+    app_name: &String,
+    include_deleted: &Option<bool>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/machines",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = include_deleted {
+    if let Some(val) = include_deleted.as_ref() {
         query_parts.push(format!("include_deleted={}", val));
     }
-    if let Some(val) = region {
+    if let Some(val) = region.as_ref() {
         query_parts.push(format!("region={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = summary {
+    if let Some(val) = summary.as_ref() {
         query_parts.push(format!("summary={}", val));
     }
 
@@ -2864,11 +2836,11 @@ pub fn get_apps_app_name_machines(
 > {
     let builder = get_apps_app_name_machines_builder(
         client,
-        args.app_name.clone(),
-        args.include_deleted.clone(),
-        args.region.clone(),
-        args.state.clone(),
-        args.summary.clone(),
+        &args.app_name,
+        &args.include_deleted,
+        &args.region,
+        &args.state,
+        &args.summary,
     )?;
     get_apps_app_name_machines_execute(builder)
 }
@@ -2881,14 +2853,11 @@ pub fn get_apps_app_name_machines(
 
 pub fn post_apps_app_name_machines_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/machines",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
     // Build request
     let builder = client
@@ -3031,7 +3000,7 @@ pub fn post_apps_app_name_machines(
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_machines_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_machines_execute(builder)
 }
 
@@ -3043,14 +3012,13 @@ pub fn post_apps_app_name_machines(
 
 pub fn get_apps_app_name_machines_machine_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -3192,11 +3160,8 @@ pub fn get_apps_app_name_machines_machine_id(
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_builder(
-        client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-    )?;
+    let builder =
+        get_apps_app_name_machines_machine_id_builder(client, &args.app_name, &args.machine_id)?;
     get_apps_app_name_machines_machine_id_execute(builder)
 }
 
@@ -3208,15 +3173,14 @@ pub fn get_apps_app_name_machines_machine_id(
 
 pub fn post_apps_app_name_machines_machine_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -3364,8 +3328,8 @@ pub fn post_apps_app_name_machines_machine_id(
 > {
     let builder = post_apps_app_name_machines_machine_id_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_execute(builder)
@@ -3379,20 +3343,19 @@ pub fn post_apps_app_name_machines_machine_id(
 
 pub fn delete_apps_app_name_machines_machine_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    force: Option<bool>,
+    app_name: &String,
+    machine_id: &String,
+    force: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = force {
+    if let Some(val) = force.as_ref() {
         query_parts.push(format!("force={}", val));
     }
 
@@ -3541,9 +3504,9 @@ pub fn delete_apps_app_name_machines_machine_id(
 > {
     let builder = delete_apps_app_name_machines_machine_id_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.force.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.force,
     )?;
     delete_apps_app_name_machines_machine_id_execute(builder)
 }
@@ -3556,14 +3519,13 @@ pub fn delete_apps_app_name_machines_machine_id(
 
 pub fn post_apps_app_name_machines_machine_id_cordon_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/cordon",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -3704,8 +3666,8 @@ pub fn post_apps_app_name_machines_machine_id_cordon(
 > {
     let builder = post_apps_app_name_machines_machine_id_cordon_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     post_apps_app_name_machines_machine_id_cordon_execute(builder)
 }
@@ -3718,20 +3680,19 @@ pub fn post_apps_app_name_machines_machine_id_cordon(
 
 pub fn get_apps_app_name_machines_machine_id_events_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    limit: Option<i32>,
+    app_name: &String,
+    machine_id: &String,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/events",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -3880,9 +3841,9 @@ pub fn get_apps_app_name_machines_machine_id_events(
 > {
     let builder = get_apps_app_name_machines_machine_id_events_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.limit.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.limit,
     )?;
     get_apps_app_name_machines_machine_id_events_execute(builder)
 }
@@ -3895,15 +3856,14 @@ pub fn get_apps_app_name_machines_machine_id_events(
 
 pub fn post_apps_app_name_machines_machine_id_exec_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/exec",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4055,8 +4015,8 @@ pub fn post_apps_app_name_machines_machine_id_exec(
 > {
     let builder = post_apps_app_name_machines_machine_id_exec_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_exec_execute(builder)
@@ -4070,14 +4030,13 @@ pub fn post_apps_app_name_machines_machine_id_exec(
 
 pub fn get_apps_app_name_machines_machine_id_lease_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4221,8 +4180,8 @@ pub fn get_apps_app_name_machines_machine_id_lease(
 > {
     let builder = get_apps_app_name_machines_machine_id_lease_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     get_apps_app_name_machines_machine_id_lease_execute(builder)
 }
@@ -4235,15 +4194,14 @@ pub fn get_apps_app_name_machines_machine_id_lease(
 
 pub fn post_apps_app_name_machines_machine_id_lease_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4391,8 +4349,8 @@ pub fn post_apps_app_name_machines_machine_id_lease(
 > {
     let builder = post_apps_app_name_machines_machine_id_lease_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_lease_execute(builder)
@@ -4406,14 +4364,13 @@ pub fn post_apps_app_name_machines_machine_id_lease(
 
 pub fn delete_apps_app_name_machines_machine_id_lease_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4554,8 +4511,8 @@ pub fn delete_apps_app_name_machines_machine_id_lease(
 > {
     let builder = delete_apps_app_name_machines_machine_id_lease_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     delete_apps_app_name_machines_machine_id_lease_execute(builder)
 }
@@ -4568,14 +4525,13 @@ pub fn delete_apps_app_name_machines_machine_id_lease(
 
 pub fn get_apps_app_name_machines_machine_id_memory_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4723,8 +4679,8 @@ pub fn get_apps_app_name_machines_machine_id_memory(
 > {
     let builder = get_apps_app_name_machines_machine_id_memory_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     get_apps_app_name_machines_machine_id_memory_execute(builder)
 }
@@ -4737,15 +4693,14 @@ pub fn get_apps_app_name_machines_machine_id_memory(
 
 pub fn put_apps_app_name_machines_machine_id_memory_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -4897,8 +4852,8 @@ pub fn put_apps_app_name_machines_machine_id_memory(
 > {
     let builder = put_apps_app_name_machines_machine_id_memory_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     put_apps_app_name_machines_machine_id_memory_execute(builder)
@@ -4912,15 +4867,14 @@ pub fn put_apps_app_name_machines_machine_id_memory(
 
 pub fn post_apps_app_name_machines_machine_id_memory_reclaim_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/memory/reclaim",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -5072,8 +5026,8 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim(
 > {
     let builder = post_apps_app_name_machines_machine_id_memory_reclaim_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_memory_reclaim_execute(builder)
@@ -5087,14 +5041,13 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim(
 
 pub fn get_apps_app_name_machines_machine_id_metadata_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -5235,8 +5188,8 @@ pub fn get_apps_app_name_machines_machine_id_metadata(
 > {
     let builder = get_apps_app_name_machines_machine_id_metadata_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     get_apps_app_name_machines_machine_id_metadata_execute(builder)
 }
@@ -5249,15 +5202,14 @@ pub fn get_apps_app_name_machines_machine_id_metadata(
 
 pub fn put_apps_app_name_machines_machine_id_metadata_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -5402,8 +5354,8 @@ pub fn put_apps_app_name_machines_machine_id_metadata(
 > {
     let builder = put_apps_app_name_machines_machine_id_metadata_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     put_apps_app_name_machines_machine_id_metadata_execute(builder)
@@ -5417,16 +5369,14 @@ pub fn put_apps_app_name_machines_machine_id_metadata(
 
 pub fn get_apps_app_name_machines_machine_id_metadata_key_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    key: String,
+    app_name: &String,
+    machine_id: &String,
+    key: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
-        key.as_str(),
+        app_name, machine_id, key,
     );
 
     // Build request
@@ -5576,9 +5526,9 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key(
 > {
     let builder = get_apps_app_name_machines_machine_id_metadata_key_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.key.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
     )?;
     get_apps_app_name_machines_machine_id_metadata_key_execute(builder)
 }
@@ -5591,17 +5541,15 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key(
 
 pub fn post_apps_app_name_machines_machine_id_metadata_key_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    key: String,
+    app_name: &String,
+    machine_id: &String,
+    key: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
-        key.as_str(),
+        app_name, machine_id, key,
     );
 
     // Build request
@@ -5748,9 +5696,9 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key(
 > {
     let builder = post_apps_app_name_machines_machine_id_metadata_key_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.key.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_metadata_key_execute(builder)
@@ -5764,16 +5712,14 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key(
 
 pub fn delete_apps_app_name_machines_machine_id_metadata_key_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    key: String,
+    app_name: &String,
+    machine_id: &String,
+    key: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
-        app_name.as_str(),
-        machine_id.as_str(),
-        key.as_str(),
+        app_name, machine_id, key,
     );
 
     // Build request
@@ -5916,9 +5862,9 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key(
 > {
     let builder = delete_apps_app_name_machines_machine_id_metadata_key_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.key.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
     )?;
     delete_apps_app_name_machines_machine_id_metadata_key_execute(builder)
 }
@@ -5931,24 +5877,23 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key(
 
 pub fn get_apps_app_name_machines_machine_id_ps_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    sort_by: Option<String>,
-    order: Option<String>,
+    app_name: &String,
+    machine_id: &String,
+    sort_by: &Option<String>,
+    order: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/ps",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = sort_by {
+    if let Some(val) = sort_by.as_ref() {
         query_parts.push(format!("sort_by={}", val));
     }
-    if let Some(val) = order {
+    if let Some(val) = order.as_ref() {
         query_parts.push(format!("order={}", val));
     }
 
@@ -6099,10 +6044,10 @@ pub fn get_apps_app_name_machines_machine_id_ps(
 > {
     let builder = get_apps_app_name_machines_machine_id_ps_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.sort_by.clone(),
-        args.order.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.sort_by,
+        &args.order,
     )?;
     get_apps_app_name_machines_machine_id_ps_execute(builder)
 }
@@ -6115,24 +6060,23 @@ pub fn get_apps_app_name_machines_machine_id_ps(
 
 pub fn post_apps_app_name_machines_machine_id_restart_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    timeout: Option<String>,
-    signal: Option<String>,
+    app_name: &String,
+    machine_id: &String,
+    timeout: &Option<String>,
+    signal: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/restart",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = timeout {
+    if let Some(val) = timeout.as_ref() {
         query_parts.push(format!("timeout={}", val));
     }
-    if let Some(val) = signal {
+    if let Some(val) = signal.as_ref() {
         query_parts.push(format!("signal={}", val));
     }
 
@@ -6283,10 +6227,10 @@ pub fn post_apps_app_name_machines_machine_id_restart(
 > {
     let builder = post_apps_app_name_machines_machine_id_restart_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.timeout.clone(),
-        args.signal.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.timeout,
+        &args.signal,
     )?;
     post_apps_app_name_machines_machine_id_restart_execute(builder)
 }
@@ -6299,15 +6243,14 @@ pub fn post_apps_app_name_machines_machine_id_restart(
 
 pub fn post_apps_app_name_machines_machine_id_signal_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/signal",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -6452,8 +6395,8 @@ pub fn post_apps_app_name_machines_machine_id_signal(
 > {
     let builder = post_apps_app_name_machines_machine_id_signal_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_signal_execute(builder)
@@ -6467,14 +6410,13 @@ pub fn post_apps_app_name_machines_machine_id_signal(
 
 pub fn post_apps_app_name_machines_machine_id_start_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/start",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -6615,8 +6557,8 @@ pub fn post_apps_app_name_machines_machine_id_start(
 > {
     let builder = post_apps_app_name_machines_machine_id_start_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     post_apps_app_name_machines_machine_id_start_execute(builder)
 }
@@ -6629,15 +6571,14 @@ pub fn post_apps_app_name_machines_machine_id_start(
 
 pub fn post_apps_app_name_machines_machine_id_stop_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/stop",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -6782,8 +6723,8 @@ pub fn post_apps_app_name_machines_machine_id_stop(
 > {
     let builder = post_apps_app_name_machines_machine_id_stop_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
         &args.body,
     )?;
     post_apps_app_name_machines_machine_id_stop_execute(builder)
@@ -6797,14 +6738,13 @@ pub fn post_apps_app_name_machines_machine_id_stop(
 
 pub fn post_apps_app_name_machines_machine_id_suspend_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/suspend",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -6945,8 +6885,8 @@ pub fn post_apps_app_name_machines_machine_id_suspend(
 > {
     let builder = post_apps_app_name_machines_machine_id_suspend_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     post_apps_app_name_machines_machine_id_suspend_execute(builder)
 }
@@ -6959,14 +6899,13 @@ pub fn post_apps_app_name_machines_machine_id_suspend(
 
 pub fn post_apps_app_name_machines_machine_id_uncordon_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/uncordon",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -7107,8 +7046,8 @@ pub fn post_apps_app_name_machines_machine_id_uncordon(
 > {
     let builder = post_apps_app_name_machines_machine_id_uncordon_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     post_apps_app_name_machines_machine_id_uncordon_execute(builder)
 }
@@ -7121,14 +7060,13 @@ pub fn post_apps_app_name_machines_machine_id_uncordon(
 
 pub fn get_apps_app_name_machines_machine_id_versions_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
+    app_name: &String,
+    machine_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/versions",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
@@ -7269,8 +7207,8 @@ pub fn get_apps_app_name_machines_machine_id_versions(
 > {
     let builder = get_apps_app_name_machines_machine_id_versions_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
+        &args.app_name,
+        &args.machine_id,
     )?;
     get_apps_app_name_machines_machine_id_versions_execute(builder)
 }
@@ -7283,36 +7221,35 @@ pub fn get_apps_app_name_machines_machine_id_versions(
 
 pub fn get_apps_app_name_machines_machine_id_wait_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    machine_id: String,
-    version: Option<String>,
-    instance_id: Option<String>,
-    from_event_id: Option<String>,
-    timeout: Option<i32>,
-    state: Option<String>,
+    app_name: &String,
+    machine_id: &String,
+    version: &Option<String>,
+    instance_id: &Option<String>,
+    from_event_id: &Option<String>,
+    timeout: &Option<i32>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/machines/{}/wait",
-        app_name.as_str(),
-        machine_id.as_str(),
+        app_name, machine_id,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = version {
+    if let Some(val) = version.as_ref() {
         query_parts.push(format!("version={}", val));
     }
-    if let Some(val) = instance_id {
+    if let Some(val) = instance_id.as_ref() {
         query_parts.push(format!("instance_id={}", val));
     }
-    if let Some(val) = from_event_id {
+    if let Some(val) = from_event_id.as_ref() {
         query_parts.push(format!("from_event_id={}", val));
     }
-    if let Some(val) = timeout {
+    if let Some(val) = timeout.as_ref() {
         query_parts.push(format!("timeout={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
 
@@ -7476,13 +7413,13 @@ pub fn get_apps_app_name_machines_machine_id_wait(
 > {
     let builder = get_apps_app_name_machines_machine_id_wait_builder(
         client,
-        args.app_name.clone(),
-        args.machine_id.clone(),
-        args.version.clone(),
-        args.instance_id.clone(),
-        args.from_event_id.clone(),
-        args.timeout.clone(),
-        args.state.clone(),
+        &args.app_name,
+        &args.machine_id,
+        &args.version,
+        &args.instance_id,
+        &args.from_event_id,
+        &args.timeout,
+        &args.state,
     )?;
     get_apps_app_name_machines_machine_id_wait_execute(builder)
 }
@@ -7495,22 +7432,19 @@ pub fn get_apps_app_name_machines_machine_id_wait(
 
 pub fn get_apps_app_name_secretkeys_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    min_version: Option<String>,
-    types: Option<String>,
+    app_name: &String,
+    min_version: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/secretkeys",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secretkeys", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
-    if let Some(val) = types {
+    if let Some(val) = types.as_ref() {
         query_parts.push(format!("types={}", val));
     }
 
@@ -7662,9 +7596,9 @@ pub fn get_apps_app_name_secretkeys(
 > {
     let builder = get_apps_app_name_secretkeys_builder(
         client,
-        args.app_name.clone(),
-        args.min_version.clone(),
-        args.types.clone(),
+        &args.app_name,
+        &args.min_version,
+        &args.types,
     )?;
     get_apps_app_name_secretkeys_execute(builder)
 }
@@ -7677,20 +7611,19 @@ pub fn get_apps_app_name_secretkeys(
 
 pub fn get_apps_app_name_secretkeys_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
 
@@ -7842,9 +7775,9 @@ pub fn get_apps_app_name_secretkeys_secret_name(
 > {
     let builder = get_apps_app_name_secretkeys_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
     )?;
     get_apps_app_name_secretkeys_secret_name_execute(builder)
 }
@@ -7857,15 +7790,14 @@ pub fn get_apps_app_name_secretkeys_secret_name(
 
 pub fn post_apps_app_name_secretkeys_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
+    app_name: &String,
+    secret_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
@@ -8017,8 +7949,8 @@ pub fn post_apps_app_name_secretkeys_secret_name(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
+        &args.app_name,
+        &args.secret_name,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_execute(builder)
@@ -8032,14 +7964,13 @@ pub fn post_apps_app_name_secretkeys_secret_name(
 
 pub fn delete_apps_app_name_secretkeys_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
+    app_name: &String,
+    secret_name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
@@ -8187,8 +8118,8 @@ pub fn delete_apps_app_name_secretkeys_secret_name(
 > {
     let builder = delete_apps_app_name_secretkeys_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
+        &args.app_name,
+        &args.secret_name,
     )?;
     delete_apps_app_name_secretkeys_secret_name_execute(builder)
 }
@@ -8201,21 +8132,20 @@ pub fn delete_apps_app_name_secretkeys_secret_name(
 
 pub fn post_apps_app_name_secretkeys_secret_name_decrypt_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/decrypt",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
 
@@ -8375,9 +8305,9 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_decrypt_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_decrypt_execute(builder)
@@ -8391,21 +8321,20 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt(
 
 pub fn post_apps_app_name_secretkeys_secret_name_encrypt_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/encrypt",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
 
@@ -8565,9 +8494,9 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_encrypt_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_encrypt_execute(builder)
@@ -8581,15 +8510,14 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt(
 
 pub fn post_apps_app_name_secretkeys_secret_name_generate_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
+    app_name: &String,
+    secret_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/generate",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
@@ -8741,8 +8669,8 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_generate_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
+        &args.app_name,
+        &args.secret_name,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_generate_execute(builder)
@@ -8756,21 +8684,20 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate(
 
 pub fn post_apps_app_name_secretkeys_secret_name_sign_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/sign",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
 
@@ -8930,9 +8857,9 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_sign_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_sign_execute(builder)
@@ -8946,21 +8873,20 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign(
 
 pub fn post_apps_app_name_secretkeys_secret_name_verify_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secretkeys/{}/verify",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
 
@@ -9113,9 +9039,9 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_verify_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
         &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_verify_execute(builder)
@@ -9129,22 +9055,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify(
 
 pub fn get_apps_app_name_secrets_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    min_version: Option<String>,
-    show_secrets: Option<bool>,
+    app_name: &String,
+    min_version: &Option<String>,
+    show_secrets: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/secrets",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
-    if let Some(val) = show_secrets {
+    if let Some(val) = show_secrets.as_ref() {
         query_parts.push(format!("show_secrets={}", val));
     }
 
@@ -9296,9 +9219,9 @@ pub fn get_apps_app_name_secrets(
 > {
     let builder = get_apps_app_name_secrets_builder(
         client,
-        args.app_name.clone(),
-        args.min_version.clone(),
-        args.show_secrets.clone(),
+        &args.app_name,
+        &args.min_version,
+        &args.show_secrets,
     )?;
     get_apps_app_name_secrets_execute(builder)
 }
@@ -9311,14 +9234,11 @@ pub fn get_apps_app_name_secrets(
 
 pub fn post_apps_app_name_secrets_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/secrets",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
     // Build request
     let builder = client
@@ -9465,7 +9385,7 @@ pub fn post_apps_app_name_secrets(
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secrets_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_secrets_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_secrets_execute(builder)
 }
 
@@ -9477,24 +9397,23 @@ pub fn post_apps_app_name_secrets(
 
 pub fn get_apps_app_name_secrets_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
-    min_version: Option<String>,
-    show_secrets: Option<bool>,
+    app_name: &String,
+    secret_name: &String,
+    min_version: &Option<String>,
+    show_secrets: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = min_version {
+    if let Some(val) = min_version.as_ref() {
         query_parts.push(format!("min_version={}", val));
     }
-    if let Some(val) = show_secrets {
+    if let Some(val) = show_secrets.as_ref() {
         query_parts.push(format!("show_secrets={}", val));
     }
 
@@ -9648,10 +9567,10 @@ pub fn get_apps_app_name_secrets_secret_name(
 > {
     let builder = get_apps_app_name_secrets_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
-        args.min_version.clone(),
-        args.show_secrets.clone(),
+        &args.app_name,
+        &args.secret_name,
+        &args.min_version,
+        &args.show_secrets,
     )?;
     get_apps_app_name_secrets_secret_name_execute(builder)
 }
@@ -9664,15 +9583,14 @@ pub fn get_apps_app_name_secrets_secret_name(
 
 pub fn post_apps_app_name_secrets_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
+    app_name: &String,
+    secret_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
@@ -9824,8 +9742,8 @@ pub fn post_apps_app_name_secrets_secret_name(
 > {
     let builder = post_apps_app_name_secrets_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
+        &args.app_name,
+        &args.secret_name,
         &args.body,
     )?;
     post_apps_app_name_secrets_secret_name_execute(builder)
@@ -9839,14 +9757,13 @@ pub fn post_apps_app_name_secrets_secret_name(
 
 pub fn delete_apps_app_name_secrets_secret_name_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    secret_name: String,
+    app_name: &String,
+    secret_name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/secrets/{}",
-        app_name.as_str(),
-        secret_name.as_str(),
+        app_name, secret_name,
     );
 
     // Build request
@@ -9994,8 +9911,8 @@ pub fn delete_apps_app_name_secrets_secret_name(
 > {
     let builder = delete_apps_app_name_secrets_secret_name_builder(
         client,
-        args.app_name.clone(),
-        args.secret_name.clone(),
+        &args.app_name,
+        &args.secret_name,
     )?;
     delete_apps_app_name_secrets_secret_name_execute(builder)
 }
@@ -10008,18 +9925,15 @@ pub fn delete_apps_app_name_secrets_secret_name(
 
 pub fn get_apps_app_name_volumes_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    summary: Option<bool>,
+    app_name: &String,
+    summary: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/volumes",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = summary {
+    if let Some(val) = summary.as_ref() {
         query_parts.push(format!("summary={}", val));
     }
 
@@ -10164,8 +10078,7 @@ pub fn get_apps_app_name_volumes(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_volumes_builder(client, args.app_name.clone(), args.summary.clone())?;
+    let builder = get_apps_app_name_volumes_builder(client, &args.app_name, &args.summary)?;
     get_apps_app_name_volumes_execute(builder)
 }
 
@@ -10177,14 +10090,11 @@ pub fn get_apps_app_name_volumes(
 
 pub fn post_apps_app_name_volumes_builder(
     client: &SimpleHttpClient,
-    app_name: String,
+    app_name: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/apps/{}/volumes",
-        app_name.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
     // Build request
     let builder = client
@@ -10327,7 +10237,7 @@ pub fn post_apps_app_name_volumes(
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_volumes_builder(client, args.app_name.clone(), &args.body)?;
+    let builder = post_apps_app_name_volumes_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_volumes_execute(builder)
 }
 
@@ -10339,14 +10249,13 @@ pub fn post_apps_app_name_volumes(
 
 pub fn get_apps_app_name_volumes_volume_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -10488,11 +10397,8 @@ pub fn get_apps_app_name_volumes_volume_id(
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_volumes_volume_id_builder(
-        client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
-    )?;
+    let builder =
+        get_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
     get_apps_app_name_volumes_volume_id_execute(builder)
 }
 
@@ -10504,15 +10410,14 @@ pub fn get_apps_app_name_volumes_volume_id(
 
 pub fn put_apps_app_name_volumes_volume_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -10660,8 +10565,8 @@ pub fn put_apps_app_name_volumes_volume_id(
 > {
     let builder = put_apps_app_name_volumes_volume_id_builder(
         client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
+        &args.app_name,
+        &args.volume_id,
         &args.body,
     )?;
     put_apps_app_name_volumes_volume_id_execute(builder)
@@ -10675,14 +10580,13 @@ pub fn put_apps_app_name_volumes_volume_id(
 
 pub fn delete_apps_app_name_volumes_volume_id_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -10824,11 +10728,8 @@ pub fn delete_apps_app_name_volumes_volume_id(
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_volumes_volume_id_builder(
-        client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
-    )?;
+    let builder =
+        delete_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
     delete_apps_app_name_volumes_volume_id_execute(builder)
 }
 
@@ -10840,15 +10741,14 @@ pub fn delete_apps_app_name_volumes_volume_id(
 
 pub fn put_apps_app_name_volumes_volume_id_extend_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
     body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/extend",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -11000,8 +10900,8 @@ pub fn put_apps_app_name_volumes_volume_id_extend(
 > {
     let builder = put_apps_app_name_volumes_volume_id_extend_builder(
         client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
+        &args.app_name,
+        &args.volume_id,
         &args.body,
     )?;
     put_apps_app_name_volumes_volume_id_extend_execute(builder)
@@ -11015,14 +10915,13 @@ pub fn put_apps_app_name_volumes_volume_id_extend(
 
 pub fn get_apps_app_name_volumes_volume_id_snapshots_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -11163,8 +11062,8 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots(
 > {
     let builder = get_apps_app_name_volumes_volume_id_snapshots_builder(
         client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
+        &args.app_name,
+        &args.volume_id,
     )?;
     get_apps_app_name_volumes_volume_id_snapshots_execute(builder)
 }
@@ -11177,14 +11076,13 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots(
 
 pub fn post_apps_app_name_volumes_volume_id_snapshots_builder(
     client: &SimpleHttpClient,
-    app_name: String,
-    volume_id: String,
+    app_name: &String,
+    volume_id: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
-        app_name.as_str(),
-        volume_id.as_str(),
+        app_name, volume_id,
     );
 
     // Build request
@@ -11325,8 +11223,8 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots(
 > {
     let builder = post_apps_app_name_volumes_volume_id_snapshots_builder(
         client,
-        args.app_name.clone(),
-        args.volume_id.clone(),
+        &args.app_name,
+        &args.volume_id,
     )?;
     post_apps_app_name_volumes_volume_id_snapshots_execute(builder)
 }
@@ -11339,42 +11237,39 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots(
 
 pub fn get_orgs_org_slug_machines_builder(
     client: &SimpleHttpClient,
-    org_slug: String,
-    include_deleted: Option<bool>,
-    region: Option<String>,
-    state: Option<String>,
-    summary: Option<bool>,
-    updated_after: Option<String>,
-    cursor: Option<String>,
-    limit: Option<i32>,
+    org_slug: &String,
+    include_deleted: &Option<bool>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<bool>,
+    updated_after: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/orgs/{}/machines",
-        org_slug.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/orgs/{}/machines", org_slug,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = include_deleted {
+    if let Some(val) = include_deleted.as_ref() {
         query_parts.push(format!("include_deleted={}", val));
     }
-    if let Some(val) = region {
+    if let Some(val) = region.as_ref() {
         query_parts.push(format!("region={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = summary {
+    if let Some(val) = summary.as_ref() {
         query_parts.push(format!("summary={}", val));
     }
-    if let Some(val) = updated_after {
+    if let Some(val) = updated_after.as_ref() {
         query_parts.push(format!("updated_after={}", val));
     }
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -11540,14 +11435,14 @@ pub fn get_orgs_org_slug_machines(
 > {
     let builder = get_orgs_org_slug_machines_builder(
         client,
-        args.org_slug.clone(),
-        args.include_deleted.clone(),
-        args.region.clone(),
-        args.state.clone(),
-        args.summary.clone(),
-        args.updated_after.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.org_slug,
+        &args.include_deleted,
+        &args.region,
+        &args.state,
+        &args.summary,
+        &args.updated_after,
+        &args.cursor,
+        &args.limit,
     )?;
     get_orgs_org_slug_machines_execute(builder)
 }
@@ -11560,42 +11455,39 @@ pub fn get_orgs_org_slug_machines(
 
 pub fn get_orgs_org_slug_volumes_builder(
     client: &SimpleHttpClient,
-    org_slug: String,
-    include_deleted: Option<bool>,
-    region: Option<String>,
-    state: Option<String>,
-    summary: Option<bool>,
-    updated_after: Option<String>,
-    cursor: Option<String>,
-    limit: Option<i32>,
+    org_slug: &String,
+    include_deleted: &Option<bool>,
+    region: &Option<String>,
+    state: &Option<String>,
+    summary: &Option<bool>,
+    updated_after: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!(
-        "https://api.machines.dev/v1/orgs/{}/volumes",
-        org_slug.as_str(),
-    );
+    let endpoint_url = format!("https://api.machines.dev/v1/orgs/{}/volumes", org_slug,);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = include_deleted {
+    if let Some(val) = include_deleted.as_ref() {
         query_parts.push(format!("include_deleted={}", val));
     }
-    if let Some(val) = region {
+    if let Some(val) = region.as_ref() {
         query_parts.push(format!("region={}", val));
     }
-    if let Some(val) = state {
+    if let Some(val) = state.as_ref() {
         query_parts.push(format!("state={}", val));
     }
-    if let Some(val) = summary {
+    if let Some(val) = summary.as_ref() {
         query_parts.push(format!("summary={}", val));
     }
-    if let Some(val) = updated_after {
+    if let Some(val) = updated_after.as_ref() {
         query_parts.push(format!("updated_after={}", val));
     }
-    if let Some(val) = cursor {
+    if let Some(val) = cursor.as_ref() {
         query_parts.push(format!("cursor={}", val));
     }
-    if let Some(val) = limit {
+    if let Some(val) = limit.as_ref() {
         query_parts.push(format!("limit={}", val));
     }
 
@@ -11761,14 +11653,14 @@ pub fn get_orgs_org_slug_volumes(
 > {
     let builder = get_orgs_org_slug_volumes_builder(
         client,
-        args.org_slug.clone(),
-        args.include_deleted.clone(),
-        args.region.clone(),
-        args.state.clone(),
-        args.summary.clone(),
-        args.updated_after.clone(),
-        args.cursor.clone(),
-        args.limit.clone(),
+        &args.org_slug,
+        &args.include_deleted,
+        &args.region,
+        &args.state,
+        &args.summary,
+        &args.updated_after,
+        &args.cursor,
+        &args.limit,
     )?;
     get_orgs_org_slug_volumes_execute(builder)
 }

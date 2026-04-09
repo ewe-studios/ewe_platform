@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn aiplatform_batch_prediction_jobs_create_builder(
     client: &SimpleHttpClient,
-    parent: Option<String>,
+    parent: &Option<String>,
     body: &GoogleCloudAiplatformV1BatchPredictionJob,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -37,7 +37,7 @@ pub fn aiplatform_batch_prediction_jobs_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -196,7 +196,7 @@ pub fn aiplatform_batch_prediction_jobs_create(
     ApiError,
 > {
     let builder =
-        aiplatform_batch_prediction_jobs_create_builder(client, args.parent.clone(), &args.body)?;
+        aiplatform_batch_prediction_jobs_create_builder(client, &args.parent, &args.body)?;
     aiplatform_batch_prediction_jobs_create_execute(builder)
 }
 
@@ -208,7 +208,7 @@ pub fn aiplatform_batch_prediction_jobs_create(
 
 pub fn aiplatform_batch_prediction_jobs_get_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/batchPredictionJobs/{}",);
@@ -358,7 +358,7 @@ pub fn aiplatform_batch_prediction_jobs_get(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_batch_prediction_jobs_get_builder(client, args.name.clone())?;
+    let builder = aiplatform_batch_prediction_jobs_get_builder(client, &args.name)?;
     aiplatform_batch_prediction_jobs_get_execute(builder)
 }
 
@@ -370,27 +370,27 @@ pub fn aiplatform_batch_prediction_jobs_get(
 
 pub fn aiplatform_custom_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/customJobs/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -555,11 +555,11 @@ pub fn aiplatform_custom_jobs_operations_list(
 > {
     let builder = aiplatform_custom_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_custom_jobs_operations_list_execute(builder)
 }
@@ -572,11 +572,11 @@ pub fn aiplatform_custom_jobs_operations_list(
 
 pub fn aiplatform_data_labeling_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -584,16 +584,16 @@ pub fn aiplatform_data_labeling_jobs_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -758,11 +758,11 @@ pub fn aiplatform_data_labeling_jobs_operations_list(
 > {
     let builder = aiplatform_data_labeling_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_data_labeling_jobs_operations_list_execute(builder)
 }
@@ -775,7 +775,7 @@ pub fn aiplatform_data_labeling_jobs_operations_list(
 
 pub fn aiplatform_datasets_create_builder(
     client: &SimpleHttpClient,
-    parent: Option<String>,
+    parent: &Option<String>,
     body: &GoogleCloudAiplatformV1Dataset,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -783,7 +783,7 @@ pub fn aiplatform_datasets_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -941,7 +941,7 @@ pub fn aiplatform_datasets_create(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_datasets_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = aiplatform_datasets_create_builder(client, &args.parent, &args.body)?;
     aiplatform_datasets_create_execute(builder)
 }
 
@@ -953,7 +953,7 @@ pub fn aiplatform_datasets_create(
 
 pub fn aiplatform_datasets_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets/{}",);
@@ -1103,7 +1103,7 @@ pub fn aiplatform_datasets_delete(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_datasets_delete_builder(client, args.name.clone())?;
+    let builder = aiplatform_datasets_delete_builder(client, &args.name)?;
     aiplatform_datasets_delete_execute(builder)
 }
 
@@ -1115,7 +1115,7 @@ pub fn aiplatform_datasets_delete(
 
 pub fn aiplatform_datasets_dataset_versions_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudAiplatformV1DatasetVersion,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1270,11 +1270,8 @@ pub fn aiplatform_datasets_dataset_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_datasets_dataset_versions_create_builder(
-        client,
-        args.parent.clone(),
-        &args.body,
-    )?;
+    let builder =
+        aiplatform_datasets_dataset_versions_create_builder(client, &args.parent, &args.body)?;
     aiplatform_datasets_dataset_versions_create_execute(builder)
 }
 
@@ -1286,27 +1283,27 @@ pub fn aiplatform_datasets_dataset_versions_create(
 
 pub fn aiplatform_datasets_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/datasets/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -1471,11 +1468,11 @@ pub fn aiplatform_datasets_operations_list(
 > {
     let builder = aiplatform_datasets_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_datasets_operations_list_execute(builder)
 }
@@ -1488,11 +1485,11 @@ pub fn aiplatform_datasets_operations_list(
 
 pub fn aiplatform_deployment_resource_pools_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1500,16 +1497,16 @@ pub fn aiplatform_deployment_resource_pools_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -1674,11 +1671,11 @@ pub fn aiplatform_deployment_resource_pools_operations_list(
 > {
     let builder = aiplatform_deployment_resource_pools_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_deployment_resource_pools_operations_list_execute(builder)
 }
@@ -1691,7 +1688,7 @@ pub fn aiplatform_deployment_resource_pools_operations_list(
 
 pub fn aiplatform_endpoints_compute_tokens_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleCloudAiplatformV1ComputeTokensRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -1847,8 +1844,7 @@ pub fn aiplatform_endpoints_compute_tokens(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_endpoints_compute_tokens_builder(client, args.endpoint.clone(), &args.body)?;
+    let builder = aiplatform_endpoints_compute_tokens_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_compute_tokens_execute(builder)
 }
 
@@ -1860,7 +1856,7 @@ pub fn aiplatform_endpoints_compute_tokens(
 
 pub fn aiplatform_endpoints_count_tokens_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleCloudAiplatformV1CountTokensRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2016,8 +2012,7 @@ pub fn aiplatform_endpoints_count_tokens(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_endpoints_count_tokens_builder(client, args.endpoint.clone(), &args.body)?;
+    let builder = aiplatform_endpoints_count_tokens_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_count_tokens_execute(builder)
 }
 
@@ -2029,7 +2024,7 @@ pub fn aiplatform_endpoints_count_tokens(
 
 pub fn aiplatform_endpoints_fetch_predict_operation_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleCloudAiplatformV1FetchPredictOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2185,11 +2180,8 @@ pub fn aiplatform_endpoints_fetch_predict_operation(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_endpoints_fetch_predict_operation_builder(
-        client,
-        args.endpoint.clone(),
-        &args.body,
-    )?;
+    let builder =
+        aiplatform_endpoints_fetch_predict_operation_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_fetch_predict_operation_execute(builder)
 }
 
@@ -2201,7 +2193,7 @@ pub fn aiplatform_endpoints_fetch_predict_operation(
 
 pub fn aiplatform_endpoints_generate_content_builder(
     client: &SimpleHttpClient,
-    model: String,
+    model: &String,
     body: &GoogleCloudAiplatformV1GenerateContentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2358,8 +2350,7 @@ pub fn aiplatform_endpoints_generate_content(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_endpoints_generate_content_builder(client, args.model.clone(), &args.body)?;
+    let builder = aiplatform_endpoints_generate_content_builder(client, &args.model, &args.body)?;
     aiplatform_endpoints_generate_content_execute(builder)
 }
 
@@ -2371,7 +2362,7 @@ pub fn aiplatform_endpoints_generate_content(
 
 pub fn aiplatform_endpoints_predict_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleCloudAiplatformV1PredictRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2526,7 +2517,7 @@ pub fn aiplatform_endpoints_predict(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_endpoints_predict_builder(client, args.endpoint.clone(), &args.body)?;
+    let builder = aiplatform_endpoints_predict_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_predict_execute(builder)
 }
 
@@ -2538,7 +2529,7 @@ pub fn aiplatform_endpoints_predict(
 
 pub fn aiplatform_endpoints_predict_long_running_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleCloudAiplatformV1PredictLongRunningRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2694,11 +2685,8 @@ pub fn aiplatform_endpoints_predict_long_running(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_endpoints_predict_long_running_builder(
-        client,
-        args.endpoint.clone(),
-        &args.body,
-    )?;
+    let builder =
+        aiplatform_endpoints_predict_long_running_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_predict_long_running_execute(builder)
 }
 
@@ -2710,7 +2698,7 @@ pub fn aiplatform_endpoints_predict_long_running(
 
 pub fn aiplatform_endpoints_stream_generate_content_builder(
     client: &SimpleHttpClient,
-    model: String,
+    model: &String,
     body: &GoogleCloudAiplatformV1GenerateContentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -2867,11 +2855,8 @@ pub fn aiplatform_endpoints_stream_generate_content(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_endpoints_stream_generate_content_builder(
-        client,
-        args.model.clone(),
-        &args.body,
-    )?;
+    let builder =
+        aiplatform_endpoints_stream_generate_content_builder(client, &args.model, &args.body)?;
     aiplatform_endpoints_stream_generate_content_execute(builder)
 }
 
@@ -2883,7 +2868,7 @@ pub fn aiplatform_endpoints_stream_generate_content(
 
 pub fn aiplatform_endpoints_chat_completions_builder(
     client: &SimpleHttpClient,
-    endpoint: String,
+    endpoint: &String,
     body: &GoogleApiHttpBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -3036,7 +3021,7 @@ pub fn aiplatform_endpoints_chat_completions(
     ApiError,
 > {
     let builder =
-        aiplatform_endpoints_chat_completions_builder(client, args.endpoint.clone(), &args.body)?;
+        aiplatform_endpoints_chat_completions_builder(client, &args.endpoint, &args.body)?;
     aiplatform_endpoints_chat_completions_execute(builder)
 }
 
@@ -3048,27 +3033,27 @@ pub fn aiplatform_endpoints_chat_completions(
 
 pub fn aiplatform_endpoints_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/endpoints/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -3233,11 +3218,11 @@ pub fn aiplatform_endpoints_operations_list(
 > {
     let builder = aiplatform_endpoints_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_endpoints_operations_list_execute(builder)
 }
@@ -3250,27 +3235,27 @@ pub fn aiplatform_endpoints_operations_list(
 
 pub fn aiplatform_featurestores_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/featurestores/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -3435,11 +3420,11 @@ pub fn aiplatform_featurestores_operations_list(
 > {
     let builder = aiplatform_featurestores_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_featurestores_operations_list_execute(builder)
 }
@@ -3452,11 +3437,11 @@ pub fn aiplatform_featurestores_operations_list(
 
 pub fn aiplatform_hyperparameter_tuning_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3464,16 +3449,16 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -3638,11 +3623,11 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_list(
 > {
     let builder = aiplatform_hyperparameter_tuning_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_hyperparameter_tuning_jobs_operations_list_execute(builder)
 }
@@ -3655,11 +3640,11 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_list(
 
 pub fn aiplatform_index_endpoints_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3667,16 +3652,16 @@ pub fn aiplatform_index_endpoints_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -3841,11 +3826,11 @@ pub fn aiplatform_index_endpoints_operations_list(
 > {
     let builder = aiplatform_index_endpoints_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_index_endpoints_operations_list_execute(builder)
 }
@@ -3858,27 +3843,27 @@ pub fn aiplatform_index_endpoints_operations_list(
 
 pub fn aiplatform_indexes_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/indexes/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -4043,11 +4028,11 @@ pub fn aiplatform_indexes_operations_list(
 > {
     let builder = aiplatform_indexes_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_indexes_operations_list_execute(builder)
 }
@@ -4060,11 +4045,11 @@ pub fn aiplatform_indexes_operations_list(
 
 pub fn aiplatform_metadata_stores_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4072,16 +4057,16 @@ pub fn aiplatform_metadata_stores_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -4246,11 +4231,11 @@ pub fn aiplatform_metadata_stores_operations_list(
 > {
     let builder = aiplatform_metadata_stores_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_metadata_stores_operations_list_execute(builder)
 }
@@ -4263,11 +4248,11 @@ pub fn aiplatform_metadata_stores_operations_list(
 
 pub fn aiplatform_migratable_resources_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4275,16 +4260,16 @@ pub fn aiplatform_migratable_resources_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -4449,11 +4434,11 @@ pub fn aiplatform_migratable_resources_operations_list(
 > {
     let builder = aiplatform_migratable_resources_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_migratable_resources_operations_list_execute(builder)
 }
@@ -4466,11 +4451,11 @@ pub fn aiplatform_migratable_resources_operations_list(
 
 pub fn aiplatform_model_deployment_monitoring_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4479,16 +4464,16 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -4653,11 +4638,11 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_list(
 > {
     let builder = aiplatform_model_deployment_monitoring_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_model_deployment_monitoring_jobs_operations_list_execute(builder)
 }
@@ -4670,27 +4655,27 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_list(
 
 pub fn aiplatform_models_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/models/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -4855,11 +4840,11 @@ pub fn aiplatform_models_operations_list(
 > {
     let builder = aiplatform_models_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_models_operations_list_execute(builder)
 }
@@ -4872,11 +4857,11 @@ pub fn aiplatform_models_operations_list(
 
 pub fn aiplatform_notebook_execution_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4884,16 +4869,16 @@ pub fn aiplatform_notebook_execution_jobs_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5058,11 +5043,11 @@ pub fn aiplatform_notebook_execution_jobs_operations_list(
 > {
     let builder = aiplatform_notebook_execution_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_notebook_execution_jobs_operations_list_execute(builder)
 }
@@ -5075,11 +5060,11 @@ pub fn aiplatform_notebook_execution_jobs_operations_list(
 
 pub fn aiplatform_notebook_runtime_templates_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5087,16 +5072,16 @@ pub fn aiplatform_notebook_runtime_templates_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5261,11 +5246,11 @@ pub fn aiplatform_notebook_runtime_templates_operations_list(
 > {
     let builder = aiplatform_notebook_runtime_templates_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_notebook_runtime_templates_operations_list_execute(builder)
 }
@@ -5278,11 +5263,11 @@ pub fn aiplatform_notebook_runtime_templates_operations_list(
 
 pub fn aiplatform_notebook_runtimes_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5290,16 +5275,16 @@ pub fn aiplatform_notebook_runtimes_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5464,11 +5449,11 @@ pub fn aiplatform_notebook_runtimes_operations_list(
 > {
     let builder = aiplatform_notebook_runtimes_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_notebook_runtimes_operations_list_execute(builder)
 }
@@ -5481,7 +5466,7 @@ pub fn aiplatform_notebook_runtimes_operations_list(
 
 pub fn aiplatform_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations/{}:cancel",);
@@ -5627,7 +5612,7 @@ pub fn aiplatform_operations_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_operations_cancel_builder(client, args.name.clone())?;
+    let builder = aiplatform_operations_cancel_builder(client, &args.name)?;
     aiplatform_operations_cancel_execute(builder)
 }
 
@@ -5639,7 +5624,7 @@ pub fn aiplatform_operations_cancel(
 
 pub fn aiplatform_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations/{}",);
@@ -5785,7 +5770,7 @@ pub fn aiplatform_operations_delete(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_operations_delete_builder(client, args.name.clone())?;
+    let builder = aiplatform_operations_delete_builder(client, &args.name)?;
     aiplatform_operations_delete_execute(builder)
 }
 
@@ -5797,30 +5782,30 @@ pub fn aiplatform_operations_delete(
 
 pub fn aiplatform_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<String>,
-    name: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = name {
+    if let Some(val) = name.as_ref() {
         query_parts.push(format!("name={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -5985,11 +5970,11 @@ pub fn aiplatform_operations_list(
 > {
     let builder = aiplatform_operations_list_builder(
         client,
-        args.filter.clone(),
-        args.name.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.filter,
+        &args.name,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_operations_list_execute(builder)
 }
@@ -6002,15 +5987,15 @@ pub fn aiplatform_operations_list(
 
 pub fn aiplatform_operations_wait_builder(
     client: &SimpleHttpClient,
-    name: String,
-    timeout: Option<String>,
+    name: &String,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/operations/{}:wait",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = timeout {
+    if let Some(val) = timeout.as_ref() {
         query_parts.push(format!("timeout={}", val));
     }
 
@@ -6166,8 +6151,7 @@ pub fn aiplatform_operations_wait(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_operations_wait_builder(client, args.name.clone(), args.timeout.clone())?;
+    let builder = aiplatform_operations_wait_builder(client, &args.name, &args.timeout)?;
     aiplatform_operations_wait_execute(builder)
 }
 
@@ -6179,11 +6163,11 @@ pub fn aiplatform_operations_wait(
 
 pub fn aiplatform_persistent_resources_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6191,16 +6175,16 @@ pub fn aiplatform_persistent_resources_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -6365,11 +6349,11 @@ pub fn aiplatform_persistent_resources_operations_list(
 > {
     let builder = aiplatform_persistent_resources_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_persistent_resources_operations_list_execute(builder)
 }
@@ -6382,27 +6366,27 @@ pub fn aiplatform_persistent_resources_operations_list(
 
 pub fn aiplatform_pipeline_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/pipelineJobs/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -6567,11 +6551,11 @@ pub fn aiplatform_pipeline_jobs_operations_list(
 > {
     let builder = aiplatform_pipeline_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_pipeline_jobs_operations_list_execute(builder)
 }
@@ -6584,7 +6568,7 @@ pub fn aiplatform_pipeline_jobs_operations_list(
 
 pub fn aiplatform_projects_get_cache_config_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/projects/{}/cacheConfig",);
@@ -6734,7 +6718,7 @@ pub fn aiplatform_projects_get_cache_config(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_projects_get_cache_config_builder(client, args.name.clone())?;
+    let builder = aiplatform_projects_get_cache_config_builder(client, &args.name)?;
     aiplatform_projects_get_cache_config_execute(builder)
 }
 
@@ -6746,27 +6730,27 @@ pub fn aiplatform_projects_get_cache_config(
 
 pub fn aiplatform_projects_locations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    extraLocationTypes: Option<String>,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    name: &String,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/projects/{}/locations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = extraLocationTypes {
+    if let Some(val) = extraLocationTypes.as_ref() {
         query_parts.push(format!("extraLocationTypes={}", val));
     }
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -6930,11 +6914,11 @@ pub fn aiplatform_projects_locations_list(
 > {
     let builder = aiplatform_projects_locations_list_builder(
         client,
-        args.name.clone(),
-        args.extraLocationTypes.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.name,
+        &args.extraLocationTypes,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     aiplatform_projects_locations_list_execute(builder)
 }
@@ -6947,27 +6931,27 @@ pub fn aiplatform_projects_locations_list(
 
 pub fn aiplatform_rag_corpora_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/ragCorpora/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -7132,11 +7116,11 @@ pub fn aiplatform_rag_corpora_operations_list(
 > {
     let builder = aiplatform_rag_corpora_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_rag_corpora_operations_list_execute(builder)
 }
@@ -7149,7 +7133,7 @@ pub fn aiplatform_rag_corpora_operations_list(
 
 pub fn aiplatform_rag_engine_config_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -7296,8 +7280,7 @@ pub fn aiplatform_rag_engine_config_operations_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_rag_engine_config_operations_cancel_builder(client, args.name.clone())?;
+    let builder = aiplatform_rag_engine_config_operations_cancel_builder(client, &args.name)?;
     aiplatform_rag_engine_config_operations_cancel_execute(builder)
 }
 
@@ -7309,7 +7292,7 @@ pub fn aiplatform_rag_engine_config_operations_cancel(
 
 pub fn aiplatform_rag_engine_config_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -7456,8 +7439,7 @@ pub fn aiplatform_rag_engine_config_operations_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_rag_engine_config_operations_delete_builder(client, args.name.clone())?;
+    let builder = aiplatform_rag_engine_config_operations_delete_builder(client, &args.name)?;
     aiplatform_rag_engine_config_operations_delete_execute(builder)
 }
 
@@ -7469,8 +7451,8 @@ pub fn aiplatform_rag_engine_config_operations_delete(
 
 pub fn aiplatform_rag_engine_config_operations_wait_builder(
     client: &SimpleHttpClient,
-    name: String,
-    timeout: Option<String>,
+    name: &String,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -7478,7 +7460,7 @@ pub fn aiplatform_rag_engine_config_operations_wait_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = timeout {
+    if let Some(val) = timeout.as_ref() {
         query_parts.push(format!("timeout={}", val));
     }
 
@@ -7634,11 +7616,8 @@ pub fn aiplatform_rag_engine_config_operations_wait(
         + 'static,
     ApiError,
 > {
-    let builder = aiplatform_rag_engine_config_operations_wait_builder(
-        client,
-        args.name.clone(),
-        args.timeout.clone(),
-    )?;
+    let builder =
+        aiplatform_rag_engine_config_operations_wait_builder(client, &args.name, &args.timeout)?;
     aiplatform_rag_engine_config_operations_wait_execute(builder)
 }
 
@@ -7650,7 +7629,7 @@ pub fn aiplatform_rag_engine_config_operations_wait(
 
 pub fn aiplatform_reasoning_engines_create_builder(
     client: &SimpleHttpClient,
-    parent: Option<String>,
+    parent: &Option<String>,
     body: &GoogleCloudAiplatformV1ReasoningEngine,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -7658,7 +7637,7 @@ pub fn aiplatform_reasoning_engines_create_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = parent {
+    if let Some(val) = parent.as_ref() {
         query_parts.push(format!("parent={}", val));
     }
 
@@ -7816,8 +7795,7 @@ pub fn aiplatform_reasoning_engines_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_reasoning_engines_create_builder(client, args.parent.clone(), &args.body)?;
+    let builder = aiplatform_reasoning_engines_create_builder(client, &args.parent, &args.body)?;
     aiplatform_reasoning_engines_create_execute(builder)
 }
 
@@ -7829,15 +7807,15 @@ pub fn aiplatform_reasoning_engines_create(
 
 pub fn aiplatform_reasoning_engines_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
-    force: Option<bool>,
+    name: &String,
+    force: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/reasoningEngines/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = force {
+    if let Some(val) = force.as_ref() {
         query_parts.push(format!("force={}", val));
     }
 
@@ -7993,8 +7971,7 @@ pub fn aiplatform_reasoning_engines_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_reasoning_engines_delete_builder(client, args.name.clone(), args.force.clone())?;
+    let builder = aiplatform_reasoning_engines_delete_builder(client, &args.name, &args.force)?;
     aiplatform_reasoning_engines_delete_execute(builder)
 }
 
@@ -8006,7 +7983,7 @@ pub fn aiplatform_reasoning_engines_delete(
 
 pub fn aiplatform_reasoning_engines_execute_code_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudAiplatformV1ExecuteCodeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8164,7 +8141,7 @@ pub fn aiplatform_reasoning_engines_execute_code(
     ApiError,
 > {
     let builder =
-        aiplatform_reasoning_engines_execute_code_builder(client, args.name.clone(), &args.body)?;
+        aiplatform_reasoning_engines_execute_code_builder(client, &args.name, &args.body)?;
     aiplatform_reasoning_engines_execute_code_execute(builder)
 }
 
@@ -8176,7 +8153,7 @@ pub fn aiplatform_reasoning_engines_execute_code(
 
 pub fn aiplatform_reasoning_engines_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudAiplatformV1QueryReasoningEngineRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8335,8 +8312,7 @@ pub fn aiplatform_reasoning_engines_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        aiplatform_reasoning_engines_query_builder(client, args.name.clone(), &args.body)?;
+    let builder = aiplatform_reasoning_engines_query_builder(client, &args.name, &args.body)?;
     aiplatform_reasoning_engines_query_execute(builder)
 }
 
@@ -8348,7 +8324,7 @@ pub fn aiplatform_reasoning_engines_query(
 
 pub fn aiplatform_reasoning_engines_stream_query_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &GoogleCloudAiplatformV1StreamQueryReasoningEngineRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8501,7 +8477,7 @@ pub fn aiplatform_reasoning_engines_stream_query(
     ApiError,
 > {
     let builder =
-        aiplatform_reasoning_engines_stream_query_builder(client, args.name.clone(), &args.body)?;
+        aiplatform_reasoning_engines_stream_query_builder(client, &args.name, &args.body)?;
     aiplatform_reasoning_engines_stream_query_execute(builder)
 }
 
@@ -8513,11 +8489,11 @@ pub fn aiplatform_reasoning_engines_stream_query(
 
 pub fn aiplatform_reasoning_engines_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -8525,16 +8501,16 @@ pub fn aiplatform_reasoning_engines_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -8699,11 +8675,11 @@ pub fn aiplatform_reasoning_engines_operations_list(
 > {
     let builder = aiplatform_reasoning_engines_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_reasoning_engines_operations_list_execute(builder)
 }
@@ -8716,7 +8692,7 @@ pub fn aiplatform_reasoning_engines_operations_list(
 
 pub fn aiplatform_reasoning_engines_sandbox_environments_create_builder(
     client: &SimpleHttpClient,
-    parent: String,
+    parent: &String,
     body: &GoogleCloudAiplatformV1SandboxEnvironment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -8874,7 +8850,7 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_create(
 > {
     let builder = aiplatform_reasoning_engines_sandbox_environments_create_builder(
         client,
-        args.parent.clone(),
+        &args.parent,
         &args.body,
     )?;
     aiplatform_reasoning_engines_sandbox_environments_create_execute(builder)
@@ -8888,27 +8864,27 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_create(
 
 pub fn aiplatform_schedules_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/schedules/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -9073,11 +9049,11 @@ pub fn aiplatform_schedules_operations_list(
 > {
     let builder = aiplatform_schedules_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_schedules_operations_list_execute(builder)
 }
@@ -9090,11 +9066,11 @@ pub fn aiplatform_schedules_operations_list(
 
 pub fn aiplatform_specialist_pools_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -9102,16 +9078,16 @@ pub fn aiplatform_specialist_pools_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -9276,11 +9252,11 @@ pub fn aiplatform_specialist_pools_operations_list(
 > {
     let builder = aiplatform_specialist_pools_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_specialist_pools_operations_list_execute(builder)
 }
@@ -9293,27 +9269,27 @@ pub fn aiplatform_specialist_pools_operations_list(
 
 pub fn aiplatform_studies_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/studies/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -9478,11 +9454,11 @@ pub fn aiplatform_studies_operations_list(
 > {
     let builder = aiplatform_studies_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_studies_operations_list_execute(builder)
 }
@@ -9495,27 +9471,27 @@ pub fn aiplatform_studies_operations_list(
 
 pub fn aiplatform_tensorboards_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/tensorboards/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -9680,11 +9656,11 @@ pub fn aiplatform_tensorboards_operations_list(
 > {
     let builder = aiplatform_tensorboards_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_tensorboards_operations_list_execute(builder)
 }
@@ -9697,11 +9673,11 @@ pub fn aiplatform_tensorboards_operations_list(
 
 pub fn aiplatform_training_pipelines_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -9709,16 +9685,16 @@ pub fn aiplatform_training_pipelines_operations_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -9883,11 +9859,11 @@ pub fn aiplatform_training_pipelines_operations_list(
 > {
     let builder = aiplatform_training_pipelines_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_training_pipelines_operations_list_execute(builder)
 }
@@ -9900,27 +9876,27 @@ pub fn aiplatform_training_pipelines_operations_list(
 
 pub fn aiplatform_tuning_jobs_operations_list_builder(
     client: &SimpleHttpClient,
-    name: String,
-    filter: Option<String>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    returnPartialSuccess: Option<bool>,
+    name: &String,
+    filter: &Option<String>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://aiplatform.googleapis.com/v1/tuningJobs/{}/operations",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = filter {
+    if let Some(val) = filter.as_ref() {
         query_parts.push(format!("filter={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess {
+    if let Some(val) = returnPartialSuccess.as_ref() {
         query_parts.push(format!("returnPartialSuccess={}", val));
     }
 
@@ -10085,11 +10061,11 @@ pub fn aiplatform_tuning_jobs_operations_list(
 > {
     let builder = aiplatform_tuning_jobs_operations_list_builder(
         client,
-        args.name.clone(),
-        args.filter.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.returnPartialSuccess.clone(),
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
     )?;
     aiplatform_tuning_jobs_operations_list_execute(builder)
 }

@@ -193,7 +193,7 @@ pub fn searchads360_customers_list_accessible_customers(
 
 pub fn searchads360_customers_custom_columns_list_builder(
     client: &SimpleHttpClient,
-    customerId: String,
+    customerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -354,8 +354,7 @@ pub fn searchads360_customers_custom_columns_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        searchads360_customers_custom_columns_list_builder(client, args.customerId.clone())?;
+    let builder = searchads360_customers_custom_columns_list_builder(client, &args.customerId)?;
     searchads360_customers_custom_columns_list_execute(builder)
 }
 
@@ -367,7 +366,7 @@ pub fn searchads360_customers_custom_columns_list(
 
 pub fn searchads360_customers_search_ads360_search_builder(
     client: &SimpleHttpClient,
-    customerId: String,
+    customerId: &String,
     body: &GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -533,11 +532,8 @@ pub fn searchads360_customers_search_ads360_search(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_customers_search_ads360_search_builder(
-        client,
-        args.customerId.clone(),
-        &args.body,
-    )?;
+    let builder =
+        searchads360_customers_search_ads360_search_builder(client, &args.customerId, &args.body)?;
     searchads360_customers_search_ads360_search_execute(builder)
 }
 
@@ -549,7 +545,7 @@ pub fn searchads360_customers_search_ads360_search(
 
 pub fn searchads360_search_ads360_fields_get_builder(
     client: &SimpleHttpClient,
-    resourceName: String,
+    resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields/{}",);
@@ -703,7 +699,7 @@ pub fn searchads360_search_ads360_fields_get(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_search_ads360_fields_get_builder(client, args.resourceName.clone())?;
+    let builder = searchads360_search_ads360_fields_get_builder(client, &args.resourceName)?;
     searchads360_search_ads360_fields_get_execute(builder)
 }
 

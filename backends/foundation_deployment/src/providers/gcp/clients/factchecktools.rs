@@ -29,11 +29,11 @@ use serde::Serialize;
 
 pub fn factchecktools_claims_image_search_builder(
     client: &SimpleHttpClient,
-    imageUri: Option<String>,
-    languageCode: Option<String>,
-    offset: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    imageUri: &Option<String>,
+    languageCode: &Option<String>,
+    offset: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -41,19 +41,19 @@ pub fn factchecktools_claims_image_search_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = imageUri {
+    if let Some(val) = imageUri.as_ref() {
         query_parts.push(format!("imageUri={}", val));
     }
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = offset {
+    if let Some(val) = offset.as_ref() {
         query_parts.push(format!("offset={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -227,11 +227,11 @@ pub fn factchecktools_claims_image_search(
 > {
     let builder = factchecktools_claims_image_search_builder(
         client,
-        args.imageUri.clone(),
-        args.languageCode.clone(),
-        args.offset.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.imageUri,
+        &args.languageCode,
+        &args.offset,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     factchecktools_claims_image_search_execute(builder)
 }
@@ -244,38 +244,38 @@ pub fn factchecktools_claims_image_search(
 
 pub fn factchecktools_claims_search_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<String>,
-    maxAgeDays: Option<i32>,
-    offset: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
-    query: Option<String>,
-    reviewPublisherSiteFilter: Option<String>,
+    languageCode: &Option<String>,
+    maxAgeDays: &Option<i32>,
+    offset: &Option<i32>,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    reviewPublisherSiteFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/claims:search",);
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
+    if let Some(val) = languageCode.as_ref() {
         query_parts.push(format!("languageCode={}", val));
     }
-    if let Some(val) = maxAgeDays {
+    if let Some(val) = maxAgeDays.as_ref() {
         query_parts.push(format!("maxAgeDays={}", val));
     }
-    if let Some(val) = offset {
+    if let Some(val) = offset.as_ref() {
         query_parts.push(format!("offset={}", val));
     }
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = query {
+    if let Some(val) = query.as_ref() {
         query_parts.push(format!("query={}", val));
     }
-    if let Some(val) = reviewPublisherSiteFilter {
+    if let Some(val) = reviewPublisherSiteFilter.as_ref() {
         query_parts.push(format!("reviewPublisherSiteFilter={}", val));
     }
 
@@ -452,13 +452,13 @@ pub fn factchecktools_claims_search(
 > {
     let builder = factchecktools_claims_search_builder(
         client,
-        args.languageCode.clone(),
-        args.maxAgeDays.clone(),
-        args.offset.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
-        args.query.clone(),
-        args.reviewPublisherSiteFilter.clone(),
+        &args.languageCode,
+        &args.maxAgeDays,
+        &args.offset,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.reviewPublisherSiteFilter,
     )?;
     factchecktools_claims_search_execute(builder)
 }
@@ -645,7 +645,7 @@ pub fn factchecktools_pages_create(
 
 pub fn factchecktools_pages_delete_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://factchecktools.googleapis.com/v1alpha1/pages/{}",);
@@ -791,6 +791,6 @@ pub fn factchecktools_pages_delete(
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_delete_builder(client, args.name.clone())?;
+    let builder = factchecktools_pages_delete_builder(client, &args.name)?;
     factchecktools_pages_delete_execute(builder)
 }

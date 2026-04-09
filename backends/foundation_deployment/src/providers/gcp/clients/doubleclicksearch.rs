@@ -513,12 +513,12 @@ pub fn doubleclicksearch_reports_generate(
 
 pub fn doubleclicksearch_reports_get_builder(
     client: &SimpleHttpClient,
-    reportId: String,
+    reportId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}",
-        reportId.as_str(),
+        reportId,
     );
 
     // Build request
@@ -658,7 +658,7 @@ pub fn doubleclicksearch_reports_get(
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_get_builder(client, args.reportId.clone())?;
+    let builder = doubleclicksearch_reports_get_builder(client, &args.reportId)?;
     doubleclicksearch_reports_get_execute(builder)
 }
 
@@ -670,14 +670,13 @@ pub fn doubleclicksearch_reports_get(
 
 pub fn doubleclicksearch_reports_get_file_builder(
     client: &SimpleHttpClient,
-    reportId: String,
-    reportFragment: String,
+    reportId: &String,
+    reportFragment: &i32,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/reports/{}/files/{}",
-        reportId.as_str(),
-        reportFragment.as_str(),
+        reportId, reportFragment,
     );
 
     // Build request
@@ -795,7 +794,7 @@ pub struct DoubleclicksearchReportsGetFileArgs {
     /// Path parameter: reportId
     pub reportId: String,
     /// Path parameter: reportFragment
-    pub reportFragment: String,
+    pub reportFragment: i32,
 }
 
 /// GET doubleclicksearch/v2/reports/{reportId}/files/{reportFragment}
@@ -816,11 +815,8 @@ pub fn doubleclicksearch_reports_get_file(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_get_file_builder(
-        client,
-        args.reportId.clone(),
-        args.reportFragment.clone(),
-    )?;
+    let builder =
+        doubleclicksearch_reports_get_file_builder(client, &args.reportId, &args.reportFragment)?;
     doubleclicksearch_reports_get_file_execute(builder)
 }
 
@@ -832,14 +828,14 @@ pub fn doubleclicksearch_reports_get_file(
 
 pub fn doubleclicksearch_reports_get_id_mapping_file_builder(
     client: &SimpleHttpClient,
-    agencyId: String,
-    advertiserId: String,
+    agencyId: &String,
+    advertiserId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/idmapping",
-        agencyId.as_str(),
-        advertiserId.as_str(),
+        agencyId,
+        advertiserId,
     );
 
     // Build request
@@ -987,8 +983,8 @@ pub fn doubleclicksearch_reports_get_id_mapping_file(
 > {
     let builder = doubleclicksearch_reports_get_id_mapping_file_builder(
         client,
-        args.agencyId.clone(),
-        args.advertiserId.clone(),
+        &args.agencyId,
+        &args.advertiserId,
     )?;
     doubleclicksearch_reports_get_id_mapping_file_execute(builder)
 }
@@ -1158,14 +1154,14 @@ pub fn doubleclicksearch_reports_request(
 
 pub fn doubleclicksearch_saved_columns_list_builder(
     client: &SimpleHttpClient,
-    agencyId: String,
-    advertiserId: String,
+    agencyId: &String,
+    advertiserId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://doubleclicksearch.googleapis.com/doubleclicksearch/v2/agency/{}/advertiser/{}/savedcolumns",
-        agencyId.as_str(),
-        advertiserId.as_str(),
+        agencyId,
+        advertiserId,
     );
 
     // Build request
@@ -1311,10 +1307,7 @@ pub fn doubleclicksearch_saved_columns_list(
         + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_saved_columns_list_builder(
-        client,
-        args.agencyId.clone(),
-        args.advertiserId.clone(),
-    )?;
+    let builder =
+        doubleclicksearch_saved_columns_list_builder(client, &args.agencyId, &args.advertiserId)?;
     doubleclicksearch_saved_columns_list_execute(builder)
 }

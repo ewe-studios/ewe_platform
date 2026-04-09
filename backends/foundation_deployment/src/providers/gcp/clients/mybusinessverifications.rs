@@ -29,7 +29,7 @@ use serde::Serialize;
 
 pub fn mybusinessverifications_locations_fetch_verification_options_builder(
     client: &SimpleHttpClient,
-    location: String,
+    location: &String,
     body: &FetchVerificationOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -188,7 +188,7 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
 > {
     let builder = mybusinessverifications_locations_fetch_verification_options_builder(
         client,
-        args.location.clone(),
+        &args.location,
         &args.body,
     )?;
     mybusinessverifications_locations_fetch_verification_options_execute(builder)
@@ -202,7 +202,7 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
 
 pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -350,10 +350,8 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_locations_get_voice_of_merchant_state_builder(
-        client,
-        args.name.clone(),
-    )?;
+    let builder =
+        mybusinessverifications_locations_get_voice_of_merchant_state_builder(client, &args.name)?;
     mybusinessverifications_locations_get_voice_of_merchant_state_execute(builder)
 }
 
@@ -365,7 +363,7 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
 
 pub fn mybusinessverifications_locations_verify_builder(
     client: &SimpleHttpClient,
-    name: String,
+    name: &String,
     body: &VerifyLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
@@ -517,8 +515,7 @@ pub fn mybusinessverifications_locations_verify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessverifications_locations_verify_builder(client, args.name.clone(), &args.body)?;
+    let builder = mybusinessverifications_locations_verify_builder(client, &args.name, &args.body)?;
     mybusinessverifications_locations_verify_execute(builder)
 }
 
@@ -530,9 +527,9 @@ pub fn mybusinessverifications_locations_verify(
 
 pub fn mybusinessverifications_locations_verifications_list_builder(
     client: &SimpleHttpClient,
-    parent: String,
-    pageSize: Option<i32>,
-    pageToken: Option<String>,
+    parent: &String,
+    pageSize: &Option<i32>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -540,10 +537,10 @@ pub fn mybusinessverifications_locations_verifications_list_builder(
 
     // Build request
     let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
+    if let Some(val) = pageSize.as_ref() {
         query_parts.push(format!("pageSize={}", val));
     }
-    if let Some(val) = pageToken {
+    if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
 
@@ -699,9 +696,9 @@ pub fn mybusinessverifications_locations_verifications_list(
 > {
     let builder = mybusinessverifications_locations_verifications_list_builder(
         client,
-        args.parent.clone(),
-        args.pageSize.clone(),
-        args.pageToken.clone(),
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
     )?;
     mybusinessverifications_locations_verifications_list_execute(builder)
 }
